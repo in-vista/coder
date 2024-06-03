@@ -1162,7 +1162,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                     SELECT permission.permissions, permission.entity_property_id
                                     FROM {WiserTableNames.WiserUserRoles} userRole
                                     JOIN {WiserTableNames.WiserRoles} role ON role.id = userRole.role_id
-                                    LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = role.id AND permission.entity_property_id > 0
+                                    JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = role.id AND permission.entity_property_id > 0
                                     WHERE userRole.user_id = ?userId
                                 ) permission ON permission.entity_property_id = e.id OR permission.entity_property_id IS NULL
 
@@ -1196,7 +1196,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                     SELECT permission.permissions, permission.entity_property_id
                                     FROM {WiserTableNames.WiserUserRoles} userRole
                                     JOIN {WiserTableNames.WiserRoles} role ON role.id = userRole.role_id
-                                    LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = role.id AND permission.entity_property_id > 0
+                                    JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = role.id AND permission.entity_property_id > 0
                                     WHERE userRole.user_id = ?userId
                                 ) permission ON permission.entity_property_id = e.id OR permission.entity_property_id IS NULL
 
