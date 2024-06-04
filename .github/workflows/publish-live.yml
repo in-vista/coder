@@ -8,7 +8,7 @@ on:
 jobs:
   build:
 
-    runs-on: fixerjclv2
+    runs-on: cluster1_transip
 
     steps:
     - uses: actions/checkout@v4
