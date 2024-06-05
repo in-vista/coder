@@ -36,27 +36,19 @@ jobs:
     - name: Install NPM modules
       run: npm install
       working-directory: 'FrontEnd'
-  kendo-license:
-    runs-on: cluster1_transip
-    needs: build
 
-    steps:
-    - name: Echo Kendo UI license
-      run: echo "$LICENSE"
+    - name: Expose Kendo UI License for Debugging
+      run: |
+        echo "Kendo UI License: ${{ secrets.KENDO_UI_LICENSE }}"
       env:
-        LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
-        
+        KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
+
     - name: Activate Kendo UI License
       run: npx kendo-ui-license activate
       working-directory: 'FrontEnd'
       env:
         KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
-  publish:
-    runs-on: cluster1_transip
-    environment: Development
-    needs: [build, kendo-license]
-
-    steps:
+        
     - name: Compile scripts and styles with webpack
       run: node_modules\.bin\webpack --mode=development
       working-directory: 'FrontEnd'
