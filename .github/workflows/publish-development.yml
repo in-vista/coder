@@ -36,12 +36,6 @@ jobs:
     - name: Install NPM modules
       run: npm install
       working-directory: 'FrontEnd'
-
-    - name: Activate Kendo UI License
-      run: npx kendo-ui-license activate
-      working-directory: 'FrontEnd'
-      env:
-        KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
   kendo-license:
     runs-on: cluster1_transip
     needs: build
