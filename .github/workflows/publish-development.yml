@@ -11,6 +11,12 @@ jobs:
     environment: Development
 
     steps:
+    - name: Echo Kendo UI license
+      run: 'echo "$LICENSE"'
+      shell: bash
+      env:
+        LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
+    
     - name: Checkout
       uses: actions/checkout@v4
     
