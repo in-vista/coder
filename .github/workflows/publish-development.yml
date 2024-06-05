@@ -40,9 +40,10 @@ jobs:
     - name: Write Kendo UI license to file
       run: echo "${{ secrets.KENDO_UI_LICENSE }}" > "./FrontEnd/kendo-ui-license.txt"
 
-    - name: Activate Kendo UI License
-      run: npx kendo-ui-license activate
-      working-directory: 'FrontEnd'
+    # Disabled for now, due to the error "License key signature is not valid" appearing when running the command
+    # - name: Activate Kendo UI License
+    #   run: npx kendo-ui-license activate
+    #   working-directory: 'FrontEnd'
         
     - name: Compile scripts and styles with webpack
       run: node_modules\.bin\webpack --mode=development
