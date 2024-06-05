@@ -37,13 +37,6 @@ jobs:
       run: npm install
       working-directory: 'FrontEnd'
 
-    - name: Expose Kendo UI License for Debugging
-      run: |
-        echo "${{ secrets.KENDO_UI_LICENSE }}" > kendo_ui_license.txt
-        cat kendo_ui_license.txt
-      env:
-        KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
-
     - name: Activate Kendo UI License
       run: npx kendo-ui-license activate
       working-directory: 'FrontEnd'
