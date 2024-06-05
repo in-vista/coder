@@ -37,6 +37,10 @@ jobs:
       run: npm install
       working-directory: 'FrontEnd'
 
+    - name: Clear NPM cache
+      run: npm cache clean
+      working-directory: 'FrontEnd'
+
     - name: Activate Kendo UI License
       run: npx kendo-ui-license activate
       working-directory: 'FrontEnd'
