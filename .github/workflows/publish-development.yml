@@ -11,12 +11,6 @@ jobs:
     environment: Development
 
     steps:
-    - name: Echo Kendo UI license
-      run: |
-        echo $LICENSE
-      env:
-        LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
-    
     - name: Checkout
       uses: actions/checkout@v4
     
@@ -48,7 +42,28 @@ jobs:
       working-directory: 'FrontEnd'
       env:
         KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
-                
+  kendo-license:
+    runs-on: cluster1_transip
+    needs: build
+
+    steps:
+    - name: Echo Kendo UI license
+      run: |
+        echo $LICENSE
+      env:
+        LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
+        
+    - name: Activate Kendo UI License
+      run: npx kendo-ui-license activate
+      working-directory: 'FrontEnd'
+      env:
+        KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
+  publish:
+    runs-on: cluster1_transip
+    environment: Development
+    needs: [build, kendo-license]
+
+    steps:
     - name: Compile scripts and styles with webpack
       run: node_modules\.bin\webpack --mode=development
       working-directory: 'FrontEnd'
