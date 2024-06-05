@@ -68,7 +68,7 @@ if (typeof options.dataSource === "string") {
             kendo.alert(`Onbekende datasource ('${options.dataSource}') opgegeven bij combobox-veld ('{title}'). Neem a.u.b. contact op met ons.`);
             break;
     }
-} else if (options.entityType) {
+} else if (options.entityType && !fieldOptions.useDataQuery) {
     const searchEverywhere = options.searchEverywhere && (options.searchEverywhere > 0 || options.searchEverywhere.toLowerCase() === "true");
     const searchFields = options.searchFields || [];
     const searchInTitle = typeof options.searchInTitle === "undefined" || options.searchInTitle === null || options.searchInTitle === true || options.searchInTitle === "true" || options.searchInTitle > 0;
