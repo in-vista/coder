@@ -42,8 +42,7 @@ jobs:
 
     steps:
     - name: Echo Kendo UI license
-      run: |
-        echo $LICENSE
+      run: echo "$LICENSE"
       env:
         LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
         
