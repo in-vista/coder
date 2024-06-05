@@ -9,7 +9,7 @@ jobs:
   build:
 
     runs-on: cluster1_transip
-    environment: Development
+    environment: Live
 
     steps:
     - uses: actions/checkout@v4
