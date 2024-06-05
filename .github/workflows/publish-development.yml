@@ -37,11 +37,12 @@ jobs:
       run: npm install
       working-directory: 'FrontEnd'
 
+    - name: Write Kendo UI license to file
+      run: echo "${{ secrets.KENDO_UI_LICENSE }}" >> "${{ secrets.WORKER_LOCATION }}\coder\coder\FrontEnd\kendo-ui-license.txt"
+
     - name: Activate Kendo UI License
       run: npx kendo-ui-license activate
       working-directory: 'FrontEnd'
-      env:
-        KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
         
     - name: Compile scripts and styles with webpack
       run: node_modules\.bin\webpack --mode=development
