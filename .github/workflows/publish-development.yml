@@ -38,7 +38,7 @@ jobs:
       working-directory: 'FrontEnd'
 
     - name: Write Kendo UI license to file
-      run: echo "${{ secrets.KENDO_UI_LICENSE }}" >> "${{ secrets.WORKER_LOCATION }}\coder\coder\FrontEnd\kendo-ui-license.txt"
+      run: echo "${{ secrets.KENDO_UI_LICENSE }}" > "${{ secrets.WORKER_LOCATION }}\coder\coder\FrontEnd\kendo-ui-license.txt"
 
     - name: Activate Kendo UI License
       run: npx kendo-ui-license activate
