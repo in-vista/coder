@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FrontEnd", "FrontEnd\FrontE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wiser.Tests", "Wiser.Tests\Wiser.Tests.csproj", "{93504FCB-A4D9-4540-812D-868222B43D23}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeeksCoreLibrary", "..\..\invista-core-library\GeeksCoreLibrary\GeeksCoreLibrary.csproj", "{E3AAEEB7-F1A6-47D1-8563-FA4104FAED46}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeeksCoreLibrary", "C:\invista-core-library\GeeksCoreLibrary\GeeksCoreLibrary.csproj", "{E3AAEEB7-F1A6-47D1-8563-FA4104FAED46}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
