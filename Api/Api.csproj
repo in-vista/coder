@@ -188,7 +188,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\invista-core-library\GeeksCoreLibrary\GeeksCoreLibrary.csproj" />
+    <ProjectReference Include="C:\invista-core-library\GeeksCoreLibrary\GeeksCoreLibrary.csproj" />
   </ItemGroup>
 
 </Project>
