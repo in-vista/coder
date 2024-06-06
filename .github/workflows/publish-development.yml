@@ -6,39 +6,77 @@ on:
     - develop
 
 jobs:
-  build:
+  build-icl:
     runs-on: cluster1_transip
     environment: Development
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        repository: in-vista/invista-core-library
+        path: invista-core-library
+
+    - name: Restore dependencies
+      run: dotnet restore
+      working-directory: invista-core-library
+
+    - name: Build
+      run: dotnet build --no-restore
+      working-directory: invista-core-library
+
+    - name: Empty destination folder
+      run: |
+        $folderPath = "C:\invista-core-library"
+        if (-Not (Test-Path -Path $folderPath)) {
+          New-Item -ItemType Directory -Path $folderPath
+        } else {
+          Remove-Item -Path "$folderPath\*" -Force -Recurse
+        }
+
+    - name: Copy files to destination folder
+      run: Copy-Item -Path "${{ secrets.WORKER_LOCATION }}\invista-core-library\*" -Destination "C:\invista-core-library" -Recurse
+  build-coder:
+    runs-on: cluster1_transip
+    environment: Development
+    needs: [build-icl]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: coder
     
     - name: Restore dependencies
       run: dotnet restore
+      working-directory: coder
       
     - name: Copy partner styles
       run: Copy-Item -Path "${{ secrets.PARTNER_STYLES_LOCATION }}\*" -Destination "${{ secrets.WORKER_LOCATION }}\coder\coder\FrontEnd\Core\Css\partner" -Recurse
       
     - name: Build
       run: dotnet build --no-restore
+      working-directory: coder
       
     - name: Enable maintenance notice API
       run: Rename-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\_App_Offline.htm" -NewName "App_Offline.htm"
+      working-directory: coder
       
     - name: Enable maintenance notice FrontEnd
       run: Rename-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\_App_Offline.htm" -NewName "App_Offline.htm"
+      working-directory: coder
 
     - name: dotnet publish API
       run: |
         dotnet publish API -c Release -o "${{ secrets.PUBLISH_LOCATION_API }}" --self-contained true  -r win-x64 /p:EnvironmentName=Development
+      working-directory: coder
 
     - name: Install NPM modules
       run: npm install
-      working-directory: 'FrontEnd'
+      working-directory: 'coder\FrontEnd'
 
     - name: Write Kendo UI license to file
-      run: echo "${{ secrets.KENDO_UI_LICENSE }}" > "./FrontEnd/kendo-ui-license.txt"
+      run: echo "${{ secrets.KENDO_UI_LICENSE }}" > "../coder/FrontEnd/kendo-ui-license.txt"
 
     # Disabled for now, due to the error "License key signature is not valid" appearing when running the command
     # - name: Activate Kendo UI License
@@ -47,11 +85,12 @@ jobs:
         
     - name: Compile scripts and styles with webpack
       run: node_modules\.bin\webpack --mode=development
-      working-directory: 'FrontEnd'
+      working-directory: 'coder/FrontEnd'
 
     - name: dotnet publish front-end
       run: |
         dotnet publish FrontEnd -c Release -o "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" --self-contained true  -r win-x64 /p:EnvironmentName=Development
+      working-directory: coder
       
     - name: Disable maintenance notice API
       if: ${{ always() }}
