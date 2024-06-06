@@ -35,7 +35,7 @@ jobs:
         }
 
     - name: Copy files to destination folder
-      run: Copy-Item -Path "${{ secrets.WORKER_LOCATION }}\invista-core-library\*" -Destination "C:\invista-core-library" -Recurse
+      run: Copy-Item -Path "${{ secrets.WORKER_LOCATION }}\coder\coder\invista-core-library\*" -Destination "C:\invista-core-library" -Recurse
   build-coder:
     runs-on: cluster1_transip
     environment: Development
@@ -52,7 +52,7 @@ jobs:
       working-directory: coder
       
     - name: Copy partner styles
-      run: Copy-Item -Path "${{ secrets.PARTNER_STYLES_LOCATION }}\*" -Destination "${{ secrets.WORKER_LOCATION }}\coder\coder\FrontEnd\Core\Css\partner" -Recurse
+      run: Copy-Item -Path "${{ secrets.PARTNER_STYLES_LOCATION }}\*" -Destination "${{ secrets.WORKER_LOCATION }}\coder\coder\coder\FrontEnd\Core\Css\partner" -Recurse
       
     - name: Build
       run: dotnet build --no-restore
