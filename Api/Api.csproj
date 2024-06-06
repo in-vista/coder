@@ -155,7 +155,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GeeksCoreLibrary" Version="4.2.10" />
     <PackageReference Include="Google.Cloud.Translation.V2" Version="3.4.0" />
     <PackageReference Include="GoogleAuthenticator" Version="3.2.0" />
     <PackageReference Include="IdentityServer4" Version="4.1.2" />
@@ -186,6 +185,10 @@
     <Compile Remove="Modules\Permissions\Models\BasePermissionData.cs" />
     <Compile Remove="Modules\Permissions\Models\ModulePermissionData.cs" />
     <Compile Remove="Modules\Permissions\Models\QueryPermissionData.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\invista-core-library\GeeksCoreLibrary\GeeksCoreLibrary.csproj" />
   </ItemGroup>
 
 </Project>
