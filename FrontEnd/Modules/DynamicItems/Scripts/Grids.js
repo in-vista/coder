@@ -325,7 +325,7 @@ export class Grids {
             }
 
             if ((!gridViewSettings.toolbar || !gridViewSettings.toolbar.hideCreateButton) && this.base.settings.permissions.canCreate) {
-                const createButtonSettings = gridViewSettings.toolbar.createButtonSettings;
+                const createButtonSettings = gridViewSettings.toolbar?.createButtonSettings;
                 const createButtonText = createButtonSettings?.text || 'Nieuw item toevoegen';
                 const createButtonIcon = createButtonSettings?.icon || 'plus';
                 
