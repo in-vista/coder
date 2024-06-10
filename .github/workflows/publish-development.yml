@@ -19,7 +19,7 @@ jobs:
     
     - name: Create backup folders
       run: |
-        $backupPath = "C:/backups"
+        $backupPath = "C:\backups"
 
         $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
         $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
@@ -30,11 +30,8 @@ jobs:
         New-Item -ItemType Directory -Path $folderPathApi -Force
         New-Item -ItemType Directory -Path $folderPathFrontend -Force
 
-        $folderPathApi = $folderPathApi -replace '\\', '/'
-        $folderPathFrontend = $folderPathFrontend -replace '\\', '/'
-
-        echo "$folderPathApi" >> $Env:GITHUB_ENV
-        echo "folderPathFrontend" >> $Env:GITHUB_ENV
+        echo "FOLDER_PATH_API=$folderPathApi" >> $env:GITHUB_ENV
+        echo "FOLDER_PATH_FRONT_END=folderPathFrontend" >> $env:GITHUB_ENV
 
     - name: Copy contents to backup folder
       run: |
