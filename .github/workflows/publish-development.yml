@@ -24,8 +24,8 @@ jobs:
         $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
         $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
         
-        $folderPathApi = Join-Path -Path $backupPath -ChildPath "$baseApi","${{ steps.datetime.outputs.datetime }}"
-        $folderPathFrontend = Join-Path -Path $backupPath -ChildPath "$baseFrontend","${{ steps.datetime.outputs.datetime }}"
+        $folderPathApi = [IO.Path]::Combine($backupPath, "$baseApi", "${{ steps.datetime.outputs.datetime }}")
+        $folderPathFrontend = [IO.Path]::Combine($backupPath, "$baseFrontend", "${{ steps.datetime.outputs.datetime }}")
         
         New-Item -ItemType Directory -Path $folderPathApi -Force
         New-Item -ItemType Directory -Path $folderPathFrontend -Force
