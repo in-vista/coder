@@ -31,7 +31,7 @@ jobs:
         New-Item -ItemType Directory -Path $folderPathFrontend -Force
 
         echo "FOLDER_PATH_API=$folderPathApi" >> $env:GITHUB_ENV
-        echo "FOLDER_PATH_FRONT_END=folderPathFrontend" >> $env:GITHUB_ENV
+        echo "FOLDER_PATH_FRONT_END=$folderPathFrontend" >> $env:GITHUB_ENV
 
     - name: Copy contents to backup folder
       run: |
