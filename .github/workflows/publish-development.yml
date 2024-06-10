@@ -17,17 +17,30 @@ jobs:
         $dateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
         echo "::set-output name=datetime::$dateTime"
     
-    - name: Create backup folder
+    - name: Create backup folders
       run: |
         $backupPath = "C:\backups\${{ steps.datetime.outputs.datetime }}"
-        New-Item -ItemType Directory -Path $backupPath
+
+        $folderPathApi = Join-Path -Path $backupPath -ChildPath "$(basename "${{ secrets.PUBLISH_LOCATION_API }}")"
+        $folderPathFrontend = Join-Path -Path $backupPath -ChildPath "$(basename "${{ secrets.PUBLISH_LOCATION_FRONT_END }}")"
+        
+        if (-Not (Test-Path -Path $folderPathApi)) {
+          New-Item -ItemType Directory -Path $folderPathApi
+        }
+
+        if (-Not (Test-Path -Path $folderPathFrontend)) {
+          New-Item -ItemType Directory -Path $folderPathFrontend
+        }
+
+        echo "$folderPathApi" >> $Env:GITHUB_ENV
+        echo "folderPathFrontend" >> $Env:GITHUB_ENV
 
     - name: Copy contents to backup folder
       run: |
-        $sourcePathApi = "${{ secrets.PUBLISH_LOCATION_API }}"
-        $sourcePathFrontend = "${{ secrets.PUBLISH_LOCATION_FRONT_END }}"
-        Copy-Item -Path $sourcePathApi -Destination $backupPath -Recurse
-        Copy-Item -Path $sourcePathFrontend -Destination $backupPath -Recurse
+        $sourcePathApi = "${{ secrets.PUBLISH_LOCATION_API }}\*"
+        $sourcePathFrontend = "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*"
+        Copy-Item -Path $sourcePathApi -Destination $Env:folderPathApi -Recurse
+        Copy-Item -Path $sourcePathFrontend -Destination $Env:folderPathFrontend -Recurse
   build-icl:
     runs-on: cluster1_transip
     environment: Development
