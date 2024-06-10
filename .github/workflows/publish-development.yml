@@ -21,8 +21,11 @@ jobs:
       run: |
         $backupPath = "C:\backups\${{ steps.datetime.outputs.datetime }}"
 
-        $folderPathApi = Join-Path -Path $backupPath -ChildPath "$(basename "${{ secrets.PUBLISH_LOCATION_API }}")"
-        $folderPathFrontend = Join-Path -Path $backupPath -ChildPath "$(basename "${{ secrets.PUBLISH_LOCATION_FRONT_END }}")"
+        $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
+        $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
+        
+        $folderPathApi = Join-Path -Path $backupPath -ChildPath "$baseApi"
+        $folderPathFrontend = Join-Path -Path $backupPath -ChildPath "$baseFrontend"
         
         if (-Not (Test-Path -Path $folderPathApi)) {
           New-Item -ItemType Directory -Path $folderPathApi
