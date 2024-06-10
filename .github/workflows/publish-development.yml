@@ -22,7 +22,7 @@ jobs:
         $backupPath = "C:/backups"
 
         $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
-        $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -LeafThat f
+        $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
         
         $folderPathApi = Join-Path -Path $backupPath -ChildPath "$baseApi","${{ steps.datetime.outputs.datetime }}"
         $folderPathFrontend = Join-Path -Path $backupPath -ChildPath "$baseFrontend","${{ steps.datetime.outputs.datetime }}"
