@@ -19,21 +19,19 @@ jobs:
     
     - name: Create backup folders
       run: |
-        $backupPath = "C:\backups\${{ steps.datetime.outputs.datetime }}"
+        $backupPath = "C:/backups"
 
         $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
         $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
         
-        $folderPathApi = Join-Path -Path $backupPath -ChildPath "$baseApi"
-        $folderPathFrontend = Join-Path -Path $backupPath -ChildPath "$baseFrontend"
+        $folderPathApi = Join-Path -Path $backupPath -ChildPath "$baseApi" -ChildPath "${{ steps.datetime.outputs.datetime }}"
+        $folderPathFrontend = Join-Path -Path $backupPath -ChildPath "$baseFrontend" -ChildPath "${{ steps.datetime.outputs.datetime }}"
         
-        if (-Not (Test-Path -Path $folderPathApi)) {
-          New-Item -ItemType Directory -Path $folderPathApi
-        }
+        New-Item -ItemType Directory -Path $folderPathApi -Force
+        New-Item -ItemType Directory -Path $folderPathFrontend -Force
 
-        if (-Not (Test-Path -Path $folderPathFrontend)) {
-          New-Item -ItemType Directory -Path $folderPathFrontend
-        }
+        $folderPathApi = $folderPathApi -replace '\\', '/'
+        $folderPathFrontend = $folderPathFrontend -replace '\\', '/'
 
         echo "$folderPathApi" >> $Env:GITHUB_ENV
         echo "folderPathFrontend" >> $Env:GITHUB_ENV
