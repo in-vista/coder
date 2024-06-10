@@ -6,9 +6,32 @@ on:
     - develop
 
 jobs:
+  backup:
+    runs-on: cluster1_transip
+    environment: Development
+
+    steps:
+    - name: Retrieve the current date and time
+      id: datetime
+      run: |
+        $dateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+        echo "::set-output name=datetime::$dateTime"
+    
+    - name: Create backup folder
+      run: |
+        $backupPath = "C:\backups\$(${{ steps.datetime.outputs.datetime }})"
+        New-Item -ItemType Directory -Path $backupPath
+
+    - name: Copy contents to backup folder
+      run: |
+        $sourcePathApi = "${{ secrets.PUBLISH_LOCATION_API }}"
+        $sourcePathFrontend = "${{ secrets.PUBLISH_LOCATION_FRONT_END }}"
+        Copy-Item -Path $sourcePathApi -Destination $backupPath -Recurse
+        Copy-Item -Path $sourcePathFrontend -Destination $backupPath -Recurse
   build-icl:
     runs-on: cluster1_transip
     environment: Development
+    needs: [ backup ]
 
     steps:
     - name: Checkout
