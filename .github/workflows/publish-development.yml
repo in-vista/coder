@@ -19,7 +19,7 @@ jobs:
     
     - name: Create backup folder
       run: |
-        $backupPath = "C:\backups\$(${{ steps.datetime.outputs.datetime }})"
+        $backupPath = "C:\backups\${{ steps.datetime.outputs.datetime }}"
         New-Item -ItemType Directory -Path $backupPath
 
     - name: Copy contents to backup folder
