@@ -142,8 +142,11 @@ CREATE TABLE IF NOT EXISTS `wiser_history`  (
   `newvalue` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
   `language_code` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `groupname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `target_id` bigint UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_item_id`(`item_id`, `field`) USING BTREE,
+  INDEX `idx_item_id_table`(`item_id`, `tablename`) USING BTREE,
+  INDEX `idx_table_action`(`tablename`, `action`) USING BTREE,
   INDEX `idx_changed_on`(`changed_on`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
@@ -194,6 +197,8 @@ CREATE TABLE IF NOT EXISTS `wiser_item_archive`  (
   `added_by` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `changed_on` datetime(0) NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(0),
   `changed_by` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `json` json,
+  `json_last_processed_date` datetime,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_moduleid`(`moduleid`, `published_environment`) USING BTREE,
   INDEX `idx_entity_type`(`entity_type`, `unique_uuid`) USING BTREE,
