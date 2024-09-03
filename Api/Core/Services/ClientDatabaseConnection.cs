@@ -162,18 +162,7 @@ namespace Api.Core.Services
                 port = "3306";
             }
 
-            return new MySqlConnectionStringBuilder
-            {
-                Server = server,
-                Port = Convert.ToUInt32(port),
-                UserID = username,
-                Password = decryptedPassword,
-                Database = database,
-                CharacterSet = "utf8",
-                AllowUserVariables = true,
-                ConvertZeroDateTime = true,
-                IgnoreCommandTransaction = true
-            };
+            return new MySqlConnectionStringBuilder($"server={server};port={port};uid={username};pwd={decryptedPassword};database={database};AllowUserVariables=True;ConvertZeroDateTime=true;CharSet=utf8;IgnoreCommandTransaction=true");
         }
 
         /// <inheritdoc />
