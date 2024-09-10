@@ -657,8 +657,10 @@ UNION
 
             clientDatabaseConnection.ClearParameters();
             clientDatabaseConnection.AddParameter("id", id);
+            
+            await databaseHelpersService.CheckAndUpdateTablesAsync([ WiserTableNames.WiserModule ]);
 
-            var query = $@"SELECT id, custom_query, count_query, `options`, `name`, icon, type, `group` FROM {WiserTableNames.WiserModule} WHERE id = ?id";
+            var query = $@"SELECT id, custom_query, count_query, `options`, `name`, icon, type, `group`, `custom_script` FROM {WiserTableNames.WiserModule} WHERE id = ?id";
             var dataTable = await clientDatabaseConnection.GetAsync(query);
 
             if (dataTable.Rows.Count == 0)
@@ -675,6 +677,7 @@ UNION
             result.Icon = dataTable.Rows[0].Field<string>("icon");
             result.Type = dataTable.Rows[0].Field<string>("type");
             result.Group = dataTable.Rows[0].Field<string>("group");
+            result.CustomScript = dataTable.Rows[0].Field<string>("custom_script");
 
             var optionsJson = dataTable.Rows[0].Field<string>("options");
 

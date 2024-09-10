@@ -250,6 +250,10 @@ const moduleSettings = {
             if (this.settings.iframeMode && this.settings.hideFooter) {
                 $("#right-pane > footer").addClass("hidden");
             }
+            
+            const customScript = this.settings.permissions.customScript;
+            if(customScript)
+                $.globalEval(customScript);
         }
 
         /**
