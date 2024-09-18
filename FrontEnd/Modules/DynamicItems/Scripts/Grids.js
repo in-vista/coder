@@ -1106,9 +1106,10 @@ export class Grids {
             const conditionAttribute = customAction.condition
                 ? `data-condition="${Misc.encodeHtml(customAction.condition)}"`
                 : '';
-
-            const rolesAttribute = customAction.roles
-                ? `data-roles="${Misc.encodeHtml(customAction.roles)}"`
+            
+            const rolesAttributeValue = customAction.roles?.join(',') ?? '';
+            const rolesAttribute = rolesAttributeValue
+                ? `data-roles="${Misc.encodeHtml(rolesAttributeValue)}"`
                 : '';
             
             const selector = gridSelector.replace(/#/g, "\\#");
@@ -1632,7 +1633,7 @@ export class Grids {
                 const userRole = userData.role;
                 
                 // Check whether the user's role is required by the action button.
-                const rolesArray = roles.split(',').map(role => role.trim());
+                const rolesArray = roles.split(',');
                 shouldHide = !rolesArray.includes(userRole);
             }
 
