@@ -831,7 +831,8 @@ main, div, section {
 
             .menu-scroller {
                 width: 100%;
-                overflow: visible;
+                overflow: auto;
+                scrollbar-width: none;
             }
 
             a {
