@@ -43,6 +43,11 @@ namespace Api.Modules.Modules.Models
         /// Gets or sets the group name of the module.
         /// </summary>
         public string Group { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the custom Javascript to be executed when opening the module.
+        /// </summary>
+        public string CustomScript { get; set; }
 
         /// <summary>
         /// Gets or sets the type of module.
