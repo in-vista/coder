@@ -658,7 +658,7 @@ UNION
             clientDatabaseConnection.ClearParameters();
             clientDatabaseConnection.AddParameter("id", id);
             
-            await databaseHelpersService.CheckAndUpdateTablesAsync([ WiserTableNames.WiserModule ]);
+            await databaseHelpersService.CheckAndUpdateTablesAsync(new List<string> { WiserTableNames.WiserModule });
 
             var query = $@"SELECT id, custom_query, count_query, `options`, `name`, icon, type, `group`, `custom_script` FROM {WiserTableNames.WiserModule} WHERE id = ?id";
             var dataTable = await clientDatabaseConnection.GetAsync(query);
