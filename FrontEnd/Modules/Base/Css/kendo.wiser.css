@@ -93,6 +93,7 @@
 .uploader .imagesContainer {
 	display: flex;
 	gap: 5px;
+	overflow-x: auto;
 }
 .dropZoneElement {
 	position: relative;
@@ -142,6 +143,7 @@
 	margin: 0;
 	padding: 0;
 	cursor: move;
+	min-width: fit-content;
 }
 .product img {
 	width: 110px;
