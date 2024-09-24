@@ -2145,6 +2145,9 @@ export class Fields {
                             }
                         }
 
+                        // Send userId, so this can be used in the query
+                        url += `&userId=${encodeURIComponent(this.base.settings.userId)}`;
+
                         // Make string of selected id's and link-id's for adding to url
                         if (selectedItems.length > 0) {
                             if (!action.createSeparatePdfForEachSelectedItem) {
