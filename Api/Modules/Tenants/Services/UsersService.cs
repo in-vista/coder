@@ -431,6 +431,7 @@ ORDER BY username.`value` ASC";
             await clientDatabaseConnection.ExecuteAsync(query);
 
             var mailTemplate = (await templatesService.GetTemplateByNameAsync("Wachtwoord vergeten", true)).ModelObject;
+            mailTemplate.Subject ??= "Wachtwoord reset";
             mailTemplate.Content = mailTemplate.Content.Replace("{username}", resetPasswordRequestModel.Username).Replace("{password}", password).Replace("{subdomain}", resetPasswordRequestModel.SubDomain);
 
             await communicationsService.SendEmailAsync(resetPasswordRequestModel.EmailAddress, mailTemplate.Subject, mailTemplate.Content);
