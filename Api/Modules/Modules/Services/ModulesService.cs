@@ -78,6 +78,8 @@ namespace Api.Modules.Modules.Services
         /// <inheritdoc />
         public async Task<ServiceResult<Dictionary<string, List<ModuleAccessRightsModel>>>> GetAsync(ClaimsIdentity identity)
         {
+            await databaseHelpersService.CheckAndUpdateTablesAsync(new List<string> { WiserTableNames.WiserModule });
+            
             var modulesForAdmins = new List<int>
             {
                 Constants.DefaultMasterDataModuleId,
@@ -281,7 +283,7 @@ UNION
                 rightsModel.AutoLoad = autoLoadModules.Contains(moduleId);
                 rightsModel.PinnedGroup = PinnedModulesGroupName;
                 rightsModel.HasCustomQuery = hasCustomQuery;
-                rightsModel.IsFullscreen = dataRow.Field<bool>("is_fullscreen");
+                rightsModel.IsFullscreen = dataRow.Field<SByte>("is_fullscreen") == 1;
 
                 if (String.IsNullOrWhiteSpace(rightsModel.Icon))
                 {
