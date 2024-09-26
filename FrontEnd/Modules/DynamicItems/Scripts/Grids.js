@@ -1112,6 +1112,16 @@ export class Grids {
                 ? `data-roles="${Misc.encodeHtml(rolesAttributeValue)}"`
                 : '';
             
+            const minimumRows = customAction.minimumRows;
+            const minimumRowsAttribute = minimumRows
+                ? `data-minimum-rows=${minimumRows}`
+                : '';
+
+            const maximumRows = customAction.maxSelectedRows;
+            const maximumRowsAttribute = maximumRows
+                ? `data-maximum-rows=${maximumRows}`
+                : '';
+            
             const selector = gridSelector.replace(/#/g, "\\#");
             
             const { condition, roles, ...customActionData } = customAction;
@@ -1128,12 +1138,12 @@ export class Grids {
                     groups.push(group);
                 }
                 
-                group.actions.push(`<a class='k-button k-button-icontext ${className}' href='\\#' ${conditionAttribute} ${rolesAttribute} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span>${customAction.text}</span></a>`);
+                group.actions.push(`<a class='k-button k-button-icontext ${className}' href='\\#' ${conditionAttribute} ${rolesAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span>${customAction.text}</span></a>`);
             } else {
                 actionsWithoutGroups.push({
                     name: `customAction${i.toString()}`,
                     text: customAction.text,
-                    template: `<a class='k-button k-button-icontext ${className}' href='\\#' ${conditionAttribute} ${rolesAttribute} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
+                    template: `<a class='k-button k-button-icontext ${className}' href='\\#' ${conditionAttribute} ${rolesAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
                 });
             }
         }
@@ -1593,10 +1603,17 @@ export class Grids {
     async onGridSelectionChange(event) {
         // Check based on given condition to hide.
         const conditionalButtons = event.sender.wrapper.find('.k-button.hide-when-no-selected-rows');
+
+        // Retrieve the elements of the selected rows
+        const selectedRows = event.sender.wrapper.find('tr.k-state-selected')
+        
         conditionalButtons.each(async function () {
+            // Retrieve data of the button.
             const button = $(this);
             const condition = button.data('condition');
             const roles = button.data('roles');
+            const minimumRows = button.data('minimum-rows') ?? 0;
+            const maximumRows = button.data('maximum-rows') ?? Number.MAX_VALUE;
             
             // Do not hide buttons by default.
             let shouldHide = false;
@@ -1607,7 +1624,7 @@ export class Grids {
                 
                 // Gather field data for each selected row in the grid.
                 const selectedData = [];
-                event.sender.wrapper.find('tr.k-state-selected').each(function() {
+                selectedRows.each(function() {
                     const row = $(this);
                     const grid = row.closest('.k-grid').data('kendoGrid');
                     const rowData = grid.dataItem(row);
@@ -1625,7 +1642,7 @@ export class Grids {
             }
             
             // Roles check.
-            if(roles) {
+            if(!shouldHide && roles) {
                 // Retrieve the user data from the local storage.
                 const userDataString = localStorage.getItem('userData');
                 const userData = userDataString ? JSON.parse(userDataString) : [];
@@ -1635,6 +1652,12 @@ export class Grids {
                 // Check whether the user's role is required by the action button.
                 const rolesArray = roles.split(',');
                 shouldHide = !rolesArray.includes(userRole);
+            }
+            
+            // Check whether the user has selected more or less than the allowed rows selected of the action button.
+            if(!shouldHide) {
+                const selectedRowsAmount = selectedRows.length;
+                shouldHide = selectedRowsAmount < minimumRows || selectedRowsAmount > maximumRows;
             }
 
             // Show or hide the action button based on the evaluated condition or default value.
