@@ -923,6 +923,10 @@ SELECT LAST_INSERT_ID() AS newId;";
                 // Don't need to do anything if the position isn't changed.
                 return new ServiceResult<bool>(true);
             }
+            
+            var tablePrefix = itemLinkId > 0
+                ? await wiserItemsService.GetTablePrefixForLinkAsync(linkType)
+                : await wiserItemsService.GetTablePrefixForEntityAsync(entityType);
 
             databaseConnection.AddParameter("fileId", fileId);
             databaseConnection.AddParameter("previousPosition", previousPosition);
@@ -933,10 +937,6 @@ SELECT LAST_INSERT_ID() AS newId;";
             databaseConnection.AddParameter("username", IdentityHelpers.GetUserName(identity, true));
 
             var whereClause = itemLinkId > 0 ? "itemlink_id = ?itemLinkId" : "item_id = ?itemId";
-
-            var tablePrefix = itemLinkId > 0
-                ? await wiserItemsService.GetTablePrefixForLinkAsync(linkType)
-                : await wiserItemsService.GetTablePrefixForEntityAsync(entityType);
 
             string query;
             if (newPosition < previousPosition)
