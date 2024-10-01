@@ -2519,20 +2519,14 @@ ORDER BY {orderByClause}";
 
                 string query;
                 DataTable dataTable;
-                clientDatabaseConnection.ClearParameters();
-                clientDatabaseConnection.AddParameter("userId", userId);
-                clientDatabaseConnection.AddParameter("sourceId", sourceId);
-                clientDatabaseConnection.AddParameter("destinationId", destinationId);
-                clientDatabaseConnection.AddParameter("sourceParentId", sourceParentId);
-                clientDatabaseConnection.AddParameter("destinationParentId", destinationParentId);
-                clientDatabaseConnection.AddParameter("position", position);
-                clientDatabaseConnection.AddParameter("sourceEntityType", sourceEntityType);
-
+               
                 // If the position is "over", it means the destinationId itself will become the new parent, for "before" and "after" it means the destinationParentId will become the new parent.
                 var positionIsOver = String.Equals(position, "over", StringComparison.OrdinalIgnoreCase);
                 if (!positionIsOver)
                 {
                     // If the destinationParentId becomes the new parent, we need to find out the correct entity type.
+                    clientDatabaseConnection.ClearParameters();
+                    clientDatabaseConnection.AddParameter("destinationParentId", destinationParentId);
                     query = $"SELECT entity_type FROM {WiserTableNames.WiserItem} WHERE id = ?destinationParentId";
                     dataTable = await clientDatabaseConnection.GetAsync(query);
                     if (dataTable.Rows.Count > 0)
@@ -2552,6 +2546,14 @@ ORDER BY {orderByClause}";
                 }
 
                 var linkTypeSettings = await wiserItemsService.GetLinkTypeSettingsAsync(sourceEntityType: sourceEntityType, destinationEntityType: destinationEntityType);
+                clientDatabaseConnection.ClearParameters();
+                clientDatabaseConnection.AddParameter("userId", userId);
+                clientDatabaseConnection.AddParameter("sourceId", sourceId);
+                clientDatabaseConnection.AddParameter("destinationId", destinationId);
+                clientDatabaseConnection.AddParameter("sourceParentId", sourceParentId);
+                clientDatabaseConnection.AddParameter("destinationParentId", destinationParentId);
+                clientDatabaseConnection.AddParameter("position", position);
+                clientDatabaseConnection.AddParameter("sourceEntityType", sourceEntityType);
                 clientDatabaseConnection.AddParameter("linkType", linkTypeSettings.Type);
                 clientDatabaseConnection.AddParameter("destinationEntityType", destinationEntityType);
 
