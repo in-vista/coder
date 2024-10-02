@@ -979,8 +979,8 @@ export class Fields {
 
             var reader = new FileReader();
 
-            reader.onloadend = function () {
-                const newImageElement = $(`<div class='product' data-item-id='${container.data("encryptedItemId")}' data-image-id='${newIds[i].fileId}'><img src=${this.result} /><div class='imgTools'><button type='button' class='imgZoom' title='Preview'></button><button type='button' class='imgEdit' title='Edit'></button><button type='button' class='imgDelete' title='Delete'></button></div></div>`);
+            reader.onloadend = function () {      
+                const newImageElement = $(`<div class='product' data-item-id='${container.data("encryptedItemId")}' data-image-id='${newIds[i].fileId}' data-item-link-id='${container.data("itemLinkId")}' data-file-name='${file.name}' data-title='' data-entity-type='Customer' data-link-type='${container.data("linkType")}' data-extra-data='' data-added-on='${ DateTime.now().toFormat("yyyy-MM-dd HH:mm:ss") }'><img src=${this.result} /><div class='imgTools'><button type='button' class='imgZoom' title='Preview'></button><button type='button' class='imgEdit' title='Edit'></button><button type='button' class='imgDelete' title='Delete'></button></div></div>`);
                 container.find(".uploader .imagesContainer").append(newImageElement);
             };
 
@@ -1058,6 +1058,21 @@ export class Fields {
             dialogElement.find("input[name=fileName]").val(data.fileName);
             dialogElement.find("input[name=title]").val(data.title);
 
+            // Get and format the added on date and show in dialog
+            try {
+                const formattedDateString = data.addedOn.replace(" ", "T").substring(0, 26); // Replace space with 'T' and truncate the fractional seconds, keep up to 26 characters
+                const date = new Date(formattedDateString);
+                const day = String(date.getDate()).padStart(2, '0'); // Get day and pad with zero if needed
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // Get month (0-indexed) and pad
+                const year = date.getFullYear(); // Get full year
+                const hours = String(date.getHours()).padStart(2, '0'); // Get hours and pad
+                const minutes = String(date.getMinutes()).padStart(2, '0'); // Get minutes and pad
+                dialogElement.find("#changeImageDialogAddedOn").html(`${day}-${month}-${year} ${hours}.${minutes}`);    
+            }
+            catch {
+                dialogElement.find("#changeImageDialogAddedOn").html(data.addedOn);
+            }
+
             data.extraData = data.extraData || {};
             data.extraData.AltTexts = data.extraData.AltTexts || {};
             dialogElement.find(".alt-text").remove();
@@ -1121,7 +1136,7 @@ export class Fields {
                                 extraData.AltTexts = {};
                                 dialogElement.find(".alt-text input").each((index, element) => {
                                     const input = $(element);
-                                    extraData.AltTexts[input.data("language").toLowerCase()] = input.val();
+                                    extraData.AltTexts[input.data("language")?.toLowerCase()] = input.val();
                                 });
 
                                 imageContainer.data("extraData", extraData);
@@ -2129,6 +2144,9 @@ export class Fields {
                                 url += `&${encodeURIComponent(parameter)}=${encodeURIComponent(value)}`;
                             }
                         }
+
+                        // Send userId, so this can be used in the query
+                        url += `&userId=${encodeURIComponent(this.base.settings.userId)}`;
 
                         // Make string of selected id's and link-id's for adding to url
                         if (selectedItems.length > 0) {

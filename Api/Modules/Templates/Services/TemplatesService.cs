@@ -1277,8 +1277,8 @@ SELECT
     `subject`.`value` AS `subject`,
     IF(template.long_value IS NULL OR template.long_value = '', template.`value`, template.long_value) AS content
 FROM wiser_item AS item
-JOIN wiser_itemdetail AS template ON template.item_id = item.id AND template.`key` = 'template'
-JOIN wiser_itemdetail AS `subject` ON `subject`.item_id = item.id AND `subject`.`key` = 'subject'
+LEFT JOIN wiser_itemdetail AS template ON template.item_id = item.id AND template.`key` = 'template'
+LEFT JOIN wiser_itemdetail AS `subject` ON `subject`.item_id = item.id AND `subject`.`key` = 'subject'
 WHERE item.entity_type = 'template'
 AND item.title = ?templateName
 LIMIT 1";

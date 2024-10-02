@@ -78,6 +78,8 @@ namespace Api.Modules.Modules.Services
         /// <inheritdoc />
         public async Task<ServiceResult<Dictionary<string, List<ModuleAccessRightsModel>>>> GetAsync(ClaimsIdentity identity)
         {
+            await databaseHelpersService.CheckAndUpdateTablesAsync(new List<string> { WiserTableNames.WiserModule });
+            
             var modulesForAdmins = new List<int>
             {
                 Constants.DefaultMasterDataModuleId,
@@ -189,7 +191,8 @@ ON DUPLICATE KEY UPDATE last_update = VALUES(last_update)");
         module.type,
         module.group,
         module.options,
-        module.custom_query
+        module.custom_query,
+        module.is_fullscreen
     FROM {WiserTableNames.WiserUserRoles} AS user_role
     JOIN {WiserTableNames.WiserRoles} AS role ON role.id = user_role.role_id
     JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = role.id AND permission.module_id > 0
@@ -212,7 +215,8 @@ UNION
         module.type,
         module.group,
         module.options,
-        module.custom_query
+        module.custom_query,
+        module.is_fullscreen
     FROM {WiserTableNames.WiserModule} AS module
     WHERE module.id IN ({String.Join(",", modulesForAdmins)})
 )";
@@ -279,6 +283,7 @@ UNION
                 rightsModel.AutoLoad = autoLoadModules.Contains(moduleId);
                 rightsModel.PinnedGroup = PinnedModulesGroupName;
                 rightsModel.HasCustomQuery = hasCustomQuery;
+                rightsModel.IsFullscreen = dataRow.Field<bool>("is_fullscreen");
 
                 if (String.IsNullOrWhiteSpace(rightsModel.Icon))
                 {
@@ -366,7 +371,8 @@ UNION
                                 Name = "Stamgegevens",
                                 Type = "MasterData",
                                 Pinned = isPinned,
-                                PinnedGroup = PinnedModulesGroupName
+                                PinnedGroup = PinnedModulesGroupName,
+                                IsFullscreen = false
                             });
                             break;
                         case Constants.DefaultDataSelectorModuleId:
@@ -388,7 +394,8 @@ UNION
                                 Name = "Data selector",
                                 Type = "DataSelector",
                                 Pinned = isPinned,
-                                PinnedGroup = PinnedModulesGroupName
+                                PinnedGroup = PinnedModulesGroupName,
+                                IsFullscreen = false
                             });
                             break;
                         case Constants.DefaultSearchModuleId:
@@ -410,7 +417,8 @@ UNION
                                 Name = "Zoeken",
                                 Type = "Search",
                                 Pinned = isPinned,
-                                PinnedGroup = PinnedModulesGroupName
+                                PinnedGroup = PinnedModulesGroupName,
+                                IsFullscreen = false
                             });
                             break;
                         case Constants.DefaultAdminModuleId:
@@ -432,7 +440,8 @@ UNION
                                 Name = "Wiser beheer",
                                 Type = "Admin",
                                 Pinned = isPinned,
-                                PinnedGroup = PinnedModulesGroupName
+                                PinnedGroup = PinnedModulesGroupName,
+                                IsFullscreen = false
                             });
                             break;
                         case Constants.DefaultImportExportModuleId:
@@ -454,7 +463,8 @@ UNION
                                 Name = "Import/export",
                                 Type = "ImportExport",
                                 Pinned = isPinned,
-                                PinnedGroup = PinnedModulesGroupName
+                                PinnedGroup = PinnedModulesGroupName,
+                                IsFullscreen = false
                             });
                             break;
                         case Constants.DefaultWiserUsersModuleId:
@@ -476,7 +486,8 @@ UNION
                                 Name = "Wiser beheer",
                                 Type = "Users",
                                 Pinned = isPinned,
-                                PinnedGroup = PinnedModulesGroupName
+                                PinnedGroup = PinnedModulesGroupName,
+                                IsFullscreen = false
                             });
                             break;
                         case Constants.DefaultWebpagesModuleId:
@@ -498,7 +509,8 @@ UNION
                                 Name = "Webpagina's 2.0",
                                 Type = "DynamicItems",
                                 Pinned = isPinned,
-                                PinnedGroup = PinnedModulesGroupName
+                                PinnedGroup = PinnedModulesGroupName,
+                                IsFullscreen = false
                             });
                             break;
                         case Constants.DefaultVersionControlModuleId:
@@ -519,7 +531,8 @@ UNION
                                 Name = "Versiebeheer",
                                 Type = "VersionControl",
                                 Pinned = isPinned,
-                                PinnedGroup = PinnedModulesGroupName
+                                PinnedGroup = PinnedModulesGroupName,
+                                IsFullscreen = false
                             });
                             break;
                         case Constants.DefaultTemplatesModuleId:
@@ -540,7 +553,8 @@ UNION
                                 Name = "Templates",
                                 Type = "Templates",
                                 Pinned = isPinned,
-                                PinnedGroup = PinnedModulesGroupName
+                                PinnedGroup = PinnedModulesGroupName,
+                                IsFullscreen = false
                             });
                             break;
                         default:
@@ -570,7 +584,8 @@ UNION
                     Name = "Wiser Configuratie",
                     Type = "Configuration",
                     Pinned = isPinned,
-                    PinnedGroup = PinnedModulesGroupName
+                    PinnedGroup = PinnedModulesGroupName,
+                    IsFullscreen = false
                 });
             }
 
@@ -657,8 +672,10 @@ UNION
 
             clientDatabaseConnection.ClearParameters();
             clientDatabaseConnection.AddParameter("id", id);
+            
+            await databaseHelpersService.CheckAndUpdateTablesAsync(new List<string> { WiserTableNames.WiserModule });
 
-            var query = $@"SELECT id, custom_query, count_query, `options`, `name`, icon, type, `group` FROM {WiserTableNames.WiserModule} WHERE id = ?id";
+            var query = $@"SELECT id, custom_query, count_query, `options`, `name`, icon, type, `group`, `custom_script` FROM {WiserTableNames.WiserModule} WHERE id = ?id";
             var dataTable = await clientDatabaseConnection.GetAsync(query);
 
             if (dataTable.Rows.Count == 0)
@@ -675,6 +692,7 @@ UNION
             result.Icon = dataTable.Rows[0].Field<string>("icon");
             result.Type = dataTable.Rows[0].Field<string>("type");
             result.Group = dataTable.Rows[0].Field<string>("group");
+            result.CustomScript = dataTable.Rows[0].Field<string>("custom_script");
 
             var optionsJson = dataTable.Rows[0].Field<string>("options");
 

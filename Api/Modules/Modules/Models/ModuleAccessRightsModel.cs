@@ -87,5 +87,10 @@
         /// Gets or sets if the module has a custom query, this is used to determine if the module can be exported.
         /// </summary>
         public bool HasCustomQuery { get; set; }
+        
+        /// <summary>
+        /// Whether the module is meant to be displayed in fullscreen.
+        /// </summary>
+        public bool IsFullscreen { get; set; }
     }
 }
