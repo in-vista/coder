@@ -191,8 +191,8 @@ ON DUPLICATE KEY UPDATE last_update = VALUES(last_update)");
         module.type,
         module.group,
         module.options,
-        module.custom_query,
-        module.is_fullscreen
+        module.custom_query,        
+        module.is_fullscreen=1 AS is_fullscreen
     FROM {WiserTableNames.WiserUserRoles} AS user_role
     JOIN {WiserTableNames.WiserRoles} AS role ON role.id = user_role.role_id
     JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = role.id AND permission.module_id > 0
@@ -216,7 +216,7 @@ UNION
         module.group,
         module.options,
         module.custom_query,
-        module.is_fullscreen
+        module.is_fullscreen=1 AS is_fullscreen
     FROM {WiserTableNames.WiserModule} AS module
     WHERE module.id IN ({String.Join(",", modulesForAdmins)})
 )";
@@ -283,7 +283,7 @@ UNION
                 rightsModel.AutoLoad = autoLoadModules.Contains(moduleId);
                 rightsModel.PinnedGroup = PinnedModulesGroupName;
                 rightsModel.HasCustomQuery = hasCustomQuery;
-                rightsModel.IsFullscreen = dataRow.Field<bool>("is_fullscreen");
+                rightsModel.IsFullscreen = (dataRow.Field<long>("is_fullscreen") == 1);
 
                 if (String.IsNullOrWhiteSpace(rightsModel.Icon))
                 {
