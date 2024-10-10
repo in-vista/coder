@@ -979,8 +979,8 @@ export class Fields {
 
             var reader = new FileReader();
 
-            reader.onloadend = function () {      
-                const newImageElement = $(`<div class='product' data-item-id='${container.data("encryptedItemId")}' data-image-id='${newIds[i].fileId}' data-item-link-id='${container.data("itemLinkId")}' data-file-name='${file.name}' data-title='' data-entity-type='Customer' data-link-type='${container.data("linkType")}' data-extra-data='' data-added-on='${ DateTime.now().toFormat("yyyy-MM-dd HH:mm:ss") }'><img src=${this.result} /><div class='imgTools'><button type='button' class='imgZoom' title='Preview'></button><button type='button' class='imgEdit' title='Edit'></button><button type='button' class='imgDelete' title='Delete'></button></div></div>`);
+            reader.onloadend = function () {
+                const newImageElement = $(`<div class='product' data-item-id='${container.data("encryptedItemId")}' data-image-id='${newIds[i].fileId}' data-item-link-id='${container.data("itemLinkId")}' data-file-name='${file.name}' data-title='' data-entity-type='${container.data("entityType")}' data-link-type='${container.data("linkType")}' data-extra-data=''><img src=${this.result} /><div class='imgTools'><button type='button' class='imgZoom' title='Preview'></button><button type='button' class='imgEdit' title='Edit'></button><button type='button' class='imgDelete' title='Delete'></button></div></div>`);
                 container.find(".uploader .imagesContainer").append(newImageElement);
             };
 
