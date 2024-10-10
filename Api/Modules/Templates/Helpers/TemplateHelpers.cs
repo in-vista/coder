@@ -69,7 +69,8 @@ public class TemplateHelpers
             PreLoadQuery = dataRow.Field<string>("pre_load_query"),
             ReturnNotFoundWhenPreLoadQueryHasNoData = Convert.ToBoolean(dataRow["return_not_found_when_pre_load_query_has_no_data"]),
             WidgetContent = dataRow.Field<string>("widget_content") ?? "",
-            WidgetLocation = (PageWidgetLocations) Convert.ToInt32(dataRow["widget_location"])
+            WidgetLocation = (PageWidgetLocations) Convert.ToInt32(dataRow["widget_location"]),
+            AllowCallWithoutAntiForgeryToken = Convert.ToBoolean(dataRow["allow_call_without_anti_forgery_token"])
         };
 
         // Set routine properties.

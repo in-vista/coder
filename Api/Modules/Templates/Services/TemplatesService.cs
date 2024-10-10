@@ -2103,7 +2103,7 @@ SELECT
     template.useinwiserhtmleditors AS use_in_wiser_html_editors,
     template.defaulttemplate AS wiser_cdn_templates,
     template.templatetype AS type,
-    template.variables AS routine_parameters,
+    template.variables AS routine_parameters,    
     item.ismap AS is_directory
 FROM easy_items AS item
 LEFT JOIN easy_templates AS template ON template.itemid = item.id
@@ -2275,7 +2275,8 @@ WHERE template.templatetype IS NULL OR template.templatetype <> 'normal'";
                     clientDatabaseConnection.AddParameter("grouping_value_column_name", dataRow["grouping_value_column_name"]);
                     clientDatabaseConnection.AddParameter("is_scss_include_template", dataRow.IsNull("is_scss_include_template") ? 0 : dataRow["is_scss_include_template"]);
                     clientDatabaseConnection.AddParameter("use_in_wiser_html_editors", dataRow.IsNull("use_in_wiser_html_editors") ? 0 : dataRow["use_in_wiser_html_editors"]);
-
+                    clientDatabaseConnection.AddParameter("allow_call_without_anti_forgery_token", dataRow.IsNull("allow_call_without_anti_forgery_token") ? 0 : dataRow["allow_call_without_anti_forgery_token"]);
+                    
                     var useCacheValue = dataRow.IsNull("use_cache") ? 0 : Convert.ToInt32(dataRow["use_cache"]);
                     var cacheMinutesValue = dataRow.IsNull("cache_minutes") ? 0 : Convert.ToInt32(dataRow["cache_minutes"]);
                     clientDatabaseConnection.AddParameter("cache_per_url", useCacheValue >= 3);
