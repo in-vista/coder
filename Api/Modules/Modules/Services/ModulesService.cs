@@ -283,7 +283,7 @@ UNION
                 rightsModel.AutoLoad = autoLoadModules.Contains(moduleId);
                 rightsModel.PinnedGroup = PinnedModulesGroupName;
                 rightsModel.HasCustomQuery = hasCustomQuery;
-                rightsModel.IsFullscreen = (dataRow.Field<long>("is_fullscreen") == 1);
+                rightsModel.IsFullscreen = (dataRow.Field<int>("is_fullscreen") == 1);
 
                 if (String.IsNullOrWhiteSpace(rightsModel.Icon))
                 {
