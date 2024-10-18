@@ -858,11 +858,15 @@ export class Fields {
                     await senderGrid.dataSource.read();
                 }
 
-                // Reselect earlier stored selected rows.
-                const gridData = senderGrid.dataSource.data();
-                const selectedRowUids = gridData.filter(row => selectedIds.includes(row.id)).map(row => row.uid);
-                const selectedRows = $(gridSelector).find(selectedRowUids.map(uid => `tr[data-uid="${uid}"]`).join(','));
-                grids.mainGrid.select(selectedRows);
+                // Check whether the action has it set to deselect the rows after performing an action.
+                const selectAfter = actionDetails.selectAfter ?? true;
+                if(selectAfter) {
+                    // Reselect earlier stored selected rows.
+                    const gridData = senderGrid.dataSource.data();
+                    const selectedRowUids = gridData.filter(row => selectedIds.includes(row.id)).map(row => row.uid);
+                    const selectedRows = $(gridSelector).find(selectedRowUids.map(uid => `tr[data-uid="${uid}"]`).join(','));
+                    grids.mainGrid.select(selectedRows);
+                }
             }
 
             if (!actionDetails.disableSuccessMessages) {
