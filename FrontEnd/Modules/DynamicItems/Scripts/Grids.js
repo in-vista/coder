@@ -405,6 +405,7 @@ export class Grids {
             let filtersChanged = false;
             const finalGridViewSettings = $.extend(true, {
                 dataSource: {
+                    autoSync: true,
                     serverPaging: !usingDataSelector && !gridViewSettings.clientSidePaging,
                     serverSorting: !usingDataSelector && !gridViewSettings.clientSideSorting,
                     serverFiltering: !usingDataSelector && !gridViewSettings.clientSideFiltering,
@@ -472,6 +473,12 @@ export class Grids {
                             }
 
                             window.processing.removeProcess(process);
+                        },
+                        update: async function(options) {
+                            const data = options.data;
+                            
+                            // TODO: 1. Make an API call that runs a query associated to this module with the data of `data`.
+                            //       2. Refresh the overview. Run the datasource read function.
                         }
                     },
                     schema: {
@@ -479,6 +486,9 @@ export class Grids {
                         total: "totalResults",
                         model: gridDataResult.schemaModel
                     }
+                },
+                editable: {
+                    mode: "incell"
                 },
                 excel: {
                     fileName: "Module Export.xlsx",
