@@ -2297,7 +2297,7 @@ namespace Api.Modules.Grids.Services
 
         private static void BuildGridSchema(DataTable dataTable, GridSettingsAndDataModel results, bool hasPredefinedColumns)
         {
-            string[] editableFields = results.Editable.Fields;
+            string[] editableFields = results.Editable.Fields ?? Array.Empty<string>();
             
             foreach (DataColumn dataColumn in dataTable.Columns)
             {

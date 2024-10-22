@@ -474,11 +474,21 @@ export class Grids {
 
                             window.processing.removeProcess(process);
                         },
-                        update: async function(options) {
+                        update: async options => {
                             const data = options.data;
+                            const moduleId = this.base.settings.moduleId;
+                            const itemId = data.id;
+
+                            const results = await Wiser.api({
+                                method: 'PUT',
+                                url: `${dynamicItems.settings.wiserApiRoot}modules/${encodeURIComponent(moduleId)}/${encodeURIComponent(itemId)}`,
+                                contentType: 'application/json',
+                                data: JSON.stringify(data)
+                            });
                             
-                            // TODO: 1. Make an API call that runs a query associated to this module with the data of `data`.
-                            //       2. Refresh the overview. Run the datasource read function.
+                            options.success(results);
+
+                            this.mainGrid.dataSource.read();
                         }
                     },
                     schema: {
@@ -486,6 +496,11 @@ export class Grids {
                         total: "totalResults",
                         model: gridDataResult.schemaModel
                     }
+                },
+                save: function (event) {
+                    event.sender.one("dataBound", function () {
+                        event.sender.dataSource.read();
+                    });
                 },
                 editable: {
                     mode: "incell"
