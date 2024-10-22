@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
@@ -11,6 +12,7 @@ using Api.Core.Helpers;
 using Api.Core.Interfaces;
 using Api.Core.Services;
 using Api.Modules.Grids.Interfaces;
+using Api.Modules.Items.Interfaces;
 using Api.Modules.Kendo.Models;
 using Api.Modules.Modules.Interfaces;
 using Api.Modules.Modules.Models;
@@ -38,6 +40,7 @@ namespace Api.Modules.Modules.Services
         private readonly IWiserTenantsService wiserTenantsService;
         private readonly IDatabaseConnection clientDatabaseConnection;
         private readonly IWiserItemsService wiserItemsService;
+        private readonly IItemsService itemsService;
         private readonly IJsonService jsonService;
         private readonly IGridsService gridsService;
         private readonly IExcelService excelService;
@@ -56,14 +59,15 @@ namespace Api.Modules.Modules.Services
         /// </summary>
         public ModulesService(IWiserTenantsService wiserTenantsService, IGridsService gridsService,
             IDatabaseConnection clientDatabaseConnection, IWiserItemsService wiserItemsService,
-            IJsonService jsonService, IExcelService excelService, IObjectsService objectsService,
-            IUsersService usersService, IStringReplacementsService stringReplacementsService,
-            ILogger<ModulesService> logger, IDatabaseHelpersService databaseHelpersService,
-            ICsvService csvService)
+            IItemsService itemsService, IJsonService jsonService, IExcelService excelService,
+            IObjectsService objectsService, IUsersService usersService,
+            IStringReplacementsService stringReplacementsService, ILogger<ModulesService> logger,
+            IDatabaseHelpersService databaseHelpersService, ICsvService csvService)
         {
             this.wiserTenantsService = wiserTenantsService;
             this.gridsService = gridsService;
             this.wiserItemsService = wiserItemsService;
+            this.itemsService = itemsService;
             this.jsonService = jsonService;
             this.excelService = excelService;
             this.objectsService = objectsService;
@@ -869,6 +873,41 @@ WHERE id = ?id";
             {
                 StatusCode = HttpStatusCode.NoContent
             };
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<bool>> UpdateField(int id, int itemId, Dictionary<string, string> parameters, ClaimsIdentity identity)
+        {
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            clientDatabaseConnection.ClearParameters();
+            clientDatabaseConnection.AddParameter("moduleId", id);
+
+            string optionsQuery = $"SELECT `options` FROM {WiserTableNames.WiserModule} WHERE id = ?moduleId LIMIT 1;";
+            DbDataReader optionsReader = await clientDatabaseConnection.GetReaderAsync(optionsQuery);
+            string optionsString = await optionsReader.ReadAsync() ? optionsReader.GetString(optionsReader.GetOrdinal("options")) : string.Empty;
+            await optionsReader.CloseAsync();
+            
+            GridViewSettingsModel gridViewSettings = new GridViewSettingsModel();
+            if (!string.IsNullOrEmpty(optionsString))
+                gridViewSettings = JsonConvert.DeserializeObject<GridViewSettingsModel>(optionsString);
+
+            int queryId = gridViewSettings.GridViewSettings?.Editable.QueryId ?? -1;
+            if (queryId == -1)
+                return new ServiceResult<bool>(false);
+            
+            ServiceResult<string> customQueryResult = await itemsService.GetCustomQueryAsync(0, queryId, identity);
+            if (string.IsNullOrEmpty(customQueryResult.ModelObject))
+                return new ServiceResult<bool>(false);
+            
+            string customQuery = customQueryResult.ModelObject;
+            
+            clientDatabaseConnection.ClearParameters();
+            foreach(KeyValuePair<string, string> parameter in parameters)
+                clientDatabaseConnection.AddParameter(parameter.Key, parameter.Value);
+            
+            await clientDatabaseConnection.ExecuteAsync(customQuery);
+
+            return new ServiceResult<bool>(true);
         }
     }
 }

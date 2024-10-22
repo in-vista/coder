@@ -405,6 +405,7 @@ export class Grids {
             let filtersChanged = false;
             const finalGridViewSettings = $.extend(true, {
                 dataSource: {
+                    autoSync: true,
                     serverPaging: !usingDataSelector && !gridViewSettings.clientSidePaging,
                     serverSorting: !usingDataSelector && !gridViewSettings.clientSideSorting,
                     serverFiltering: !usingDataSelector && !gridViewSettings.clientSideFiltering,
@@ -472,6 +473,22 @@ export class Grids {
                             }
 
                             window.processing.removeProcess(process);
+                        },
+                        update: async options => {
+                            const data = options.data;
+                            const moduleId = this.base.settings.moduleId;
+                            const itemId = data.id;
+
+                            const results = await Wiser.api({
+                                method: 'PUT',
+                                url: `${dynamicItems.settings.wiserApiRoot}modules/${encodeURIComponent(moduleId)}/${encodeURIComponent(itemId)}`,
+                                contentType: 'application/json',
+                                data: JSON.stringify(data)
+                            });
+                            
+                            options.success(results);
+
+                            this.mainGrid.dataSource.read();
                         }
                     },
                     schema: {
@@ -479,6 +496,14 @@ export class Grids {
                         total: "totalResults",
                         model: gridDataResult.schemaModel
                     }
+                },
+                save: function (event) {
+                    event.sender.one("dataBound", function () {
+                        event.sender.dataSource.read();
+                    });
+                },
+                editable: {
+                    mode: "incell"
                 },
                 excel: {
                     fileName: "Module Export.xlsx",
