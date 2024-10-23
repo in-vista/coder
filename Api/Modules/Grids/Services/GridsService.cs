@@ -2297,7 +2297,7 @@ namespace Api.Modules.Grids.Services
 
         private static void BuildGridSchema(DataTable dataTable, GridSettingsAndDataModel results, bool hasPredefinedColumns)
         {
-            string[] editableFields = results.Editable.Fields ?? Array.Empty<string>();
+            string[] triggerableFields = results.Triggerable.Fields ?? Array.Empty<string>();
             
             foreach (DataColumn dataColumn in dataTable.Columns)
             {
@@ -2338,11 +2338,11 @@ namespace Api.Modules.Grids.Services
                 {
                     kendoColumnType = null;
                 }
-
+                
                 bool editableField = 
-                    editableFields.Contains(dataColumn.ColumnName) &&
+                    triggerableFields.Contains(dataColumn.ColumnName) &&
                     !dataColumn.ColumnName.Equals("id", StringComparison.OrdinalIgnoreCase);
-
+                
                 results.SchemaModel.Fields.Add(fieldName,
                     new FieldModel
                     {

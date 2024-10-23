@@ -878,35 +878,44 @@ WHERE id = ?id";
         /// <inheritdoc/>
         public async Task<ServiceResult<bool>> UpdateField(int id, int itemId, Dictionary<string, string> parameters, ClaimsIdentity identity)
         {
+            // Checks whether relevant tables for Coder exist in the database.
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            
+            // Set up parameters for getting the module's settings.
             clientDatabaseConnection.ClearParameters();
             clientDatabaseConnection.AddParameter("moduleId", id);
-
+            
+            // Retrieve the module's settings.
             string optionsQuery = $"SELECT `options` FROM {WiserTableNames.WiserModule} WHERE id = ?moduleId LIMIT 1;";
             DbDataReader optionsReader = await clientDatabaseConnection.GetReaderAsync(optionsQuery);
             string optionsString = await optionsReader.ReadAsync() ? optionsReader.GetString(optionsReader.GetOrdinal("options")) : string.Empty;
             await optionsReader.CloseAsync();
             
+            // Parse the module's settings query result into a model.
             GridViewSettingsModel gridViewSettings = new GridViewSettingsModel();
             if (!string.IsNullOrEmpty(optionsString))
                 gridViewSettings = JsonConvert.DeserializeObject<GridViewSettingsModel>(optionsString);
-
-            int queryId = gridViewSettings.GridViewSettings?.Editable.QueryId ?? -1;
+            
+            // Get the query ID associated to the trigger.
+            int queryId = gridViewSettings.GridViewSettings?.Triggerable.QueryId ?? -1;
             if (queryId == -1)
                 return new ServiceResult<bool>(false);
             
+            // Get the query associated to the trigger.
             ServiceResult<string> customQueryResult = await itemsService.GetCustomQueryAsync(0, queryId, identity);
             if (string.IsNullOrEmpty(customQueryResult.ModelObject))
                 return new ServiceResult<bool>(false);
-            
             string customQuery = customQueryResult.ModelObject;
             
+            // Set up parameters for the trigger query.
             clientDatabaseConnection.ClearParameters();
             foreach(KeyValuePair<string, string> parameter in parameters)
                 clientDatabaseConnection.AddParameter(parameter.Key, parameter.Value);
             
+            // Execute the trigger query.
             await clientDatabaseConnection.ExecuteAsync(customQuery);
 
+            // Return a response from the service.
             return new ServiceResult<bool>(true);
         }
     }
