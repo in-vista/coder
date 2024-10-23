@@ -70,13 +70,13 @@ namespace Api.Modules.Grids.Models
         public string LanguageCode { get; set; }
         
         /// <summary>
-        /// Gets or sets the definitions of editable fields within the module.
+        /// Gets or sets the definitions of triggerable fields within the module.
         /// </summary>
-        public EditableFieldModel Editable { get; set; }
+        public TriggerableFieldModel Triggerable { get; set; }
 
         public GridSettingsAndDataModel()
         {
-            Editable = new EditableFieldModel();
+            Triggerable = new TriggerableFieldModel();
         }
     }
 }
