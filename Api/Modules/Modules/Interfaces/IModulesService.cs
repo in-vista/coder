@@ -81,5 +81,15 @@ namespace Api.Modules.Modules.Interfaces
         /// <param name="identity">The identity of the authenticated user.</param>
         /// <param name="id">The ID of the module.</param>
         Task<ServiceResult<bool>> DeleteAsync(ClaimsIdentity identity, int id);
+        
+        /// <summary>
+        /// Updates a field in a module grid view.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="itemId"></param>
+        /// <param name="parameters"></param>
+        /// <param name="identity"></param>
+        /// <returns></returns>
+        public Task<ServiceResult<bool>> UpdateField(int id, int itemId, Dictionary<string, string> parameters, ClaimsIdentity identity);
     }
 }

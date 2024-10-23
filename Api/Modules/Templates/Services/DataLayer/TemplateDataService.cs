@@ -162,7 +162,8 @@ LIMIT 1");
     template.default_header_footer_regex,
     template.is_partial,
     template.widget_content,
-    template.widget_location
+    template.widget_location,
+    template.allow_call_without_anti_forgery_token
 FROM {WiserTableNames.WiserTemplate} AS template
 {publishedVersionJoin}
 LEFT JOIN {WiserTableNames.WiserTemplateExternalFiles} AS externalFiles ON externalFiles.template_id = template.id
@@ -534,6 +535,7 @@ GROUP BY wdc.content_id");
             clientDatabaseConnection.AddParameter("isPartial", templateSettings.IsPartial);
             clientDatabaseConnection.AddParameter("widgetContent", templateSettings.WidgetContent);
             clientDatabaseConnection.AddParameter("widgetLocation", (int)templateSettings.WidgetLocation);
+            clientDatabaseConnection.AddParameter("allowCallWithoutAntiForgeryToken", templateSettings.AllowCallWithoutAntiForgeryToken);
 
             // Save the template itself.
             var query = $@"UPDATE {WiserTableNames.WiserTemplate}
@@ -581,7 +583,8 @@ SET template_name = ?name,
     widget_location = ?widgetLocation,
     is_dirty = TRUE,
     # Set the external_files column empty, because we have a new table for this now. This value will be moved to that table in code below.
-    external_files = ''
+    external_files = '',
+    allow_call_without_anti_forgery_token = ?allowCallWithoutAntiForgeryToken
 WHERE id = ?id";
             await clientDatabaseConnection.ExecuteAsync(query);
 
@@ -705,7 +708,8 @@ WHERE id = ?id";
     cache_per_hostname,
     cache_per_user,
     cache_using_regex,
-    is_dirty
+    is_dirty,
+    allow_call_without_anti_forgery_token
 )
 SELECT
     template.parent_id,
@@ -760,7 +764,8 @@ SELECT
     template.cache_per_hostname,
     template.cache_per_user,
     template.cache_using_regex,
-    FALSE AS is_dirty
+    FALSE AS is_dirty,
+    template.allow_call_without_anti_forgery_token
 FROM {WiserTableNames.WiserTemplate} AS template
 LEFT JOIN {WiserTableNames.WiserTemplate} AS otherVersion ON otherVersion.template_id = template.template_id AND otherVersion.version > template.version
 WHERE template.template_id = ?templateId
@@ -1351,7 +1356,8 @@ ORDER BY parent8.ordering, parent7.ordering, parent6.ordering, parent5.ordering,
     template.pre_load_query,
     template.return_not_found_when_pre_load_query_has_no_data,
     template.widget_content,
-    template.widget_location
+    template.widget_location,
+    template.allow_call_without_anti_forgery_token
 FROM {WiserTableNames.WiserTemplate} AS template
 LEFT JOIN {WiserTableNames.WiserTemplate} AS otherVersion ON otherVersion.template_id = template.template_id AND otherVersion.version > template.version
 LEFT JOIN {WiserTableNames.WiserTemplate} AS parent1 ON parent1.template_id = template.parent_id AND parent1.version = (SELECT MAX(version) FROM {WiserTableNames.WiserTemplate} WHERE template_id = template.parent_id)
@@ -1550,6 +1556,7 @@ AND otherVersion.id IS NULL";
                          template.cache_per_user = temp.cache_per_user,
                          template.cache_using_regex = temp.cache_using_regex,
                          template.is_dirty = temp.is_dirty;
+                         template.allow_call_without_anti_forgery_token = temp.allow_call_without_anti_forgery_token;
 
                      INSERT INTO {WiserTableNames.WiserTemplate} (
                      	parent_id,
@@ -1604,7 +1611,8 @@ AND otherVersion.id IS NULL";
                          cache_per_hostname,
                          cache_per_user,
                          cache_using_regex,
-                         is_dirty
+                         is_dirty,
+                         allow_call_without_anti_forgery_token
                      ) 
                      SELECT 
                      	parent_id,
@@ -1659,7 +1667,8 @@ AND otherVersion.id IS NULL";
                          cache_per_hostname,
                          cache_per_user,
                          cache_using_regex,
-                         is_dirty
+                         is_dirty,
+                         allow_call_without_anti_forgery_token
                      FROM `{temporaryTableName}` AS temp
                      WHERE NOT EXISTS (
                          SELECT 1

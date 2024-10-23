@@ -197,6 +197,7 @@ namespace Api.Modules.Templates.Services
             CheckIfValuesMatchAndSaveChangesToHistoryModel("isPartial", TemplateTypes.Normal, newVersion.IsPartial, oldVersion.IsPartial, historyModel);
             CheckIfValuesMatchAndSaveChangesToHistoryModel("widgetContent", TemplateTypes.Html, newVersion.WidgetContent, oldVersion.WidgetContent, historyModel);
             CheckIfValuesMatchAndSaveChangesToHistoryModel("widgetLocation", TemplateTypes.Normal, newVersion.WidgetLocation, oldVersion.WidgetLocation, historyModel);
+            CheckIfValuesMatchAndSaveChangesToHistoryModel("allowCallWithoutAntiForgeryToken", TemplateTypes.Html, newVersion.AllowCallWithoutAntiForgeryToken, oldVersion.AllowCallWithoutAntiForgeryToken, historyModel);
 
             var oldLinkedTemplates = newVersion.LinkedTemplates.RawLinkList.Split(new [] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             var newLinkedTemplates = oldVersion.LinkedTemplates.RawLinkList.Split(new [] { ',' }, StringSplitOptions.RemoveEmptyEntries);

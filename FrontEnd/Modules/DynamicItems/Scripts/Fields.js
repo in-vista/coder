@@ -842,14 +842,30 @@ export class Fields {
 
         if (success) {
             if (senderGrid) {
+                const grids = this.base.grids;
+
+                const selectedIds = selectedItems.map(item => item.dataItem.id);
+
                 if (actionDetails.rebuildMainGridAfterActions && this.base.settings.gridViewMode) {
                     // Destroy and recreate the grid.
-                    this.base.grids.mainGrid.destroy();
+                    grids.mainGrid.destroy();
                     $("#gridView").empty();
-                    this.base.grids.mainGridFirstLoad = true;
-                    this.base.grids.setupGridViewMode();
+                    grids.mainGridFirstLoad = true;
+                    
+                    // Reset the grid view.
+                    await grids.setupGridViewMode();
                 } else {
-                    senderGrid.dataSource.read();
+                    await senderGrid.dataSource.read();
+                }
+
+                // Check whether the action has it set to deselect the rows after performing an action.
+                const selectAfter = actionDetails.selectAfter ?? true;
+                if(selectAfter) {
+                    // Reselect earlier stored selected rows.
+                    const gridData = senderGrid.dataSource.data();
+                    const selectedRowUids = gridData.filter(row => selectedIds.includes(row.id)).map(row => row.uid);
+                    const selectedRows = $(gridSelector).find(selectedRowUids.map(uid => `tr[data-uid="${uid}"]`).join(','));
+                    grids.mainGrid.select(selectedRows);
                 }
             }
 
@@ -979,8 +995,8 @@ export class Fields {
 
             var reader = new FileReader();
 
-            reader.onloadend = function () {      
-                const newImageElement = $(`<div class='product' data-item-id='${container.data("encryptedItemId")}' data-image-id='${newIds[i].fileId}' data-item-link-id='${container.data("itemLinkId")}' data-file-name='${file.name}' data-title='' data-entity-type='Customer' data-link-type='${container.data("linkType")}' data-extra-data='' data-added-on='${ DateTime.now().toFormat("yyyy-MM-dd HH:mm:ss") }'><img src=${this.result} /><div class='imgTools'><button type='button' class='imgZoom' title='Preview'></button><button type='button' class='imgEdit' title='Edit'></button><button type='button' class='imgDelete' title='Delete'></button></div></div>`);
+            reader.onloadend = function () {
+                const newImageElement = $(`<div class='product' data-item-id='${container.data("encryptedItemId")}' data-image-id='${newIds[i].fileId}' data-item-link-id='${container.data("itemLinkId")}' data-file-name='${file.name}' data-title='' data-entity-type='${container.data("entityType")}' data-link-type='${container.data("linkType")}' data-extra-data=''><img src=${this.result} /><div class='imgTools'><button type='button' class='imgZoom' title='Preview'></button><button type='button' class='imgEdit' title='Edit'></button><button type='button' class='imgDelete' title='Delete'></button></div></div>`);
                 container.find(".uploader .imagesContainer").append(newImageElement);
             };
 

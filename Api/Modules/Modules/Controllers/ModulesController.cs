@@ -99,6 +99,17 @@ namespace Api.Modules.Modules.Controllers
         {
             return (await modulesService.UpdateSettingsAsync(id, (ClaimsIdentity) User.Identity, moduleSettingsModel)).GetHttpResponseMessage();
         }
+        
+        /// <summary>
+        /// Updates a specific item through a module grid view.
+        /// </summary>
+        [HttpPut]
+        [Route("{id:int}/{itemId:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateField(int id, int itemId, Dictionary<string, string> parameters)
+        {
+            return (await modulesService.UpdateField(id, itemId, parameters, (ClaimsIdentity) User.Identity)).GetHttpResponseMessage();
+        }
 
         /// <summary>
         /// Creates a new Wiser module.

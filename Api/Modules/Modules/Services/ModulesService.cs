@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
@@ -11,6 +12,7 @@ using Api.Core.Helpers;
 using Api.Core.Interfaces;
 using Api.Core.Services;
 using Api.Modules.Grids.Interfaces;
+using Api.Modules.Items.Interfaces;
 using Api.Modules.Kendo.Models;
 using Api.Modules.Modules.Interfaces;
 using Api.Modules.Modules.Models;
@@ -38,6 +40,7 @@ namespace Api.Modules.Modules.Services
         private readonly IWiserTenantsService wiserTenantsService;
         private readonly IDatabaseConnection clientDatabaseConnection;
         private readonly IWiserItemsService wiserItemsService;
+        private readonly IItemsService itemsService;
         private readonly IJsonService jsonService;
         private readonly IGridsService gridsService;
         private readonly IExcelService excelService;
@@ -56,14 +59,15 @@ namespace Api.Modules.Modules.Services
         /// </summary>
         public ModulesService(IWiserTenantsService wiserTenantsService, IGridsService gridsService,
             IDatabaseConnection clientDatabaseConnection, IWiserItemsService wiserItemsService,
-            IJsonService jsonService, IExcelService excelService, IObjectsService objectsService,
-            IUsersService usersService, IStringReplacementsService stringReplacementsService,
-            ILogger<ModulesService> logger, IDatabaseHelpersService databaseHelpersService,
-            ICsvService csvService)
+            IItemsService itemsService, IJsonService jsonService, IExcelService excelService,
+            IObjectsService objectsService, IUsersService usersService,
+            IStringReplacementsService stringReplacementsService, ILogger<ModulesService> logger,
+            IDatabaseHelpersService databaseHelpersService, ICsvService csvService)
         {
             this.wiserTenantsService = wiserTenantsService;
             this.gridsService = gridsService;
             this.wiserItemsService = wiserItemsService;
+            this.itemsService = itemsService;
             this.jsonService = jsonService;
             this.excelService = excelService;
             this.objectsService = objectsService;
@@ -191,8 +195,8 @@ ON DUPLICATE KEY UPDATE last_update = VALUES(last_update)");
         module.type,
         module.group,
         module.options,
-        module.custom_query,
-        module.is_fullscreen
+        module.custom_query,        
+        module.is_fullscreen=1 AS is_fullscreen
     FROM {WiserTableNames.WiserUserRoles} AS user_role
     JOIN {WiserTableNames.WiserRoles} AS role ON role.id = user_role.role_id
     JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = role.id AND permission.module_id > 0
@@ -216,7 +220,7 @@ UNION
         module.group,
         module.options,
         module.custom_query,
-        module.is_fullscreen
+        module.is_fullscreen=1 AS is_fullscreen
     FROM {WiserTableNames.WiserModule} AS module
     WHERE module.id IN ({String.Join(",", modulesForAdmins)})
 )";
@@ -283,7 +287,7 @@ UNION
                 rightsModel.AutoLoad = autoLoadModules.Contains(moduleId);
                 rightsModel.PinnedGroup = PinnedModulesGroupName;
                 rightsModel.HasCustomQuery = hasCustomQuery;
-                rightsModel.IsFullscreen = dataRow.Field<bool>("is_fullscreen");
+                rightsModel.IsFullscreen = (dataRow.Field<int>("is_fullscreen") == 1);
 
                 if (String.IsNullOrWhiteSpace(rightsModel.Icon))
                 {
@@ -869,6 +873,50 @@ WHERE id = ?id";
             {
                 StatusCode = HttpStatusCode.NoContent
             };
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<bool>> UpdateField(int id, int itemId, Dictionary<string, string> parameters, ClaimsIdentity identity)
+        {
+            // Checks whether relevant tables for Coder exist in the database.
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            
+            // Set up parameters for getting the module's settings.
+            clientDatabaseConnection.ClearParameters();
+            clientDatabaseConnection.AddParameter("moduleId", id);
+            
+            // Retrieve the module's settings.
+            string optionsQuery = $"SELECT `options` FROM {WiserTableNames.WiserModule} WHERE id = ?moduleId LIMIT 1;";
+            DbDataReader optionsReader = await clientDatabaseConnection.GetReaderAsync(optionsQuery);
+            string optionsString = await optionsReader.ReadAsync() ? optionsReader.GetString(optionsReader.GetOrdinal("options")) : string.Empty;
+            await optionsReader.CloseAsync();
+            
+            // Parse the module's settings query result into a model.
+            GridViewSettingsModel gridViewSettings = new GridViewSettingsModel();
+            if (!string.IsNullOrEmpty(optionsString))
+                gridViewSettings = JsonConvert.DeserializeObject<GridViewSettingsModel>(optionsString);
+            
+            // Get the query ID associated to the trigger.
+            int queryId = gridViewSettings.GridViewSettings?.Triggerable.QueryId ?? -1;
+            if (queryId == -1)
+                return new ServiceResult<bool>(false);
+            
+            // Get the query associated to the trigger.
+            ServiceResult<string> customQueryResult = await itemsService.GetCustomQueryAsync(0, queryId, identity);
+            if (string.IsNullOrEmpty(customQueryResult.ModelObject))
+                return new ServiceResult<bool>(false);
+            string customQuery = customQueryResult.ModelObject;
+            
+            // Set up parameters for the trigger query.
+            clientDatabaseConnection.ClearParameters();
+            foreach(KeyValuePair<string, string> parameter in parameters)
+                clientDatabaseConnection.AddParameter(parameter.Key, parameter.Value);
+            
+            // Execute the trigger query.
+            await clientDatabaseConnection.ExecuteAsync(customQuery);
+
+            // Return a response from the service.
+            return new ServiceResult<bool>(true);
         }
     }
 }

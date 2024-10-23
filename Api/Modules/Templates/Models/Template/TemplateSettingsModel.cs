@@ -189,6 +189,11 @@ namespace Api.Modules.Templates.Models.Template
         /// Gets or sets the location in which the widget should be loaded.
         /// </summary>
         public PageWidgetLocations WidgetLocation { get; set; } = PageWidgetLocations.HeaderBottom;
+        
+        /// <summary>
+        /// Gets or sets the 'allow call without anti forgery token' setting
+        /// </summary>
+        public bool AllowCallWithoutAntiForgeryToken { get; set; }
         #endregion
 
         #region Css/Scss/Js settings.
