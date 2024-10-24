@@ -68,5 +68,15 @@ namespace Api.Modules.Grids.Models
         /// Gets or sets the language code for the grid. This is used for grids with field groups, to have a group per language code.
         /// </summary>
         public string LanguageCode { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the definitions of triggerable fields within the module.
+        /// </summary>
+        public TriggerableFieldModel Triggerable { get; set; }
+
+        public GridSettingsAndDataModel()
+        {
+            Triggerable = new TriggerableFieldModel();
+        }
     }
 }
