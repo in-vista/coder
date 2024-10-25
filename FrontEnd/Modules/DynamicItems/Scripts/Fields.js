@@ -866,6 +866,9 @@ export class Fields {
                     const selectedRowUids = gridData.filter(row => selectedIds.includes(row.id)).map(row => row.uid);
                     const selectedRows = $(gridSelector).find(selectedRowUids.map(uid => `tr[data-uid="${uid}"]`).join(','));
                     grids.mainGrid.select(selectedRows);
+                    
+                    // Force a 'change' event trigger to check the conditions for each action button's visiblity.
+                    grids.mainGrid.trigger('change');
                 }
             }
 
