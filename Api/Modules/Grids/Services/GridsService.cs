@@ -2338,9 +2338,12 @@ namespace Api.Modules.Grids.Services
                 {
                     kendoColumnType = null;
                 }
+
+                bool kendoEditableField =
+                    results.Columns.Find(column => column.Field == dataColumn.ColumnName)?.Editable ?? false;
                 
                 bool editableField = 
-                    triggerableFields.Contains(dataColumn.ColumnName) &&
+                    (triggerableFields.Contains(dataColumn.ColumnName) || kendoEditableField) &&
                     !dataColumn.ColumnName.Equals("id", StringComparison.OrdinalIgnoreCase);
                 
                 results.SchemaModel.Fields.Add(fieldName,
