@@ -1333,7 +1333,7 @@ export class Grids {
      * @param {number} propertyId The ID of the current property.
      * @param {any} gridOptions The options of the grid.
      */
-    onLinkSubEntityClick(encryptedParentId, plainParentId, entityType, senderGridSelector, linkTypeNumber, hideIdColumn, hideLinkIdColumn, hideTypeColumn, hideEnvironmentColumn, hideTitleColumn, propertyId, gridOptions) {
+    onLinkSubEntityClick(encryptedParentId, plainParentId, currentEntityType, entityType, senderGridSelector, linkTypeNumber, hideIdColumn, hideLinkIdColumn, hideTypeColumn, hideEnvironmentColumn, hideTitleColumn, propertyId, gridOptions) {
         linkTypeNumber = linkTypeNumber || "";
         if (typeof gridOptions === "string") {
             gridOptions = JSON.parse(gridOptions);
@@ -1349,7 +1349,8 @@ export class Grids {
             entityType: entityType,
             linkTypeNumber: linkTypeNumber,
             propertyId: propertyId,
-            currentItemIsSourceId: gridOptions.currentItemIsSourceId,
+            currentItemIsSourceId: gridOptions.currentItemIsSourceId,            
+            currentEntityType: currentEntityType,
             setOrdering: gridOptions.toolbar.linkItemsSetOrdering
         });
         $.extend(this.base.windows.searchGridSettings, {
