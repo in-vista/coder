@@ -510,6 +510,68 @@ export class Grids {
                     filterable: true,
                     allPages: true
                 },
+                excelExport: function(event) {
+                    const grid = $("#gridView").data("kendoGrid");
+                    
+                    const workbook = event.workbook;
+                    const sheet = workbook.sheets[0];
+
+                    const visibleColumns = grid.columns.filter(column => !column.hidden);
+                    
+                    const flattenData = function(groupedData) {
+                        return groupedData.reduce(function(acc, item) {
+                            if (item.hasOwnProperty("items"))
+                                return acc.concat(flattenData(item.items));
+                            else
+                                acc.push(item);
+                            
+                            return acc;
+                        }, []);
+                    };
+                    
+                    const flattenedData = flattenData(grid.dataSource.view());
+
+                    const groupHeaderColumns = grid.dataSource.group().length;
+                        
+                    for(let rowIndex = 0; rowIndex < sheet.rows.length; rowIndex++) {
+                        const row = sheet.rows[rowIndex];
+
+                        if (row.type !== 'data')
+                            continue;
+
+                        const dataItem = flattenedData[rowIndex - 1];
+                        if (!dataItem || dataItem.hasOwnProperty("aggregates"))
+                            continue;
+
+                        for(let columnIndex = groupHeaderColumns; columnIndex < row.cells.length; columnIndex++) {
+                            const cellIndex = columnIndex - groupHeaderColumns;
+                            const cell = row.cells[columnIndex];
+                            
+                            const column = visibleColumns[cellIndex];
+                            if(!column || !column.export)
+                                continue;
+                            
+                            const exportSettings = column.export;
+                            
+                            cell.bold = exportSettings.bold ?? false;
+                            cell.italic = exportSettings.italic ?? false;
+                            
+                            if (exportSettings.template) {
+                                const kendoTemplate = kendo.template(exportSettings.template);
+                                const value = kendoTemplate(dataItem);
+                                
+                                if(value === 'null') {
+                                    cell.value = '';
+                                    continue;
+                                }
+
+                                cell.value = value;
+                            } else {
+                                cell.value = dataItem[column.field];
+                            }
+                        }
+                    }
+                },
                 filter: (event) => {filtersChanged = true;},
                 columnResize: (event) => this.saveGridViewColumnsState(`main_grid_columns_${this.base.settings.moduleId}`, event.sender),
                 columnReorder: (event) => this.saveGridViewColumnsState(`main_grid_columns_${this.base.settings.moduleId}`, event.sender),
