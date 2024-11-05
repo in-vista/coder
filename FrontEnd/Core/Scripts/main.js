@@ -677,6 +677,19 @@ class Main {
                         module.queryString = "";
                     }
                     this.$store.dispatch(OPEN_MODULE, module);
+                    
+                    if(module.isFullscreen) {
+                        const headerElement = document.querySelector('header');
+                        const mainElement = document.querySelector('main');
+                        
+                        const headerStyle = headerElement.style;
+                        const mainStyle = mainElement.style;
+                        
+                        headerStyle.display = 'none';
+                        
+                        mainStyle.top = 0;
+                        mainStyle.left = 0;
+                    }
                 },
 
                 closeModule(module) {

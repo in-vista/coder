@@ -116,6 +116,11 @@
         </span>
     </div>
 
+    <input id="allowCallWithoutAntiForgeryToken" name="allowCallWithoutAntiForgeryToken" type="checkbox" @(Model.AllowCallWithoutAntiForgeryToken ? "checked" : "") class="hidden">
+    <label class="checkbox" for="allowCallWithoutAntiForgeryToken">
+        <span>Sta toe om deze template aan te roepen zonder anti forgery token check</span>
+    </label>
+
     <input id="loginRequired" name="loginRequired" type="checkbox" @(Model.LoginRequired ? "checked" : "") class="hidden">
     <label class="checkbox" for="loginRequired">
         <span>Gebruiker moet ingelogd zijn om deze template te zien</span>

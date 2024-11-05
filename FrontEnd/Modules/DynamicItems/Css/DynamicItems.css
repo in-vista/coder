@@ -24,7 +24,7 @@ dd {
 }
 
 .dependency-hidden {
-    display: none;
+    display: none !important;
 }
 
 .k-dialog #changeImageDataDialog,

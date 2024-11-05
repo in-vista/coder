@@ -609,8 +609,8 @@ export class Windows {
                 linkType: this.searchItemsWindowSettings.linkTypeNumber
             };
             if (this.searchItemsWindowSettings.currentItemIsSourceId) {
-                addLinksRequest.sourceEntityType = this.searchItemsWindowSettings.entityType;
-                removeLinksRequest.sourceEntityType = this.searchItemsWindowSettings.entityType;
+                addLinksRequest.sourceEntityType = this.searchItemsWindowSettings.currentEntityType;
+                removeLinksRequest.sourceEntityType = this.searchItemsWindowSettings.currentEntityType;
             }
             if (this.searchItemsWindowSettings.setOrdering) {
                 addLinksRequest.setOrdering = this.searchItemsWindowSettings.setOrdering;
