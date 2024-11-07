@@ -419,3 +419,8 @@ FodyWeavers.xsd
 # Partner CSS
 /FrontEnd/Core/Css/partner/*.css
 
+/Api/appsettings.Development.json
+/Api/appsettings.Production.json
+/FrontEnd/appsettings.Development.json
+/FrontEnd/appsettings.Production.json
+/FrontEnd/appsettings.Test.json
