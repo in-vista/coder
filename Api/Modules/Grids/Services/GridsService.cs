@@ -2339,17 +2339,16 @@ namespace Api.Modules.Grids.Services
                     kendoColumnType = null;
                 }
 
-                bool kendoEditableField =
-                    results.Columns.Find(column => column.Field == dataColumn.ColumnName)?.Editable ?? false;
-                
-                bool editableField = 
-                    (triggerableFields.Contains(dataColumn.ColumnName) || kendoEditableField) &&
-                    !dataColumn.ColumnName.Equals("id", StringComparison.OrdinalIgnoreCase);
+                bool isEditable = (
+                                      triggerableFields.Length == 0 ||
+                                      triggerableFields.Contains(dataColumn.ColumnName)
+                                    ) &&
+                                  !dataColumn.ColumnName.Equals("id", StringComparison.OrdinalIgnoreCase);
                 
                 results.SchemaModel.Fields.Add(fieldName,
                     new FieldModel
                     {
-                        Editable = editableField,
+                        Editable = isEditable,
                         Nullable = true,
                         Type = kendoColumnType
                     });
