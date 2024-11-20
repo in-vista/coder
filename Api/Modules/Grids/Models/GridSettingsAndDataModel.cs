@@ -77,7 +77,7 @@ namespace Api.Modules.Grids.Models
         /// <summary>
         /// A list of columns to sort by using server side sorting.
         /// </summary>
-        public string[] Sort { get; set; }
+        public GridSortModel[] Sort { get; set; }
 
         public GridSettingsAndDataModel()
         {

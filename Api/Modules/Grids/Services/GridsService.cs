@@ -1730,7 +1730,7 @@ namespace Api.Modules.Grids.Services
 
             string defaultSort = null;
             if (results.Sort != null)
-                defaultSort = $"ORDER BY {string.Join(", ", results.Sort)}";
+                defaultSort = $"ORDER BY {string.Join(", ", results.Sort.Select(sort => $"`{sort.Field}` {sort.Dir}"))}";
             
             (selectQuery, countQuery) = BuildGridQueries(options, selectQuery, countQuery, identity, defaultSort, moduleSettingsModel.FieldMappings);
 
