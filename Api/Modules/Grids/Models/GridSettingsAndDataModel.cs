@@ -73,6 +73,11 @@ namespace Api.Modules.Grids.Models
         /// Gets or sets the definitions of triggerable fields within the module.
         /// </summary>
         public TriggerableFieldModel Triggerable { get; set; }
+        
+        /// <summary>
+        /// A list of columns to sort by using server side sorting.
+        /// </summary>
+        public string[] Sort { get; set; }
 
         public GridSettingsAndDataModel()
         {

@@ -1727,7 +1727,12 @@ namespace Api.Modules.Grids.Services
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
             clientDatabaseConnection.AddParameter("userId", userId);
-            (selectQuery, countQuery) = BuildGridQueries(options, selectQuery, countQuery, identity, null, moduleSettingsModel.FieldMappings);
+
+            string defaultSort = null;
+            if (results.Sort != null)
+                defaultSort = $"ORDER BY {string.Join(", ", results.Sort)}";
+            
+            (selectQuery, countQuery) = BuildGridQueries(options, selectQuery, countQuery, identity, defaultSort, moduleSettingsModel.FieldMappings);
 
             // Get the count, but only if this is not the first load.
             if (!results.ClientSidePaging && !String.IsNullOrWhiteSpace(countQuery) && (options?.FirstLoad ?? true))
