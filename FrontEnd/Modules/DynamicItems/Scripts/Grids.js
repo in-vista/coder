@@ -401,6 +401,9 @@ export class Grids {
                     });
                 }
             }
+            
+            // Forced auto-refresh setting. Default value is 'true'.
+            const refreshAfterInlineEdit = gridViewSettings.refreshGridAfterInlineEdit ?? true;
 
             let filtersChanged = false;
             const finalGridViewSettings = $.extend(true, {
@@ -496,9 +499,11 @@ export class Grids {
                     }
                 },
                 save: function (event) {
-                    event.sender.one("dataBound", function () {
-                        event.sender.dataSource.read();
-                    });
+                    if (refreshAfterInlineEdit) {
+                        event.sender.one("dataBound", function () {
+                            event.sender.dataSource.read();
+                        });
+                    }
                 },
                 editable: {
                     mode: "incell"
