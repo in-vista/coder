@@ -2020,9 +2020,10 @@ const moduleSettings = {
          * @param {string} sourceId The ID of the item that you want to link.
          * @param {string} destinationId The ID of the item that you want to link to.
          * @param {number} linkTypeNumber The link type number.
+         * @param {string|null} sourceEntityType The entity type name of the source ID.
          * @returns {Promise} A promise with the result of the AJAX call.
          */
-        async removeItemLink(sourceId, destinationId, linkTypeNumber) {
+        async removeItemLink(sourceId, destinationId, linkTypeNumber, sourceEntityType = null) {
             return Wiser.api({
                 url: `${this.base.settings.wiserApiRoot}items/remove-links?moduleId=${this.base.settings.moduleId}`,
                 method: "DELETE",
@@ -2030,7 +2031,8 @@ const moduleSettings = {
                 data: JSON.stringify({
                     encryptedSourceIds: [sourceId],
                     encryptedDestinationIds: [destinationId],
-                    linkType: linkTypeNumber
+                    linkType: linkTypeNumber,
+                    sourceEntityType: sourceEntityType
                 })
             });
         }
