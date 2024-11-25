@@ -118,6 +118,11 @@
         <span>Gebruiker moet ingelogd zijn om deze template te zien</span>
     </label>
 
+    <input id="allowCallWithoutAntiForgeryToken" name="allowCallWithoutAntiForgeryToken" type="checkbox" @(Model.AllowCallWithoutAntiForgeryToken ? "checked" : "") class="hidden">
+    <label class="checkbox" for="allowCallWithoutAntiForgeryToken">
+        <span>Sta toe om deze template aan te roepen zonder anti forgery token check</span>
+    </label>
+
     <div class="user-check-panel">
         <div class="item" data-label-style="float" data-label-width="0">
             <h4><label for="loginRoles">Rollen</label></h4>
