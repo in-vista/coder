@@ -487,8 +487,6 @@ export class Grids {
                             });
                             
                             options.success(results);
-
-                            this.mainGrid.dataSource.read();
                         }
                     },
                     schema: {
