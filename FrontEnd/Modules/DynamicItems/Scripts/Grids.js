@@ -1582,7 +1582,13 @@ export class Grids {
 
                     const destinationItemId = dataItem.encryptedDestinationItemId || dataItem.encrypted_destination_item_id || senderGrid.element.closest(".item").data("itemIdEncrypted");
                     const linkType = dataItem.linkTypeNumber || dataItem.link_type_number || dataItem.linktypenumber || dataItem.linkType || dataItem.link_type || dataItem.linktype;
-                    await this.base.removeItemLink(options.currentItemIsSourceId ? destinationItemId : encryptedId, options.currentItemIsSourceId ? encryptedId : destinationItemId, linkType);
+                    
+                    await this.base.removeItemLink(
+                        options.currentItemIsSourceId ? destinationItemId : encryptedId,
+                        options.currentItemIsSourceId ? encryptedId : destinationItemId,
+                        linkType,
+                        options.entityType ?? null);
+                    
                     senderGrid.dataSource.read();
                     break;
                 }
