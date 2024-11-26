@@ -375,6 +375,18 @@ export class Grids {
             // Delete properties that we have already defined, so that they won't be overwritten again by the $.extend below.
             delete gridViewSettings.filterable;
             delete gridViewSettings.toolbar;
+            
+            // Setup the editable property.
+            let editable = false;
+            if (gridViewSettings.readonly === true) {
+                editable = false;
+            } else if (gridViewSettings.editable) {
+                editable = gridViewSettings.editable;
+            } else if (gridViewSettings.triggerable) {
+                editable = {
+                    mode: "incell"
+                };
+            }
 
             let columns = gridViewSettings.columns || [];
             if (columns) {
@@ -502,9 +514,7 @@ export class Grids {
                         event.sender.dataSource.read();
                     });
                 },
-                editable: {
-                    mode: "incell"
-                },
+                editable: editable,
                 excel: {
                     fileName: "Module Export.xlsx",
                     filterable: true,
