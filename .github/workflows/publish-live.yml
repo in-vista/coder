@@ -50,6 +50,7 @@ jobs:
       with:
         repository: in-vista/invista-core-library
         path: invista-core-library
+        ref: main
 
     - name: Restore dependencies
       run: dotnet restore
