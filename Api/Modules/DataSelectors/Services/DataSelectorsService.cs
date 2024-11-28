@@ -361,19 +361,19 @@ VALUES(?roleId, ?id, 15)";
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<JArray>> GetResultsAsync(WiserDataSelectorRequestModel data, ClaimsIdentity identity)
+        public async Task<ServiceResult<JToken>> GetResultsAsync(WiserDataSelectorRequestModel data, ClaimsIdentity identity)
         {
             var (jsonResult, statusCode, error) = await GetJsonResponseAsync(data, identity);
             if (statusCode != HttpStatusCode.OK)
             {
-                return new ServiceResult<JArray>
+                return new ServiceResult<JToken>
                 {
                     StatusCode = statusCode,
                     ErrorMessage = error
                 };
             }
 
-            return new ServiceResult<JArray>(jsonResult);
+            return new ServiceResult<JToken>(jsonResult);
         }
 
         /// <inheritdoc />
@@ -456,7 +456,7 @@ VALUES(?roleId, ?id, 15)";
                 };
             }
 
-            var excelFile = excelService.JsonArrayToExcel(jsonResult);
+            var excelFile = excelService.JsonArrayToExcel(jsonResult as JArray);
             return new ServiceResult<byte[]>(excelFile);
         }
 
@@ -554,7 +554,7 @@ VALUES(?roleId, ?id, 15)";
                 };
             }
             
-            var csvBody = csvService.JsonArrayToCsv(jsonResult);
+            var csvBody = csvService.JsonArrayToCsv(jsonResult as JArray);
             var buffer = Encoding.UTF8.GetBytes(csvBody);
             
             return new ServiceResult<byte[]>(buffer);
@@ -613,7 +613,7 @@ VALUES(?roleId, ?id, 15)";
             return new ServiceResult<List<WiserItemModel>>(results);
         }
 
-        private async Task<(JArray Result, HttpStatusCode StatusCode, string Error)> GetJsonResponseAsync(WiserDataSelectorRequestModel data, ClaimsIdentity identity)
+        private async Task<(JToken Result, HttpStatusCode StatusCode, string Error)> GetJsonResponseAsync(WiserDataSelectorRequestModel data, ClaimsIdentity identity)
         {
             var httpContext = httpContextAccessor.HttpContext;
             if (httpContext == null)

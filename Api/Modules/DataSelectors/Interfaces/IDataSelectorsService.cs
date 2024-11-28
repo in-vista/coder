@@ -52,7 +52,7 @@ namespace Api.Modules.DataSelectors.Interfaces
         /// </summary>
         /// <param name="data">The request containing the information for the data selector.</param>
         /// <param name="identity">The identity of the authenticated user.</param>
-        Task<ServiceResult<JArray>> GetResultsAsync(WiserDataSelectorRequestModel data, ClaimsIdentity identity);
+        Task<ServiceResult<JToken>> GetResultsAsync(WiserDataSelectorRequestModel data, ClaimsIdentity identity);
 
         /// <summary>
         /// Get the query of the data selector based on the request.
