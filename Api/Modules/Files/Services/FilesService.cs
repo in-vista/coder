@@ -21,15 +21,17 @@ using GeeksCoreLibrary.Core.Enums;
 using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Core.Interfaces;
 using GeeksCoreLibrary.Core.Models;
-using GeeksCoreLibrary.Core.Services;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TinifyAPI;
+using Constants = Api.Modules.Files.Models.Constants;
+using GclCoreConstants = GeeksCoreLibrary.Core.Models.Constants;
 
 namespace Api.Modules.Files.Services
 {
@@ -808,7 +810,7 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
             databaseConnection.ClearParameters();
             databaseConnection.AddParameter("id", itemLinkId > 0 ? itemLinkId : itemId);
             databaseConnection.AddParameter("fileId", fileId);
-            databaseConnection.AddParameter("extraData", extraData == null ? null : Newtonsoft.Json.JsonConvert.SerializeObject(extraData));
+            databaseConnection.AddParameter("extraData", extraData == null ? null : JsonConvert.SerializeObject(extraData));
             await databaseConnection.ExecuteAsync(query);
 
             return new ServiceResult<bool>(true) { StatusCode = HttpStatusCode.NoContent };
@@ -1069,7 +1071,7 @@ AND property_name = ?propertyName";
             }
 
             var tenant = await wiserTenantsService.GetSingleAsync(identity);
-            var encryptionKey = parsedOptions.Value<string>(WiserItemsService.SecurityKeyKey);
+            var encryptionKey = parsedOptions.Value<string>(GclCoreConstants.SecurityKeyKey);
             if (String.IsNullOrWhiteSpace(encryptionKey))
             {
                 encryptionKey = tenant.ModelObject.EncryptionKey;
