@@ -16,10 +16,9 @@ using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Core.Interfaces;
 using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
-using GeeksCoreLibrary.Modules.Databases.Services;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using MySqlConnector;
+using IEntityTypesService = Api.Modules.EntityTypes.Interfaces.IEntityTypesService;
 
 namespace Api.Modules.EntityTypes.Services
 {
