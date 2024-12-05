@@ -40,6 +40,7 @@ import {
     GET_BRANCHES,
     GET_DATA_SELECTORS_FOR_BRANCHES,
     GET_ENTITIES_FOR_BRANCHES,
+    GET_LINK_TYPES,
     GET_TENANT_TITLE,
     HANDLE_CONFLICT,
     HANDLE_MULTIPLE_CONFLICTS,
@@ -269,6 +270,14 @@ class Main {
                                 delete: false
                             }
                         },
+                        linkTypes: {
+                            all: {
+                                everything: false,
+                                create: false,
+                                update: false,
+                                delete: false
+                            }
+                        },
                         settings: {
                             all: {
                                 everything: true,
@@ -343,6 +352,12 @@ class Main {
                                 delete: true
                             },
                             styledOutput: {
+                                everything: true,
+                                create: true,
+                                update: true,
+                                delete: true
+                            },
+                            easyObjects: {
                                 everything: true,
                                 create: true,
                                 update: true,
@@ -456,6 +471,9 @@ class Main {
                 entitiesForBranches() {
                     return this.$store.state.branches.entities;
                 },
+                linkTypesForBranches() {
+                    return this.$store.state.branches.linkTypes;
+                },
                 settingsForBranches() {
                     return this.$store.state.branches.settings;
                 },
@@ -504,6 +522,21 @@ class Main {
                 totalAmountOfSettingsDeleted() {
                     return this.$store.state.branches.branchChanges.settings.reduce((accumulator, entity) => {
                         return accumulator + entity.deleted;
+                    }, 0);
+                },
+                totalAmountOfLinksCreated() {
+                    return this.$store.state.branches.branchChanges.linkTypes.reduce((accumulator, linkType) => {
+                        return accumulator + linkType.created;
+                    }, 0);
+                },
+                totalAmountOfLinksUpdated() {
+                    return this.$store.state.branches.branchChanges.linkTypes.reduce((accumulator, linkType) => {
+                        return accumulator + linkType.updated;
+                    }, 0);
+                },
+                totalAmountOfLinksDeleted() {
+                    return this.$store.state.branches.branchChanges.linkTypes.reduce((accumulator, linkType) => {
+                        return accumulator + linkType.deleted;
                     }, 0);
                 },
                 totalAmountOfMergeConflicts() {
@@ -980,10 +1013,18 @@ class Main {
                     return false;
                 },
 
+                async enableLinkTypeBasedOnEntity(entityName) {
+                    for (let link of this.linkTypesForBranches) {
+                        if (link.sourceEntityType === entityName || link.destinationEntityType === entityName) {
+                            this.branchMergeSettings.linkTypes[link.id].everything = true;
+                        }
+                    }
+                },
+
                 updateBranchChangeList(isChecked, setting, type, operation) {
                     if (type === "all") {
                         for (let entityOrSettingType of this.branchChanges[setting]) {
-                            const key = entityOrSettingType.entityType || entityOrSettingType.type;
+                            const key = entityOrSettingType.entityType || entityOrSettingType.id || entityOrSettingType.type;
                             this.branchMergeSettings[setting][key] = this.branchMergeSettings[setting][key] || {};
                             switch (operation) {
                                 case "everything":
@@ -1007,6 +1048,11 @@ class Main {
                         this.branchMergeSettings[setting][type].create = isChecked;
                         this.branchMergeSettings[setting][type].update = isChecked;
                         this.branchMergeSettings[setting][type].delete = isChecked;
+                    }
+
+                    // check if link types need to be updated
+                    if (isChecked && setting === "entities") {
+                        this.enableLinkTypeBasedOnEntity(type);
                     }
                 },
 
@@ -1141,16 +1187,33 @@ class Main {
                     }
                 },
 
-                async onWiserMergeBranchPromptOpen(sender) {
-                    await this.getEntitiesForBranches();
+                async getLinkTypesForBranches(branchId = 0) {
+                    await this.$store.dispatch(GET_LINK_TYPES, branchId);
+                    for (let linkType of this.linkTypesForBranches) {
+                        if (this.branchMergeSettings.linkTypes[linkType.id]) {
+                            continue;
+                        }
 
+                        this.branchMergeSettings.linkTypes[linkType.id] = {
+                            type: linkType.type,
+                            sourceEntityType: linkType.sourceEntityType,
+                            destinationEntityType: linkType.destinationEntityType,
+                            everything: false,
+                            create: false,
+                            update: false,
+                            delete: false
+                        };
+                    }
+                },
+
+                async onWiserMergeBranchPromptOpen(sender) {
                     if (this.branches && this.branches.length > 0) {
+                        await this.onSelectedBranchChange(this.branches[0].id);
                         this.branchMergeSettings.selectedBranch = this.branches[0];
-                        this.onSelectedBranchChange(this.branches[0].id);
                     }
                     else if (!this.isMainBranch) {
                         // If this is not the main branch, you can only synchronise the changes of the current branch, so get the changes immediately.
-                        this.onSelectedBranchChange();
+                        await this.onSelectedBranchChange();
                     }
                 },
 
@@ -1198,11 +1261,15 @@ class Main {
                         };
                     }
 
+                    await this.getLinkTypesForBranches(selectedBranchId);
+
                     this.$store.dispatch(RESET_BRANCH_CHANGES);
 
                     // Clear all checkboxes.
                     this.branchMergeSettings.entities.all.everything = false;
+                    this.branchMergeSettings.linkTypes.all.everything = false;
                     this.updateBranchChangeList(false, "entities", "all", "everything");
+                    this.updateBranchChangeList(false, "linkTypes", "all", "everything");
                 },
 
                 async countBranchChanges() {

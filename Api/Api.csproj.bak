@@ -184,10 +184,6 @@
     <Compile Remove="Modules\Permissions\Models\BasePermissionData.cs" />
     <Compile Remove="Modules\Permissions\Models\ModulePermissionData.cs" />
     <Compile Remove="Modules\Permissions\Models\QueryPermissionData.cs" />
- </ItemGroup>
-
- <ItemGroup>
-   <ProjectReference Include="C:\invista-core-library\GeeksCoreLibrary\GeeksCoreLibrary.csproj" />
- </ItemGroup>
+  </ItemGroup>
 
 </Project>

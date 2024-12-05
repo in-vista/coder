@@ -596,6 +596,11 @@ namespace Api.Core.Services
                     subDomain = (string)httpContextAccessor.HttpContext.Items[HttpContextConstants.SubDomainKey];
                 }
 
+                if (String.IsNullOrWhiteSpace(subDomain) && httpContextAccessor.HttpContext.Request.Path.StartsWithSegments("/health"))
+                {
+                    subDomain = apiSettings.MainSubDomain;
+                }
+
                 if (String.IsNullOrWhiteSpace(subDomain))
                 {
                     throw new Exception("No sub domain found!");

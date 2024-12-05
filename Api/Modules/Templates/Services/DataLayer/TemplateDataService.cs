@@ -993,11 +993,22 @@ LEFT JOIN {WiserTableNames.WiserTemplate} AS parent8 ON parent8.template_id = pa
                 allItems.Add(result);
             }
 
+            // if there are few items in the search result expand all items in the treeview.
+            if (allItems.Count < 10)
+            {
+                allItems.ForEach(result => result.Expanded = true);
+            }
+
             void AddChildren(List<SearchResultModel> currentLevel)
             {
                 foreach (var result in currentLevel)
                 {
                     result.ChildNodes = allItems.Where(i => i.ParentId == result.TemplateId).Cast<TemplateTreeViewModel>().ToList();
+                    
+                    if (result.ChildNodes.Count == 1)
+                    {
+                        result.Expanded = true;
+                    }
                     AddChildren(result.ChildNodes.Cast<SearchResultModel>().ToList());
                 }
             }
@@ -1026,7 +1037,7 @@ AND otherVersion.id IS NULL";
             {
                 foreach (var result in currentLevel)
                 {
-                    if (!allItems.Any(i => i.TemplateId == result.TemplateId))
+                    if (allItems.All(i => i.TemplateId != result.TemplateId))
                     {
                         allItems.Add(result);
                     }
@@ -1052,7 +1063,6 @@ AND otherVersion.id IS NULL";
                 AddEncryptedTemplates(searchResults);
                 encryptedTemplatesAdded = true;
             }
-
 
             if (!encryptedTemplatesAdded)
             {
@@ -1080,8 +1090,8 @@ AND otherVersion.id IS NULL";
             clientDatabaseConnection.AddParameter("editorValue", editorValue);
 
             var dataTable = await clientDatabaseConnection.GetAsync(@$"SET @id = (SELECT MAX(template_id)+1 FROM {WiserTableNames.WiserTemplate});
-INSERT INTO {WiserTableNames.WiserTemplate} (parent_id, template_name, template_type, version, template_id, added_on, added_by, changed_on, changed_by, published_environment, ordering, template_data, cache_minutes)
-VALUES (?parent, ?name, ?type, 1, @id, ?now, ?username, ?now, ?username, 1, ?ordering, ?editorValue, -1);
+INSERT INTO {WiserTableNames.WiserTemplate} (parent_id, template_name, template_type, version, template_id, added_on, added_by, changed_on, changed_by, published_environment, ordering, template_data, cache_minutes, is_dirty)
+VALUES (?parent, ?name, ?type, 1, @id, ?now, ?username, ?now, ?username, 1, ?ordering, ?editorValue, -1, TRUE);
 SELECT @id;");
 
             return Convert.ToInt32(dataTable.Rows[0]["@id"]);
