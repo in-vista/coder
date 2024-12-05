@@ -42,6 +42,7 @@ public class Tests
     public void TearDown()
     {
         driver.Quit();
+        driver.Dispose();
     }
 
     /// <summary>

@@ -11,6 +11,7 @@ using Api.Modules.Files.Interfaces;
 using Api.Modules.Pdfs.Interfaces;
 using EvoPdf;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
+using GeeksCoreLibrary.Core.Interfaces;
 using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using GeeksCoreLibrary.Modules.GclConverters.Interfaces;
@@ -31,18 +32,20 @@ namespace Api.Modules.Pdfs.Services
         private readonly IWiserTenantsService wiserTenantsService;
         private readonly IFilesService filesService;
         private readonly IWebHostEnvironment webHostEnvironment;
+        private readonly IHttpClientService httpClientService;
         private readonly GclSettings gclSettings;
 
         /// <summary>
         /// Creates a new instance of <see cref="PdfsService"/>.
         /// </summary>
-        public PdfsService(IHtmlToPdfConverterService htmlToPdfConverterService, IDatabaseConnection clientDatabaseConnection, IWiserTenantsService wiserTenantsService, IFilesService filesService, IWebHostEnvironment webHostEnvironment, IOptions<GclSettings> gclSettings)
+        public PdfsService(IHtmlToPdfConverterService htmlToPdfConverterService, IDatabaseConnection clientDatabaseConnection, IWiserTenantsService wiserTenantsService, IFilesService filesService, IWebHostEnvironment webHostEnvironment, IOptions<GclSettings> gclSettings, IHttpClientService httpClientService)
         {
             this.htmlToPdfConverterService = htmlToPdfConverterService;
             this.clientDatabaseConnection = clientDatabaseConnection;
             this.wiserTenantsService = wiserTenantsService;
             this.filesService = filesService;
             this.webHostEnvironment = webHostEnvironment;
+            this.httpClientService = httpClientService;
             this.gclSettings = gclSettings.Value;
         }
 
@@ -94,30 +97,22 @@ namespace Api.Modules.Pdfs.Services
         /// <inheritdoc />
         public async Task<ServiceResult<byte[]>> MergePdfFilesAsync(ClaimsIdentity identity, string[] encryptedItemIdsList, string[] propertyNames, string entityType)
         {
-            var tenant = await wiserTenantsService.GetSingleAsync(identity);
-
             Document mergeResultPdfDocument = null;
-            //Load the documents and add them to the merged file
+
+            // Load the documents and add them to the merged file.
             foreach (var encryptedId in encryptedItemIdsList)
             {
                 foreach (var propertyName in propertyNames)
                 {
                     var pdfFile = await filesService.GetAsync(encryptedId, 0, identity, 0, entityType, propertyName:propertyName);
-                    MemoryStream pdfStream = new MemoryStream();
+                    var pdfStream = new MemoryStream();
                     // Check if the PDF must be downloaded first
                     if (!String.IsNullOrWhiteSpace(pdfFile.ModelObject.Url))
                     {
-                        using (HttpClient client = new HttpClient())
-                        {
-                            using (HttpResponseMessage response = await client.GetAsync(pdfFile.ModelObject.Url, HttpCompletionOption.ResponseHeadersRead))
-                            {
-                                response.EnsureSuccessStatusCode();
-                                using (Stream downloadStream = await response.Content.ReadAsStreamAsync())
-                                {
-                                    await downloadStream.CopyToAsync(pdfStream);
-                                }
-                            }
-                        }
+                        using var response = await httpClientService.Client.GetAsync(pdfFile.ModelObject.Url, HttpCompletionOption.ResponseHeadersRead);
+                        response.EnsureSuccessStatusCode();
+                        await using var downloadStream = await response.Content.ReadAsStreamAsync();
+                        await downloadStream.CopyToAsync(pdfStream);
                     }
                     else if (!pdfFile.ModelObject.Data.IsNullOrEmpty())
                     {
@@ -142,7 +137,7 @@ namespace Api.Modules.Pdfs.Services
             }
             
             using var saveStream = new MemoryStream();
-            mergeResultPdfDocument.Save(saveStream);
+            mergeResultPdfDocument?.Save(saveStream);
             return new ServiceResult<byte[]>(saveStream.ToArray());
         }
     }

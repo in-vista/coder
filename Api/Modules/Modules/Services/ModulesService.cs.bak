@@ -59,14 +59,21 @@ namespace Api.Modules.Modules.Services
         /// </summary>
         public ModulesService(IWiserTenantsService wiserTenantsService, IGridsService gridsService,
             IDatabaseConnection clientDatabaseConnection, IWiserItemsService wiserItemsService,
+<<<<<<< HEAD
             IItemsService itemsService, IJsonService jsonService, IExcelService excelService,
             IObjectsService objectsService, IUsersService usersService,
             IStringReplacementsService stringReplacementsService, ILogger<ModulesService> logger,
-            ICsvService csvService)
+            IDatabaseHelpersService databaseHelpersService, ICsvService csvService)
+=======
+            IJsonService jsonService, IExcelService excelService, IObjectsService objectsService,
+            IUsersService usersService, IStringReplacementsService stringReplacementsService,
+            ILogger<ModulesService> logger, ICsvService csvService)
+>>>>>>> 554d9d9d (feature/remove-virtual-columns (#709))
         {
             this.wiserTenantsService = wiserTenantsService;
             this.gridsService = gridsService;
             this.wiserItemsService = wiserItemsService;
+            this.itemsService = itemsService;
             this.jsonService = jsonService;
             this.excelService = excelService;
             this.objectsService = objectsService;
@@ -80,6 +87,8 @@ namespace Api.Modules.Modules.Services
         /// <inheritdoc />
         public async Task<ServiceResult<Dictionary<string, List<ModuleAccessRightsModel>>>> GetAsync(ClaimsIdentity identity)
         {
+            await databaseHelpersService.CheckAndUpdateTablesAsync(new List<string> { WiserTableNames.WiserModule });
+            
             var modulesForAdmins = new List<int>
             {
                 Constants.DefaultMasterDataModuleId,
@@ -590,6 +599,8 @@ UNION
 
             clientDatabaseConnection.ClearParameters();
             clientDatabaseConnection.AddParameter("id", id);
+            
+            await databaseHelpersService.CheckAndUpdateTablesAsync(new List<string> { WiserTableNames.WiserModule });
 
             var query = $@"SELECT id, custom_query, count_query, `options`, `name`, icon, type, `group`, `custom_script` FROM {WiserTableNames.WiserModule} WHERE id = ?id";
             var dataTable = await clientDatabaseConnection.GetAsync(query);
