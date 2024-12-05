@@ -75,6 +75,7 @@ namespace Api.Modules.Modules.Services
             this.logger = logger;
             this.csvService = csvService;
             this.clientDatabaseConnection = clientDatabaseConnection;
+            this.itemsService = itemsService;
         }
 
         /// <inheritdoc />
