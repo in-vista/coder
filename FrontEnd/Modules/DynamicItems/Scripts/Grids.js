@@ -603,6 +603,14 @@ export class Grids {
                     if (gridViewSettings.keepFiltersState !== false && filtersChanged) {
                         await this.saveGridViewFiltersState(`main_grid_filters_${this.base.settings.moduleId}`, event.sender);
                     }
+                    
+                    // Auto-collapse groups if enabled.
+                    if(gridViewSettings.collapseGroups) {
+                        const grid = event.sender.element.data('kendoGrid');
+                        event.sender.element.find(`.k-grouping-row`).each(function(groupEvent) {
+                            grid.collapseGroup(this);
+                        })
+                    }
                 },
                 change: this.onGridSelectionChange.bind(this),
                 resizable: true,
