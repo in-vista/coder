@@ -254,7 +254,7 @@ export class Windows {
                 windowTitle = title
             }
 
-            windowTitle = !windowTitle ? "" : ` &quot;${windowTitle}&quot; <strong> bewerken</strong>`;
+            windowTitle = !windowTitle ? "" : `${windowTitle}`;
             currentItemWindow.title({
                 text: `<button type='button' class='btn btn-cancel'><ins class='icon-line-exit'></ins><span>Annuleren</span></button>${windowTitle}`,
                 encoded: false

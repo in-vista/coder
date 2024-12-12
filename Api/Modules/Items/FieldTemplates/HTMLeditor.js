@@ -247,7 +247,7 @@
                     height: "600px",
                     minHeight: "300px",
                     minWidth: "300px",
-                    title: "{title} bewerken",
+                    title: "{title}",
                     modal: true,
                     actions: ["Minimize", "Maximize"],
                     open: (openEvent) => {
