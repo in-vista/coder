@@ -1728,11 +1728,11 @@ namespace Api.Modules.Grids.Services
             var userId = IdentityHelpers.GetWiserUserId(identity);
             clientDatabaseConnection.AddParameter("userId", userId);
 
-            string defaultSort = null;
-            if (results.Sort != null)
-                defaultSort = $"ORDER BY {string.Join(", ", results.Sort.Select(sort => $"`{sort.Field}` {sort.Dir}"))}";
+            string defaultOrder = null;
+            if (results.Order != null)
+                defaultOrder = $"ORDER BY {string.Join(", ", results.Order.Select(order => $"`{order.Field}` {order.Dir}"))}";
             
-            (selectQuery, countQuery) = BuildGridQueries(options, selectQuery, countQuery, identity, defaultSort, moduleSettingsModel.FieldMappings);
+            (selectQuery, countQuery) = BuildGridQueries(options, selectQuery, countQuery, identity, defaultOrder, moduleSettingsModel.FieldMappings);
 
             // Get the count, but only if this is not the first load.
             if (!results.ClientSidePaging && !String.IsNullOrWhiteSpace(countQuery) && (options?.FirstLoad ?? true))
@@ -2172,11 +2172,11 @@ namespace Api.Modules.Grids.Services
             clientDatabaseConnection.ClearParameters();
             clientDatabaseConnection.AddParameter("itemId", itemId);
             
-            string defaultSort = null;
-            if (results.Sort != null)
-                defaultSort = $"ORDER BY {string.Join(", ", results.Sort.Select(sort => $"`{sort.Field}` {sort.Dir}"))}";
+            string defaultOrder = null;
+            if (results.Order != null)
+                defaultOrder = $"ORDER BY {string.Join(", ", results.Order.Select(order => $"`{order.Field}` {order.Dir}"))}";
             
-            (selectQuery, countQuery) = BuildGridQueries(options, selectQuery, countQuery, identity, defaultSort);
+            (selectQuery, countQuery) = BuildGridQueries(options, selectQuery, countQuery, identity, defaultOrder);
 
             // Get the count, but only if this is not the first load.
             if ((options?.FirstLoad ?? true) && !String.IsNullOrWhiteSpace(countQuery))
