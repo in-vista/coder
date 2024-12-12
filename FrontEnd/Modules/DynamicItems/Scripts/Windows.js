@@ -318,6 +318,11 @@ export class Windows {
                             this.base.dialogs.copyItemToEnvironmentDialog.element.data("currentItemWindow", currentItemWindow);
                             this.base.dialogs.copyItemToEnvironmentDialog.open();
                         });
+                        
+                        const canDelete = itemMetaData.canDelete && !itemMetaData.removed && itemMetaData.deleteAction !== 'disallow' && itemMetaData.readOnly === 'Nee';
+                        const canUndelete = itemMetaData.canDelete && itemMetaData.removed && itemMetaData.readOnly === 'Nee';
+                        currentItemWindow.wrapper.find(".k-i-verwijderen").parent().toggleClass("hidden", !canDelete);
+                        currentItemWindow.element.find(".editMenu .undeleteItem").closest("li").toggleClass("hidden", !canUndelete);
                     });
 
                     // Get the information that we need about the opened item.
@@ -348,8 +353,6 @@ export class Windows {
                     // Handle access rights.
                     currentItemWindow.wrapper.find(".itemNameField").prop("readonly", !htmlData.canWrite).prop("disabled", !htmlData.canWrite);
                     currentItemWindow.wrapper.find(".saveButton").toggleClass("hidden", !htmlData.canWrite);
-                    currentItemWindow.wrapper.find(".k-i-verwijderen").parent().toggleClass("hidden", !htmlData.canDelete);
-                    currentItemWindow.element.find(".editMenu .undeleteItem").closest("li").toggleClass("hidden", !htmlData.canDelete);
 
                     // Add all fields and tabs to the window.
                     let genericTabHasFields = false;
