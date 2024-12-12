@@ -1889,7 +1889,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                             item.changed_by,
                             permission.id AS permissionId,
                             permission.permissions,
-                            IFNULL(entity.enable_multiple_environments, 0) AS enable_multiple_environments
+                            IFNULL(entity.enable_multiple_environments, 0) AS enable_multiple_environments,
+                            entity.delete_action AS `delete_action`
                         FROM {tablePrefix}{WiserTableNames.WiserItem}{{0}} AS item
                         LEFT JOIN {WiserTableNames.WiserEntity} AS entity ON entity.name = item.entity_type AND entity.module_id = item.moduleid
 
@@ -1935,6 +1936,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             result.ChangedOn = dataTable.Rows[0].Field<DateTime?>("changed_on");
             result.ChangedBy = dataTable.Rows[0].Field<string>("changed_by");
             result.EnableMultipleEnvironments = Convert.ToBoolean(dataTable.Rows[0]["enable_multiple_environments"]);
+            result.DeleteAction = dataTable.Rows[0].Field<string>("delete_action");
 
             return new ServiceResult<ItemMetaDataModel>(result);
         }

@@ -413,6 +413,9 @@ export class Grids {
                     });
                 }
             }
+            
+            // Forced auto-refresh setting. Default value is 'true'.
+            const refreshAfterInlineEdit = gridViewSettings.refreshGridAfterInlineEdit ?? true;
 
             let filtersChanged = false;
             const finalGridViewSettings = $.extend(true, {
@@ -499,8 +502,6 @@ export class Grids {
                             });
                             
                             options.success(results);
-
-                            this.mainGrid.dataSource.read();
                         }
                     },
                     schema: {
@@ -510,9 +511,11 @@ export class Grids {
                     }
                 },
                 save: function (event) {
-                    event.sender.one("dataBound", function () {
-                        event.sender.dataSource.read();
-                    });
+                    if (refreshAfterInlineEdit) {
+                        event.sender.one("dataBound", function () {
+                            event.sender.dataSource.read();
+                        });
+                    }
                 },
                 editable: editable,
                 excel: {
@@ -599,6 +602,14 @@ export class Grids {
 
                     if (gridViewSettings.keepFiltersState !== false && filtersChanged) {
                         await this.saveGridViewFiltersState(`main_grid_filters_${this.base.settings.moduleId}`, event.sender);
+                    }
+                    
+                    // Auto-collapse groups if enabled.
+                    if(gridViewSettings.collapseGroups) {
+                        const grid = event.sender.element.data('kendoGrid');
+                        event.sender.element.find(`.k-grouping-row`).each(function(groupEvent) {
+                            grid.collapseGroup(this);
+                        })
                     }
                 },
                 change: this.onGridSelectionChange.bind(this),

@@ -96,5 +96,10 @@ namespace Api.Modules.Items.Models
         /// Gets or sets whether the user is allowed to delete items in this module.
         /// </summary>
         public bool CanDelete { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the delete action of the entity.
+        /// </summary>
+        public string DeleteAction { get; set; }
     }
 }

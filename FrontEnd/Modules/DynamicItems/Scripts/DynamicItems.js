@@ -1954,8 +1954,11 @@ const moduleSettings = {
                 }
 
                 editMenu.find(".copyToEnvironment").closest("li").toggle(itemMetaData.enableMultipleEnvironments > 0);
-                deleteButtons.toggle(itemMetaData.canDelete && !itemMetaData.removed);
-                undeleteButtons.toggle(itemMetaData.canDelete && !!itemMetaData.removed); // Double exclamation mark, because jQuery expects a true/false, but removed has a 0 or 1 most of the time.
+
+                const canDelete = itemMetaData.canDelete && !itemMetaData.removed && itemMetaData.deleteAction !== 'disallow' && itemMetaData.readOnly === 'Nee';
+                const canUndelete = itemMetaData.canDelete && !!itemMetaData.removed && itemMetaData.readOnly === 'Nee';
+                deleteButtons.toggle(canDelete);
+                undeleteButtons.toggle(canUndelete);
 
                 $("#alert-first").addClass("hidden");
 

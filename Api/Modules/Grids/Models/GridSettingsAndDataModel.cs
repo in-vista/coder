@@ -75,9 +75,9 @@ namespace Api.Modules.Grids.Models
         public TriggerableFieldModel Triggerable { get; set; }
         
         /// <summary>
-        /// A list of columns to sort by using server side sorting.
+        /// A list of columns to order by using server side sorting.
         /// </summary>
-        public GridSortModel[] Sort { get; set; }
+        public GridSortModel[] Order { get; set; }
 
         public GridSettingsAndDataModel()
         {
