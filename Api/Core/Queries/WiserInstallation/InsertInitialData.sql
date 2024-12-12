@@ -131,7 +131,7 @@ INSERT INTO `wiser_entity`(`name`, `module_id`, `accepted_childtypes`, `icon`, `
 -- ----------------------------
 # Wiser users.
 INSERT INTO `wiser_query` (`id`, `description`, `query`) VALUES (1, 'Rol toevoegen aan gebruiker', 'INSERT INTO wiser_user_roles (user_id, role_id) VALUES ({itemId}, {role_id})');
-INSERT INTO `wiser_query` (`id`, `description`, `query`) VALUES (2, 'Alle rollen ophalen', 'SELECT \r\n	role.id AS role_id,\r\n	role.role_name AS role_name\r\nFROM wiser_roles role');
+INSERT INTO `wiser_query` (`id`, `description`, `query`) VALUES (2, 'Alle rollen ophalen', 'SELECT \r\n	role.id AS role_id,\r\n	role.role_name AS role_name\r\nFROM wiser_roles role\r\nLEFT JOIN wiser_user_roles user_roles ON user_roles.role_id = role.id AND user_roles.user_id = {itemId}\r\nWHERE user_roles.id IS NULL');
 INSERT INTO `wiser_query` (`id`, `description`, `query`) VALUES (4, 'Deblokkeer account', 'UPDATE `wiser_login_attempts` AS loginAttempts\r\nJOIN wiser_itemdetail AS `user` ON `user`.item_id = \'{itemId}\' AND `user`.`key` = ''username'' AND `user`.`value` = loginAttempts.username\r\nSET loginAttempts.attempts = 0, loginAttempts.blocked = 0');
 
 # Templates
