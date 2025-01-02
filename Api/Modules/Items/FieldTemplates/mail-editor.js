@@ -5,13 +5,15 @@
     // Retrieve the value of the entity property's instance.
     const value = {default_value};
     
-    // Set up general options for the Topol component.
+    // Set up general options for the Topol instance.
     let topolOptions = {
+        // Required.
         id: '#field_{propertyIdWithSuffix}_container',
         authorize: {
             apiKey: 'I8aZbIYWVZtWaKWWWmrzbi7YvthqHpEh4mfKpbXm36XKaQTHEDgKJGje3OIa',
             userId: 'Coder',
         },
+        // Callbacks.
         callbacks: {
             onSave: function (json, html) {
                 const jsonField = $('#field_{propertyIdWithSuffix}');
@@ -20,7 +22,9 @@
                 const htmlField = $('#field_{propertyIdWithSuffix}_html');
                 htmlField.val(encodeHtml(html));
             }
-        }
+        },
+        // Default settings.
+        removeTopBar: true
     };
     
     // Overrule any settings on the topol settings from the entity property settings.
