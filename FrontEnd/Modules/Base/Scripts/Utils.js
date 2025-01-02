@@ -1711,35 +1711,15 @@ export class Misc {
     }
     
     static encodeHtml(input) {
-        let encodedInput = input.replace(/[<>&]/g, function(match) {
-            switch(match) {
-                case '<': return '&lt;';
-                case '>': return '&gt;';
-                case '&': return '&amp;';
-            }
-        });
-
-        encodedInput = encodedInput.replace(/[\u00A0-\u9999]/g, function(match) {
-            return '&#' + match.charCodeAt(0) + ';';
-        });
-        
-        return encodedInput;
+        const div = document.createElement('div');
+        div.textContent = input;
+        return div.innerHTML;
     }
     
     static decodeHtml(input) {
-        let decodedInput = input.replace(/&#\d+;/g, function(match) {
-            return String.fromCharCode(match.match(/\d+/g)[0]);
-        });
-        
-        decodedInput = decodedInput.replace(/(&lt;|&gt;|&ampt;)/g, function(match) {
-            switch(match) {
-                case '&lt;': return '<';
-                case '&gt;': return '>';
-                case '&amp;': return '&';
-            }
-        });
-        
-        return decodedInput;
+        const div = document.createElement('div');
+        div.innerHTML = input;
+        return div.textContent;
     }
 }
 

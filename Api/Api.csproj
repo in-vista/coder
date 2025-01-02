@@ -150,6 +150,10 @@
     <EmbeddedResource Include="Modules\Items\FieldTemplates\textbox.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\timeline.html" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\timeline.js" />
+    <None Remove="Modules\Items\FieldTemplates\mail-editor.html" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\mail-editor.html" />
+    <None Remove="Modules\Items\FieldTemplates\mail-editor.js" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\mail-editor.js" />
   </ItemGroup>
 
   <ItemGroup>

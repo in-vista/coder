@@ -141,9 +141,15 @@ export class Fields {
             }
 
             // If we reach this point in the code, this element is not a Kendo control, so just get the normal value.
+            let fieldValue = field.val();
+            
+            const htmlEncoded = field.attr('data-html-encoded');
+            if(htmlEncoded === 'true')
+                fieldValue = Misc.decodeHtml(fieldValue);
+            
             switch (field.prop("tagName")) {
                 case "SELECT":
-                    data.value = field.val();
+                    data.value = fieldValue;
                     break;
                 case "INPUT":
                 case "TEXTAREA":
@@ -156,10 +162,10 @@ export class Fields {
                             if (!field.prop("checked")) {
                                 return;
                             }
-                            data.value = field.val();
+                            data.value = fieldValue;
                             break;
                         default:
-                            data.value = field.val();
+                            data.value = fieldValue;
                             break;
                     }
                     break;

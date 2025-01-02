@@ -1674,7 +1674,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 if (!String.IsNullOrWhiteSpace(htmlTemplate))
                 {
                     string valueToReplace;
-                    if (fieldType.Equals("HTMLeditor", StringComparison.OrdinalIgnoreCase))
+                    if (fieldType.Equals("HTMLeditor", StringComparison.OrdinalIgnoreCase) || fieldType.Equals("mail-editor", StringComparison.OrdinalIgnoreCase))
                     {
                         valueToReplace = defaultValue.HtmlEncode();
                     }
