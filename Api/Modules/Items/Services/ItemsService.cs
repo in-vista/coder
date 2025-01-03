@@ -1732,6 +1732,15 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 // Replace values in javascript template.
                 if (!String.IsNullOrWhiteSpace(scriptTemplate))
                 {
+                    // Replace API key for Topol.
+                    if (fieldType.Equals("mail-editor", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string topolApiKey = GclSettings.Current.TopolApiKey;
+
+                        if (!string.IsNullOrEmpty(topolApiKey))
+                            scriptTemplate = scriptTemplate.Replace("{topolApiKey}", topolApiKey);
+                    }
+                    
                     scriptTemplate = scriptTemplate.Replace("{customScript}", dataRow.Field<string>("custom_script") ?? "")
                         .Replace("{propertyId}", propertyId.ToString())
                         .Replace("{propertyIdWithSuffix}", propertyId + (propertyIdSuffix ?? ""))

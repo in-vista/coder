@@ -10,7 +10,7 @@
         // Required.
         id: '#field_{propertyIdWithSuffix}_container',
         authorize: {
-            apiKey: 'I8aZbIYWVZtWaKWWWmrzbi7YvthqHpEh4mfKpbXm36XKaQTHEDgKJGje3OIa',
+            apiKey: '{topolApiKey}',
             userId: 'Coder',
         },
         // Callbacks.
@@ -24,6 +24,7 @@
             }
         },
         // Default settings.
+        language: 'nl',
         removeTopBar: true
     };
     
