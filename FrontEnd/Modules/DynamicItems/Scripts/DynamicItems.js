@@ -901,34 +901,31 @@ const moduleSettings = {
             event.preventDefault();
             const process = `saveItem_${Date.now()}`;
             window.processing.addProcess(process);
-
-            window.addEventListener('message', (event) => {
-                console.log('Received message:', event);
-                console.log('Origin:', event.origin);
-                console.log('Data:', event.data);
-            });
             
-            // Since manually saving the Topol instance runs async, but the 'save' function does not have the ability to wait,
-            // we wait manually by waiting for a success message that comes back from the iframe of the Topol instance.
-            await new Promise(resolve => {
-                // Handle the message event handler.
-                function messageHandler(event) {
-                    if (event.origin !== 'https://d5aoblv5p04cg.cloudfront.net')
-                        return;
-                    
-                    const data = event.data;
-                    if (data && data.action === 'onSave') {
-                        window.removeEventListener('message', messageHandler);
-                        resolve(data);
-                    }
-                }
-                
-                // Attach the message listener to the window.
-                window.addEventListener('message', messageHandler);
+            // Check if the item has a Topol instance running.
+            if(TopolPlugin.iframe && document.body.contains(TopolPlugin.iframe)) {
+                // Since manually saving the Topol instance runs async, but the 'save' function does not have the ability to wait,
+                // we wait manually by waiting for a success message that comes back from the iframe of the Topol instance.
+                await new Promise(resolve => {
+                    // Handle the message event handler.
+                    function messageHandler(event) {
+                        if (event.origin !== 'https://d5aoblv5p04cg.cloudfront.net')
+                            return;
 
-                // Release the JSON and HTML of the Topol mail editor iframe into their respective input fields.
-                TopolPlugin.save();
-            });
+                        const data = event.data;
+                        if (data && data.action === 'onSave') {
+                            window.removeEventListener('message', messageHandler);
+                            resolve(data);
+                        }
+                    }
+
+                    // Attach the message listener to the window.
+                    window.addEventListener('message', messageHandler);
+
+                    // Release the JSON and HTML of the Topol mail editor iframe into their respective input fields.
+                    TopolPlugin.save();
+                });
+            }
 
             try {
                 const itemId = this.selectedItem && this.selectedItem.id ? this.selectedItem.id : this.settings.initialItemId;

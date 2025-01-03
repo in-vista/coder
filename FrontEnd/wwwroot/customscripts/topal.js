@@ -2,10 +2,10 @@
 ! function(t) {
     function e(t) {
         window.TopolPlugin = new function() {
+            this.iframe = null;
             this.queue = [];
             
-            var iframe = {},
-                p = {},
+            var p = {},
                 el = {},
                 o = {},
                 message = {},
@@ -29,7 +29,7 @@
 
             function postMessage(action, data) {
                 if (loaded) {
-                    iframe.contentWindow.postMessage({
+                    self.iframe.contentWindow.postMessage({
                         action,
                         data
                     }, '*');
@@ -40,10 +40,10 @@
 
 
             function r(callback) {
-                el.appendChild(iframe)
+                el.appendChild(self.iframe)
                 var parsedOptions = JSON.parse(JSON.stringify(o))
                 window.addEventListener("message", messageListener);
-                iframe.onload = function() {
+                self.iframe.onload = function() {
                     loaded = true;
                     var len = self.queue.length;
                     for (var i = 0; i < len; i++) {
@@ -54,15 +54,15 @@
             }
 
             function createIframe() {
-                iframe = document.createElement('iframe');
-                iframe.width = '100%';
-                iframe.height = '100%';
-                iframe.frameBorder = '0';
-                iframe.allow = 'clipboard-read; clipboard-write';
-                iframe.setAttribute('allowfullscreen', '');
-                iframe.setAttribute('webkitallowfullscreen', '');
-                iframe.setAttribute('mozallowfullscreen', '');
-                iframe.src = "https://d5aoblv5p04cg.cloudfront.net/mjml4-editor-3/index.html";
+                self.iframe = document.createElement('iframe');
+                self.iframe.width = '100%';
+                self.iframe.height = '100%';
+                self.iframe.frameBorder = '0';
+                self.iframe.allow = 'clipboard-read; clipboard-write';
+                self.iframe.setAttribute('allowfullscreen', '');
+                self.iframe.setAttribute('webkitallowfullscreen', '');
+                self.iframe.setAttribute('mozallowfullscreen', '');
+                self.iframe.src = "https://d5aoblv5p04cg.cloudfront.net/mjml4-editor-3/index.html";
             }
 
             this.init = function(options, callback) {
@@ -103,7 +103,7 @@
 
             this.destroy = function() {
                 loaded = false
-                iframe = null
+                self.iframe = null
                 postMessage('destroy', {});
                 while (el.firstChild) {
                     el.removeChild(el.firstChild);
