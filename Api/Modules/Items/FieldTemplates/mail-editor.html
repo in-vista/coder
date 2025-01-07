@@ -1,0 +1,25 @@
+<div style="{style}">
+    <div class="item">
+        <h4 class="{titleClass}">
+            <label for="field_{propertyIdWithSuffix}">{title}</label>
+            <span class="info-link no-hover {infoIconClass}">
+            <ins class="icon-info-full"></ins>
+        </span>
+        </h4>
+    </div>
+    <div id="field_{propertyIdWithSuffix}_container" style="width: {width}%; height: {height}px;"></div>
+    <input
+        id="field_{propertyIdWithSuffix}_html"
+        class="item"
+        name="{propertyName}_html"
+        type="hidden"
+        data-html-encoded="true"
+        data-property-name="{propertyName}_html">
+    <input
+        id="field_{propertyIdWithSuffix}"
+        class="item"
+        name="{propertyName}"
+        type="hidden"
+        data-property-name="{propertyName}">
+    <div class="form-hint {formHintClass}" style="margin-top: 8px;">{hint}</div>
+</div>
