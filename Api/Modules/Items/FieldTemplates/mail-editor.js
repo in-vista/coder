@@ -1,9 +1,22 @@
-(() => {
+(async () => {
     // Retrieve the settings of the entity property.
     const options = {options};
     
     // Retrieve the value of the entity property's instance.
     const value = {default_value};
+    
+    // Load the identifier from the queryId. If it is not present, set it to "0" by default.
+    let identifier = 0;
+    if(options.identifierQueryId) {
+        const dataResult = await Wiser.api({
+            method: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(options.identifierQueryId || dynamicItems.settings.zeroEncrypted)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
+            data: JSON.stringify({})
+        });
+        identifier = Object.values(dataResult.otherData[0])[0];
+    }
     
     // Set up general options for the Topol instance.
     let topolOptions = {
@@ -11,7 +24,18 @@
         id: '#field_{propertyIdWithSuffix}_container',
         authorize: {
             apiKey: '{topolApiKey}',
-            userId: 'Coder',
+            // 'userId' is used by Topol to track the amount of Topol-related requests the "user" has made. This string
+            // can be anything. This is the only variable that is sent back to our custom endpoints for the Topol file
+            // manager. That way we can identify what item the Topal instance is related to. This is a bit of a hacky
+            // way, but unfortunately currently the only way.
+            userId: String(identifier)
+        },
+        // Custom API endpoints authorization
+        apiAuthorizationHeader: `Bearer ${localStorage.getItem('accessToken')}`,
+        // API overwrites.
+        api: {
+            FOLDERS: '{baseUrl}/api/v3/topol/folders',
+            IMAGE_UPLOAD: '{baseUrl}/api/v3/topol/image-upload'
         },
         // Callbacks.
         callbacks: {
@@ -25,7 +49,8 @@
         },
         // Default settings.
         language: 'nl',
-        removeTopBar: true
+        removeTopBar: true,
+        showUnsavedDialogBeforeExit: false
     };
     
     // Overrule any settings on the topol settings from the entity property settings.

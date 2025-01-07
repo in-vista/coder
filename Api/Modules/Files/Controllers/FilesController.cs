@@ -122,7 +122,7 @@ namespace Api.Modules.Files.Controllers
         [ProducesResponseType(StatusCodes.Status302Found)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [Produces(MediaTypeNames.Application.Octet)]
-        public async Task<IActionResult> GetFileAsync(string itemId, int fileId, string propertyName, string fileName, [FromQuery] TenantInformationModel tenantInformation, [FromQuery]ulong itemLinkId = 0, [FromQuery]string entityType = null, [FromQuery]int linkType = 0)
+        public async Task<IActionResult> GetFileAsync(string itemId, int fileId, string propertyName, string fileName, [FromQuery] TenantInformationModel tenantInformation, [FromQuery]ulong itemLinkId = 0, [FromQuery]string entityType = null, [FromQuery]int linkType = 0, [FromQuery] int ordering = 1)
         {
             // Create a ClaimsIdentity based on query parameters instead the Identity from the bearer token due to being called from an image source where no headers can be set.
             var userId = String.IsNullOrWhiteSpace(tenantInformation.encryptedUserId) ? 0 : Int32.Parse(tenantInformation.encryptedUserId.Replace(" ", "+").DecryptWithAesWithSalt(gclSettings.DefaultEncryptionKey, true));
@@ -135,7 +135,7 @@ namespace Api.Modules.Files.Controllers
             //Set the sub domain for the database connection.
             HttpContext.Items[HttpContextConstants.SubDomainKey] = tenantInformation.subDomain;
 
-            var imageResult = await filesService.GetAsync(itemId, fileId, dummyClaimsIdentity, itemLinkId, entityType, linkType, propertyName);
+            var imageResult = await filesService.GetAsync(itemId, fileId, dummyClaimsIdentity, itemLinkId, entityType, linkType, propertyName, ordering);
             var result = imageResult.GetHttpResponseMessage();
             if (imageResult.StatusCode != HttpStatusCode.OK)
             {

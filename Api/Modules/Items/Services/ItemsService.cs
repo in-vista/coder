@@ -25,6 +25,7 @@ using Api.Modules.Items.Interfaces;
 using Api.Modules.Items.Models;
 using Api.Modules.Templates.Interfaces;
 using Api.Modules.Tenants.Interfaces;
+using CM.Text.BusinessMessaging.Model;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Enums;
 using GeeksCoreLibrary.Core.Exceptions;
@@ -1670,6 +1671,13 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
 
                 var contentBuilderMode = await objectsService.GetSystemObjectValueAsync("ContentBuilder_Mode") ?? "";
 
+                // Retrieve the subdomain that is currently being used.
+                string subDomain = IdentityHelpers.GetSubDomain(identity);
+                
+                // Retrieve the request base URL.
+                HttpRequest request = httpContextAccessor.HttpContext.Request;
+                string requestBaseUrl = $"{request.Scheme}://{request.Host}";
+                
                 // Replace values in html template.
                 if (!String.IsNullOrWhiteSpace(htmlTemplate))
                 {
@@ -1687,13 +1695,15 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         valueToReplace = defaultValue.HtmlEncode();
                     }
 
-                    htmlTemplate = htmlTemplate.Replace("{title}", String.IsNullOrWhiteSpace(displayName) ? propertyName ?? "" : displayName)
+                    htmlTemplate = htmlTemplate.Replace("{title}",
+                            String.IsNullOrWhiteSpace(displayName) ? propertyName ?? "" : displayName)
                         .Replace("{moduleId}", (dataRow.Field<short?>("module_id") ?? 0).ToString())
                         .Replace("{hint}", explanation)
                         .Replace("{propertyId}", propertyId.ToString())
                         .Replace("{propertyIdWithSuffix}", propertyId + (propertyIdSuffix ?? ""))
                         .Replace("{propertyIdSuffix}", propertyIdSuffix ?? "")
-                        .Replace("{propertyName}", String.IsNullOrWhiteSpace(propertyName) ? displayName ?? "" : propertyName.Trim())
+                        .Replace("{propertyName}",
+                            String.IsNullOrWhiteSpace(propertyName) ? displayName ?? "" : propertyName.Trim())
                         .Replace("{extraAttribute}", extraAttributes)
                         .Replace("{itemId}", itemId.ToString())
                         .Replace("{style}", containerCss)
@@ -1703,7 +1713,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         .Replace("{dependsOnOperator}", dataRow.Field<string>("depends_on_operator") ?? "")
                         .Replace("{dependsOnValue}", dataRow.Field<string>("depends_on_value") ?? "")
                         .Replace("{dependsOnAction}", dataRow.Field<string>("depends_on_action") ?? "")
-                        .Replace("{saveOnChange}", Convert.ToBoolean(dataRow["save_on_change"]).ToString().ToLowerInvariant())
+                        .Replace("{saveOnChange}",
+                            Convert.ToBoolean(dataRow["save_on_change"]).ToString().ToLowerInvariant())
                         .Replace("{itemLinkId}", dataRow["itemLinkId"]?.ToString() ?? "")
                         .Replace("{required}", Convert.ToBoolean(dataRow["mandatory"]) ? "required" : "")
                         .Replace("{readonly}", isReadOnly ? "readonly disabled" : "")
@@ -1726,7 +1737,9 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         .Replace("{linkType}", linkType.ToString())
                         .Replace("{entityType}", entityType)
                         .Replace("{contentBuilderMode}", contentBuilderMode)
-                        .Replace("{default_value}", valueToReplace);
+                        .Replace("{default_value}", valueToReplace)
+                        .Replace("{subDomain}", subDomain)
+                        .Replace("{baseUrl}", requestBaseUrl);
                 }
 
                 // Replace values in javascript template.
@@ -1740,8 +1753,9 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         if (!string.IsNullOrEmpty(topolApiKey))
                             scriptTemplate = scriptTemplate.Replace("{topolApiKey}", topolApiKey);
                     }
-                    
-                    scriptTemplate = scriptTemplate.Replace("{customScript}", dataRow.Field<string>("custom_script") ?? "")
+
+                    scriptTemplate = scriptTemplate
+                        .Replace("{customScript}", dataRow.Field<string>("custom_script") ?? "")
                         .Replace("{propertyId}", propertyId.ToString())
                         .Replace("{propertyIdWithSuffix}", propertyId + (propertyIdSuffix ?? ""))
                         .Replace("{propertyIdSuffix}", propertyIdSuffix ?? "")
@@ -1750,15 +1764,20 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         .Replace("{moduleId}", (dataRow.Field<short?>("module_id") ?? 0).ToString())
                         .Replace("{options}", String.IsNullOrWhiteSpace(options) ? "{}" : options)
                         .Replace("{initialFiles}", String.IsNullOrWhiteSpace(filesJson) ? "[]" : filesJson)
-                        .Replace("{propertyName}", String.IsNullOrWhiteSpace(propertyName) ? displayName ?? "" : propertyName.Trim())
+                        .Replace("{propertyName}",
+                            String.IsNullOrWhiteSpace(propertyName) ? displayName ?? "" : propertyName.Trim())
                         .Replace("{title}", String.IsNullOrWhiteSpace(displayName) ? propertyName ?? "" : displayName)
                         .Replace("{dependsOnField}", dataRow.Field<string>("depends_on_field") ?? "")
                         .Replace("{dependsOnOperator}", dataRow.Field<string>("depends_on_operator") ?? "")
                         .Replace("{dependsOnValue}", dataRow.Field<string>("depends_on_value") ?? "")
-                        .Replace("{saveOnChange}", Convert.ToBoolean(dataRow["save_on_change"]).ToString().ToLowerInvariant())
+                        .Replace("{saveOnChange}",
+                            Convert.ToBoolean(dataRow["save_on_change"]).ToString().ToLowerInvariant())
                         .Replace("{itemLinkId}", dataRow["itemLinkId"]?.ToString() ?? "")
                         .Replace("{languageCode}", languageCode)
-                        .Replace("{readonly}", (Convert.ToBoolean(dataRow["readonly"]) || (userItemPermissions & AccessRights.Update) != AccessRights.Update).ToString().ToLowerInvariant())
+                        .Replace("{readonly}",
+                            (Convert.ToBoolean(dataRow["readonly"]) ||
+                             (userItemPermissions & AccessRights.Update) != AccessRights.Update).ToString()
+                            .ToLowerInvariant())
                         .Replace("{userId}", userId.ToString())
                         .Replace("{width}", width <= 0 ? "50" : width.ToString())
                         .Replace("{height}", height <= 0 ? "" : height.ToString())
@@ -1767,7 +1786,9 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         .Replace("{linkType}", linkType.ToString())
                         .Replace("{entityType}", entityType)
                         .Replace("{contentBuilderMode}", contentBuilderMode)
-                        .Replace("{default_value}", $"'{HttpUtility.JavaScriptStringEncode(defaultValue)}'");
+                        .Replace("{default_value}", $"'{HttpUtility.JavaScriptStringEncode(defaultValue)}'")
+                        .Replace("{subDomain}", subDomain)
+                        .Replace("{baseUrl}", requestBaseUrl);
                 }
 
                 // Add the final templates to the current group.
