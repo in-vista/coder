@@ -483,7 +483,7 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<(string ContentType, byte[] Data, string Url)>> GetAsync(string encryptedItemId, int fileId, ClaimsIdentity identity, ulong itemLinkId, string entityType = null, int linkType = 0, string propertyName = null)
+        public async Task<ServiceResult<(string ContentType, byte[] Data, string Url)>> GetAsync(string encryptedItemId, int fileId, ClaimsIdentity identity, ulong itemLinkId, string entityType = null, int linkType = 0, string propertyName = null, int ordering = 1)
         {
             if (String.IsNullOrWhiteSpace(encryptedItemId))
             {
@@ -522,9 +522,10 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
             }
             else
             {
-                query = query.Replace("[wherePart]", "item_id = ?itemId AND property_name = ?propertyName");
+                query = query.Replace("[wherePart]", "item_id = ?itemId AND property_name = ?propertyName AND ordering = ?ordering");
                 databaseConnection.AddParameter("itemId", itemId);
                 databaseConnection.AddParameter("propertyName", propertyName);
+                databaseConnection.AddParameter("ordering", ordering);
             }
 
             var dataTable = await databaseConnection.GetAsync(query);
