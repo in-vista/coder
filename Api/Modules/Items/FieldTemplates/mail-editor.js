@@ -15,7 +15,10 @@
             url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(options.identifierQueryId || dynamicItems.settings.zeroEncrypted)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
             data: JSON.stringify({})
         });
-        identifier = Object.values(dataResult.otherData[0])[0];
+        
+        const rows = dataResult.otherData;
+        const firstRow = rows[0];
+        identifier = firstRow['identifier'] ?? firstRow[0];
     }
     
     // Set up general options for the Topol instance.
