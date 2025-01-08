@@ -24,6 +24,43 @@
         identifier = firstRow['identifier'] ?? firstRow[0];
     }
     
+    // Load merge tags.
+    let mergeTags = null;
+    if(options.mergeTagsQueryId) {
+        const mergeTagsResult = await Wiser.api({
+            method: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(options.mergeTagsQueryId || dynamicItems.settings.zeroEncrypted)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
+            data: JSON.stringify({})
+        });
+        
+        const mergeTagsData = mergeTagsResult.otherData;
+        
+        mergeTags = mergeTagsData.reduce((current, entry) => {
+            const groupName = entry.group;
+
+            let group = current;
+            if(groupName) {
+                group = current.find(entry => entry.name === groupName) ||
+                    current[current.push({
+                        name: groupName, items: []
+                    }) - 1];
+            }
+            
+            if(!group.items)
+                group.items = [];
+            
+            group.items.push({
+                value: entry.value,
+                text: entry.text,
+                label: entry.label ?? entry.text
+            });
+            
+            return current;
+        }, []);
+    }
+    
     // Load custom templates.
     const customTemplatesContainer = container.find('.custom-templates-container');
     if(options.loadCustomTemplatesQueryId) {
@@ -104,7 +141,9 @@
         // Default settings.
         language: 'nl',
         removeTopBar: true,
-        showUnsavedDialogBeforeExit: false
+        showUnsavedDialogBeforeExit: false,
+        // Dynamic settings.
+        mergeTags: mergeTags
     };
     
     // Overrule any settings on the topol settings from the entity property settings.
