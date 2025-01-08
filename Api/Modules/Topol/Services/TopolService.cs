@@ -2,15 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
+using System.Security.Claims;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using Api.Core.Helpers;
+using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Topol.Enums;
 using Api.Modules.Topol.Interfaces;
 using Api.Modules.Topol.Models;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Exceptions;
+using GeeksCoreLibrary.Core.Interfaces;
+using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
 
 namespace Api.Modules.Topol.Services;
 
@@ -18,9 +23,39 @@ public class TopolService : ITopolService, IScopedService
 {
     private readonly IDatabaseConnection databaseConnection;
 
-    public TopolService(IDatabaseConnection databaseConnection)
+    private readonly IWiserTenantsService wiserTenantsService;
+
+    private readonly IWiserItemsService wiserItemsService;
+
+    public TopolService(
+	    IDatabaseConnection databaseConnection,
+	    IWiserTenantsService wiserTenantsService,
+	    IWiserItemsService wiserItemsService
+	    )
     {
         this.databaseConnection = databaseConnection;
+        this.wiserTenantsService = wiserTenantsService;
+        this.wiserItemsService = wiserItemsService;
+    }
+
+    public async Task<TopolTemplate> GetTemplate(string encryptedId, ClaimsIdentity identity)
+    {
+	    ulong templateId = await wiserTenantsService.DecryptValue<ulong>(encryptedId, identity);
+
+	    WiserItemModel templateItem = await wiserItemsService.GetItemDetailsAsync(templateId, skipPermissionsCheck: true);
+	    
+	    string jsonString = templateItem.GetDetailValue("mail_template");
+	    JObject json = !string.IsNullOrEmpty(jsonString) ? JObject.Parse(jsonString) : null;
+	    
+	    string html = templateItem.GetDetailValue("mail_template_html");
+
+	    return new TopolTemplate
+	    {
+		    Id = templateId,
+		    Title = templateItem.Title,
+		    Json = json,
+		    Html = html
+	    };
     }
     
     public async Task<Image[]> GetFolders(string path, string identifier, string baseUrl, string subDomain)

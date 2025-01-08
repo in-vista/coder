@@ -1,4 +1,7 @@
 (async () => {
+    // Set up variables for elements in the document.
+    const container = $("#container_{propertyIdWithSuffix}");
+    
     // Retrieve the settings of the entity property.
     const options = {options};
     
@@ -19,6 +22,54 @@
         const rows = dataResult.otherData;
         const firstRow = rows[0];
         identifier = firstRow['identifier'] ?? firstRow[0];
+    }
+    
+    // Load custom templates.
+    const customTemplatesContainer = container.find('.custom-templates-container');
+    if(options.loadCustomTemplatesQueryId) {
+        const customTemplatesButton = customTemplatesContainer.find('.load-custom-template');
+
+        Wiser.api({
+            method: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(options.loadCustomTemplatesQueryId || dynamicItems.settings.zeroEncrypted)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
+            data: JSON.stringify({})
+        }).then(dataResult => {
+            const dataSource = dataResult.otherData;
+
+            customTemplatesButton.kendoDropDownList({
+                optionLabel: 'Selecteer een template...',
+                clearButton: false,
+                dataTextField: 'text',
+                dataValueField: 'id',
+                dataSource: dataSource,
+                change: async function(event) {
+                    const templateId = this.value();
+                    
+                    if(!templateId)
+                        return;
+
+                    const templateResults = await Wiser.api({
+                        method: "GET",
+                        contentType: "application/json",
+                        dataType: "json",
+                        url: `${dynamicItems.settings.wiserApiRoot}topol/${encodeURIComponent(templateId)}`
+                    });
+                    
+                    const json = templateResults.json;
+                    if(!json) {
+                        this.select(null);
+                        kendo.alert('Deze template heeft nog geen content!');
+                        return;
+                    }
+
+                    TopolPlugin.load(json);
+                }
+            });
+        });
+    } else {
+        customTemplatesContainer.toggleClass('hidden', true);
     }
     
     // Set up general options for the Topol instance.
