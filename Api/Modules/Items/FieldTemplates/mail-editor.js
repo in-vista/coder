@@ -1,4 +1,7 @@
 (async () => {
+    // Set up variables for elements in the document.
+    const container = $("#container_{propertyIdWithSuffix}");
+    
     // Retrieve the settings of the entity property.
     const options = {options};
     
@@ -19,6 +22,91 @@
         const rows = dataResult.otherData;
         const firstRow = rows[0];
         identifier = firstRow['identifier'] ?? firstRow[0];
+    }
+    
+    // Load merge tags.
+    let mergeTags = null;
+    if(options.mergeTagsQueryId) {
+        const mergeTagsResult = await Wiser.api({
+            method: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(options.mergeTagsQueryId || dynamicItems.settings.zeroEncrypted)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
+            data: JSON.stringify({})
+        });
+        
+        const mergeTagsData = mergeTagsResult.otherData;
+        
+        mergeTags = mergeTagsData.reduce((current, entry) => {
+            const groupName = entry.group;
+
+            let group = current;
+            if(groupName) {
+                group = current.find(entry => entry.name === groupName) ||
+                    current[current.push({
+                        name: groupName, items: []
+                    }) - 1];
+            }
+            
+            if(!group.items)
+                group.items = [];
+            
+            group.items.push({
+                value: entry.value,
+                text: entry.text,
+                label: entry.label ?? entry.text
+            });
+            
+            return current;
+        }, []);
+    }
+    
+    // Load custom templates.
+    const customTemplatesContainer = container.find('.custom-templates-container');
+    if(options.loadCustomTemplatesQueryId) {
+        const customTemplatesButton = customTemplatesContainer.find('.load-custom-template');
+
+        Wiser.api({
+            method: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(options.loadCustomTemplatesQueryId || dynamicItems.settings.zeroEncrypted)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
+            data: JSON.stringify({})
+        }).then(dataResult => {
+            const dataSource = dataResult.otherData;
+
+            customTemplatesButton.kendoDropDownList({
+                optionLabel: 'Selecteer een template...',
+                clearButton: false,
+                dataTextField: 'text',
+                dataValueField: 'id',
+                dataSource: dataSource,
+                change: async function(event) {
+                    const templateId = this.value();
+                    
+                    if(!templateId)
+                        return;
+
+                    const templateResults = await Wiser.api({
+                        method: "GET",
+                        contentType: "application/json",
+                        dataType: "json",
+                        url: `${dynamicItems.settings.wiserApiRoot}topol/${encodeURIComponent(templateId)}`
+                    });
+                    
+                    const json = templateResults.json;
+                    if(!json) {
+                        this.select(null);
+                        kendo.alert('Deze template heeft nog geen content!');
+                        return;
+                    }
+
+                    TopolPlugin.load(json);
+                }
+            });
+        });
+    } else {
+        customTemplatesContainer.toggleClass('hidden', true);
     }
     
     // Set up general options for the Topol instance.
@@ -48,12 +136,30 @@
                 
                 const htmlField = $('#field_{propertyIdWithSuffix}_html');
                 htmlField.val(encodeHtml(html));
+            },
+            async onTestSend(email, json, html) {
+                await Wiser.api({
+                    method: 'POST',
+                    contentType: 'application/json',
+                    url: `${dynamicItems.settings.wiserApiRoot}topol/send-test-mail`,
+                    data: JSON.stringify({
+                        email: email,
+                        html: html
+                    })
+                });
+                
+                Wiser.showMessage({
+                    title: 'Test mail verzenden',
+                    content: 'Test mail succesvol verzonden!'
+                });
             }
         },
         // Default settings.
         language: 'nl',
         removeTopBar: true,
-        showUnsavedDialogBeforeExit: false
+        showUnsavedDialogBeforeExit: false,
+        // Dynamic settings.
+        mergeTags: mergeTags
     };
     
     // Overrule any settings on the topol settings from the entity property settings.

@@ -1,11 +1,9 @@
 using System.Linq;
-using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Api.Core.Helpers;
 using Api.Modules.Topol.Interfaces;
 using Api.Modules.Topol.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Modules.Topol.Controllers;
@@ -19,6 +17,13 @@ public class TopolController : ControllerBase
     public TopolController(ITopolService topolService)
     {
         this.topolService = topolService;
+    }
+
+    [HttpGet("{encryptedId}")]
+    public async Task<IActionResult> GetTemplate(string encryptedId)
+    {
+        TopolTemplate template = await topolService.GetTemplate(encryptedId, User.Identity as ClaimsIdentity);
+        return new JsonResult(template);
     }
 
     [HttpGet("folders")]
@@ -72,5 +77,13 @@ public class TopolController : ControllerBase
             success = true,
             url = fileUrl
         });
+    }
+
+    [HttpPost("send-test-mail")]
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> SendTestMail(SendTestMailRequest request)
+    {
+        await topolService.SendTestMail(request.Email, request.Html);
+        return Ok();
     }
 }
