@@ -78,4 +78,12 @@ public class TopolController : ControllerBase
             url = fileUrl
         });
     }
+
+    [HttpPost("send-test-mail")]
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> SendTestMail(SendTestMailRequest request)
+    {
+        await topolService.SendTestMail(request.Email, request.Html);
+        return Ok();
+    }
 }

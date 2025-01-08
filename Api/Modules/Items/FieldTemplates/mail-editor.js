@@ -136,6 +136,22 @@
                 
                 const htmlField = $('#field_{propertyIdWithSuffix}_html');
                 htmlField.val(encodeHtml(html));
+            },
+            async onTestSend(email, json, html) {
+                await Wiser.api({
+                    method: 'POST',
+                    contentType: 'application/json',
+                    url: `${dynamicItems.settings.wiserApiRoot}topol/send-test-mail`,
+                    data: JSON.stringify({
+                        email: email,
+                        html: html
+                    })
+                });
+                
+                Wiser.showMessage({
+                    title: 'Test mail verzenden',
+                    content: 'Test mail succesvol verzonden!'
+                });
             }
         },
         // Default settings.

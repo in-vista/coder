@@ -17,4 +17,6 @@ public interface ITopolService
     public Task<int> DeleteImagesOrFolders(ImageDeleteModel[] models, string identifier);
 
     public Task<string> UploadImage(IFormFile image, string path, string identifier);
+
+    public Task SendTestMail(string email, string html);
 }
