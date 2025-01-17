@@ -69,4 +69,7 @@
 	--small-radius:     3px;
 	--medium-radius:    5px;
 	--large-radius:     7px;
+	
+	--row-selected-background-color: #CCFFCC;
+	--row-selected-hover-background-color: #B3E6B3;
 	}
