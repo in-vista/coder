@@ -1,6 +1,7 @@
 (async () => {
     // Set up variables for elements in the document.
     const container = $("#container_{propertyIdWithSuffix}");
+    const loader = container.find(".loader");
     
     // Retrieve the settings of the entity property.
     const options = {options};
@@ -64,6 +65,8 @@
     // Load custom templates.
     const customTemplatesContainer = container.find('.custom-templates-container');
     if(options.loadCustomTemplatesQueryId) {
+        loader.addClass("loading");
+        
         const customTemplatesButton = customTemplatesContainer.find('.load-custom-template');
 
         Wiser.api({
@@ -83,7 +86,7 @@
                 dataSource: dataSource,
                 change: async function(event) {
                     const templateId = this.value();
-                    
+
                     if(!templateId)
                         return;
 
@@ -93,7 +96,7 @@
                         dataType: "json",
                         url: `${dynamicItems.settings.wiserApiRoot}topol/${encodeURIComponent(templateId)}`
                     });
-                    
+
                     const json = templateResults.json;
                     if(!json) {
                         this.select(null);
@@ -104,9 +107,12 @@
                     TopolPlugin.load(json);
                 }
             });
+
+            loader.removeClass("loading");
+            customTemplatesContainer.removeClass('hidden');
+        }).catch(() => {
+            loader.removeClass("loading");
         });
-    } else {
-        customTemplatesContainer.toggleClass('hidden', true);
     }
     
     // Set up general options for the Topol instance.
