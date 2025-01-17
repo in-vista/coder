@@ -9,6 +9,12 @@
     // Retrieve the value of the entity property's instance.
     const value = {default_value};
     
+    // Check if the title's content is "&nbsp;". If so, hide the title element as a whole.
+    const titleElement = container.find('.title');
+    const titleContentElement = titleElement.find('label[for="field_{propertyIdWithSuffix}"]');
+    if(/^(&nbsp;)?$/.test(titleContentElement.text().trim()))
+        titleElement.hide();
+    
     // Load the identifier from the queryId. If it is not present, set it to "0" by default.
     let identifier = 0;
     if(options.identifierQueryId) {
