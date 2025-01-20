@@ -3193,60 +3193,6 @@ export class Fields {
     }
 
     /**
-     * Event that gets called when the user executes the custom action for viewing / changing the HTML source of the editor.
-     * @param {any} event The event from the execute action.
-     * @param {any} editor The HTML editor where the action is executed in.
-     * @param {any} itemId The ID of the current item.
-     * @param {string} propertyName The property name that contains the HTML of the item.
-     * @param {string} languageCode The language code of the property to use for the HTML.
-     * @param {string} contentBuilderMode The mode in which to put the ContentBuilder.
-     */
-    async onHtmlEditorContentBuilderExec(event, editor, itemId, propertyName, languageCode, contentBuilderMode) {
-        const htmlWindow = $("#contentBuilderWindow").clone(true);
-
-        const iframe = htmlWindow.find("iframe");
-        let moduleName = "ContentBuilder";
-        if (contentBuilderMode === "ContentBox") {
-            moduleName = "ContentBox";
-        }
-        iframe.attr("src", `/Modules/${moduleName}?wiserItemId=${encodeURIComponent(itemId)}&propertyName=${encodeURIComponent(propertyName)}&languageCode=${encodeURIComponent(languageCode || "")}&userId=${encodeURIComponent(this.base.settings.userId)}`);
-
-        htmlWindow.kendoWindow({
-            width: "100%",
-            height: "100%",
-            title: "Content builder",
-            close: (closeEvent) => {
-                closeEvent.sender.destroy();
-                htmlWindow.remove();
-            }
-        });
-
-        const kendoWindow = htmlWindow.data("kendoWindow").maximize().open();
-
-        htmlWindow.find(".k-primary, .k-button-solid-primary").kendoButton({
-            click: () => {
-                const html = typeof(iframe[0].contentWindow.main.vueApp.contentBox) === "undefined"
-                    ? iframe[0].contentWindow.main.vueApp.contentBuilder.html()
-                    : iframe[0].contentWindow.main.vueApp.contentBox.html();
-                editor.value(html);
-
-                const container = editor.element.closest(".entity-container");
-                container.find(".saveBottomPopup, .saveButton").trigger("click");
-
-                kendoWindow.close();
-            },
-            icon: "save"
-        });
-
-        htmlWindow.find(".k-secondary").kendoButton({
-            click: () => {
-                kendoWindow.close();
-            },
-            icon: "cancel"
-        });
-    }
-
-    /**
      * Event that gets called when the user executes the custom action for maximizing an HTML editor.
      * @param {any} event The event from the execute action.
      * @param {any} editor The HTML editor where the action is executed in.

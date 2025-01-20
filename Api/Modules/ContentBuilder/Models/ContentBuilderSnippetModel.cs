@@ -34,5 +34,10 @@
         /// Gets or sets the HTML of the snippet.
         /// </summary>
         public string Html { get; set; }
+        
+        /// <summary>
+        /// The MainDomain from which the images should be loaded
+        /// </summary>
+        public string MainDomain { get; set; }
     }
 }

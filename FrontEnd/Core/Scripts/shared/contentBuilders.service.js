@@ -58,16 +58,22 @@ export default class ContentBuildersService extends BaseService {
                 snippet.fromWiser = true;
                 const existingCategory = snippetCategories.filter(c => c[1].toLowerCase() === snippet.category.toLowerCase());
                 if (!existingCategory.length) {
-                    snippetCategories.push([snippet.categoryId.toString(), snippet.category]);
+                    snippetCategories.push([snippet.categoryId, snippet.category]);
                     snippet.category = snippet.categoryId.toString();
                 } else {
                     snippet.category = existingCategory[0][0].toString();
-                }
+                }                
             }
 
+            let mainDomain = '';
+            if (tenantSnippets.length){
+                mainDomain = tenantSnippets[0].mainDomain;
+            }
+            
             result.data = {
                 tenantSnippets: tenantSnippets,
-                snippetCategories: snippetCategories
+                snippetCategories: snippetCategories,
+                mainDomain: mainDomain
             };
         } catch (error) {
             result.success = false;
@@ -109,7 +115,7 @@ export default class ContentBuildersService extends BaseService {
                 result.data = result.data.map(x => {
                     return {
                         id: x.categoryId,
-                        designId: 1,
+                        designId: 3, // Custom specific templates are added after the 'simple' and 'quick start' template sets
                         name: x.category
                     };
                 });

@@ -109,6 +109,8 @@
     <EmbeddedResource Include="Modules\Items\FieldTemplates\color-picker.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\combobox.html" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\combobox.js" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\page-builder.html" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\page-builder.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\data-selector.html" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\data-selector.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\date-time picker.html" />
