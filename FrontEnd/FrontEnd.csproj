@@ -15,28 +15,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="temp\**" />
-    <Content Include="wwwroot\ContentBox\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\gallery\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\minimalist-blocks\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\modules\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\scripts\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\scripts\glide\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\templates-animated\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\templates-animated\images\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\templates-animated\preview\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\templates-quick\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\templates-quick\images\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\templates-quick\preview\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\templates-simple\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\templates-simple\preview\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\assets\templates-simple\videos\.DS_Store" />
-    <Content Include="wwwroot\ContentBox\uploads\.DS_Store" />
+    <Compile Remove="temp\**" />   
     <None Remove="temp\**" />
     <Content Remove="temp\**" />
-    <None Remove="wwwroot\ContentBuilder\**" />
-    <Content Remove="wwwroot\ContentBuilder\**" />
   </ItemGroup>
 
   <ItemGroup>
