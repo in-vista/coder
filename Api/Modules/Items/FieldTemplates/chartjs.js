@@ -26,8 +26,8 @@
 
         data = dataResults.otherData;
     }
-    // Option 2: url parameter.
-    if(options.url) {
+    // Option 2 (Wwork-in-progress): url parameter.
+    /*else if(options.url) {
         let url = options.url;
         let method = 'GET';
         let body = {};
@@ -51,7 +51,7 @@
         const dataResults = await Wiser.api(requestSettings);
         
         data = dataResults.otherData;
-    }
+    }*/
     
     // Parse the data into grouped data sets.
     let datasets;
