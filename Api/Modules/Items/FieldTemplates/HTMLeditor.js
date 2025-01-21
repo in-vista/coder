@@ -29,17 +29,6 @@
         tooltip: "Vergroten",
         exec: (event) => window.dynamicItems.fields.onHtmlEditorFullScreenExec.call(window.dynamicItems.fields, event, kendoComponent, "{itemId}")
     };
-    const contentBuilderToolNotable = {
-        name: "wiserContentBuilder",
-        tooltip: "Content builder",
-        template: "<button id='contentBuilder_{propertyIdWithSuffix}' tabindex='0' role='button' class='k-button k-tool k-group-start k-group-end content-builder-button' title='Content builder' aria-label='Content builder'><span class='k-icon k-i-wiser-content-builder'></span></button><label class='content-builder-label'>Content builder</label>",
-        exec: (event) => window.dynamicItems.fields.onHtmlEditorContentBuilderExec.call(window.dynamicItems.fields, event, kendoComponent, "{itemId}", "{propertyName}", "{languageCode}", "{contentBuilderMode}")
-    };
-    const contentBuilderToolBasic = {
-        name: "wiserContentBuilder",
-        tooltip: "Content builder",
-        exec: (event) => window.dynamicItems.fields.onHtmlEditorContentBuilderExec.call(window.dynamicItems.fields, event, kendoComponent, "{itemId}", "{propertyName}", "{languageCode}", "{contentBuilderMode}")
-    };
     const entityBlockTool = {
         name: "wiserEntityBlock",
         tooltip: "Entiteit-blok",
@@ -89,11 +78,9 @@
     }, {options});
 
     const tools = [];
-    options.mode = parseInt(options.mode, 10) || 99;
-    options.contentBuilderMode = options.contentBuilderMode || "basic";
+    options.mode = parseInt(options.mode, 10) || 99;    
 
-    const allTools = {
-        "contentBuilderToolNotable": [3, 4, 99],
+    const allTools = {        
         "bold": [1, 2, 3, 4, 99],
         "italic": [1, 2, 3, 4, 99],
         "underline": [1, 2, 3, 4, 99],
@@ -125,8 +112,7 @@
         "addColumnRight": [3, 99],
         "deleteRow": [3, 99],
         "deleteColumn": [3, 99],
-        "htmlSourceTool": [4, 99],
-        "contentBuilderToolBasic": [3, 4, 99],
+        "htmlSourceTool": [4, 99],        
         "formatting": [99],
         "cleanFormatting": [99],
         "fontName": [99],
@@ -149,20 +135,6 @@
 
         let tool;
         switch (toolName) {
-            case "contentBuilderToolNotable":
-                if (options.contentBuilderMode !== "notable") {
-                    continue;
-                }
-
-                tool = contentBuilderToolNotable;
-                break;
-            case "contentBuilderToolBasic":
-                if (options.contentBuilderMode !== "basic") {
-                    continue;
-                }
-
-                tool = contentBuilderToolBasic;
-                break;
             case "imageTool":
                 tool = imageTool;
                 break;

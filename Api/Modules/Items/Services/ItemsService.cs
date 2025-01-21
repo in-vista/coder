@@ -1669,8 +1669,6 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
 
                 defaultValue = defaultValue.Replace("{itemId}", itemId.ToString()).Replace("{userId}", userId.ToString());
 
-                var contentBuilderMode = await objectsService.GetSystemObjectValueAsync("ContentBuilder_Mode") ?? "";
-
                 // Retrieve the subdomain that is currently being used.
                 string subDomain = IdentityHelpers.GetSubDomain(identity);
                 
@@ -1682,7 +1680,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 if (!String.IsNullOrWhiteSpace(htmlTemplate))
                 {
                     string valueToReplace;
-                    if (fieldType.Equals("HTMLeditor", StringComparison.OrdinalIgnoreCase) || fieldType.Equals("mail-editor", StringComparison.OrdinalIgnoreCase))
+                    if (fieldType.Equals("HTMLeditor", StringComparison.OrdinalIgnoreCase) || fieldType.Equals("mail-editor", StringComparison.OrdinalIgnoreCase) || fieldType.Equals("page-builder", StringComparison.OrdinalIgnoreCase))
                     {
                         valueToReplace = defaultValue.HtmlEncode();
                     }
@@ -1736,7 +1734,6 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         .Replace("{containerCssClass}", String.Join(" ", containerCssClasses))
                         .Replace("{linkType}", linkType.ToString())
                         .Replace("{entityType}", entityType)
-                        .Replace("{contentBuilderMode}", contentBuilderMode)
                         .Replace("{default_value}", valueToReplace)
                         .Replace("{subDomain}", subDomain)
                         .Replace("{baseUrl}", requestBaseUrl);
@@ -1785,7 +1782,6 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         .Replace("{fieldMode}", fieldMode)
                         .Replace("{linkType}", linkType.ToString())
                         .Replace("{entityType}", entityType)
-                        .Replace("{contentBuilderMode}", contentBuilderMode)
                         .Replace("{default_value}", $"'{HttpUtility.JavaScriptStringEncode(defaultValue)}'")
                         .Replace("{subDomain}", subDomain)
                         .Replace("{baseUrl}", requestBaseUrl);

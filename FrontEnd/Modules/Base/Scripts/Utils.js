@@ -1339,13 +1339,19 @@ export class Wiser {
                         const extension = selectedItem.name.substring(selectedItem.name.lastIndexOf(".") + 1);
 
                         const imagePreviewUrl = fileManagerClassFromIframe.generateImagePreviewUrl(extension);
-                        html = `<figure>
-                                    <picture>
-                                        <source media="(min-width: 0px)" srcset="${imagePreviewUrl.url}" type="image/${extension}" />
-                                        <source media="(min-width: 0px)" srcset="${fileManagerClassFromIframe.generateImagePreviewUrl('webp').url}" type="image/webp" />
-                                        <img width="100%" height="auto" loading="lazy" src="${imagePreviewUrl.url}" alt="${imagePreviewUrl.altText}" />
-                                    </picture>
-                                </figure>`;
+                        if (fileManagerWindowSender.contentbuilder) {
+                            html = `<img src="${imagePreviewUrl.url}" alt="${imagePreviewUrl.altText}" />`;
+                        }
+                        else {
+                            html = `<figure>
+                                        <picture>
+                                            <source media="(min-width: 0px)" srcset="${imagePreviewUrl.url}" type="image/${extension}" />
+                                            <source media="(min-width: 0px)" srcset="${fileManagerClassFromIframe.generateImagePreviewUrl('webp').url}" type="image/webp" />
+                                            <img width="100%" height="auto" loading="lazy" src="${imagePreviewUrl.url}" alt="${imagePreviewUrl.altText}" />
+                                        </picture>
+                                    </figure>`;
+                        }                       
+                        
                         break;
                     }
                     case this.fileManagerModes.files: {
@@ -1382,6 +1388,9 @@ export class Wiser {
 
                 if (fileManagerWindowSender.contentbuilder) {
                     $(fileManagerWindowSender.contentbuilder.activeElement).replaceWith(html);
+                    fileManagerWindowSender.contentbuilder.onChange();
+                    fileManagerWindowSender.contentbuilder.onRender();
+                    if (fileManagerWindowSender.contentbuilder.onImageChange) fileManagerWindowSender.contentbuilder.onImageChange();
                 }
 
                 fileManagerWindow.close();
@@ -1413,6 +1422,10 @@ export class Wiser {
             return;
         }
 
+        if (fileManagerWindowSender.contentBuilder !== null) {
+            return fileManagerWindow;
+        }
+        
         /***** NOTE: Only add code below this line that should NOT be executed if the module is loaded inside an iframe *****/
         const mainWindow = $("#window").kendoWindow({
             title: moduleName || "Modulenaam",

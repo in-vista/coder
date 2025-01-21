@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `wiser_entityproperty`  (
   `overview_width` smallint NOT NULL DEFAULT 100,
   `tab_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `group_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `inputtype` enum('input','secure-input','textbox','radiobutton','checkbox','combobox','multiselect','numeric-input','file-upload','HTMLeditor','querybuilder','date-time picker','grid','imagecoords','button','image-upload','gpslocation','daterange','sub-entities-grid','item-linker','color-picker','auto-increment','linked-item','action-button','data-selector','chart','scheduler','timeline','empty','iframe','mail-editor') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'input',
+  `inputtype` enum('input','secure-input','textbox','radiobutton','checkbox','combobox','multiselect','numeric-input','file-upload','HTMLeditor','querybuilder','date-time picker','grid','imagecoords','button','image-upload','gpslocation','daterange','sub-entities-grid','item-linker','color-picker','auto-increment','linked-item','action-button','data-selector','chart','scheduler','timeline','empty','iframe','mail-editor','page-builder') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'input',
   `display_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `property_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `explanation` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,

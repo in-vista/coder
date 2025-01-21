@@ -42,10 +42,10 @@ namespace Api.Modules.ContentBuilder.Services
         public async Task<ServiceResult<List<ContentBuilderSnippetModel>>> GetSnippetsAsync(ClaimsIdentity identity)
         {
             // Determine main domain, using either the "maindomain" object or the "maindomain_wiser" object.
-            var mainDomain = await objectsService.FindSystemObjectByDomainNameAsync("maindomain");
+            var mainDomain = await objectsService.FindSystemObjectByDomainNameAsync("maindomain_wiser");
             if (String.IsNullOrWhiteSpace(mainDomain))
             {
-                mainDomain = await objectsService.FindSystemObjectByDomainNameAsync("maindomain_wiser");
+                mainDomain = await objectsService.FindSystemObjectByDomainNameAsync("maindomain");
             }
 
             if (!mainDomain.EndsWith("/"))
@@ -63,14 +63,13 @@ namespace Api.Modules.ContentBuilder.Services
                             CONCAT_WS('', html.value, html.long_value) AS html,
                             file.file_name
                         FROM {WiserTableNames.WiserItem} AS snippet
-                        JOIN {WiserTableNames.WiserItemLink} AS link ON link.item_id = snippet.id AND link.type = 1
-                        JOIN {WiserTableNames.WiserItem} AS category ON category.id = link.destination_item_id AND category.entity_type = 'map'
+                        JOIN {WiserTableNames.WiserItem} AS category ON category.id = snippet.parent_item_id AND category.entity_type = 'map'
                         LEFT JOIN {WiserTableNames.WiserItemLink} AS linkToRoot ON linkToRoot.item_id = category.id AND linkToRoot.type = 1
                         LEFT JOIN {WiserTableNames.WiserItemFile} AS file ON file.item_id = snippet.id AND file.property_name = 'preview'
                         LEFT JOIN {WiserTableNames.WiserItemDetail} AS html ON html.item_id = snippet.id AND html.`key` = 'html'
                         WHERE snippet.entity_type = 'content-builder-snippet'
                         GROUP BY category.id, snippet.id
-                        ORDER BY linkToRoot.ordering ASC, link.ordering ASC";
+                        ORDER BY snippet.ordering ASC, IFNULL(linkToRoot.ordering, category.ordering) ASC";
             var dataTable = await clientDatabaseConnection.GetAsync(query);
             if (dataTable.Rows.Count == 0)
             {
@@ -84,10 +83,11 @@ namespace Api.Modules.ContentBuilder.Services
                 {
                     Id = id,
                     Name = dataRow.Field<string>("title"),
-                    CategoryId = dataRow.Field<ulong>("categoryId"),
+                    CategoryId = dataRow.Field<ulong>("categoryId") + 100000, // Add 100.000 to prevent conflicts with category id's of default ContentBuilder snippets
                     Category = dataRow.Field<string>("category"),
                     Html = await wiserItemsService.ReplaceHtmlForViewingAsync(dataRow.Field<string>("html")),
-                    Thumbnail = $"//{mainDomain}image/wiser2/{id}/preview/0/0/{dataRow.Field<string>("file_name")}"
+                    Thumbnail = $"image/wiser2/{id}/preview/0/0/{dataRow.Field<string>("file_name")}",
+                    MainDomain = $"https://{mainDomain}"
                 });
             }
 
@@ -98,10 +98,10 @@ namespace Api.Modules.ContentBuilder.Services
         public async Task<ServiceResult<List<ContentBoxTemplateModel>>> GetTemplatesAsync(ClaimsIdentity identity)
         {
             // Determine main domain, using either the "maindomain" object or the "maindomain_wiser" object.
-            var mainDomain = await objectsService.FindSystemObjectByDomainNameAsync("maindomain");
+            var mainDomain = await objectsService.FindSystemObjectByDomainNameAsync("maindomain_wiser");
             if (String.IsNullOrWhiteSpace(mainDomain))
             {
-                mainDomain = await objectsService.FindSystemObjectByDomainNameAsync("maindomain_wiser");
+                mainDomain = await objectsService.FindSystemObjectByDomainNameAsync("maindomain");
             }
 
             if (!mainDomain.EndsWith("/"))
@@ -118,26 +118,6 @@ namespace Api.Modules.ContentBuilder.Services
     category.title AS category,
     CONCAT_WS('', html.value, html.long_value) AS html,
     file.file_name,
-	link.ordering,
-	linkToRoot.ordering AS parentOrdering
-FROM {WiserTableNames.WiserItem} AS template
-JOIN {WiserTableNames.WiserItemLink} AS link ON link.item_id = template.id AND link.type = 1
-JOIN {WiserTableNames.WiserItem} AS category ON category.id = link.destination_item_id AND category.entity_type = 'map'
-LEFT JOIN {WiserTableNames.WiserItemLink} AS linkToRoot ON linkToRoot.item_id = category.id AND linkToRoot.type = 1
-LEFT JOIN {WiserTableNames.WiserItemFile} AS file ON file.item_id = template.id AND file.property_name = 'preview'
-LEFT JOIN {WiserTableNames.WiserItemDetail} AS html ON html.item_id = template.id AND html.`key` = 'html'
-WHERE template.entity_type = 'content-box-template'
-GROUP BY category.id, template.id
-
-UNION
-
-SELECT
-    template.id,
-    template.title,
-    category.id AS categoryId,
-    category.title AS category,
-    CONCAT_WS('', html.value, html.long_value) AS html,
-    file.file_name,
 	template.ordering,
 	IFNULL(linkToRoot.ordering, category.ordering) AS parentOrdering
 FROM {WiserTableNames.WiserItem} AS template
@@ -147,7 +127,6 @@ LEFT JOIN {WiserTableNames.WiserItemFile} AS file ON file.item_id = template.id 
 LEFT JOIN {WiserTableNames.WiserItemDetail} AS html ON html.item_id = template.id AND html.`key` = 'html'
 WHERE template.entity_type = 'content-box-template'
 GROUP BY category.id, template.id
-
 ORDER BY ordering ASC, parentOrdering ASC";
             var dataTable = await clientDatabaseConnection.GetAsync(query);
             if (dataTable.Rows.Count == 0)
@@ -180,20 +159,6 @@ ORDER BY ordering ASC, parentOrdering ASC";
             var query = $@"SELECT
 	category.id AS categoryId,
 	category.title AS category,
-	link.ordering,
-	linkToRoot.ordering AS parentOrdering
-FROM {WiserTableNames.WiserItem} AS template
-JOIN {WiserTableNames.WiserItemLink} AS link ON link.item_id = template.id AND link.type = 1
-JOIN {WiserTableNames.WiserItem} AS category ON category.id = link.destination_item_id AND category.entity_type = 'map'
-LEFT JOIN {WiserTableNames.WiserItemLink} AS linkToRoot ON linkToRoot.item_id = category.id AND linkToRoot.type = 1
-WHERE template.entity_type = 'content-box-template'
-GROUP BY category.id
-
-UNION
-
-SELECT
-	category.id AS categoryId,
-	category.title AS category,
 	template.ordering,
 	IFNULL(linkToRoot.ordering, category.ordering) AS parentOrdering
 FROM {WiserTableNames.WiserItem} AS template
@@ -201,7 +166,6 @@ JOIN {WiserTableNames.WiserItem} AS category ON category.id = template.parent_it
 LEFT JOIN {WiserTableNames.WiserItemLink} AS linkToRoot ON linkToRoot.item_id = category.id AND linkToRoot.type = 1
 WHERE template.entity_type = 'content-box-template'
 GROUP BY category.id
-
 ORDER BY ordering ASC, parentOrdering ASC";
             var dataTable = await clientDatabaseConnection.GetAsync(query);
             if (dataTable.Rows.Count == 0)
@@ -265,8 +229,7 @@ ORDER BY ordering ASC, parentOrdering ASC";
                 Html = x.Html,
                 Thumbnail = x.Thumbnail,
                 ContentClass = x.ContentClass,
-                ContentCss = x.ContentCss,
-                DesignId = x.Id
+                ContentCss = x.ContentCss
             });
             var javascript = $@"var data_templates = {{
     name: '{tenant.Name}',
@@ -312,7 +275,7 @@ try {{
         /// <inheritdoc />
         public async Task<ServiceResult<string>> GetFrameworkAsync()
         {
-            var framework = await objectsService.FindSystemObjectByDomainNameAsync("ContentBuilder_Framework");
+            var framework = await objectsService.FindSystemObjectByDomainNameAsync("ContentBuilder_Framework", defaultResult:"Bootstrap");
             return new ServiceResult<string>(framework);
         }
     }

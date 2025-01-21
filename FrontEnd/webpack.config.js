@@ -69,7 +69,7 @@ module.exports = {
                     test: /[\\/]node_modules[\\/]/,
                     name(module, chunks, cacheGroupKey) {
                         // Kendo and InnovaStudio have multiple modules, we want to create a chunk for each of those.
-                        const vendorExcludes = ["@progress", "@innovastudio"];
+                        const vendorExcludes = ["@progress"];
                         const foundVendorName = vendorExcludes.find(x => module.resource.includes(x));
 
                         if (!foundVendorName) {
