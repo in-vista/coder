@@ -10,7 +10,7 @@
     const options = {options};
     
     // Get the chart element.
-    const chartElement = document.getElementById('chart');
+    const chartElement = document.getElementById('chart_{propertyIdWithSuffix}');
     
     // Retrieve data from query.
     let data = [];
