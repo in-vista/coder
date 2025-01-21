@@ -96,7 +96,7 @@ namespace Api.Modules.Files.Services
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<List<FileModel>>> UploadAsync(string encryptedId, string propertyName, string title, IFormFileCollection files, ClaimsIdentity identity, ulong itemLinkId = 0, bool useTinyPng = false, bool useCloudFlare = false, string entityType = null, int linkType = 0)
+        public async Task<ServiceResult<List<FileModel>>> UploadAsync(string encryptedId, string propertyName, string title, IFormFileCollection files, ClaimsIdentity identity, ulong itemLinkId = 0, bool useTinyPng = false, bool useCloudFlare = false, string entityType = null, int linkType = 0, string cloudFlareUseVariant = null)
         {
             if (String.IsNullOrWhiteSpace(encryptedId))
             {
@@ -136,7 +136,7 @@ namespace Api.Modules.Files.Services
                 }
 
                 databaseConnection.ClearParameters();
-
+                
                 var (ftpDirectory, ftpSettings) = await GetFtpSettingsAsync(identity, itemLinkId, propertyName, itemId);
                 var (useAmazonS3, amazonS3BucketName, awsSettings) = await GetAmazonS3SettingsAsync(identity, propertyName, itemId, itemLinkId);
 
@@ -195,7 +195,7 @@ namespace Api.Modules.Files.Services
                         }
                     }
 
-                    var fileResult = await SaveAsync(identity, fileBytes, file.ContentType, fileName, propertyName, title, ftpSettings, ftpDirectory, itemId, itemLinkId, useCloudFlare, entityType, linkType, useAmazonS3, amazonS3BucketName, awsSettings);
+                    var fileResult = await SaveAsync(identity, fileBytes, file.ContentType, fileName, propertyName, title, ftpSettings, ftpDirectory, itemId, itemLinkId, useCloudFlare, entityType, linkType, useAmazonS3, amazonS3BucketName, awsSettings, cloudFlareUseVariant);
                     if (fileResult.StatusCode != HttpStatusCode.OK)
                     {
                         return new ServiceResult<List<FileModel>>
@@ -235,7 +235,7 @@ namespace Api.Modules.Files.Services
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<FileModel>> SaveAsync(ClaimsIdentity identity, byte[] fileBytes, string contentType, string fileName, string propertyName, string title = "", List<FtpSettingsModel> ftpSettings = null, string ftpDirectory = null, ulong itemId = 0, ulong itemLinkId = 0, bool useCloudFlare = false, string entityType = null, int linkType = 0, bool useAmazonS3 = false, string amazonS3BucketName = null, AwsSettings awsSettings = null)
+        public async Task<ServiceResult<FileModel>> SaveAsync(ClaimsIdentity identity, byte[] fileBytes, string contentType, string fileName, string propertyName, string title = "", List<FtpSettingsModel> ftpSettings = null, string ftpDirectory = null, ulong itemId = 0, ulong itemLinkId = 0, bool useCloudFlare = false, string entityType = null, int linkType = 0, bool useAmazonS3 = false, string amazonS3BucketName = null, AwsSettings awsSettings = null, string cloudFlareUseVariant = null)
         {
             var content = Array.Empty<byte>();
             var contentUrl = String.Empty;
@@ -248,7 +248,7 @@ namespace Api.Modules.Files.Services
             }
             else if (useCloudFlare)
             {
-                contentUrl = await cloudFlareService.UploadImageAsync(fileName, fileBytes);
+                contentUrl = await cloudFlareService.UploadImageAsync(fileName, fileBytes, cloudFlareUseVariant);
             }
             else if (useAmazonS3)
             {

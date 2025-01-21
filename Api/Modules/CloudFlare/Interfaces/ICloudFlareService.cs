@@ -14,7 +14,7 @@ namespace Api.Modules.CloudFlare.Interfaces
         /// <param name="fileName">Name of the file to upload.</param>
         /// <param name="fileBytes">Contents of the file to upload.</param>
         /// <returns>string with url from CloudFlare</returns>
-        Task<string> UploadImageAsync(string fileName, byte[] fileBytes);
+        Task<string> UploadImageAsync(string fileName, byte[] fileBytes, string useVariant);
 
         /// <summary>
         /// Deletes an image based on the image id encapsulated in the url

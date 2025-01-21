@@ -67,6 +67,7 @@ namespace Api.Modules.Files.Controllers
         /// <param name="entityType">Optional: When uploading a file for an item that has a dedicated table, enter the entity type name here so that we can see which table we need to add the file to.</param>
         /// <param name="linkType">Optional: When uploading a file for an item link that has a dedicated table, enter the link type here so that we can see which table we need to add the file to.</param>
         /// <param name="useCloudFlare">Optional: Whether to use CloudFlare to store image files.</param>
+        /// <param name="cloudFlareUseVariant">Optional: When given this image variant is used for getting the content_url after the upload to CloudFlare. Variants can be defined in CloudFlare account.</param>
         /// <returns>A list of <see cref="FileModel"/> with file data.</returns>
         [HttpPost]
         [Route("~/api/v3/items/{encryptedId}/upload")]
@@ -74,11 +75,11 @@ namespace Api.Modules.Files.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> UploadAsync(string encryptedId, [FromQuery]string propertyName, [FromQuery]string title = "", [FromQuery]ulong itemLinkId = 0, [FromQuery]bool useTinyPng = false, [FromQuery] bool useCloudFlare = false, [FromQuery]string entityType = null, [FromQuery]int linkType = 0)
+        public async Task<IActionResult> UploadAsync(string encryptedId, [FromQuery]string propertyName, [FromQuery]string title = "", [FromQuery]ulong itemLinkId = 0, [FromQuery]bool useTinyPng = false, [FromQuery] bool useCloudFlare = false, [FromQuery]string entityType = null, [FromQuery]int linkType = 0, [FromQuery]string cloudFlareUseVariant = null)
         {
             var form = await Request.ReadFormAsync();
 
-            var result = await filesService.UploadAsync(encryptedId, propertyName, title, form.Files, (ClaimsIdentity)User.Identity, itemLinkId, useTinyPng, useCloudFlare, entityType, linkType);
+            var result = await filesService.UploadAsync(encryptedId, propertyName, title, form.Files, (ClaimsIdentity)User.Identity, itemLinkId, useTinyPng, useCloudFlare, entityType, linkType, cloudFlareUseVariant);
             return result.GetHttpResponseMessage();
         }
 
