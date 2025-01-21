@@ -43,7 +43,7 @@ namespace Api.Modules.CloudFlare.Services
         }
 
         /// <inheritdoc cref="ICloudFlareService" />
-        public async Task<string> UploadImageAsync(string fileName, byte[] fileBytes)
+        public async Task<string> UploadImageAsync(string fileName, byte[] fileBytes, string useVariant)
         {
             var cloudFlareSettings = await GetCloudFlareSettingsAsync();
             var accountId = cloudFlareSettings.AccountId;
@@ -70,8 +70,8 @@ namespace Api.Modules.CloudFlare.Services
             {
                 return String.Empty;
             }
-            return uploadResult.Result.Variants.First();
-
+            return uploadResult.Result.Variants.FirstOrDefault(url => url.Contains(useVariant)) ??
+                   uploadResult.Result.Variants.First();
         }
 
         /// <inheritdoc cref="ICloudFlareService" />
