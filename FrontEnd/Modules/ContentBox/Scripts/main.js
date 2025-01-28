@@ -124,11 +124,12 @@ import DataSelectorsService from "../../../Core/Scripts/shared/dataSelectors.ser
                                         
                     // Add customer specific content builder snippet categories
                     if (snippetJson && snippetJson.length && snippetCategories && snippetCategories.length) {
-                        // If we have snippets from database, only use those and not the default ones of the ContentBox.
                         settings.snippetCategories.unshift(...snippetCategories);
-                        
+
                         // Get all images (of customer specific snippets and the default snippets) from the customer domain
                         settings.snippetPath = mainDomain;
+                    } else {
+                        settings.snippetPath = '/ContentBox/assets/minimalist-blocks/'; // Load local from Coder
                     }
                     
                     // Select the first category
