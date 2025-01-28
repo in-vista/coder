@@ -877,7 +877,7 @@ async function generateGrid(data, model, columns) {
     kendoGridOptions.editable = editable;
     kendoGridOptions.selectable = hideCheckboxColumn ? options.selectable : false;
     kendoGridOptions.toolbar = toolbar.length === 0 ? null : toolbar;
-    kendoGridOptions.columns = columns;
+    kendoGridOptions.columns = $.extend(true, kendoGridOptions.columns, columns);
 
     await window.dynamicItems.grids.loadGridViewColumnsState("sub_entities_grid_columns_{propertyId}", kendoGridOptions);
     if (kendoGridOptions.keepFiltersState !== false) {

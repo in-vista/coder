@@ -36,13 +36,23 @@
             click: () => {
                 const html = iframe[0].contentWindow.main.vueApp.contentBox.html();                
                 $("#field_{propertyIdWithSuffix}").val(html);
+                $("#saveBottom").click(); // Save the item
                 
                 kendoWindow.close();
             },
             icon: "save"
         });
 
-        htmlWindow.find(".k-secondary").kendoButton({
+        htmlWindow.find(".k-secondary[name='onlysave']").kendoButton({
+            click: () => {                
+                const html = iframe[0].contentWindow.main.vueApp.contentBox.html();
+                $("#field_{propertyIdWithSuffix}").val(html);
+                $("#saveBottom").click(); // Save the item
+            },
+            icon: "save"
+        });
+
+        htmlWindow.find(".k-secondary[name='cancel']").kendoButton({
             click: () => {
                 kendoWindow.close();
             },
