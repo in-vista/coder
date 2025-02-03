@@ -811,7 +811,8 @@ export class Grids {
                 pageSize: options.pageSize,
                 skip: 0,
                 take: options.pageSize,
-                extraValuesForQuery: extraData
+                extraValuesForQuery: extraData,
+                sort: options.gridViewSettings?.order
             };
 
             if (customQueryGrid) {
