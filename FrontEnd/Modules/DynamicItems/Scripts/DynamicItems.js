@@ -2014,6 +2014,9 @@ const moduleSettings = {
                 metaDataListElement.find(".published-environment").html(environmentLabel.join(", "));
                 metaDataListElement.find(".read-only").html(itemMetaData.readonly);
                 metaDataListElement.find(".added-by").html(itemMetaData.addedBy);
+                
+                const entityName = friendlyEntityName ?? 'item';
+                $('.itemNameFieldContainer .item-name-label').text(`Naam voor ${entityName}`);
 
                 let addedOn = DateTime.fromISO(itemMetaData.addedOn, { locale: "nl-NL" }).toLocaleString(Dates.LongDateTimeFormat);
                 metaDataListElement.find(".added-on").html(addedOn);
