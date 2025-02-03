@@ -414,12 +414,17 @@ namespace Api.Modules.Grids.Services
                                             {selectQuery.Replace("{limit}", "", StringComparison.OrdinalIgnoreCase).Replace("{sort}", "", StringComparison.OrdinalIgnoreCase).Trim(';')}
                                         ) AS x";
                     }
+                    
+                    // Set the default sort clause.
+                    string defaultOrder = null;
+                    if (options.Sort != null)
+                        defaultOrder = $"ORDER BY {string.Join(", ", options.Sort.Select(sort => $"`{sort.Field}` {sort.Dir}"))}";
 
                     selectQuery = selectQuery.Replace("'{itemId}'", "?itemId", StringComparison.OrdinalIgnoreCase);
                     countQuery = countQuery?.Replace("'{itemId}'", "?itemId", StringComparison.OrdinalIgnoreCase);
                     selectQuery = selectQuery.Replace("{itemId}", "?itemId", StringComparison.OrdinalIgnoreCase);
                     countQuery = countQuery?.Replace("{itemId}", "?itemId", StringComparison.OrdinalIgnoreCase);
-                    (selectQuery, countQuery) = BuildGridQueries(options, selectQuery, countQuery, identity, "", tablePrefix: tablePrefix);
+                    (selectQuery, countQuery) = BuildGridQueries(options, selectQuery, countQuery, identity, defaultOrder, tablePrefix: tablePrefix);
 
                     // Get the count, but only if this is not the first load.
                     if (!String.IsNullOrWhiteSpace(countQuery) && (options?.FirstLoad ?? true))
