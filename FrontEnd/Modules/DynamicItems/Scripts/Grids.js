@@ -1017,8 +1017,8 @@ export class Grids {
         }
 
         await require("/kendo/messages/kendo.grid.nl-NL.js");
-
-        const kendoGrid = element.kendoGrid({
+        
+        const gridOptions = {
             dataSource: {
                 transport: {
                     read: async (transportOptions) => {
@@ -1080,18 +1080,18 @@ export class Grids {
                     }
                 },
                 serverPaging: true,
-                serverSorting: true,
-                serverFiltering: true,
-                pageSize: options.pageSize || 10,
-                schema: {
+                    serverSorting: true,
+                    serverFiltering: true,
+                    pageSize: options.pageSize || 10,
+                    schema: {
                     data: "data",
-                    total: "totalResults",
-                    model: data.schemaModel
+                        total: "totalResults",
+                        model: data.schemaModel
                 }
             },
             columns: columns,
-            pageable: {
-                pageSize: options.pageSize || 10,
+                pageable: {
+            pageSize: options.pageSize || 10,
                 refresh: true
             },
             toolbar: toolbar,
@@ -1106,11 +1106,11 @@ export class Grids {
                 operators: {
                     string: {
                         startswith: "Begint met",
-                        eq: "Is gelijk aan",
-                        neq: "Is ongelijk aan",
-                        contains: "Bevat",
-                        doesnotcontain: "Bevat niet",
-                        endswith: "Eindigt op"
+                            eq: "Is gelijk aan",
+                            neq: "Is ongelijk aan",
+                            contains: "Bevat",
+                            doesnotcontain: "Bevat niet",
+                            endswith: "Eindigt op"
                     }
                 },
                 messages: {
@@ -1120,7 +1120,11 @@ export class Grids {
             },
             filterMenuInit: this.base.grids.onFilterMenuInit.bind(this),
             filterMenuOpen: this.base.grids.onFilterMenuOpen.bind(this)
-        }).data("kendoGrid");
+        }
+        
+        const finalGridOptions = $.extend(gridOptions, options.gridViewSettings);
+
+        const kendoGrid = element.kendoGrid(finalGridOptions).data("kendoGrid");
 
         kendoGrid.thead.kendoTooltip({
             filter: "th",
