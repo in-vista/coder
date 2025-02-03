@@ -24,7 +24,7 @@ export class Fields {
         this.base = base;
         this.dependencies = {};
         this.fieldInitializers = {};
-        this.fieldSelector = "select:not(:disabled,[readonly]), input:not(:disabled,[readonly]), [data-kendo-control], textarea:not(:disabled,[readonly])";
+        this.fieldSelector = `select:not(:disabled,[readonly]), input:not(:disabled,[readonly]):not(.mail-editor-input-field), input.mail-editor-input-field:not(:disabled,[readonly])[value]:not([value=""]), [data-kendo-control], textarea:not(:disabled,[readonly])`;
         this.originalItemValues = {};
         this.unsavedItemValues = {};
     }
