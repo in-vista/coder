@@ -1346,7 +1346,7 @@ ORDER BY username.`value` ASC";
         public string SetUpTotpAuthentication(string account, string key)
         {
             var twoFactorAuthenticator = new TwoFactorAuthenticator();
-            var setupInfo = twoFactorAuthenticator.GenerateSetupCode("Wiser", account, key, false);
+            var setupInfo = twoFactorAuthenticator.GenerateSetupCode("Coder", account, key, false);
             return setupInfo.QrCodeSetupImageUrl;
         }
 

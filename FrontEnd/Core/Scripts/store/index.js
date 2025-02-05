@@ -739,7 +739,7 @@ const tenantsModule = {
                 return;
             }
 
-            document.title = `${title} - Wiser 3.0`;
+            document.title = `${title} - Coder 3.0`;
         },
 
         [VALID_SUB_DOMAIN](state, valid) {
@@ -802,7 +802,7 @@ const branchesModule = {
             { type: "query", displayName: "Query's" },
             { type: "role", displayName: "Rollen" },
             { type: "userRole", displayName: "Koppelingen tussen gebruikers en rollen" },
-            { type: "styledOutput", displayName: "Styled output (Wiser API query output configuraties)" },
+            { type: "styledOutput", displayName: "Styled output (Coder API query output configuraties)" },
             { type: "easyObjects", displayName: "Objecten (easy_objects)" }
         ],
         isMainBranch: false,

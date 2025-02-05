@@ -128,7 +128,7 @@ WHERE query.id = ?id";
                 return new ServiceResult<QueryModel>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Wiser query with ID '{id}' does not exist."
+                    ErrorMessage = $"Coder query with ID '{id}' does not exist."
                 };
             }
 
@@ -412,7 +412,7 @@ DELETE FROM {WiserTableNames.WiserPermission} WHERE query_id = ?id AND query_id 
                 return new ServiceResult<JToken>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Wiser query with ID '{id}' does not exist."
+                    ErrorMessage = $"Coder query with ID '{id}' does not exist."
                 };
             }
 
@@ -421,7 +421,7 @@ DELETE FROM {WiserTableNames.WiserPermission} WHERE query_id = ?id AND query_id 
                 return new ServiceResult<JToken>
                 {
                     StatusCode = HttpStatusCode.Unauthorized,
-                    ErrorMessage = $"Wiser user '{IdentityHelpers.GetUserName(identity)}' has no permission to execute this query."
+                    ErrorMessage = $"Coder user '{IdentityHelpers.GetUserName(identity)}' has no permission to execute this query."
                 };
             }
 

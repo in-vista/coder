@@ -7,6 +7,7 @@ using Api.Modules.Google.Exceptions;
 using Api.Modules.Google.Interfaces;
 using Api.Modules.Google.Models;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
+using GeeksCoreLibrary.Core.Helpers;
 using Google.Cloud.Translation.V2;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -42,7 +43,7 @@ public class GoogleTranslateService : IGoogleTranslateService, IScopedService
         }
         catch (InvalidApiKeyException invalidApiKeyException)
         {
-            logger.LogWarning(invalidApiKeyException, "User tried to translate, but there is no API key configured in Wiser.");
+            logger.LogWarning(invalidApiKeyException, "User tried to translate, but there is no API key configured in Coder.");
             return new ServiceResult<IList<TranslationResult>>
             {
                 ErrorMessage = "De vertaalmodule is niet beschikbaar omdat er geen API Key voor de Google Translate API is ingesteld. Neem a.u.b. contact op met ons.",
@@ -62,7 +63,7 @@ public class GoogleTranslateService : IGoogleTranslateService, IScopedService
         }
         catch (InvalidApiKeyException invalidApiKeyException)
         {
-            logger.LogWarning(invalidApiKeyException, "User tried to translate, but there is no API key configured in Wiser.");
+            logger.LogWarning(invalidApiKeyException, "User tried to translate, but there is no API key configured in Coder.");
             return new ServiceResult<IList<TranslationResult>>
             {
                 ErrorMessage = "De vertaalmodule is niet beschikbaar omdat er geen API Key voor de Google Translate API is ingesteld. Neem a.u.b. contact op met ons.",

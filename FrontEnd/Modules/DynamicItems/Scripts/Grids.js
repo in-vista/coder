@@ -1384,7 +1384,7 @@ export class Grids {
 
         if (openInNewTab) {
             if (!window.parent) {
-                kendo.alert("Er kan geen parent frame gevonden worden. Waarschijnlijk heeft u deze module in een losse browser tab geopend. Open de module a.u.b. via de normale manier in Wiser.")
+                kendo.alert("Er kan geen parent frame gevonden worden. Waarschijnlijk heeft u deze module in een losse browser tab geopend. Open de module a.u.b. via de normale manier in Coder.")
                 return;
             }
 

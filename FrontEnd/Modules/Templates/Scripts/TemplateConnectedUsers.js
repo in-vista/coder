@@ -14,7 +14,7 @@ export class TemplateConnectedUsers {
 
     async init() {
         if (!this.base.settings.pusherAppKey) {
-            console.log("No pusher app key set. Wiser will not be able to show which users have opened this template.");
+            console.log("No pusher app key set. Coder will not be able to show which users have opened this template.");
             return;
         }
 

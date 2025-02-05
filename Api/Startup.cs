@@ -114,7 +114,7 @@ namespace Api
                     {
                         Title = "Wiser.WebAPI",
                         Version = "3",
-                        Description = "Web API for Wiser"
+                        Description = "Web API for Coder"
                     });
 
                 // Make sure the API's own assembly is used to avoid the GCL's controllers and schemas from showing up in Swagger.

@@ -292,8 +292,8 @@ public class Tests
             LoginWiserUser();
 
             // Open Wiser user module.
-            WaitTillElementIsFound(By.CssSelector("a[title='Gebruikers - Wiser']"));
-            driver.FindElement(By.CssSelector("a[title='Gebruikers - Wiser']")).Click();
+            WaitTillElementIsFound(By.CssSelector("a[title='Gebruikers - Coder']"));
+            driver.FindElement(By.CssSelector("a[title='Gebruikers - Coder']")).Click();
             driver.SwitchTo().Frame(driver.FindElement(By.Id("806_1")));
             
             // Filter items.
@@ -348,7 +348,7 @@ public class Tests
             
             // Search for item.
             WaitTillElementIsFound(By.CssSelector(".search-container .k-input-inner"));
-            driver.FindElement(By.CssSelector(".search-container .k-input-inner")).SendKeys("Wiser gebruiker");
+            driver.FindElement(By.CssSelector(".search-container .k-input-inner")).SendKeys("Coder gebruiker");
             driver.FindElement(By.Id("search-field")).SendKeys("Admin");
             driver.FindElement(By.Id("search-field")).SendKeys(Keys.Enter);
             
@@ -423,7 +423,7 @@ public class Tests
             Thread.Sleep(1000); // Options are shown by animation, when clicking to soon focus will be lost and no value can be entered causing the test to fail.
             driver.FindElement(By.CssSelector(".k-dialog .k-input-value-text")).Click();
             WaitTillElementIsDisplayed(By.CssSelector(".k-animation-container .k-input-inner"));
-            driver.FindElement(By.CssSelector(".k-animation-container .k-input-inner")).SendKeys("Alle users in Wiser");
+            driver.FindElement(By.CssSelector(".k-animation-container .k-input-inner")).SendKeys("Alle users in Coder");
             Thread.Sleep(1000); // Wait a moment for the filter to give the results.
             WaitTillElementIsDisplayed(By.CssSelector("#dataSelectorItems-list li"));
             driver.FindElement(By.CssSelector("#dataSelectorItems-list li")).Click();

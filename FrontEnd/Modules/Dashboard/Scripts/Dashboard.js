@@ -333,7 +333,7 @@ const moduleSettings = {
 
             $(dataChartElement).kendoChart({
                 title: {
-                    text: "Aantal items in Wiser"
+                    text: "Aantal items in Coder"
                 },
                 legend: {
                     position: "top"

@@ -663,7 +663,7 @@ const moduleSettings = {
             if (window.parent) {
                 window.parent.main.vueApp.openModule({
                     moduleId: `wiserItem_${properties.itemId}`,
-                    name: `Wiser item via agendering`,
+                    name: `Coder item via agendering`,
                     type: "dynamicItems",
                     iframe: true,
                     itemId: properties.itemId,

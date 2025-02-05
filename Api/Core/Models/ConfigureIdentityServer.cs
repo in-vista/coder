@@ -31,7 +31,7 @@ namespace Api.Core.Models
         {
             return new List<ApiResource>
             {
-                new("wiser-api", "Wiser API", new List<string> { "role", "admin", "user" })
+                new("wiser-api", "Coder API", new List<string> { "role", "admin", "user" })
                 {
                     ApiSecrets =
                     {
@@ -55,7 +55,7 @@ namespace Api.Core.Models
                 new()
                 {
                     Name = "wiser-api",
-                    DisplayName = "Scope for the Wiser API",
+                    DisplayName = "Scope for the Coder API",
                     UserClaims = { "role", "admin", "user" }
                 }
             };
