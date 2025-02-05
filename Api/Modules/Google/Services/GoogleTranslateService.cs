@@ -81,7 +81,7 @@ public class GoogleTranslateService : IGoogleTranslateService, IScopedService
         var client = TranslationClient.CreateFromApiKey(googleSettings.TranslationsApiKey);
 
         //client.Service.HttpClient.DefaultRequestHeaders.Referrer = HttpContextHelpers.GetOriginalRequestUri(httpContextAccessor.HttpContext);
-        client.Service.HttpClient.DefaultRequestHeaders.Referrer = new Uri("https://wiserdemo.wiser3.nl");
+        client.Service.HttpClient.DefaultRequestHeaders.Referrer = new Uri("https://api.coder.nl");
         return client;
     }
 }
