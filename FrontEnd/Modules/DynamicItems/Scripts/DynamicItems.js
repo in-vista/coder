@@ -2003,14 +2003,15 @@ const moduleSettings = {
                 const environmentLabel = this.base.parseEnvironments(itemMetaData.publishedEnvironment);
 
                 let friendlyEntityName = this.getEntityTypeFriendlyName(itemMetaData.entityType);
-                if (friendlyEntityName !== itemMetaData.entityType) {
-                    friendlyEntityName += ` (${itemMetaData.entityType})`;
+                let extendedFriendlyEntityName = friendlyEntityName;
+                if (extendedFriendlyEntityName !== itemMetaData.entityType) {
+                    extendedFriendlyEntityName += ` (${itemMetaData.entityType})`;
                 }
 
                 const metaDataListElement = metaDataContainer.find(".meta-data").removeClass("hidden");
                 metaDataListElement.find(".id").html(itemMetaData.id);
                 metaDataListElement.find(".title").html(itemMetaData.title || "(leeg)");
-                metaDataListElement.find(".entity-type").html(friendlyEntityName);
+                metaDataListElement.find(".entity-type").html(extendedFriendlyEntityName);
                 metaDataListElement.find(".published-environment").html(environmentLabel.join(", "));
                 metaDataListElement.find(".read-only").html(itemMetaData.readonly);
                 metaDataListElement.find(".added-by").html(itemMetaData.addedBy);
