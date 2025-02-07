@@ -22,6 +22,12 @@ namespace Api.Modules.Tenants.Interfaces
         /// <param name="includeAdminUsers">Optional: Whether to also get the admin users from the main Wiser database. Default is false.</param>
         /// <returns>A list of <see cref="WiserItemModel">ItemModel</see>.</returns>
         Task<ServiceResult<List<FlatItemModel>>> GetAsync(bool includeAdminUsers = false);
+        
+        /// <summary>
+        /// Gets a list of all users for the agenda for a tenant.
+        /// </summary>
+        /// <returns>A list of <see cref="WiserItemModel">ItemModel</see>.</returns>
+        Task<ServiceResult<List<FlatItemModel>>> GetForAgendaAsync(ClaimsIdentity identity);
 
         /// <summary>
         /// Method for logging in admin accounts.
