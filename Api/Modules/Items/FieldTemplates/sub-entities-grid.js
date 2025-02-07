@@ -23,8 +23,6 @@ if (options.fieldGroupName) {
 	gridMode = 6;
 }
 
-    debugger;
-
 if (customQueryGrid) {
     Wiser.api({ 
         url: `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}${linkTypeParameter}` 
