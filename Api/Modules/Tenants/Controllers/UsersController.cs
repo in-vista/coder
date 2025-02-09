@@ -44,6 +44,17 @@ namespace Api.Modules.Tenants.Controllers
         {
             return (await usersService.GetAsync(includeAdminUsers)).GetHttpResponseMessage();
         }
+        
+        /// <summary>
+        /// Method for getting a list of all users for the agenda for the authenticated tenant.
+        /// </summary>
+        /// <returns>A <see cref="List{T}"/> of <see cref="WiserItemModel"/>, but only with names and IDs.</returns>
+        [HttpGet("agenda")]
+        [ProducesResponseType(typeof(List<WiserItemModel>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetForAgenda()
+        {
+            return (await usersService.GetForAgendaAsync((ClaimsIdentity) User.Identity)).GetHttpResponseMessage();
+        }
 
         /// <summary>
         /// Gets the data of the authenticated user.

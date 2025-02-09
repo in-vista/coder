@@ -142,7 +142,7 @@ const moduleSettings = {
             this.taskUserSelect.setDataSource({
                 transport: {
                     read: {
-                        url: `${this.settings.wiserApiRoot}users`,
+                        url: `${this.settings.wiserApiRoot}users/agenda`,
                         dataType: "json"
                     }
                 }

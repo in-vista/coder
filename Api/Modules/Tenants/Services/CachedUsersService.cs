@@ -49,6 +49,18 @@ namespace Api.Modules.Tenants.Services
                     return await usersService.GetAsync(includeAdminUsers);
                 }, cacheService.CreateMemoryCacheEntryOptions(CacheAreas.WiserItems));
         }
+        
+        /// <inheritdoc />
+        public async Task<ServiceResult<List<FlatItemModel>>> GetForAgendaAsync(ClaimsIdentity identity)
+        {
+            await databaseConnection.EnsureOpenConnectionForReadingAsync();
+            return await cache.GetOrAdd($"users_for_agenda_{databaseConnection.GetDatabaseNameForCaching()}",
+                async cacheEntry =>
+                {
+                    cacheEntry.AbsoluteExpirationRelativeToNow = apiSettings.DefaultUsersCacheDuration;
+                    return await usersService.GetForAgendaAsync(identity);
+                }, cacheService.CreateMemoryCacheEntryOptions(CacheAreas.WiserItems));
+        }
 
         /// <inheritdoc />
         public Task<ServiceResult<AdminAccountModel>> LoginAdminAccountAsync(string username, string password, string ipAddress = null, string totpPin = null)

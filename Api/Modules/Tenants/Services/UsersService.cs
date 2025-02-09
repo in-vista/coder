@@ -8,9 +8,13 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Api.Core.Helpers;
+using Api.Core.Interfaces;
 using Api.Core.Models;
 using Api.Core.Services;
+using Api.Modules.Items.Interfaces;
 using Api.Modules.Items.Models;
+using Api.Modules.Modules.Interfaces;
+using Api.Modules.Modules.Models;
 using Api.Modules.Templates.Interfaces;
 using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Tenants.Models;
@@ -22,6 +26,7 @@ using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Communication.Interfaces;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using Google.Authenticator;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -68,11 +73,26 @@ namespace Api.Modules.Tenants.Services
         private readonly IRolesService rolesService;
         private readonly IDatabaseHelpersService databaseHelpersService;
         private readonly GclSettings gclSettings;
+        private readonly IItemsService itemsService;
+        private readonly IApiReplacementsService apiReplacementsService;
+        private readonly IServiceProvider serviceProvider;
 
         /// <summary>
         /// Initializes a new instance of <see cref="UsersService"/>.
         /// </summary>
-        public UsersService(IWiserTenantsService wiserTenantsService, IOptions<ApiSettings> apiSettings, IDatabaseConnection clientDatabaseConnection, ILogger<UsersService> logger, ITemplatesService templatesService, ICommunicationsService communicationsService, IOptions<GclSettings> gclSettings, IRolesService rolesService, IDatabaseHelpersService databaseHelpersService)
+        public UsersService(
+            IWiserTenantsService wiserTenantsService,
+            IOptions<ApiSettings> apiSettings,
+            IDatabaseConnection clientDatabaseConnection,
+            ILogger<UsersService> logger,
+            ITemplatesService templatesService,
+            ICommunicationsService communicationsService,
+            IOptions<GclSettings> gclSettings,
+            IRolesService rolesService,
+            IDatabaseHelpersService databaseHelpersService,
+            IItemsService itemsService,
+            IApiReplacementsService apiReplacementsService,
+            IServiceProvider serviceProvider)
         {
             this.wiserTenantsService = wiserTenantsService;
             this.logger = logger;
@@ -83,6 +103,9 @@ namespace Api.Modules.Tenants.Services
             this.rolesService = rolesService;
             this.databaseHelpersService = databaseHelpersService;
             this.gclSettings = gclSettings.Value;
+            this.itemsService = itemsService;
+            this.apiReplacementsService = apiReplacementsService;
+            this.serviceProvider = serviceProvider;
 
             if (clientDatabaseConnection is ClientDatabaseConnection connection)
             {
@@ -97,7 +120,7 @@ namespace Api.Modules.Tenants.Services
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
             clientDatabaseConnection.ClearParameters();
 
-            var query = $@"SELECT 
+            string query = $@"SELECT 
     user.id, 
 	IFNULL(NULLIF(user.title, ''), username.value) AS name, 
     username.`value` AS username
@@ -127,6 +150,55 @@ ORDER BY username.`value` ASC";
             }
 
             dataTable = await clientDatabaseConnection.GetAsync(query);
+
+            if (dataTable.Rows.Count > 0)
+            {
+                result.AddRange(dataTable.Rows.Cast<DataRow>().Select(dataRow => new FlatItemModel
+                {
+                    Id = dataRow.Field<ulong>("id"),
+                    Title = dataRow.Field<string>("name"),
+                    Fields = new Dictionary<string, object>
+                    {
+                        { "username", dataRow.Field<string>("username") },
+                        { "isAdmin", false },
+                        { "group", "Klant" }
+                    }
+                }));
+            }
+
+            return new ServiceResult<List<FlatItemModel>>(result);
+        }
+
+        /// <inheritdoc />
+        public async Task<ServiceResult<List<FlatItemModel>>> GetForAgendaAsync(ClaimsIdentity identity)
+        {
+            var result = new List<FlatItemModel>();
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            clientDatabaseConnection.ClearParameters();
+            
+            using var scope = serviceProvider.CreateScope();
+            IModulesService modulesService = scope.ServiceProvider.GetRequiredService<IModulesService>();
+            ServiceResult<ModuleSettingsModel> moduleSettingsResult = await modulesService.GetSettingsAsync(708, identity);
+            ModuleSettingsModel moduleSettings = moduleSettingsResult.ModelObject;
+
+            if (moduleSettings == null)
+                return await GetAsync();
+            
+            JToken moduleOptionsToken = moduleSettings.Options;
+
+            if (!(moduleOptionsToken is JObject moduleOptions))
+                return await GetAsync();
+
+            if (!moduleOptions.TryGetValue("userQueryId", out JToken userQueryIdProperty))
+                return await GetAsync();
+                
+            int userQueryId = userQueryIdProperty.Value<int>();
+            ServiceResult<string> userQueryResult = await itemsService.GetCustomQueryAsync(0, userQueryId, identity);
+            string query = userQueryResult.ModelObject;
+            
+            query = apiReplacementsService.DoIdentityReplacements(query, identity, true);
+            
+            DataTable dataTable = await clientDatabaseConnection.GetAsync(query);
 
             if (dataTable.Rows.Count > 0)
             {
