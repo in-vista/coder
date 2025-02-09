@@ -51,6 +51,8 @@ $("#images_{propertyIdWithSuffix}").html(kendo.render(kendo.template($("#uploade
 
 if (readonly === true) {
     kendoComponent.disable();
+    $('.k-upload').hide();
+    $('.dropZoneElement').hide();
 }
 
 // Add drag & drop functionality for changing the order of files.
