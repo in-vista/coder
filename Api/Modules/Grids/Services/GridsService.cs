@@ -116,6 +116,8 @@ namespace Api.Modules.Grids.Services
             var gridOptionsValue = "";
             var extraJavascript = new StringBuilder();
 
+            bool isReadOnly = false;
+
             // Get entity type settings, so see whether we can have different versions of a single item for different environments or if the items have their own dedicated table.
             var versionJoinClause = "";
             var subQueryVersionJoinClause = "";
@@ -151,9 +153,9 @@ namespace Api.Modules.Grids.Services
             clientDatabaseConnection.ClearParameters();
             clientDatabaseConnection.AddParameter("id", propertyId);
             if (mode == EntityGridModes.LinkOverview)
-            {
                 columnsToSelect += ", search_query, search_count_query";
-            }
+            if (mode == EntityGridModes.ItemDetailsGroup)
+                columnsToSelect += ", readonly";
 
             DataTable dataTable;
             var gridOptionsDataTable = await clientDatabaseConnection.GetAsync($"SELECT {columnsToSelect} FROM {WiserTableNames.WiserEntityProperty} WHERE id = ?id");
@@ -177,6 +179,9 @@ namespace Api.Modules.Grids.Services
                                     ) AS x";
                     }
                 }
+
+                if (gridOptionsDataTable.Columns.Contains("readonly"))
+                    isReadOnly = Convert.ToBoolean(gridOptionsDataTable.Rows[0]["readonly"]);
 
                 gridOptionsValue = gridOptionsDataTable.Rows[0].Field<string>("options");
             }
@@ -809,8 +814,9 @@ namespace Api.Modules.Grids.Services
                     {
                         results.Columns.Add(new GridColumn {Field = "languagecode", Title = "Taalcode", Width = "100px"});
                     }
-
-                    results.Columns.Add(new GridColumn {Field = "command", Title = "&nbsp;", Width = "120px", Command = new List<string> {"destroy"}});
+                    
+                    if(!isReadOnly)
+                        results.Columns.Add(new GridColumn {Field = "command", Title = "&nbsp;", Width = "120px", Command = new List<string> {"destroy"}});
 
                     results.SchemaModel.Fields.Add("id", new FieldModel {Editable = false, Type = "number", Nullable = false});
                     results.SchemaModel.Fields.Add("key", new FieldModel {Editable = true, Type = "string", Nullable = false});
