@@ -611,13 +611,13 @@ export class Fields {
             title: "Deze URL openen?",
             closable: true,
             modal: true,
-            content: "<p>Wilt u deze URL in een nieuw venster openen of binnen Wiser (let op, niet alle webistes kunnen geladen worden binnen Wiser)?<p>",
+            content: "<p>Wilt u deze URL in een nieuw venster openen of binnen Coder (let op, niet alle websites kunnen geladen worden binnen Coder)?<p>",
             actions: [
                 {
                     text: "Annuleren"
                 },
                 {
-                    text: "Open in Wiser",
+                    text: "Open in Coder",
                     action: (kendoEvent) => {
                         $("#openLinkWindow").kendoWindow({
                             width: "100%",
@@ -2954,7 +2954,7 @@ export class Fields {
                                 attachmentsUploader = dialogElement.find("input[name=files]").kendoUpload({
                                     files: files,
                                     async: {
-                                        saveUrl: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(this.base.settings.zeroEncrypted)}/upload?propertyName=TEMPORARY_FILE_FROM_WISER`,
+                                        saveUrl: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(this.base.settings.zeroEncrypted)}/upload?propertyName=TEMPORARY_FILE_FROM_CODER`,
                                         removeUrl: "remove", // TODO
                                         withCredentials: false
                                     },

@@ -3074,7 +3074,7 @@ const moduleSettings = {
          * Imports the templates from the Wiser 1 templates modules into the Wiser 3 templates module.
          */
         async importLegacyTemplates() {
-            await kendo.confirm("Weet u zeker dat u de templatemodule van Wiser 1 wilt importeren? Dit heeft het meeste nut wanneer de klant al Wiser 2/3 databasestructuur gebruikt. Als de klant nog Wiser 1 gebruikt, dan moeten alle query's toch opnieuw geschreven worden en is het misschien efficiënter om handmatig de templatemodule te vullen.<br><br>De tabellen 'wiser_template' en 'wiser_dynamic_content' moeten leeg zijn voordat u dit doet.");
+            await kendo.confirm("Weet u zeker dat u de templatemodule van Coder 1 wilt importeren? Dit heeft het meeste nut wanneer de klant al Coder 2/3 databasestructuur gebruikt. Als de klant nog Coder 1 gebruikt, dan moeten alle query's toch opnieuw geschreven worden en is het misschien efficiënter om handmatig de templatemodule te vullen.<br><br>De tabellen 'wiser_template' en 'wiser_dynamic_content' moeten leeg zijn voordat u dit doet.");
 
             const process = `importLegacyTemplates_${Date.now()}`;
             window.processing.addProcess(process);
@@ -3089,7 +3089,7 @@ const moduleSettings = {
 
                 await this.loadTabsAndTreeViews();
 
-                window.popupNotification.show(`Templates van Wiser 1 zijn succesvol geïmporteerd.`, "info");
+                window.popupNotification.show(`Templates van Coder 1 zijn succesvol geïmporteerd.`, "info");
             } catch (exception) {
                 console.error(exception);
                 kendo.alert("Er is iets fout gegaan, probeer het a.u.b. opnieuw of neem contact op.");

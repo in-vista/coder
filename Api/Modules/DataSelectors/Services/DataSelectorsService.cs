@@ -767,7 +767,7 @@ ORDER BY name ASC");
                 return new ServiceResult<JToken>
                 {
                     StatusCode = HttpStatusCode.Unauthorized,
-                    ErrorMessage = $"Wiser user '{IdentityHelpers.GetUserName(identity)}' has no permission to execute this data selector."
+                    ErrorMessage = $"Coder user '{IdentityHelpers.GetUserName(identity)}' has no permission to execute this data selector."
                 };
             }
 

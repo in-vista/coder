@@ -108,7 +108,7 @@ namespace Api.Modules.Files.Services
             {
                 itemId = await wiserTenantsService.DecryptValue<ulong>(encryptedId, identity);
             }
-            if (itemId <= 0 && !String.Equals("TEMPORARY_FILE_FROM_WISER", propertyName, StringComparison.OrdinalIgnoreCase))
+            if (itemId <= 0 && !String.Equals("TEMPORARY_FILE_FROM_CODER", propertyName, StringComparison.OrdinalIgnoreCase))
             {
                 throw new ArgumentException("Id must be greater than zero.");
             }

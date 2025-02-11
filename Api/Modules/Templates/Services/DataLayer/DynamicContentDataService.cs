@@ -185,7 +185,7 @@ WHERE id = ?id";
 SELECT
     component.version + 1 AS version,
     ?now AS changed_on,
-    'Wiser' AS changed_by,
+    'Coder' AS changed_by,
     component.settings,
     component.content_id,
     component.component,

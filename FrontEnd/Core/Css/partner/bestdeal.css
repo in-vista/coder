@@ -55,7 +55,7 @@ a:not(.btn):hover {
     background-image: var(--logo-url);
     background-repeat: no-repeat;
     background-position: var(--logo-pos) center;
-    background-size: auto var(--logo-size);
+    background-size: auto auto 35px; /*oude waare: var(--logo-size); */
 }
 
 .login-screen .logo {

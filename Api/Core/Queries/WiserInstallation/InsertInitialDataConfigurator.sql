@@ -200,13 +200,13 @@ INSERT INTO `wiser_itemdetail` (`item_id`, `key`, `value`) VALUES (@stepTwoOneId
 -- Templates
 -- Configurator dynamic content
 SET @newContentId = (SELECT IFNULL(MAX(`content_id`), 0) + 1 FROM `wiser_dynamic_content`);
-INSERT INTO `wiser_dynamic_content` (`content_id`, `settings`, `component`, `component_mode`, `version`, `title`, `changed_on`, `changed_by`, `published_environment`, `added_on`, `added_by`) VALUES (@newContentId, '{"ConfiguratorName":"ExampleConfigurator","ValuesCanContainDashes":false,"ProductsApiBaseUrl":"","ProductsApiGetProductsUrl":"","ProductsApiSalesPriceProperty":"","ProductsApiPurchasePriceProperty":"","ProductsApiFromPriceProperty":"","UserNeedsToBeLoggedIn":false,"HandleRequest":false,"EvaluateIfElseInTemplates":true,"RemoveUnknownVariables":true,"CachingMode":"0","CachingLocation":"0","CacheMinutes":0,"ComponentMode":"2"}', 'Configurator', 'Vue', 1, 'ExampleConfigurator', NOW(), 'Wiser', 1, NOW(), 'Wiser');
+INSERT INTO `wiser_dynamic_content` (`content_id`, `settings`, `component`, `component_mode`, `version`, `title`, `changed_on`, `changed_by`, `published_environment`, `added_on`, `added_by`) VALUES (@newContentId, '{"ConfiguratorName":"ExampleConfigurator","ValuesCanContainDashes":false,"ProductsApiBaseUrl":"","ProductsApiGetProductsUrl":"","ProductsApiSalesPriceProperty":"","ProductsApiPurchasePriceProperty":"","ProductsApiFromPriceProperty":"","UserNeedsToBeLoggedIn":false,"HandleRequest":false,"EvaluateIfElseInTemplates":true,"RemoveUnknownVariables":true,"CachingMode":"0","CachingLocation":"0","CacheMinutes":0,"ComponentMode":"2"}', 'Configurator', 'Vue', 1, 'ExampleConfigurator', NOW(), 'Coder', 1, NOW(), 'Coder');
 SET @configuratorDynamicContentId = (SELECT `content_id` FROM `wiser_dynamic_content` WHERE `id` = LAST_INSERT_ID());
 
 -- Configurator scripts folder
 SET @scriptsFolderTemplateId = (SELECT `template_id` FROM `wiser_template` WHERE `template_name` = 'JS');
 SET @newTemplateId = (SELECT IFNULL(MAX(`template_id`), 0) + 1 FROM `wiser_template`);
-INSERT INTO `wiser_template` (`parent_id`, `template_name`, `template_type`, `version`, `template_id`, `changed_on`, `changed_by`, `published_environment`, `added_on`, `added_by`) VALUES (@scriptsFolderTemplateId, 'Configurators', 7, 1, @newTemplateId, NOW(), 'Wiser', 1, NOW(), 'Wiser');
+INSERT INTO `wiser_template` (`parent_id`, `template_name`, `template_type`, `version`, `template_id`, `changed_on`, `changed_by`, `published_environment`, `added_on`, `added_by`) VALUES (@scriptsFolderTemplateId, 'Configurators', 7, 1, @newTemplateId, NOW(), 'Coder', 1, NOW(), 'Coder');
 SET @configuratorScriptsFolder = (SELECT `template_id` FROM `wiser_template` WHERE `id` = LAST_INSERT_ID());
 
 -- Configurator script template
@@ -237,19 +237,19 @@ INSERT INTO `wiser_template` (`parent_id`, `template_name`, `template_data`, `te
 }
 
 window.configurator = new ExampleConfigurator();'
-), 4, 1, @newTemplateId, NOW(), 'Wiser', 1, NOW(), 'Wiser');
+), 4, 1, @newTemplateId, NOW(), 'Coder', 1, NOW(), 'Coder');
 SET @configuratorScriptTemplateId = (SELECT `template_id` FROM `wiser_template` WHERE `id` = LAST_INSERT_ID());
 
 -- Configurator HTML folder
 SET @htmlFolderTemplateId = (SELECT `template_id` FROM `wiser_template` WHERE `template_name` = 'HTML');
 SET @newTemplateId = (SELECT IFNULL(MAX(`template_id`), 0) + 1 FROM `wiser_template`);
-INSERT INTO `wiser_template` (`parent_id`, `template_name`, `template_type`, `version`, `template_id`, `changed_on`, `changed_by`, `published_environment`, `added_on`, `added_by`) VALUES (@htmlFolderTemplateId, 'Configurators', 7, 1, @newTemplateId, NOW(), 'Wiser', 1, NOW(), 'Wiser');
+INSERT INTO `wiser_template` (`parent_id`, `template_name`, `template_type`, `version`, `template_id`, `changed_on`, `changed_by`, `published_environment`, `added_on`, `added_by`) VALUES (@htmlFolderTemplateId, 'Configurators', 7, 1, @newTemplateId, NOW(), 'Coder', 1, NOW(), 'Coder');
 SET @configuratorTemplateFolder = (SELECT `template_id` FROM `wiser_template` WHERE `id` = LAST_INSERT_ID());
 
 -- Configurator HTML template
 SET @newTemplateId = (SELECT IFNULL(MAX(`template_id`), 0) + 1 FROM `wiser_template`);
-INSERT INTO `wiser_template` (`parent_id`, `template_name`, `template_data`, `template_type`, `version`, `template_id`, `changed_on`, `changed_by`, `published_environment`, `linked_templates`, `added_on`, `added_by`) VALUES (@configuratorTemplateFolder, 'ExampleConfigurator', CONCAT('<div class="dynamic-content" content-id="', @configuratorDynamicContentId, '"><h2>ExampleConfigurator</h2></div>'), 1, 1, @newTemplateId, NOW(), 'Wiser', 1, @configuratorScriptTemplateId, NOW(), 'Wiser');
+INSERT INTO `wiser_template` (`parent_id`, `template_name`, `template_data`, `template_type`, `version`, `template_id`, `changed_on`, `changed_by`, `published_environment`, `linked_templates`, `added_on`, `added_by`) VALUES (@configuratorTemplateFolder, 'ExampleConfigurator', CONCAT('<div class="dynamic-content" content-id="', @configuratorDynamicContentId, '"><h2>ExampleConfigurator</h2></div>'), 1, 1, @newTemplateId, NOW(), 'Coder', 1, @configuratorScriptTemplateId, NOW(), 'Coder');
 SET @configuratorHtmlTemplateId = (SELECT `template_id` FROM `wiser_template` WHERE `id` = LAST_INSERT_ID());
 
 -- Connect configurator HTML template and dynamic content
-INSERT INTO `wiser_template_dynamic_content` (`content_id`, `destination_template_id`, `added_on`, `added_by`) VALUES (@configuratorDynamicContentId, @configuratorHtmlTemplateId, NOW(), 'Wiser');
+INSERT INTO `wiser_template_dynamic_content` (`content_id`, `destination_template_id`, `added_on`, `added_by`) VALUES (@configuratorDynamicContentId, @configuratorHtmlTemplateId, NOW(), 'Coder');

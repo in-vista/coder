@@ -83,7 +83,7 @@ namespace FrontEnd.Core.Services
                 return $"http://{subDomain}.wiser.nl.juicedev.nl/";
             }
 
-            return $"https://{subDomain}.wiser.nl/";
+            return $"https://{subDomain}.coder.nl/";
         }
 
         /// <inheritdoc />

@@ -368,7 +368,7 @@ class Main {
                         conflicts: []
                     },
                     branchActions: [
-                        { id: "wiser", name:  "Openen in Wiser" },
+                        { id: "coder", name:  "Openen in Coder" },
                         { id: "website", name: "Openen op mijn website" },
                         { id: "delete", name: "Verwijderen" }
                     ],
@@ -591,7 +591,7 @@ class Main {
                             url = `${url.substring(0, url.indexOf("/", 8))}/branches/${encodeURIComponent(this.branchActionSettings.selectedBranch.database.databaseName)}`;
 
                             break;
-                        case "wiser":
+                        case "coder":
                             url = `https://${this.branchActionSettings.selectedBranch.subDomain}.${this.appSettings.currentDomain}`;
 
                             break;
@@ -839,7 +839,7 @@ class Main {
                     if (!this.listOfEntityTypes || !this.listOfEntityTypes.length) {
                         this.openModule({
                             moduleId: `wiserItem_${this.wiserIdPromptValue}`,
-                            name: `Wiser item #${this.wiserIdPromptValue}`,
+                            name: `Coder item #${this.wiserIdPromptValue}`,
                             type: "dynamicItems",
                             iframe: true,
                             itemId: encryptedId,
@@ -852,7 +852,7 @@ class Main {
                     } else if (this.listOfEntityTypes.length === 1) {
                         this.openModule({
                             moduleId: `wiserItem_${this.wiserIdPromptValue}_${this.listOfEntityTypes[0].id}`,
-                            name: `Wiser item #${this.wiserIdPromptValue} (${this.listOfEntityTypes[0].displayName})`,
+                            name: `Coder item #${this.wiserIdPromptValue} (${this.listOfEntityTypes[0].displayName})`,
                             type: "dynamicItems",
                             iframe: true,
                             itemId: encryptedId,
@@ -867,7 +867,7 @@ class Main {
                     } else {
                         this.openModule({
                             moduleId: `wiserItem_${this.wiserIdPromptValue}_${this.wiserEntityTypePromptValue.id}`,
-                            name: `Wiser item #${this.wiserIdPromptValue} (${this.wiserEntityTypePromptValue.displayName})`,
+                            name: `Coder item #${this.wiserIdPromptValue} (${this.wiserEntityTypePromptValue.displayName})`,
                             type: "dynamicItems",
                             iframe: true,
                             itemId: encryptedId,
@@ -954,7 +954,7 @@ class Main {
                     event.preventDefault();
 
                     if (!this.branchActionSettings || !this.branchActionSettings.selectedAction || !this.branchActionSettings.selectedAction.id) {
-                        this.showGeneralMessagePrompt("Kies a.u.b. of u de branch in Wiser wilt openen of op uw website.");
+                        this.showGeneralMessagePrompt("Kies a.u.b. of u de branch in Coder wilt openen of op uw website.");
                         return false;
                     }
 
