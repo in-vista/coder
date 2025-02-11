@@ -16,10 +16,10 @@ public class PreMadeTopolTemplatesResult
     [JsonProperty(PropertyName = "per_page")]
     public int PerPage { get; set; }
     
-    [JsonProperty(PropertyName = "next_page")]
+    [JsonProperty(PropertyName = "next_page", NullValueHandling = NullValueHandling.Include)]
     public int? NextPage { get; set; }
     
-    [JsonProperty(PropertyName = "prev_page")]
+    [JsonProperty(PropertyName = "prev_page", NullValueHandling = NullValueHandling.Include)]
     public int? PreviousPage { get; set; }
     
     [JsonProperty(PropertyName = "last_page")]

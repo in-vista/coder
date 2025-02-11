@@ -15,7 +15,7 @@ public interface ITopolService
 
     public Task<string> UploadImageAsync(IFormFile image, string path, string identifier);
 
-    public Task<PreMadeTopolTemplatesResult> GetTemplatesAsync(string queryId, int currentPage, string search, string sortBy, string sortByDirection, ClaimsIdentity identity);
+    public Task<PreMadeTopolTemplatesResult> GetTemplatesAsync(string queryId, string countQueryId, int currentPage, string search, string sortBy, string sortByDirection, ClaimsIdentity identity);
     
     public Task<PreMadeTopolTemplate> GetTemplateAsync(int id);
 

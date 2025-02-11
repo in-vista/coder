@@ -75,12 +75,13 @@ public class TopolController : ControllerBase
     [HttpGet("templates")]
     public async Task<IActionResult> GetTemplates(
         [FromQuery] string queryId,
+        [FromQuery] string countQueryId,
         [FromQuery(Name = "sort_by")] string sortBy,
         [FromQuery(Name = "sort_by_direction")] string sortByDirection,
         [FromQuery] string search,
         [FromQuery(Name = "current_page")] int currentPage = 1
     ) {
-        PreMadeTopolTemplatesResult result = await topolService.GetTemplatesAsync(queryId, currentPage, search, sortBy, sortByDirection, (ClaimsIdentity) User.Identity);
+        PreMadeTopolTemplatesResult result = await topolService.GetTemplatesAsync(queryId, countQueryId, currentPage, search, sortBy, sortByDirection, (ClaimsIdentity) User.Identity);
         return new JsonResult(new
         {
             success = true,

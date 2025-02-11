@@ -17,6 +17,7 @@ using GeeksCoreLibrary.Core.Interfaces;
 using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Communication.Interfaces;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
+using GeeksCoreLibrary.Modules.GclReplacements.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 
@@ -31,18 +32,22 @@ public class TopolService : ITopolService, IScopedService
     private readonly ICommunicationsService communicationsService;
     
     private readonly IApiReplacementsService apiReplacementsService;
+    
+    private readonly IStringReplacementsService stringReplacementsService;
 
     public TopolService(
 	    IDatabaseConnection databaseConnection,
 	    IWiserTenantsService wiserTenantsService,
 	    ICommunicationsService communicationsService,
-	    IApiReplacementsService apiReplacementsService
+	    IApiReplacementsService apiReplacementsService,
+	    IStringReplacementsService stringReplacementsService
 	    )
     {
         this.databaseConnection = databaseConnection;
         this.wiserTenantsService = wiserTenantsService;
         this.communicationsService = communicationsService;
         this.apiReplacementsService = apiReplacementsService;
+        this.stringReplacementsService = stringReplacementsService;
     }
     
     public async Task<Image[]> GetFoldersAsync(string path, string identifier, string baseUrl, string subDomain)
@@ -337,25 +342,95 @@ SELECT item_id AS `item_id`, ordering AS `ordering` FROM wiser_itemfile WHERE id
 	    return $"/api/v3/items/{itemId}/files/file/{image.FileName}?ordering={ordering}";
     }
 
-    public async Task<PreMadeTopolTemplatesResult> GetTemplatesAsync(string queryId, int currentPage, string search, string sortBy, string sortByDirection, ClaimsIdentity identity)
+    public async Task<PreMadeTopolTemplatesResult> GetTemplatesAsync(string queryId, string countQueryId, int currentPage, string search, string sortBy, string sortByDirection, ClaimsIdentity identity)
     {
 	    await databaseConnection.EnsureOpenConnectionForReadingAsync();
-	    databaseConnection.ClearParameters();
 	    int unencryptedQueryId = await wiserTenantsService.DecryptValue<int>(queryId, identity);
+	    int unencryptedCountQueryId = await wiserTenantsService.DecryptValue<int>(countQueryId, identity);
 	    
 	    const int itemsPerPage = 25;
 
+	    Dictionary<string, object> replacementData = new Dictionary<string, object>
+	    {
+		    { "items_per_page", itemsPerPage.ToString() },
+		    { "page", currentPage.ToString() },
+		    { "offset", itemsPerPage * currentPage },
+		    { "search", search },
+		    { "sort_by", sortBy },
+		    { "sort_by_direction", sortByDirection }
+	    };
+
 	    List<PreMadeTopolTemplate> templates = new List<PreMadeTopolTemplate>();
 	    
-	    var templatesQueryQuery = $"SELECT query FROM {WiserTableNames.WiserQuery} WHERE id = ?queryId";
+	    string templatesQueryQuery = $"SELECT query FROM {WiserTableNames.WiserQuery} WHERE id = ?queryId";
+	    databaseConnection.ClearParameters();
 	    databaseConnection.AddParameter("queryId", unencryptedQueryId);
 	    DataTable dataTable = await databaseConnection.GetAsync(templatesQueryQuery);
+	    
 	    string templatesQuery = dataTable.Rows[0].Field<string>("query");
 	    templatesQuery = apiReplacementsService.DoIdentityReplacements(templatesQuery, identity, true);
-	    // TODO: Execute the templatesQuery, retrieve the results and parse it into PreMadeTopolTemplate objects.
+	    templatesQuery = stringReplacementsService.DoReplacements(templatesQuery, replacementData, forQuery: true);
+	    templatesQuery = stringReplacementsService.EvaluateTemplate(templatesQuery);
+
+	    DbDataReader templatesReader = await databaseConnection.GetReaderAsync(templatesQuery);
+	    while (await templatesReader.ReadAsync())
+	    {
+		    ulong id = (ulong) templatesReader.GetInt64(templatesReader.GetOrdinal("id"));
+		    string name = templatesReader.GetString(templatesReader.GetString("name"));
+		    string html = templatesReader.GetString(templatesReader.GetString("html"));
+		    string json = templatesReader.GetString(templatesReader.GetString("json"));
+		    string description = templatesReader.HasColumn("description")
+			    ? templatesReader.GetString(templatesReader.GetString("description"))
+			    : "Een Coder template.";
+		    DateTime createdAt = templatesReader.GetDateTime(templatesReader.GetString("created_at"));
+		    DateTime updatedAt = templatesReader.HasColumn("updated_at")
+			    ? templatesReader.GetDateTime(templatesReader.GetString("updated_at"))
+			    : createdAt;
+		    string image = templatesReader.HasColumn("image")
+			    ? templatesReader.GetString(templatesReader.GetString("image"))
+			    : null;
+
+		    PreMadeTopolTemplate template = new PreMadeTopolTemplate
+		    {
+			    Id = id,
+			    Name = name,
+			    Type = TemplateType.Free,
+			    Html = html,
+			    Json = json,
+			    CategoryId = 1,
+			    Description = description,
+			    Visible = true,
+			    CreatedAt = createdAt,
+			    UpdatedAt = updatedAt,
+			    ImagePath = image,
+			    ImageThumbPath = image,
+			    Category = null,
+			    Keywords = new string[0]
+		    };
+		    
+		    templates.Add(template);
+	    }
+
+	    await templatesReader.CloseAsync();
 	    
-	    int totalRecords = 0; // TODO: Run separate query to count the total results.
-	    int? nextPage = currentPage + 1; // TODO: Check if there are more records.
+	    string templatesCountQueryQuery = $"SELECT query FROM {WiserTableNames.WiserQuery} WHERE id = ?queryId";
+	    databaseConnection.ClearParameters();
+	    databaseConnection.AddParameter("queryId", unencryptedCountQueryId);
+	    DataTable templatesCountDataTable = await databaseConnection.GetAsync(templatesCountQueryQuery);
+	    
+	    string templatesCountQuery = templatesCountDataTable.Rows[0].Field<string>("query");
+	    templatesCountQuery = apiReplacementsService.DoIdentityReplacements(templatesCountQuery, identity, true);
+	    templatesCountQuery = stringReplacementsService.DoReplacements(templatesCountQuery, replacementData, forQuery: true);
+	    templatesCountQuery = stringReplacementsService.EvaluateTemplate(templatesCountQuery);
+
+	    DbDataReader templatesCountReader = await databaseConnection.GetReaderAsync(templatesCountQuery);
+	    int templatesCount = await templatesCountReader.ReadAsync() ? templatesCountReader.GetInt32(0) : 0;
+	    await templatesReader.CloseAsync();
+	    
+	    
+	    int totalRecords = templatesCount;
+	    bool hasNextPage = totalRecords > currentPage* itemsPerPage;
+	    int? nextPage = hasNextPage ? currentPage + 1 : null;
 	    int? previousPage = currentPage > 1 ? currentPage - 1 : null;
 	    int lastPage = (int) Math.Ceiling((double) totalRecords / itemsPerPage);
 

@@ -69,13 +69,16 @@
     
     // Set up the pre-made templates endpoints. If a custom templates query is set, we want to use our own endpoints.
     // Otherwise, use the default endpoints.
-    const preMadeTemplateEndpoint = options.loadCustomTemplatesQueryId
-        ? `{baseUrl}/api/v3/topol/templates?queryId=${encodeURIComponent(options.loadCustomTemplatesQueryId)}`
+    const encodedTemplatesQueryId = encodeURIComponent(options.loadCustomTemplatesQueryId);
+    const encodedTemplatesCountQueryId = encodeURIComponent(options.loadCustomTemplatesCountQueryId);
+    const hasCustomTemplates = options.loadCustomTemplatesQueryId && options.loadCustomTemplatesCountQueryId;
+    const preMadeTemplateEndpoint = hasCustomTemplates
+        ? `{baseUrl}/api/v3/topol/templates?queryId=${encodedTemplatesQueryId}&countQueryId=${encodedTemplatesCountQueryId}`
         : 'https://app.topol.io/api/premade-templates?type=FREE'
-    const preMadeTemplateCategoriesEndpoint = options.loadCustomTemplatesQueryId
+    const preMadeTemplateCategoriesEndpoint = hasCustomTemplates
         ? '{baseUrl}/api/v3/topol/template-categories'
         : 'https://app.topol.io/api/premade-template-categories';
-    const preMadeTemplateKeywordsEndpoint = options.loadCustomTemplatesQueryId
+    const preMadeTemplateKeywordsEndpoint = hasCustomTemplates
         ? '{baseUrl}/api/v3/topol/template-keywords'
         : 'https://app.topol.io/api/premade-template-keywords';
     
@@ -99,7 +102,7 @@
             IMAGE_UPLOAD: '{baseUrl}/api/v3/topol/image-upload',
             PREMADE_TEMPLATES: preMadeTemplateEndpoint,
             PREMADE_TEMPLATE_CATEGORIES: preMadeTemplateCategoriesEndpoint,
-            PREMADE_TEMPLATE_KEYWORDS: preMadeTemplateKeywordsEndpoint
+            PREMADE_TEMPLATES_KEYWORDS: preMadeTemplateKeywordsEndpoint
         },
         // Callbacks.
         callbacks: {
@@ -131,6 +134,7 @@
         language: 'nl',
         removeTopBar: true,
         showUnsavedDialogBeforeExit: false,
+        premadeTemplates: true,
         // Dynamic settings.
         mergeTags: mergeTags
     };
