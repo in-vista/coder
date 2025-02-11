@@ -790,7 +790,7 @@ namespace Api.Modules.Imports.Services
                 case "empty":
                     importResult.Failed += 1U;
                     importResult.Errors.Add($"Field '{propertyName}' is a {property.InputType}. These cannot be imported.");
-                    importResult.UserFriendlyErrors.Add($"Het veld '{importColumnName}' is een veld van het type '{property.InputType}' in Wiser. Dit soort velden kunnen niet geïmporteerd worden.");
+                    importResult.UserFriendlyErrors.Add($"Het veld '{importColumnName}' is een veld van het type '{property.InputType}' in Coder. Dit soort velden kunnen niet geïmporteerd worden.");
                     return false;
                 case "checkbox":
                     var isValidNumber = Int32.TryParse(value, out var parsedNumber);
@@ -800,7 +800,7 @@ namespace Api.Modules.Imports.Services
                         case false when (!isValidNumber || parsedNumber < 0 || parsedNumber > 1):
                             importResult.Failed += 1U;
                             importResult.Errors.Add($"Field '{propertyName}' is a {property.InputType}, but contains an invalid value ({value}).");
-                            importResult.UserFriendlyErrors.Add($"Het veld '{importColumnName}' is een checkboxveld in Wiser en bevat een ongeldige waarde ({value}). Een checkbox moet een van de volgende waarden bevatten: '0', '1', 'true' of 'false'.");
+                            importResult.UserFriendlyErrors.Add($"Het veld '{importColumnName}' is een checkboxveld in Coder en bevat een ongeldige waarde ({value}). Een checkbox moet een van de volgende waarden bevatten: '0', '1', 'true' of 'false'.");
                             return true;
                         case true:
                             value = parsedBoolean ? "1" : "0";
@@ -818,7 +818,7 @@ namespace Api.Modules.Imports.Services
                     {
                         importResult.Failed += 1U;
                         importResult.Errors.Add($"Field '{propertyName}' is a {property.InputType}, but contains an invalid value ({value}).");
-                        importResult.UserFriendlyErrors.Add($"Het veld '{importColumnName}' is een nummerveld in Wiser en bevat een ongeldige waarde ({value}).");
+                        importResult.UserFriendlyErrors.Add($"Het veld '{importColumnName}' is een nummerveld in Coder en bevat een ongeldige waarde ({value}).");
                         return false;
                     }
 
@@ -836,7 +836,7 @@ namespace Api.Modules.Imports.Services
                     {
                         importResult.Failed += 1U;
                         importResult.Errors.Add($"Field '{propertyName}' is a {property.InputType}, but contains an invalid value ({value}).");
-                        importResult.UserFriendlyErrors.Add($"Het veld '{importColumnName}' is een datumveld in Wiser en bevat een ongeldige waarde ({value}). Datumvelden moeten in een van de volgende formaten geïmporteerd worden: dag-maand-jaar uren:minuten:seconden, dag-maand-jaar uren:minuten, dag-maand-jaar, jaar-maand-dag uren:minuten:seconden, jaar-maand-dag uren:minuten, jaar-maand-dag");
+                        importResult.UserFriendlyErrors.Add($"Het veld '{importColumnName}' is een datumveld in Coder en bevat een ongeldige waarde ({value}). Datumvelden moeten in een van de volgende formaten geïmporteerd worden: dag-maand-jaar uren:minuten:seconden, dag-maand-jaar uren:minuten, dag-maand-jaar, jaar-maand-dag uren:minuten:seconden, jaar-maand-dag uren:minuten, jaar-maand-dag");
                         return false;
                     }
 

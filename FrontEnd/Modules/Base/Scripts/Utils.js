@@ -1194,7 +1194,7 @@ export class Wiser {
             }
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan tijdens het uitvoeren (of opzoeken) van de actie 'api_before_delete'. Hierdoor is het betreffende item ook niet uit Wiser verwijderd. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het uitvoeren (of opzoeken) van de actie 'api_before_delete'. Hierdoor is het betreffende item ook niet uit Coder verwijderd. Probeer het a.u.b. nogmaals of neem contact op met ons.");
             return new Promise((resolve, reject) => {
                 reject(exception);
             });
@@ -1327,7 +1327,7 @@ export class Wiser {
                 let html = "";
 
                 if (!fileManagerIframe || !fileManagerIframe.contentWindow || !fileManagerIframe.contentWindow.document) {
-                    kendo.alert("Het iframe voor bestandsbeheer kon niet gevonden worden of is leeg. Ververs a.u.b. de tab waar Wiser in draait en probeer het opnieuw, of neem contact op met ons.");
+                    kendo.alert("Het iframe voor bestandsbeheer kon niet gevonden worden of is leeg. Ververs a.u.b. de tab waar Coder in draait en probeer het opnieuw, of neem contact op met ons.");
                     return;
                 }
 

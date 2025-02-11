@@ -28,7 +28,7 @@
         /// <summary>
         /// The name for the admin accounts role.
         /// </summary>
-        public const string AdminAccountRole = "WiserAdminAccount";
+        public const string AdminAccountRole = "CoderAdminAccount";
 
         /// <summary>
         /// The key for saving the admin account name.

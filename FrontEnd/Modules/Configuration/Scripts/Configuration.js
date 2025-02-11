@@ -142,7 +142,7 @@ const moduleSettings = {
                     event.preventDefault();
                     
                     if (!this.isLoadedInIframe) {
-                        kendo.alert("Kan module niet openen omdat Wiser parent frame niet gevonden is. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
+                        kendo.alert("Kan module niet openen omdat Coder parent frame niet gevonden is. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
                         return;
                     }
                     
@@ -170,7 +170,7 @@ const moduleSettings = {
                     event.preventDefault();
 
                     if (!this.isLoadedInIframe) {
-                        kendo.alert("Kan module niet openen omdat Wiser parent frame niet gevonden is. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
+                        kendo.alert("Kan module niet openen omdat Coder parent frame niet gevonden is. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
                         return;
                     }
 
@@ -190,7 +190,7 @@ const moduleSettings = {
                 event.preventDefault();
                 
                 if (!this.isLoadedInIframe) {
-                    kendo.alert("Kan module niet openen omdat Wiser parent frame niet gevonden is. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
+                    kendo.alert("Kan module niet openen omdat Coder parent frame niet gevonden is. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
                     return;
                 }
 
