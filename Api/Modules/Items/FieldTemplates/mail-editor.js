@@ -138,7 +138,8 @@
         // API overwrites.
         api: {
             FOLDERS: '{baseUrl}/api/v3/topol/folders',
-            IMAGE_UPLOAD: '{baseUrl}/api/v3/topol/image-upload'
+            IMAGE_UPLOAD: '{baseUrl}/api/v3/topol/image-upload',
+            PREMADE_TEMPLATES: 'https://app.topol.io/api/premade-templates?type=FREE'
         },
         // Callbacks.
         callbacks: {
@@ -170,6 +171,7 @@
         language: 'nl',
         removeTopBar: true,
         showUnsavedDialogBeforeExit: false,
+        premadeTemplates: true,
         // Dynamic settings.
         mergeTags: mergeTags
     };
