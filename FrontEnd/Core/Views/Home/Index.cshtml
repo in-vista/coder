@@ -6,7 +6,7 @@
         display: none;
     }
 </style>
-<!-- Current Wiser version: @Model.WiserVersion?.ToString() -->
+<!-- Current Coder version: @Model.WiserVersion?.ToString() -->
 <div id="app" v-cloak>
     <div :class="{ 'loading': mainLoader }">
         <header v-if="user.loggedIn && !requirePasswordChange">
@@ -61,15 +61,6 @@
                     <li><a href="#" @@click="openConfigurationModule"><ins class="icon-config"></ins><span>Coder configuratie</span></a></li>
                     <li><a href="#" @@click="logout"><ins class="icon-line-log-out"></ins><span>Uitloggen</span></a></li>
                 </ul>
-            </li>
-            <li class="logo">
-                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 0 512 266"
-                     style="enable-background:new 0 0 512 266;" xml:space="preserve">
-                <circle class="logo1" cx="183.1" cy="97.1" r="24.3" />
-                <circle class="logo1" cx="328.9" cy="97.1" r="24.3" />
-                <path class="logo1" d="M256,179.6c-9.6,10.8-21.5,19.5-35,25.2l35,60.8l35-60.8C277.5,199.1,265.6,190.4,256,179.6z" />
-                <path class="logo2" d="M352.1,54.5c15.1,8.3,25.3,24.3,25.3,42.7c0,26.8-21.8,48.6-48.6,48.6c-26.8,0-48.6-21.7-48.6-48.4 c0-26.8,21.8-48.3,48.6-48.3L511,1H328.9c-29,0-55.1,12.6-72.9,32.6C238.2,13.6,212.2,1,183.1,1H1l182.1,48.1 c26.8,0,48.6,21.5,48.6,48.3c0,26.8-21.8,48.4-48.6,48.4c-26.8,0-48.6-21.9-48.6-48.6c0-18.4,10.2-34.4,25.3-42.7l-55.1-14.7 C93,55.9,86,75.7,86,97.1c0,53.7,43.5,97.1,97.1,97.1c29,0,55.1-12.6,72.9-32.6c17.8,20,43.8,32.6,72.9,32.6 c53.7,0,97.1-43.5,97.1-97.1c0-21.4-7-41.3-18.7-57.3L352.1,54.5z" />
-                </svg>
             </li>
         </ul>
         </header>
