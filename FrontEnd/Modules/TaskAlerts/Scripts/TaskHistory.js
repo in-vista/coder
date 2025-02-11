@@ -76,8 +76,7 @@ const moduleSettings = {
                 this.settings.wiserApiRoot += "/";
             }
             
-            this.backendUsers = await Wiser.api({ url: `${this.settings.wiserApiRoot}users` });
-            console.log(this.backendUsers);
+            this.backendUsers = await Wiser.api({ url: `${this.settings.wiserApiRoot}users/agenda` });
 
             this.initializeMainGrid();
         }
