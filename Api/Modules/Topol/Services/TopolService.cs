@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Api.Core.Interfaces;
 using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Topol.Enums;
 using Api.Modules.Topol.Interfaces;
 using Api.Modules.Topol.Models;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Exceptions;
+using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Core.Interfaces;
 using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Communication.Interfaces;
@@ -25,44 +28,24 @@ public class TopolService : ITopolService, IScopedService
 
     private readonly IWiserTenantsService wiserTenantsService;
 
-    private readonly IWiserItemsService wiserItemsService;
-
     private readonly ICommunicationsService communicationsService;
+    
+    private readonly IApiReplacementsService apiReplacementsService;
 
     public TopolService(
 	    IDatabaseConnection databaseConnection,
 	    IWiserTenantsService wiserTenantsService,
-	    IWiserItemsService wiserItemsService,
-	    ICommunicationsService communicationsService
+	    ICommunicationsService communicationsService,
+	    IApiReplacementsService apiReplacementsService
 	    )
     {
         this.databaseConnection = databaseConnection;
         this.wiserTenantsService = wiserTenantsService;
-        this.wiserItemsService = wiserItemsService;
         this.communicationsService = communicationsService;
-    }
-
-    public async Task<TopolTemplate> GetTemplate(string encryptedId, ClaimsIdentity identity)
-    {
-	    ulong templateId = await wiserTenantsService.DecryptValue<ulong>(encryptedId, identity);
-
-	    WiserItemModel templateItem = await wiserItemsService.GetItemDetailsAsync(templateId, skipPermissionsCheck: true);
-	    
-	    string jsonString = templateItem.GetDetailValue("mail_template");
-	    JObject json = !string.IsNullOrEmpty(jsonString) ? JObject.Parse(jsonString) : null;
-	    
-	    string html = templateItem.GetDetailValue("mail_template_html");
-
-	    return new TopolTemplate
-	    {
-		    Id = templateId,
-		    Title = templateItem.Title,
-		    Json = json,
-		    Html = html
-	    };
+        this.apiReplacementsService = apiReplacementsService;
     }
     
-    public async Task<Image[]> GetFolders(string path, string identifier, string baseUrl, string subDomain)
+    public async Task<Image[]> GetFoldersAsync(string path, string identifier, string baseUrl, string subDomain)
     {
 	    // If we are located at the root, check if a root folder already exists. If not, then create one.
 	    // Root folders are not a thing in Topol, but we need it to properly store files located on this level in the hierarchy.
@@ -184,7 +167,7 @@ WHERE
         return images.ToArray();
     }
 
-    public async Task<string[]> InsertFolder(string name, string path, string identifier)
+    public async Task<string[]> InsertFolderAsync(string name, string path, string identifier)
     {
 	    string[] segmentedPath = path.Split("/", StringSplitOptions.RemoveEmptyEntries);
 	    string relativePath = segmentedPath.Length > 1 ? $"/{string.Join("/", segmentedPath[1..])}/" : "/";
@@ -233,7 +216,7 @@ SET @directoryId = LAST_INSERT_ID();
 	    return new string[] { Path.Combine(relativePath, name) };
     }
 
-    public async Task<int> DeleteImagesOrFolders(ImageDeleteModel[] models, string identifier)
+    public async Task<int> DeleteImagesOrFoldersAsync(ImageDeleteModel[] models, string identifier)
     {
 	    List<Task> deleteTasks = new List<Task>();
 
@@ -296,7 +279,7 @@ DROP TEMPORARY TABLE temp_ids;";
 	    return models.Length - failedDeletions;
     }
 
-    public async Task<string> UploadImage(IFormFile image, string path, string identifier)
+    public async Task<string> UploadImageAsync(IFormFile image, string path, string identifier)
     {
 	    string fileQuery = @"
 SET @ordering = (
@@ -354,7 +337,67 @@ SELECT item_id AS `item_id`, ordering AS `ordering` FROM wiser_itemfile WHERE id
 	    return $"/api/v3/items/{itemId}/files/file/{image.FileName}?ordering={ordering}";
     }
 
-    public async Task SendTestMail(string email, string html)
+    public async Task<PreMadeTopolTemplatesResult> GetTemplatesAsync(string queryId, int currentPage, string search, string sortBy, string sortByDirection, ClaimsIdentity identity)
+    {
+	    await databaseConnection.EnsureOpenConnectionForReadingAsync();
+	    databaseConnection.ClearParameters();
+	    int unencryptedQueryId = await wiserTenantsService.DecryptValue<int>(queryId, identity);
+	    
+	    const int itemsPerPage = 25;
+
+	    List<PreMadeTopolTemplate> templates = new List<PreMadeTopolTemplate>();
+	    
+	    var templatesQueryQuery = $"SELECT query FROM {WiserTableNames.WiserQuery} WHERE id = ?queryId";
+	    databaseConnection.AddParameter("queryId", unencryptedQueryId);
+	    DataTable dataTable = await databaseConnection.GetAsync(templatesQueryQuery);
+	    string templatesQuery = dataTable.Rows[0].Field<string>("query");
+	    templatesQuery = apiReplacementsService.DoIdentityReplacements(templatesQuery, identity, true);
+	    // TODO: Execute the templatesQuery, retrieve the results and parse it into PreMadeTopolTemplate objects.
+	    
+	    int totalRecords = 0; // TODO: Run separate query to count the total results.
+	    int? nextPage = currentPage + 1; // TODO: Check if there are more records.
+	    int? previousPage = currentPage > 1 ? currentPage - 1 : null;
+	    int lastPage = (int) Math.Ceiling((double) totalRecords / itemsPerPage);
+
+	    return new PreMadeTopolTemplatesResult
+	    {
+		    Templates = templates.ToArray(),
+		    TotalRecords = totalRecords,
+		    CurrentPage = currentPage,
+		    PerPage = itemsPerPage,
+		    NextPage = nextPage,
+		    PreviousPage = previousPage,
+		    LastPage = lastPage
+	    };
+    }
+
+    public async Task<PreMadeTopolTemplate> GetTemplateAsync(int id)
+    {
+	    return null;
+    }
+
+    public async Task<TopolCategory[]> GetTemplateCategoriesAsync()
+    {
+	    return new TopolCategory[]
+	    {
+		    new TopolCategory
+		    {
+			    Id = 1,
+			    Name = "Coder",
+			    Value = "coder"
+		    },
+		    new TopolCategory
+		    {
+			    Id = 2,
+			    Name = "Topol",
+			    Value = "topol"
+		    }
+	    };
+    }
+
+    public async Task<TopolKeyword[]> GetTemplateKeywordsAsync() => new TopolKeyword[0];
+
+    public async Task SendTestMailAsync(string email, string html)
     {
 	    string subject = "Coder - Test mail";
 	    await communicationsService.SendEmailAsync(email, subject, html);

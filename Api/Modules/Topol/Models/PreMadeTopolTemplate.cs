@@ -1,0 +1,39 @@
+using System;
+using Api.Modules.Topol.Utility;
+using Newtonsoft.Json;
+
+namespace Api.Modules.Topol.Models;
+
+public class PreMadeTopolTemplate
+{
+    public int Id { get; set; }
+    
+    public string Name { get; set; }
+    
+    public TemplateType Type { get; set; }
+    
+    public string Html { get; set; }
+    
+    public string Json { get; set; }
+    
+    public int CategoryId { get; set; }
+    
+    public int Order { get; set; }
+    
+    public string Description { get; set; }
+    
+    [JsonConverter(typeof(BoolToIntConverter))]
+    public bool Visible { get; set; }
+    
+    public DateTime CreatedAt { get; set; }
+    
+    public DateTime UpdatedAt { get; set; }
+    
+    public String ImagePath { get; set; }
+    
+    public string ImageThumbPath { get; set; }
+    
+    public string Category { get; set; }
+    
+    public string[] Keywords { get; set; }
+}

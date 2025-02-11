@@ -19,19 +19,12 @@ public class TopolController : ControllerBase
         this.topolService = topolService;
     }
 
-    [HttpGet("{encryptedId}")]
-    public async Task<IActionResult> GetTemplate(string encryptedId)
-    {
-        TopolTemplate template = await topolService.GetTemplate(encryptedId, User.Identity as ClaimsIdentity);
-        return new JsonResult(template);
-    }
-
     [HttpGet("folders")]
     public async Task<IActionResult> GetFolders([FromQuery] string path, [FromQuery(Name = "userId")] string identifier)
     {
         string baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}";
         string subDomain = IdentityHelpers.GetSubDomain(User.Identity as ClaimsIdentity);
-        Image[] images = await topolService.GetFolders(path, identifier, baseUrl, subDomain);
+        Image[] images = await topolService.GetFoldersAsync(path, identifier, baseUrl, subDomain);
         return new JsonResult(images);
     }
 
@@ -39,7 +32,7 @@ public class TopolController : ControllerBase
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> InsertFolder([FromBody] InsertFolderRequest request, [FromQuery(Name = "userId")] string identifier)
     {
-        string[] urls = await topolService.InsertFolder(request.Name, request.Path, identifier);
+        string[] urls = await topolService.InsertFolderAsync(request.Name, request.Path, identifier);
         
         InsertFolderUrl[] insertFolderUrls = urls.Select(url => new InsertFolderUrl { Url = url }).ToArray();
         InsertFolderResponse response = new InsertFolderResponse { Urls = insertFolderUrls };
@@ -51,7 +44,7 @@ public class TopolController : ControllerBase
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> DeleteImagesOrFolders([FromBody] ImageDeleteModel[] models, [FromQuery(Name = "userId")] string identifier)
     {
-        await topolService.DeleteImagesOrFolders(models, identifier);
+        await topolService.DeleteImagesOrFoldersAsync(models, identifier);
         return Ok();
     }
 
@@ -59,7 +52,7 @@ public class TopolController : ControllerBase
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> UploadImage([FromForm] UploadImageRequest request)
     {
-        string fileUrl = await topolService.UploadImage(request.Image, request.Path, request.Uuid);
+        string fileUrl = await topolService.UploadImageAsync(request.Image, request.Path, request.Uuid);
         
         if (string.IsNullOrEmpty(fileUrl))
             return new JsonResult(new
@@ -79,11 +72,60 @@ public class TopolController : ControllerBase
         });
     }
 
+    [HttpGet("templates")]
+    public async Task<IActionResult> GetTemplates(
+        [FromQuery] string queryId,
+        [FromQuery(Name = "sort_by")] string sortBy,
+        [FromQuery(Name = "sort_by_direction")] string sortByDirection,
+        [FromQuery] string search,
+        [FromQuery(Name = "current_page")] int currentPage = 1
+    ) {
+        PreMadeTopolTemplatesResult result = await topolService.GetTemplatesAsync(queryId, currentPage, search, sortBy, sortByDirection, (ClaimsIdentity) User.Identity);
+        return new JsonResult(new
+        {
+            success = true,
+            data = result
+        });
+    }
+
+    [HttpGet("templates/{id}")]
+    public async Task<IActionResult> GetTemplate(int id)
+    {
+        PreMadeTopolTemplate template = await topolService.GetTemplateAsync(id);
+        return new JsonResult(new
+        {
+            success = true,
+            data = template
+        });
+    }
+
+    [HttpGet("template-categories")]
+    public async Task<IActionResult> GetTemplateCategories()
+    {
+        TopolCategory[] categories = await topolService.GetTemplateCategoriesAsync();
+        return new JsonResult(new
+        {
+            success = true,
+            data = categories
+        });
+    }
+
+    [HttpGet("template-keywords")]
+    public async Task<IActionResult> GetTemplateKeywords()
+    {
+        TopolKeyword[] keywords = await topolService.GetTemplateKeywordsAsync();
+        return new JsonResult(new
+        {
+            success = true,
+            data = keywords
+        });
+    }
+
     [HttpPost("send-test-mail")]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> SendTestMail(SendTestMailRequest request)
     {
-        await topolService.SendTestMail(request.Email, request.Html);
+        await topolService.SendTestMailAsync(request.Email, request.Html);
         return Ok();
     }
 }

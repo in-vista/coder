@@ -1,4 +1,3 @@
-using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Api.Modules.Topol.Models;
@@ -8,15 +7,21 @@ namespace Api.Modules.Topol.Interfaces;
 
 public interface ITopolService
 {
-    public Task<TopolTemplate> GetTemplate(string encryptedId, ClaimsIdentity identity);
+    public Task<Image[]> GetFoldersAsync(string path, string identifier, string baseUrl, string subDomain);
+
+    public Task<string[]> InsertFolderAsync(string name, string path, string identifier);
+
+    public Task<int> DeleteImagesOrFoldersAsync(ImageDeleteModel[] models, string identifier);
+
+    public Task<string> UploadImageAsync(IFormFile image, string path, string identifier);
+
+    public Task<PreMadeTopolTemplatesResult> GetTemplatesAsync(string queryId, int currentPage, string search, string sortBy, string sortByDirection, ClaimsIdentity identity);
     
-    public Task<Image[]> GetFolders(string path, string identifier, string baseUrl, string subDomain);
+    public Task<PreMadeTopolTemplate> GetTemplateAsync(int id);
 
-    public Task<string[]> InsertFolder(string name, string path, string identifier);
+    public Task<TopolCategory[]> GetTemplateCategoriesAsync();
+    
+    public Task<TopolKeyword[]> GetTemplateKeywordsAsync();
 
-    public Task<int> DeleteImagesOrFolders(ImageDeleteModel[] models, string identifier);
-
-    public Task<string> UploadImage(IFormFile image, string path, string identifier);
-
-    public Task SendTestMail(string email, string html);
+    public Task SendTestMailAsync(string email, string html);
 }
