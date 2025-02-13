@@ -13,13 +13,11 @@ using Api.Modules.Topol.Models;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Exceptions;
 using GeeksCoreLibrary.Core.Extensions;
-using GeeksCoreLibrary.Core.Interfaces;
 using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Communication.Interfaces;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using GeeksCoreLibrary.Modules.GclReplacements.Interfaces;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json.Linq;
 
 namespace Api.Modules.Topol.Services;
 
@@ -35,12 +33,15 @@ public class TopolService : ITopolService, IScopedService
     
     private readonly IStringReplacementsService stringReplacementsService;
 
+    private readonly IHttpContextAccessor httpContextAccessor;
+
     public TopolService(
 	    IDatabaseConnection databaseConnection,
 	    IWiserTenantsService wiserTenantsService,
 	    ICommunicationsService communicationsService,
 	    IApiReplacementsService apiReplacementsService,
-	    IStringReplacementsService stringReplacementsService
+	    IStringReplacementsService stringReplacementsService,
+	    IHttpContextAccessor httpContextAccessor
 	    )
     {
         this.databaseConnection = databaseConnection;
@@ -48,6 +49,7 @@ public class TopolService : ITopolService, IScopedService
         this.communicationsService = communicationsService;
         this.apiReplacementsService = apiReplacementsService;
         this.stringReplacementsService = stringReplacementsService;
+        this.httpContextAccessor = httpContextAccessor;
     }
     
     public async Task<Image[]> GetFoldersAsync(string path, string identifier, string baseUrl, string subDomain)
@@ -349,12 +351,13 @@ SELECT item_id AS `item_id`, ordering AS `ordering` FROM wiser_itemfile WHERE id
 	    int unencryptedCountQueryId = await wiserTenantsService.DecryptValue<int>(countQueryId, identity);
 	    
 	    const int itemsPerPage = 25;
+	    int itemsOffset = itemsPerPage * (currentPage - 1);
 
 	    Dictionary<string, object> replacementData = new Dictionary<string, object>
 	    {
 		    { "items_per_page", itemsPerPage.ToString() },
 		    { "page", currentPage.ToString() },
-		    { "offset", itemsPerPage * currentPage },
+		    { "offset", itemsOffset },
 		    { "search", search },
 		    { "sort_by", sortBy },
 		    { "sort_by_direction", sortByDirection }
@@ -376,18 +379,18 @@ SELECT item_id AS `item_id`, ordering AS `ordering` FROM wiser_itemfile WHERE id
 	    while (await templatesReader.ReadAsync())
 	    {
 		    ulong id = (ulong) templatesReader.GetInt64(templatesReader.GetOrdinal("id"));
-		    string name = templatesReader.GetString(templatesReader.GetString("name"));
-		    string html = templatesReader.GetString(templatesReader.GetString("html"));
-		    string json = templatesReader.GetString(templatesReader.GetString("json"));
+		    string name = templatesReader.GetString(templatesReader.GetOrdinal("name"));
+		    string html = templatesReader.GetString(templatesReader.GetOrdinal("html"));
+		    string json = templatesReader.GetString(templatesReader.GetOrdinal("json"));
 		    string description = templatesReader.HasColumn("description")
-			    ? templatesReader.GetString(templatesReader.GetString("description"))
+			    ? templatesReader.GetString(templatesReader.GetOrdinal("description"))
 			    : "Een Coder template.";
-		    DateTime createdAt = templatesReader.GetDateTime(templatesReader.GetString("created_at"));
+		    DateTime createdAt = templatesReader.GetDateTime(templatesReader.GetOrdinal("created_at"));
 		    DateTime updatedAt = templatesReader.HasColumn("updated_at")
-			    ? templatesReader.GetDateTime(templatesReader.GetString("updated_at"))
+			    ? templatesReader.GetDateTime(templatesReader.GetOrdinal("updated_at"))
 			    : createdAt;
 		    string image = templatesReader.HasColumn("image")
-			    ? templatesReader.GetString(templatesReader.GetString("image"))
+			    ? templatesReader.GetString(templatesReader.GetOrdinal("image"))
 			    : null;
 
 		    PreMadeTopolTemplate template = new PreMadeTopolTemplate
@@ -404,6 +407,7 @@ SELECT item_id AS `item_id`, ordering AS `ordering` FROM wiser_itemfile WHERE id
 			    UpdatedAt = updatedAt,
 			    ImagePath = image,
 			    ImageThumbPath = image,
+			    ImgThumbUrl = image,
 			    Category = null,
 			    Keywords = new string[0]
 		    };

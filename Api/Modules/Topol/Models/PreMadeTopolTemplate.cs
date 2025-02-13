@@ -1,9 +1,11 @@
 using System;
 using Api.Modules.Topol.Utility;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Api.Modules.Topol.Models;
 
+[JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 public class PreMadeTopolTemplate
 {
     public ulong Id { get; set; }
@@ -32,6 +34,8 @@ public class PreMadeTopolTemplate
     public String ImagePath { get; set; }
     
     public string ImageThumbPath { get; set; }
+    
+    public string ImgThumbUrl { get; set; }
     
     public string Category { get; set; }
     
