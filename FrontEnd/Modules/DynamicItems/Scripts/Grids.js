@@ -545,14 +545,17 @@ export class Grids {
                     const flattenedData = flattenData(grid.dataSource.view());
 
                     const groupHeaderColumns = grid.dataSource.group().length;
-                        
+                    
+                    let dataIndexOffset = 0;
                     for(let rowIndex = 0; rowIndex < sheet.rows.length; rowIndex++) {
                         const row = sheet.rows[rowIndex];
 
-                        if (row.type !== 'data')
+                        if (row.type !== 'data') {
+                            dataIndexOffset++;
                             continue;
+                        }
 
-                        const dataItem = flattenedData[rowIndex - 1];
+                        const dataItem = flattenedData[rowIndex - dataIndexOffset];
                         if (!dataItem || dataItem.hasOwnProperty("aggregates"))
                             continue;
 
