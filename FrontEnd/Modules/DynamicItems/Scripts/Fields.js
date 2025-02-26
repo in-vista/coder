@@ -2021,6 +2021,28 @@ export class Fields {
                         break;
                     }
 
+                    // Creates a new item in a kendoWindow.
+                    case "createNewItem": {
+                        let parentId = action.parentId || 0;
+                        let entityType = action.entityType || null;
+                        let linkTypeNumber = action.linkTypeNumber || 1;
+                        let moduleId = action.moduleId || 0;
+                        let refreshAfterSave = action.refreshAfterSave || false;
+                        
+                        // Use current item as parent id if no parent id is supplied in options
+                        if (parentId === 0){
+                            parentId = mainItemDetails.encryptedId || 0;
+                        }
+                        
+                        if (entityType !== null) {
+                            let kendoWindow = null;
+                            if (refreshAfterSave) kendoWindow = element.closest(".popup-container");
+                            await window.dynamicItems.dialogs.openCreateItemDialog(parentId, null, entityType, false, true, linkTypeNumber, moduleId, kendoWindow);    
+                        }
+
+                        break;
+                    }
+
                     // Opens an item in a kendoWindow.
                     case "openWindow": {
                         let windowItemId = action.itemId || "{itemId}";
