@@ -2410,6 +2410,9 @@ export class Fields {
                                         const key = `selected_${selectedItemKey}`;
                                         extraData[key] = selectedItemData[selectedItemKey];
                                     }
+                                    
+                                    // Combine the user parameters with the selected data.
+                                    extraData = {...extraData, ...userParametersWithValues};
 
                                     // Make an API call for the currently selected item in the iteration.
                                     await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, extraData);
