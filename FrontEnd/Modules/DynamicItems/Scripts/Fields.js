@@ -930,7 +930,7 @@ export class Fields {
             }
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan tijdens het uitvoeren van deze actie. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het uitvoeren van deze actie. Probeer het a.u.b. nogmaals.");
             event.sender.element.removeClass("loading");
         }
     }
@@ -969,7 +969,7 @@ export class Fields {
             // Need to wait until the iframe is loaded, before we can add event listeners.
             iframeWindow.document.addEventListener("dataSelectorAfterSave", (saveEvent) => {
                 if (!saveEvent) {
-                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van de data selector. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van de data selector. Probeer het a.u.b. nogmaals.");
                     return;
                 }
 
@@ -1019,10 +1019,10 @@ export class Fields {
     onFileUploadError(event) {
         console.error("onFileUploadError", event);
 
-        let errorMessage = "Er is iets fout gegaan met het uploaden. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+        let errorMessage = "Er is iets fout gegaan met het uploaden. Probeer het a.u.b. nogmaals.";
         if (event && event.XMLHttpRequest) {
             if (event.XMLHttpRequest.responseText === "File is to large for database.") {
-                errorMessage = "Het bestand dat u probeert te uploaden is te groot. Kies a.u.b. een kleiner bestand of neem contact op met ons om het limiet te laten verhogen.";
+                errorMessage = "Het bestand dat u probeert te uploaden is te groot. Kies a.u.b. een kleiner bestand of neem contact op om het limiet te laten verhogen.";
             } else {
                 try {
                     // If the responseText is a JSON object, it is a .NET exception, which will always say "An error has occurred" on production, so we just want to show a generic error.
@@ -1098,41 +1098,55 @@ export class Fields {
             }
 
             data.extraData = data.extraData || {};
-            data.extraData.AltTexts = data.extraData.AltTexts || {};
             dialogElement.find(".alt-text").remove();
-            const altTextTemplateElement = dialogElement.find(".alt-text-template");
-            if (!this.base.allLanguages || !this.base.allLanguages.length) {
-                const clone = altTextTemplateElement.clone(true);
-                clone.removeClass("hidden").removeClass("alt-text-template").addClass("alt-text");
 
-                const cloneLabel = clone.find("label");
-                cloneLabel.attr("for", `${cloneLabel.attr("for")}General`);
+            // Check if alt text fields must be shown
+            let addAltTextFields = true;
+            let fileInput = imageContainer.parent().parent().parent().find("input[type='file']");
+            if (fileInput.length > 0) {
+                let kendoUpload = fileInput.data("kendoUpload");
 
-                const cloneInput = clone.find("input");
-                cloneInput.attr("name", "altText_general");
-                cloneInput.attr("id", `${cloneInput.attr("id")}General`);
-                cloneInput.data("language", "general");
-                cloneInput.val(data.extraData.AltTexts.general || "");
-                dialogElement.find(".formview").append(clone);
-            } else {
-                for (let language of this.base.allLanguages) {
-                    const languageCode = language.code.toLowerCase();
+                if (kendoUpload && kendoUpload.options && kendoUpload.options.hideAltText) {
+                    addAltTextFields = false;
+                }
+            }
+            
+            if (addAltTextFields) {
+                data.extraData.AltTexts = data.extraData.AltTexts || {};                
+                const altTextTemplateElement = dialogElement.find(".alt-text-template");                
+                if (!this.base.allLanguages || !this.base.allLanguages.length) {
                     const clone = altTextTemplateElement.clone(true);
                     clone.removeClass("hidden").removeClass("alt-text-template").addClass("alt-text");
 
                     const cloneLabel = clone.find("label");
-                    cloneLabel.attr("for", `${cloneLabel.attr("for")}${languageCode}`);
-                    cloneLabel.find(".language").text(language.name);
+                    cloneLabel.attr("for", `${cloneLabel.attr("for")}General`);
 
                     const cloneInput = clone.find("input");
-                    cloneInput.attr("name", `altText_${language.code}`);
-                    cloneInput.attr("id", `${cloneInput.attr("id")}${languageCode}`);
-                    cloneInput.attr("data-language", languageCode);
-                    cloneInput.val(data.extraData.AltTexts[languageCode] || "");
+                    cloneInput.attr("name", "altText_general");
+                    cloneInput.attr("id", `${cloneInput.attr("id")}General`);                    
+                    cloneInput.attr("data-language", "general");
+                    cloneInput.val(data.extraData.AltTexts.general || "");
                     dialogElement.find(".formview").append(clone);
+                } else {
+                    for (let language of this.base.allLanguages) {
+                        const languageCode = language.code.toLowerCase();
+                        const clone = altTextTemplateElement.clone(true);
+                        clone.removeClass("hidden").removeClass("alt-text-template").addClass("alt-text");
+
+                        const cloneLabel = clone.find("label");
+                        cloneLabel.attr("for", `${cloneLabel.attr("for")}${languageCode}`);
+                        cloneLabel.find(".language").text(language.name);
+
+                        const cloneInput = clone.find("input");
+                        cloneInput.attr("name", `altText_${language.code}`);
+                        cloneInput.attr("id", `${cloneInput.attr("id")}${languageCode}`);
+                        cloneInput.attr("data-language", languageCode);
+                        cloneInput.val(data.extraData.AltTexts[languageCode] || "");
+                        dialogElement.find(".formview").append(clone);
+                    }
                 }
             }
-
+            
             if (changeImageDataDialog) {
                 changeImageDataDialog.destroy();
             }
@@ -1197,13 +1211,13 @@ export class Fields {
                                     this.base.notification.show({ message: `Afbeelding is succesvol aangepast` }, "success");
                                 }).catch((error) => {
                                     console.error(error);
-                                    kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                                    kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. nogmaals.");
                                 }).finally(() => {
                                     window.processing.removeProcess(process);
                                 });
                             } catch (exception) {
                                 console.error(exception);
-                                kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                                kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. nogmaals.");
                                 window.processing.removeProcess(process);
                             }
                         }
@@ -1214,7 +1228,7 @@ export class Fields {
             changeImageDataDialog.open();
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan met het verwijderen van de afbeelding. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan met het bewerken van de afbeelding. Probeer het a.u.b. nogmaals.");
         }
     }
 
@@ -1243,7 +1257,7 @@ export class Fields {
                 window.dynamicItems.notification.show({ message: "Verwijderen van afbeelding is gelukt" }, "success");
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het verwijderen van de afbeelding. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan met het verwijderen van de afbeelding. Probeer het a.u.b. nogmaals.");
             }
         } else {
             // This happens when the component automatically deletes files because of the setting "multiple=false".
@@ -1838,7 +1852,7 @@ export class Fields {
                         if (action.dataFromQuery) {
                             const executeQueryResult = await executeQuery();
                             if (!executeQueryResult.success) {
-                                kendo.alert(executeQueryResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals of neem contact op met ons.");
+                                kendo.alert(executeQueryResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals.");
                                 return false;
                             }
                         }
@@ -1912,7 +1926,7 @@ export class Fields {
                         if (action.dataFromQuery) {
                             const executeQueryResult = await executeQuery();
                             if (!executeQueryResult.success) {
-                                kendo.alert(executeQueryResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals of neem contact op met ons.");
+                                kendo.alert(executeQueryResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals.");
                                 return false;
                             }
                         }
@@ -1942,7 +1956,7 @@ export class Fields {
                             // No selected items, which means that this is an action from a stand-alone action button and we only need to execute the action once.
                             queryActionResult = await executeQuery();
                             if (!queryActionResult.success) {
-                                kendo.alert(queryActionResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals of neem contact op met ons.");
+                                kendo.alert(queryActionResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals.");
                                 return false;
                             }
                         } else {
@@ -1974,7 +1988,7 @@ export class Fields {
 
                                 queryActionResult = await executeQuery();
                                 if (!queryActionResult.success) {
-                                    kendo.alert(queryActionResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals of neem contact op met ons.");
+                                    kendo.alert(queryActionResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals.");
                                     return false;
                                 }
                             }
@@ -1989,7 +2003,7 @@ export class Fields {
                             // No selected items, which means that this is an action from a stand-alone action button and we only need to execute the action once.
                             queryActionResult = await executeQuery();
                             if (!queryActionResult.success) {
-                                kendo.alert(queryActionResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals of neem contact op met ons.");
+                                kendo.alert(queryActionResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals.");
                                 return false;
                             }
                         } else {
@@ -1999,9 +2013,31 @@ export class Fields {
                             // Finally, execute the query.
                             queryActionResult = await executeQuery();
                             if (!queryActionResult.success) {
-                                kendo.alert(queryActionResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals of neem contact op met ons.");
+                                kendo.alert(queryActionResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals.");
                                 return false;
                             }
+                        }
+
+                        break;
+                    }
+
+                    // Creates a new item in a kendoWindow.
+                    case "createNewItem": {
+                        let parentId = action.parentId || 0;
+                        let entityType = action.entityType || null;
+                        let linkTypeNumber = action.linkTypeNumber || 1;
+                        let moduleId = action.moduleId || 0;
+                        let refreshAfterSave = action.refreshAfterSave || false;
+                        
+                        // Use current item as parent id if no parent id is supplied in options
+                        if (parentId === 0){
+                            parentId = mainItemDetails.encryptedId || 0;
+                        }
+                        
+                        if (entityType !== null) {
+                            let kendoWindow = null;
+                            if (refreshAfterSave) kendoWindow = element.closest(".popup-container");
+                            await window.dynamicItems.dialogs.openCreateItemDialog(parentId, null, entityType, false, true, linkTypeNumber, moduleId, kendoWindow);    
                         }
 
                         break;
@@ -2075,7 +2111,7 @@ export class Fields {
                             // If a query is provided, it always takes precedence over any lines that may be selected in a grid 
                             queryActionResult = await executeQuery();
                             if (!queryActionResult.success) {
-                                kendo.alert(queryActionResult.errorMessage || `Er is iets fout gegaan met het uitvoeren van de actie '${action.type}', probeer het a.u.b. nogmaals of neem contact op met ons.`);
+                                kendo.alert(queryActionResult.errorMessage || `Er is iets fout gegaan met het uitvoeren van de actie '${action.type}', probeer het a.u.b. nogmaals.`);
                                 return false;
                             } else if (!queryActionResult.otherData[0].id || !queryActionResult.otherData[0].propertynames) {
                                 kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter voldoet het resultaat niet aan de eisen. De selectie dient tenminste een encrypted 'id' en een 'propertynames' te bevatten. Neem a.u.b. contact op met ons.`);
@@ -2374,6 +2410,9 @@ export class Fields {
                                         const key = `selected_${selectedItemKey}`;
                                         extraData[key] = selectedItemData[selectedItemKey];
                                     }
+                                    
+                                    // Combine the user parameters with the selected data.
+                                    extraData = {...extraData, ...userParametersWithValues};
 
                                     // Make an API call for the currently selected item in the iteration.
                                     await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, extraData);
@@ -2453,7 +2492,7 @@ export class Fields {
                 } else if (exception.statusText) {
                     error = exception.statusText;
                 }
-                kendo.alert(`Er is iets fout gegaan met het uitvoeren van actie type '${action.type}'. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
+                kendo.alert(`Er is iets fout gegaan met het uitvoeren van actie type '${action.type}'. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
                 // Exit for loop.
                 return false;
             }
@@ -2916,7 +2955,7 @@ export class Fields {
                                                         })
                                                     }).catch((jqXHR, textStatus, errorThrown) => {
                                                         console.error(jqXHR, textStatus, errorThrown);
-                                                        kendo.alert("Er is iets fout gegaan tijdens het sturen van de mail. Probeer het a.u.b. nogmaals of neem contact op met ons");
+                                                        kendo.alert("Er is iets fout gegaan tijdens het sturen van de mail. Probeer het a.u.b. nogmaals.");
                                                     }).finally(() => {
                                                         loader.removeClass("loading");
                                                     }).then((mailResult) => {
@@ -2925,7 +2964,7 @@ export class Fields {
                                                 }).catch((error) => {
                                                     console.error(error);
                                                     loader.removeClass("loading");
-                                                    kendo.alert("Er is iets fout gegaan met het genereren van de PDF. Probeer het a.u.b. nogmaals of neem contact op met ons");
+                                                    kendo.alert("Er is iets fout gegaan met het genereren van de PDF. Probeer het a.u.b. nogmaals.");
                                                 });
 
                                                 return false;
@@ -3027,7 +3066,7 @@ export class Fields {
                                 } else if (exception.statusText) {
                                     error = exception.statusText;
                                 }
-                                kendo.alert(`Er is iets fout gegaan met het openen van het scherm om een e-mail te versturen. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
+                                kendo.alert(`Er is iets fout gegaan met het openen van het scherm om een e-mail te versturen. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
                             }
                         },
                         icon: "email"
@@ -3044,7 +3083,7 @@ export class Fields {
                 } else if (exception.statusText) {
                     error = exception.statusText;
                 }
-                kendo.alert(`Er is iets fout gegaan met het laden of verwerken van data voor dit scherm. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
+                kendo.alert(`Er is iets fout gegaan met het laden of verwerken van data voor dit scherm. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
                 resolve();
             }
 
@@ -3369,7 +3408,7 @@ export class Fields {
             dataSelectorTemplateDialog.open();
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. nogmaals.");
         }
     }
 
@@ -3434,7 +3473,7 @@ export class Fields {
             youtubeDialog.open();
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. nogmaals.");
         }
     }
 

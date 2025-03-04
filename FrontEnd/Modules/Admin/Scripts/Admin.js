@@ -125,9 +125,11 @@ const moduleSettings = {
                 OPENWINDOW: { text: "Open venster", id: "openWindow" },
                 EXECUTEQUERY: { text: "Voer query uit", id: "executeQuery" },
                 EXECUTEQUERYONCE: { text: "Voer query eenmalig uit", id: "executeQueryOnce" },
-                GENERATEFILE: { text: "Genereer bestand", id: "generateFile" },
+                GENERATEFILE: { text: "Genereer HTML of PDF bestand", id: "generateFile" },
+                GENERATETEXTFILE: { text: "Genereer tekst bestand", id: "generateTextFile" },
                 REFRESHCURRENTITEM: { text: "Ververs het item", id: "refreshCurrentItem" },
                 ACTIONCONFIRMDIALOG: { text: "Bevestigingsvenster", id: "actionConfirmDialog" },
+                CREATENEWITEM: { text: "Maak nieuw item", id: "createNewItem" },
                 CUSTOM: { text: "Custom javascript", id: "custom" }
             });
             this.fieldTypesDropDown = Object.freeze({

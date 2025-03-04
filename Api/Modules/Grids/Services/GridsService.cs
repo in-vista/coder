@@ -364,8 +364,9 @@ namespace Api.Modules.Grids.Services
                                     [if({{sender}}=)]LEFT [endif]JOIN {WiserTableNames.WiserItemDetail} sender ON sender.item_id = i.id AND sender.`key` = 'placed_by_id' [if({{sender}}!)]AND sender.`value` {{sender_filter}}[endif] 
                                     JOIN {WiserTableNames.WiserItemDetail} receiver ON receiver.item_id = i.id AND receiver.`key` = 'userid' [if({{receiver}}!)]AND receiver.`value` {{receiver_filter}}[endif] 
                                     JOIN {WiserTableNames.WiserItemDetail} content ON content.item_id = i.id AND content.`key` = 'content' [if({{content}}!)]AND content.`value` {{content_filter}}[endif] 
-
-                                    WHERE i.entity_type = 'agendering'
+                                    JOIN wiser_item usr ON usr.id={userId}
+                                                                                                                     
+                                    WHERE i.entity_type = 'agendering' AND i.parent_item_id=usr.parent_item_id
                                     {{sort}}
                                     {{limit}}";
 
