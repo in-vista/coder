@@ -160,6 +160,9 @@ export default {
         },
 
         checkCapslock(e) {
+            if(typeof e.getModifierState !== 'function')
+                return;
+            
             this.loginForm.capslock = e.getModifierState('CapsLock');
         }
     }
