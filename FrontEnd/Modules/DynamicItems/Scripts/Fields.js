@@ -3739,10 +3739,12 @@ export class Fields {
                         contentType: "application/json"
                     });
                     
+                    // Retrieve all the address information from the response.
                     const street = addressResponse.street;
                     const city = addressResponse.settlement;
                     const country = addressResponse.country;
                     
+                    // Check for each field if it exists and already has a value. If it has no value, set the value to the response.
                     if(!streetField?.val())
                         streetField?.val(street);
 
@@ -3752,11 +3754,14 @@ export class Fields {
                     if(!countryField?.val())
                         countryField?.val(country);
                 } catch(error) {
+                    // Keep a list of HTTP status codes that we expect that can be thrown to ignore the exception.
                     const handledErrorCodes = [ 400, 404 ];
                     
+                    // Check if the exception has any of the handled error codes.
                     if(handledErrorCodes.includes(error.status))
                         return;
                     
+                    // Throw the error when it is unexpected.
                     console.error(error);
                 }
             }, inputDelay);

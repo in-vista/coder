@@ -14,6 +14,7 @@ public class GeoLocationController : ControllerBase
         this.geoLocationService = geoLocationService;
     }
     
+    /// <inheritdoc cref="IGeoLocationService.GetPro6PPAddress"/>
     [HttpGet("pro6pp")]
     public async Task<IActionResult> GetPro6PPAddress([FromQuery] string zipCode, [FromQuery] int? houseNumber, [FromQuery] string premise)
     {
