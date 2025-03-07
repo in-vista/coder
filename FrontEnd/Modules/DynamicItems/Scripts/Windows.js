@@ -418,6 +418,9 @@ export class Windows {
                     }
 
                     currentItemTabStrip.select(tabIndex || (showGenericTab ? 0 : 1));
+                    
+                    // Pro6PP initialization.
+                    this.base.fields.initializePro6PPBindings(currentItemWindow.wrapper);
                 } catch (exception) {
                     console.error(exception);
                     kendo.alert("Er is iets fout gegaan tijdens het (her)laden van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");

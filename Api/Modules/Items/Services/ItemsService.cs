@@ -1666,6 +1666,9 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 // Encrypt certain values in options JSON.
                 jsonService.EncryptValuesInJson(optionsObject, encryptionKey);
                 options = optionsObject.ToString(Formatting.None);
+                
+                // Retrieve the "Pro6PP" field value.
+                string pro6PPField = optionsObject.ContainsKey("Pro6PPField") ? optionsObject["Pro6PPField"].ToString() : null;
 
                 defaultValue = defaultValue.Replace("{itemId}", itemId.ToString()).Replace("{userId}", userId.ToString());
 
@@ -1736,7 +1739,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         .Replace("{entityType}", entityType)
                         .Replace("{default_value}", valueToReplace)
                         .Replace("{subDomain}", subDomain)
-                        .Replace("{baseUrl}", requestBaseUrl);
+                        .Replace("{baseUrl}", requestBaseUrl)
+                        .Replace("{pro6pp}", pro6PPField);
                 }
 
                 // Replace values in javascript template.
