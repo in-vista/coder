@@ -122,7 +122,7 @@
     } else {
         datasets = [
             {
-                data: data
+                data: data.map(row => row[options.dataColumn])
             }
         ]
     }
@@ -137,7 +137,7 @@
     
     // Initialize the chart.
     new Chart(chartElement, {
-        type: options.type,
+        type: options.type ?? 'bar',
         data: {
             labels: data.map(row => row[options.labelsColumn]),
             datasets: datasets
@@ -145,7 +145,7 @@
         options: {
             plugins: {
                 legend: {
-                    display: !!options.group
+                    display: data.length === 0
                 }
             },
             ...options
