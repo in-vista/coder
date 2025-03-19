@@ -88,5 +88,8 @@ switch(options.type) {
 }
 
 kendoComponent.readonly(readonly);
+
+kendoComponent.bind('change', window.dynamicItems.fields.onFieldValueChange);
+
 {customScript}
 })();

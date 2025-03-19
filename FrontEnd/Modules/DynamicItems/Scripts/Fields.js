@@ -706,7 +706,10 @@ export class Fields {
      * @param {any} options The field options.
      */
     onDropDownChange(event, options) {
-        this.onFieldValueChange(event);
+        // Indicate whether the item should refresh after a change.
+        const refresh = options.refreshOnChange ?? false;
+        
+        this.onFieldValueChange(event, refresh);
 
         if (options.allowOpeningOfSelectedItem) {
             event.sender.element.closest(".item").find(".openItemButton").toggleClass("hidden", !event.sender.value());
@@ -3630,8 +3633,9 @@ export class Fields {
     /**
      * Event that gets fired when the value of any input has been changed.
      * @param {any} event The event from the change action.
+     * @param {any} refresh Whether to refresh the item after changing the value.
      */
-    onFieldValueChange(event) {
+    async onFieldValueChange(event, refresh = false) {
         this.handleDependencies(event);
 
         const fieldContainer = (event.sender ? event.sender.element : $(event.currentTarget)).closest(".item");
@@ -3643,6 +3647,14 @@ export class Fields {
                 saveButton = itemContainer.find(".saveButton");
             }
             saveButton.first().trigger("click");
+        }
+
+        if (refresh) {
+            const previouslySelectedTab = window.dynamicItems.mainTabStrip.select().index();
+            await window.dynamicItems.loadItem(
+                window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId,
+                previouslySelectedTab,
+                window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.entityType : window.dynamicItems.settings.entityType);
         }
     }
 
