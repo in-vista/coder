@@ -3685,4 +3685,86 @@ export class Fields {
             contentType: "application/json"
         });
     }
+
+    /**
+     * Initializes all bindings and functionality for Pro6PP-based fields. These will auto-complete address fields depending on the set-up of the fields.
+     * @param {any} container The contains to get the data from.
+     * @param {string} apiKey The API key to use the Pro6PP API.
+     */
+    initializePro6PPBindings(container) {
+        // Constants.
+        const attributeName = 'data-pro6pp';
+        
+        // Retrieve the individual supported fields.
+        const zipCodeField = container.find(`[${attributeName}="zipcode"]`);
+        const houseNumberField = container.find(`[${attributeName}="house_number"]`);
+        const premiseField = container.find(`[${attributeName}="premise"]`);
+        const streetField = container.find(`[${attributeName}="street"]`);
+        const cityField = container.find(`[${attributeName}="city"]`);
+        const countryField = container.find(`[${attributeName}="country"]`);
+        
+        // Combine all listening fields into one jquery object to attach a listener event to them.
+        const listeningFields = $()
+            .add(zipCodeField)
+            .add(houseNumberField)
+            .add(premiseField);
+        
+        // Hold a timer ID for a delayed input event.
+        let debounceTimer;
+        const inputDelay = 1000;
+        
+        // Attach a listener to the relevant fields.
+        listeningFields.on('input', function() {
+            // Clear the delay timer.
+            clearTimeout(debounceTimer);
+            
+            // Start a delayed invocation of the input event.
+            debounceTimer = setTimeout(async () => {
+                // Retrieve the given input.
+                const zipCode = zipCodeField?.val();
+                const houseNumber = houseNumberField?.val();
+                const premise = premiseField?.val();
+                
+                // Build the request URL.
+                const requestUrlBuilder = new URL(`${window.dynamicItems.settings.wiserApiRoot}geolocation/pro6pp`);
+                requestUrlBuilder.searchParams.set('zipCode', zipCode);
+                requestUrlBuilder.searchParams.set('houseNumber', houseNumber);
+                requestUrlBuilder.searchParams.set('premise', premise);
+                const requestUrl = requestUrlBuilder.toString();
+                
+                // Request the address with the given input.
+                try {
+                    const addressResponse = await Wiser.api({
+                        url: requestUrl,
+                        contentType: "application/json"
+                    });
+                    
+                    // Retrieve all the address information from the response.
+                    const street = addressResponse.street;
+                    const city = addressResponse.settlement;
+                    const country = addressResponse.country;
+                    
+                    // Check for each field if it exists and already has a value. If it has no value, set the value to the response.
+                    if(!streetField?.val())
+                        streetField?.val(street);
+
+                    if(!cityField?.val())
+                        cityField?.val(city);
+
+                    if(!countryField?.val())
+                        countryField?.val(country);
+                } catch(error) {
+                    // Keep a list of HTTP status codes that we expect that can be thrown to ignore the exception.
+                    const handledErrorCodes = [ 400, 404 ];
+                    
+                    // Check if the exception has any of the handled error codes.
+                    if(handledErrorCodes.includes(error.status))
+                        return;
+                    
+                    // Throw the error when it is unexpected.
+                    console.error(error);
+                }
+            }, inputDelay);
+        });
+    }
 }
