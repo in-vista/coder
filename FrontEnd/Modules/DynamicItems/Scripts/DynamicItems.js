@@ -620,10 +620,10 @@ const moduleSettings = {
         }
 
         /**
-         * Load all Kendo scripts of components that are used in a script template that will be used in an eval() function.
+         * Load all third-party scripts of components that are used in a script template that will be used in an eval() function.
          * @param {string} scriptTemplate The script template that is going to be loaded in an eval().
          */
-        async loadKendoScripts(scriptTemplate) {
+        async loadThirdPartyScripts(scriptTemplate) {
             if (scriptTemplate.indexOf("kendoDateTimePicker") > -1) {
                 await require("@progress/kendo-ui/js/kendo.datetimepicker.js");
                 await require("/kendo/messages/kendo.upload.nl-NL.js");
@@ -671,7 +671,9 @@ const moduleSettings = {
                 await require("@progress/kendo-ui/js/kendo.grid.js");
                 await require("/kendo/messages/kendo.grid.nl-NL.js");
             }
-
+            if(scriptTemplate.indexOf('TopolPlugin') > -1)
+                await require('/topol/topol.js');
+            
             await require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
         }
 
@@ -1800,7 +1802,7 @@ const moduleSettings = {
                     if (!tabData.name) {
                         genericTabHasFields = true;
                         container.html(tabData.htmlTemplate);
-                        await this.base.loadKendoScripts(tabData.scriptTemplate);
+                        await this.base.loadThirdPartyScripts(tabData.scriptTemplate);
                         $.globalEval(tabData.scriptTemplate);
                     } else {
                         this.mainTabStrip.insertAfter({

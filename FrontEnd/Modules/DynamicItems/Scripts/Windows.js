@@ -361,7 +361,7 @@ export class Windows {
                         if (!tabData.name) {
                             genericTabHasFields = true;
                             const container = currentItemWindow.element.find(".right-pane-content-popup").html(tabData.htmlTemplate);
-                            await this.base.loadKendoScripts(tabData.scriptTemplate);
+                            await this.base.loadThirdPartyScripts(tabData.scriptTemplate);
                             $.globalEval(tabData.scriptTemplate);
 
                             await Utils.sleep(150);

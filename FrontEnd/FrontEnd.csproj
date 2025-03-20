@@ -18,6 +18,10 @@
     <Compile Remove="temp\**" />   
     <None Remove="temp\**" />
     <Content Remove="temp\**" />
+    <Content Update="Core\Scripts\topol\topol.js">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

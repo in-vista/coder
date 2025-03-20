@@ -572,7 +572,7 @@ export class Fields {
         window.processing.addProcess(process);
 
         try {
-            await this.base.loadKendoScripts(tabFields.script);
+            await this.base.loadThirdPartyScripts(tabFields.script);
             $.globalEval(tabFields.script);
             tabFields.executed = true;
 
