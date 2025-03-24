@@ -618,7 +618,7 @@ export class Grids {
                 change: this.onGridSelectionChange.bind(this),
                 resizable: true,
                 sortable: true,
-                scrollable: usingDataSelector ? true : {
+                scrollable: usingDataSelector || (gridViewSettings.groupable && gridViewSettings.clientSidePaging) ? true : {
                     virtual: true
                 },
                 filterable: filterable,
