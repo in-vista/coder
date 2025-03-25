@@ -2474,6 +2474,33 @@ export class Fields {
                             return false;
                         }
                     }
+                    
+                    // Closes the item and refreshes the parent window.
+                    // If there is no parent window (action button on a grid), only the grid will be refreshed
+                    case 'closeCurrentItemAndRefresh': {
+                        // Get the window element.
+                        const kendoWindowElement = element.closest(".popup-container");
+                        
+                        // Get the Kendo window object.
+                        const kendoWindow = kendoWindowElement?.data("kendoWindow");
+                        
+                        // Check if the window element was ever present.
+                        if(kendoWindow) {
+                            // Get the data stored in the window.
+                            const data = kendoWindow.element.data();
+                            
+                            // If the sender of the popup window is a grid, refresh the grid.
+                            if (data.senderGrid) {
+                                this.base.grids.mainGridForceRecount = true;
+                                data.senderGrid.dataSource.read();
+                            }
+                        }
+                        
+                        // Close the window if it exists.
+                        kendoWindow?.close();
+                        
+                        break;
+                    }
 
                     // Custom actions with custom javascript.
                     case "custom": {
