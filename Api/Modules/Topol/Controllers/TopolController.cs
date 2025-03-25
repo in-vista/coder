@@ -90,9 +90,9 @@ public class TopolController : ControllerBase
     }
 
     [HttpGet("templates/{id}")]
-    public async Task<IActionResult> GetTemplate(int id)
+    public async Task<IActionResult> GetTemplate(ulong id)
     {
-        PreMadeTopolTemplate template = await topolService.GetTemplateAsync(id);
+        PreMadeTopolTemplate template = await topolService.GetTemplateAsync(id, (ClaimsIdentity) User.Identity);
         return new JsonResult(new
         {
             success = true,

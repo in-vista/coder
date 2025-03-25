@@ -17,7 +17,7 @@ public interface ITopolService
 
     public Task<PreMadeTopolTemplatesResult> GetTemplatesAsync(string queryId, string countQueryId, int currentPage, string search, string sortBy, string sortByDirection, ClaimsIdentity identity);
     
-    public Task<PreMadeTopolTemplate> GetTemplateAsync(int id);
+    public Task<PreMadeTopolTemplate> GetTemplateAsync(ulong id, ClaimsIdentity identity);
 
     public Task<TopolCategory[]> GetTemplateCategoriesAsync();
     

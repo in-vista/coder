@@ -13,6 +13,7 @@ using Api.Modules.Topol.Models;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Exceptions;
 using GeeksCoreLibrary.Core.Extensions;
+using GeeksCoreLibrary.Core.Interfaces;
 using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Communication.Interfaces;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
@@ -33,7 +34,7 @@ public class TopolService : ITopolService, IScopedService
     
     private readonly IStringReplacementsService stringReplacementsService;
 
-    private readonly IHttpContextAccessor httpContextAccessor;
+    private readonly IWiserItemsService wiserItemsService;
 
     public TopolService(
 	    IDatabaseConnection databaseConnection,
@@ -41,7 +42,7 @@ public class TopolService : ITopolService, IScopedService
 	    ICommunicationsService communicationsService,
 	    IApiReplacementsService apiReplacementsService,
 	    IStringReplacementsService stringReplacementsService,
-	    IHttpContextAccessor httpContextAccessor
+	    IWiserItemsService wiserItemsService
 	    )
     {
         this.databaseConnection = databaseConnection;
@@ -49,7 +50,7 @@ public class TopolService : ITopolService, IScopedService
         this.communicationsService = communicationsService;
         this.apiReplacementsService = apiReplacementsService;
         this.stringReplacementsService = stringReplacementsService;
-        this.httpContextAccessor = httpContextAccessor;
+        this.wiserItemsService = wiserItemsService;
     }
     
     public async Task<Image[]> GetFoldersAsync(string path, string identifier, string baseUrl, string subDomain)
@@ -363,11 +364,86 @@ SELECT item_id AS `item_id`, ordering AS `ordering` FROM wiser_itemfile WHERE id
 		    { "sort_by_direction", sortByDirection }
 	    };
 
+	    PreMadeTopolTemplate[] templates = await BuildTemplatesBasedFromQuery(unencryptedQueryId, identity, replacementData);
+	    
+	    string templatesCountQueryQuery = $"SELECT query FROM {WiserTableNames.WiserQuery} WHERE id = ?queryId";
+	    databaseConnection.ClearParameters();
+	    databaseConnection.AddParameter("queryId", unencryptedCountQueryId);
+	    DataTable templatesCountDataTable = await databaseConnection.GetAsync(templatesCountQueryQuery);
+	    
+	    string templatesCountQuery = templatesCountDataTable.Rows[0].Field<string>("query");
+	    templatesCountQuery = apiReplacementsService.DoIdentityReplacements(templatesCountQuery, identity, true);
+	    templatesCountQuery = stringReplacementsService.DoReplacements(templatesCountQuery, replacementData, forQuery: true);
+	    templatesCountQuery = stringReplacementsService.EvaluateTemplate(templatesCountQuery);
+
+	    DbDataReader templatesCountReader = await databaseConnection.GetReaderAsync(templatesCountQuery);
+	    int templatesCount = await templatesCountReader.ReadAsync() ? templatesCountReader.GetInt32(0) : 0;
+	    await templatesCountReader.CloseAsync();
+	    
+	    int totalRecords = templatesCount;
+	    bool hasNextPage = totalRecords > currentPage* itemsPerPage;
+	    int? nextPage = hasNextPage ? currentPage + 1 : null;
+	    int? previousPage = currentPage > 1 ? currentPage - 1 : null;
+	    int lastPage = (int) Math.Ceiling((double) totalRecords / itemsPerPage);
+
+	    return new PreMadeTopolTemplatesResult
+	    {
+		    Templates = templates,
+		    TotalRecords = totalRecords,
+		    CurrentPage = currentPage,
+		    PerPage = itemsPerPage,
+		    NextPage = nextPage,
+		    PreviousPage = previousPage,
+		    LastPage = lastPage
+	    };
+    }
+
+    public async Task<PreMadeTopolTemplate> GetTemplateAsync(ulong id, ClaimsIdentity identity)
+    {
+	    return null;
+    }
+
+    public async Task<TopolCategory[]> GetTemplateCategoriesAsync()
+    {
+	    return new TopolCategory[]
+	    {
+		    new TopolCategory
+		    {
+			    Id = 1,
+			    Name = "Coder",
+			    Value = "coder"
+		    },
+		    new TopolCategory
+		    {
+			    Id = 2,
+			    Name = "Topol",
+			    Value = "topol"
+		    }
+	    };
+    }
+
+    public async Task<TopolKeyword[]> GetTemplateKeywordsAsync() => new TopolKeyword[0];
+
+    public async Task SendTestMailAsync(string email, string html)
+    {
+	    string subject = "Coder - Test mail";
+	    await communicationsService.SendEmailAsync(email, subject, html);
+    }
+    
+    /// <summary>
+    /// Runs the query and builds <see cref="PreMadeTopolTemplate"/> instances based on the results.
+    /// </summary>
+    /// <param name="queryId">The unencrypted query ID to run for the data to base the templates off of.</param>
+    /// <param name="identity">The identity of the current user of this request for identity-based replacements on the query.</param>
+    /// <param name="replacementData">A data map of replacements to apply in the query that is ran.</param>
+    /// <returns>A collection of <see cref="PreMadeTopolTemplate"/> instances built based on the provided data from the query.</returns>
+    private async Task<PreMadeTopolTemplate[]> BuildTemplatesBasedFromQuery(int queryId, ClaimsIdentity identity, Dictionary<string, object> replacementData)
+    {
 	    List<PreMadeTopolTemplate> templates = new List<PreMadeTopolTemplate>();
 	    
 	    string templatesQueryQuery = $"SELECT query FROM {WiserTableNames.WiserQuery} WHERE id = ?queryId";
 	    databaseConnection.ClearParameters();
-	    databaseConnection.AddParameter("queryId", unencryptedQueryId);
+	    databaseConnection.AddParameter("queryId", queryId);
 	    DataTable dataTable = await databaseConnection.GetAsync(templatesQueryQuery);
 	    
 	    string templatesQuery = dataTable.Rows[0].Field<string>("query");
@@ -416,69 +492,7 @@ SELECT item_id AS `item_id`, ordering AS `ordering` FROM wiser_itemfile WHERE id
 	    }
 
 	    await templatesReader.CloseAsync();
-	    
-	    string templatesCountQueryQuery = $"SELECT query FROM {WiserTableNames.WiserQuery} WHERE id = ?queryId";
-	    databaseConnection.ClearParameters();
-	    databaseConnection.AddParameter("queryId", unencryptedCountQueryId);
-	    DataTable templatesCountDataTable = await databaseConnection.GetAsync(templatesCountQueryQuery);
-	    
-	    string templatesCountQuery = templatesCountDataTable.Rows[0].Field<string>("query");
-	    templatesCountQuery = apiReplacementsService.DoIdentityReplacements(templatesCountQuery, identity, true);
-	    templatesCountQuery = stringReplacementsService.DoReplacements(templatesCountQuery, replacementData, forQuery: true);
-	    templatesCountQuery = stringReplacementsService.EvaluateTemplate(templatesCountQuery);
 
-	    DbDataReader templatesCountReader = await databaseConnection.GetReaderAsync(templatesCountQuery);
-	    int templatesCount = await templatesCountReader.ReadAsync() ? templatesCountReader.GetInt32(0) : 0;
-	    await templatesReader.CloseAsync();
-	    
-	    
-	    int totalRecords = templatesCount;
-	    bool hasNextPage = totalRecords > currentPage* itemsPerPage;
-	    int? nextPage = hasNextPage ? currentPage + 1 : null;
-	    int? previousPage = currentPage > 1 ? currentPage - 1 : null;
-	    int lastPage = (int) Math.Ceiling((double) totalRecords / itemsPerPage);
-
-	    return new PreMadeTopolTemplatesResult
-	    {
-		    Templates = templates.ToArray(),
-		    TotalRecords = totalRecords,
-		    CurrentPage = currentPage,
-		    PerPage = itemsPerPage,
-		    NextPage = nextPage,
-		    PreviousPage = previousPage,
-		    LastPage = lastPage
-	    };
-    }
-
-    public async Task<PreMadeTopolTemplate> GetTemplateAsync(int id)
-    {
-	    return null;
-    }
-
-    public async Task<TopolCategory[]> GetTemplateCategoriesAsync()
-    {
-	    return new TopolCategory[]
-	    {
-		    new TopolCategory
-		    {
-			    Id = 1,
-			    Name = "Coder",
-			    Value = "coder"
-		    },
-		    new TopolCategory
-		    {
-			    Id = 2,
-			    Name = "Topol",
-			    Value = "topol"
-		    }
-	    };
-    }
-
-    public async Task<TopolKeyword[]> GetTemplateKeywordsAsync() => new TopolKeyword[0];
-
-    public async Task SendTestMailAsync(string email, string html)
-    {
-	    string subject = "Coder - Test mail";
-	    await communicationsService.SendEmailAsync(email, subject, html);
+	    return templates.ToArray();
     }
 }

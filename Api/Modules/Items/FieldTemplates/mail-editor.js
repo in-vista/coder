@@ -1,6 +1,7 @@
 (async () => {
     // Set up variables for elements in the document.
     const container = $("#container_{propertyIdWithSuffix}");
+    const loader = container.find(".loader");
     
     // Retrieve the settings of the entity property.
     const options = {options};
@@ -70,10 +71,11 @@
     // Set up the pre-made templates endpoints. If a custom templates query is set, we want to use our own endpoints.
     // Otherwise, use the default endpoints.
     const encodedTemplatesQueryId = encodeURIComponent(options.loadCustomTemplatesQueryId);
+    const encodedTemplateQueryId = encodeURIComponent(options.loadCustomTemplateQueryId);
     const encodedTemplatesCountQueryId = encodeURIComponent(options.loadCustomTemplatesCountQueryId);
-    const hasCustomTemplates = options.loadCustomTemplatesQueryId && options.loadCustomTemplatesCountQueryId;
+    const hasCustomTemplates = options.loadCustomTemplatesQueryId && options.loadCustomTemplateQueryId && options.loadCustomTemplatesCountQueryId;
     const preMadeTemplateEndpoint = hasCustomTemplates
-        ? `{baseUrl}/api/v3/topol/templates?queryId=${encodedTemplatesQueryId}&countQueryId=${encodedTemplatesCountQueryId}`
+        ? `{baseUrl}/api/v3/topol/templates?queryId=${encodedTemplatesQueryId}&detailQueryId=${encodedTemplateQueryId}&countQueryId=${encodedTemplatesCountQueryId}`
         : 'https://app.topol.io/api/premade-templates?type=FREE'
     const preMadeTemplateCategoriesEndpoint = hasCustomTemplates
         ? '{baseUrl}/api/v3/topol/template-categories'
