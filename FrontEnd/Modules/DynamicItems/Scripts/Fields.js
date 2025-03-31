@@ -1682,7 +1682,7 @@ export class Fields {
                                         await require("@progress/kendo-ui/js/kendo.upload.js");
                                         let itemId;
                                         let itemLinkId;
-                                        if (selectedItems) {
+                                        if (selectedItems?.length > 0) {
                                             if (selectedItems.length > 1) {
                                                 kendo.alert("Het uploaden van bestanden kan maar met 1 item tegelijk.");
                                                 break;
@@ -1696,10 +1696,19 @@ export class Fields {
                                             itemId = mainItemDetails.encryptedId || mainItemDetails.encrypted_id || mainItemDetails.encryptedid || this.base.settings.zeroEncrypted;
                                             itemLinkId = mainItemDetails.linkId || mainItemDetails.link_id || 0;
                                         }
+                                        
+                                        // Determine the property name of the file to be uploaded in wiser_itemfile.
+                                        // If no selection was made, and the action was set up to do not require a
+                                        // selection (default = false), the internal property name
+                                        // "TEMPORARY_FILE_FROM_CODER" will be used.
+                                        // This mean the user will handle the file further using follow-up queries.
+                                        const propertyName = selectedItems?.length >= 1 && (!options.allowNoSelection || false)
+                                            ? options.propertyName
+                                            : 'TEMPORARY_FILE_FROM_CODER';
 
                                         const uploadOptions = $.extend(true, {
                                             async: {
-                                                saveUrl: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}/upload?propertyName=${encodeURIComponent(options.propertyName)}&itemLinkId=${itemLinkId}`,
+                                                saveUrl: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}/upload?propertyName=${encodeURIComponent(propertyName)}&itemLinkId=${itemLinkId}`,
                                                 removeUrl: "remove",
                                                 withCredentials: false
                                             },
