@@ -265,29 +265,27 @@ export class Windows {
                 currentItemWindow.close();
             });
 
-            const afterSave = async () => {                
-                if (!kendoComponent || !kendoComponent.dataSource) {
-                    if (kendoComponent.find(".tabStripPopup")?.data("kendoTabStrip") === undefined) return;
+            const afterSave = async () => {   
+                if (kendoComponent !== null){
+                    if (!kendoComponent || !kendoComponent.dataSource) {
+                        if (kendoComponent.find(".tabStripPopup")?.data("kendoTabStrip") === undefined) return;
 
-                    const previouslySelectedTab = kendoComponent.find(".tabStripPopup").data("kendoTabStrip").select().index();
-                    const reloadFunction = kendoComponent.data("reloadFunction");
-                    await reloadFunction(previouslySelectedTab);
-                }
-                else {
-                    await kendoComponent.dataSource.read();
-
-                    if (!kendoComponent.element) return;
-
-                    const role = kendoComponent.element.data("role");
-                    if (role === "dropdownlist" || role === "combobox") {
-                        kendoComponent.value(itemId);
-                        validator.validateInput(kendoComponent.element);
+                        const previouslySelectedTab = kendoComponent.find(".tabStripPopup").data("kendoTabStrip").select().index();
+                        const reloadFunction = kendoComponent.data("reloadFunction");
+                        await reloadFunction(previouslySelectedTab);
                     }
+                    else {
+                        await kendoComponent.dataSource.read();
+
+                        if (!kendoComponent.element) return;
+
+                        const role = kendoComponent.element.data("role");
+                        if (role === "dropdownlist" || role === "combobox") {
+                            kendoComponent.value(itemId);
+                            validator.validateInput(kendoComponent.element);
+                        }
+                    }    
                 }
-
-                
-
-                
             };
 
             // Initialize the buttons on the new window.
