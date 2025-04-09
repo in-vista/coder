@@ -1169,7 +1169,7 @@ namespace Api.Modules.Grids.Services
 
                             selectQuery = $@"SELECT
                                                 i.*,
-	                                            GROUP_CONCAT(CONCAT(id.`key`, '=', IFNULL(idt.`value`, id.`value`), '') SEPARATOR '~~~') AS `fields`,
+	                                            GROUP_CONCAT(CONCAT(id.`key`, '=', IFNULL(idt.`value`, id.`value`), '') SEPARATOR '~~~') AS `fields`
                                             FROM (
                                                 # Sub query so that we can first limit the items, then get all fields of those remaining items and group by item.
                                                 # If we don't do this, MySQL will first get all items to group them, then it will add the limit, which is a lot slower.
@@ -1260,15 +1260,16 @@ namespace Api.Modules.Grids.Services
                                                         WHEN 3 THEN 'acceptatie'
                                                         WHEN 4 THEN 'live'
                                                     END AS publishedEnvironment,
-                                                    i.entity_type AS entityType,
-	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields,
+                                                    i.entity_type AS entityType
                                                     ?linkTypeNumber AS linkTypeNumber,
                                                     0 AS linkId,
                                                     i.added_on AS addedOn,
                                                     i.added_by AS addedBy,
                                                     i.changed_on AS changedOn,
                                                     i.changed_by AS changedBy,
-                                                    i.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`
+                                                    i.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`,
+                                                    i.*,
+	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields
                                                 FROM {tablePrefix}{WiserTableNames.WiserItem} i
 
                                                 {{filters}}
@@ -1324,14 +1325,15 @@ namespace Api.Modules.Grids.Services
                                                         WHEN 4 THEN 'live'
                                                     END AS publishedEnvironment,
                                                     i.entity_type AS entityType,
-	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields,
                                                     il.type AS linkTypeNumber,
                                                     il.id AS linkId,
                                                     i.added_on AS addedOn,
                                                     i.added_by AS addedBy,
                                                     i.changed_on AS changedOn,
                                                     i.changed_by AS changedBy,
-                                                    il.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`
+                                                    il.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`,
+                                                    i.*,
+	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields
                                                 FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} il
                                                 JOIN {tablePrefix}{WiserTableNames.WiserItem} i ON i.id = il.{(currentItemIsSourceId ? "destination_item_id" : "item_id")} {(String.IsNullOrEmpty(entityType) ? "" : "AND FIND_IN_SET(i.entity_type, ?entityType)")} {(moduleId <= 0 ? "" : "AND i.moduleid = ?moduleId")}
 
@@ -1368,14 +1370,15 @@ namespace Api.Modules.Grids.Services
                                                         WHEN 4 THEN 'live'
                                                     END AS publishedEnvironment,
                                                     i.entity_type AS entityType,
-	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields,
                                                     il.type AS linkTypeNumber,
                                                     il.id AS linkId,
                                                     i.added_on AS addedOn,
                                                     i.added_by AS addedBy,
                                                     i.changed_on AS changedOn,
                                                     i.changed_by AS changedBy,
-                                                    il.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`
+                                                    il.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`,
+                                                    i.*,
+	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields
                                                 FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} il
                                                 JOIN {tablePrefix}{WiserTableNames.WiserItem} i ON i.id = il.{(currentItemIsSourceId ? "destination_item_id" : "item_id")} {(String.IsNullOrEmpty(entityType) ? "" : "AND FIND_IN_SET(i.entity_type, ?entityType)")} {(moduleId <= 0 ? "" : "AND i.moduleid = ?moduleId")}
 
