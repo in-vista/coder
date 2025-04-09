@@ -34,20 +34,49 @@
 
         htmlWindow.find(".k-primary, .k-button-solid-primary").kendoButton({
             click: () => {
+                // Set HTML to property
                 const html = iframe[0].contentWindow.main.vueApp.contentBox.html();                
                 $("#field_{propertyIdWithSuffix}").val(html);
-                $("#saveBottom").click(); // Save the item
+                                
+                // Save item
+                let container = $("#field_{propertyIdWithSuffix}").closest("#right-pane");
+                if (!container.length) {
+                    container = $("#field_{propertyIdWithSuffix}").closest(".entity-container");
+                    container.find(".saveBottomPopup").trigger("click");
+                } else {
+                    const saveAndCreateNewButton = $("#saveAndCreateNewItemButton");
+                    if (saveAndCreateNewButton.is(":visible")) {
+                        saveAndCreateNewButton.trigger("click");
+                    } else {
+                        container.find("#saveBottom").trigger("click");
+                    }
+                }
                 
+                // Close page builder
                 kendoWindow.close();
             },
             icon: "save"
         });
 
         htmlWindow.find(".k-secondary[name='onlysave']").kendoButton({
-            click: () => {                
+            click: () => {
+                // Set HTML to property
                 const html = iframe[0].contentWindow.main.vueApp.contentBox.html();
                 $("#field_{propertyIdWithSuffix}").val(html);
-                $("#saveBottom").click(); // Save the item
+
+                // Save item
+                let container = $("#field_{propertyIdWithSuffix}").closest("#right-pane");
+                if (!container.length) {
+                    container = $("#field_{propertyIdWithSuffix}").closest(".entity-container");
+                    container.find(".saveBottomPopup").trigger("click");
+                } else {
+                    const saveAndCreateNewButton = $("#saveAndCreateNewItemButton");
+                    if (saveAndCreateNewButton.is(":visible")) {
+                        saveAndCreateNewButton.trigger("click");
+                    } else {
+                        container.find("#saveBottom").trigger("click");
+                    }
+                }                
             },
             icon: "save"
         });
