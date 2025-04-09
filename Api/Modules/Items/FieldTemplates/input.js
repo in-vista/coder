@@ -1,7 +1,7 @@
 ﻿(function() {
     var options = {options};
     var container = $("#container_{propertyIdWithSuffix}");
-    var field = $("#field_{propertyIdWithSuffix}").change(window.dynamicItems.fields.onFieldValueChange.bind(window.dynamicItems.fields));
+    var field = $("#field_{propertyIdWithSuffix}").change((event) => { window.dynamicItems.fields.onFieldValueChange(event, options); });
     var urlMode = options.type === "url" || (field.val() || "").indexOf("http") === 0;
     var hyperlink = container.find(".open-link").toggle(urlMode);
     if (urlMode) {
