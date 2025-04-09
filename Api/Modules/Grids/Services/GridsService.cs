@@ -1168,8 +1168,8 @@ namespace Api.Modules.Grids.Services
                                             ) AS x";
 
                             selectQuery = $@"SELECT
+                                                i.*,
 	                                            GROUP_CONCAT(CONCAT(id.`key`, '=', IFNULL(idt.`value`, id.`value`), '') SEPARATOR '~~~') AS `fields`,
-                                                i.*
                                             FROM (
                                                 # Sub query so that we can first limit the items, then get all fields of those remaining items and group by item.
                                                 # If we don't do this, MySQL will first get all items to group them, then it will add the limit, which is a lot slower.
@@ -1177,7 +1177,6 @@ namespace Api.Modules.Grids.Services
 	                                                i.id,
 	                                                i.id AS encryptedId_encrypt_withdate,
                                                     i.original_item_id AS originalItemId,
-	                                                i.title,
                                                     CASE i.published_environment
     	                                                WHEN 0 THEN 'onzichtbaar'
                                                         WHEN 1 THEN 'dev'
@@ -1190,7 +1189,8 @@ namespace Api.Modules.Grids.Services
                                                     i.added_by AS addedBy,
                                                     i.changed_on AS changedOn,
                                                     i.changed_by AS changedBy,
-                                                    i.parent_item_id AS parentItemId
+                                                    i.parent_item_id AS parentItemId,
+                                                    i.*
                                                 FROM {tablePrefix}{WiserTableNames.WiserItem} i
 
                                                 {{filters}}
@@ -1260,7 +1260,6 @@ namespace Api.Modules.Grids.Services
                                                         WHEN 3 THEN 'acceptatie'
                                                         WHEN 4 THEN 'live'
                                                     END AS publishedEnvironment,
-                                                    i.title,
                                                     i.entity_type AS entityType,
 	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields,
                                                     ?linkTypeNumber AS linkTypeNumber,
@@ -1324,7 +1323,6 @@ namespace Api.Modules.Grids.Services
                                                         WHEN 3 THEN 'acceptatie'
                                                         WHEN 4 THEN 'live'
                                                     END AS publishedEnvironment,
-                                                    i.title,
                                                     i.entity_type AS entityType,
 	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields,
                                                     il.type AS linkTypeNumber,
@@ -1369,7 +1367,6 @@ namespace Api.Modules.Grids.Services
                                                         WHEN 3 THEN 'acceptatie'
                                                         WHEN 4 THEN 'live'
                                                     END AS publishedEnvironment,
-                                                    i.title,
                                                     i.entity_type AS entityType,
 	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields,
                                                     il.type AS linkTypeNumber,
