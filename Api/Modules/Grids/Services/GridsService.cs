@@ -1262,14 +1262,15 @@ namespace Api.Modules.Grids.Services
                                                     END AS publishedEnvironment,
                                                     i.title,
                                                     i.entity_type AS entityType,
-	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields,
                                                     ?linkTypeNumber AS linkTypeNumber,
                                                     0 AS linkId,
                                                     i.added_on AS addedOn,
                                                     i.added_by AS addedBy,
                                                     i.changed_on AS changedOn,
                                                     i.changed_by AS changedBy,
-                                                    i.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`
+                                                    i.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`,
+                                                    i.*,
+	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields
                                                 FROM {tablePrefix}{WiserTableNames.WiserItem} i
 
                                                 {{filters}}
@@ -1326,14 +1327,15 @@ namespace Api.Modules.Grids.Services
                                                     END AS publishedEnvironment,
                                                     i.title,
                                                     i.entity_type AS entityType,
-	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields,
                                                     il.type AS linkTypeNumber,
                                                     il.id AS linkId,
                                                     i.added_on AS addedOn,
                                                     i.added_by AS addedBy,
                                                     i.changed_on AS changedOn,
                                                     i.changed_by AS changedBy,
-                                                    il.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`
+                                                    il.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`,
+                                                    i.*,
+	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields
                                                 FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} il
                                                 JOIN {tablePrefix}{WiserTableNames.WiserItem} i ON i.id = il.{(currentItemIsSourceId ? "destination_item_id" : "item_id")} {(String.IsNullOrEmpty(entityType) ? "" : "AND FIND_IN_SET(i.entity_type, ?entityType)")} {(moduleId <= 0 ? "" : "AND i.moduleid = ?moduleId")}
 
@@ -1371,14 +1373,15 @@ namespace Api.Modules.Grids.Services
                                                     END AS publishedEnvironment,
                                                     i.title,
                                                     i.entity_type AS entityType,
-	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields,
                                                     il.type AS linkTypeNumber,
                                                     il.id AS linkId,
                                                     i.added_on AS addedOn,
                                                     i.added_by AS addedBy,
                                                     i.changed_on AS changedOn,
                                                     i.changed_by AS changedBy,
-                                                    il.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`
+                                                    il.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`,
+                                                    i.*,
+                                                    GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields
                                                 FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} il
                                                 JOIN {tablePrefix}{WiserTableNames.WiserItem} i ON i.id = il.{(currentItemIsSourceId ? "destination_item_id" : "item_id")} {(String.IsNullOrEmpty(entityType) ? "" : "AND FIND_IN_SET(i.entity_type, ?entityType)")} {(moduleId <= 0 ? "" : "AND i.moduleid = ?moduleId")}
 
@@ -1588,7 +1591,9 @@ namespace Api.Modules.Grids.Services
                                 var name = propertyName?.ToLowerInvariant().MakeJsonPropertyName();
                                 if (String.IsNullOrWhiteSpace(name) || rowData.ContainsKey(name))
                                 {
-                                    continue;
+                                    //continue;
+                                    //We want to remove the existing data, because fields always overrule existing (aggregated) values
+                                    rowData.Remove(name);
                                 }
 
                                 var field = results.SchemaModel.Fields.FirstOrDefault(f => f.Key == name).Value;
