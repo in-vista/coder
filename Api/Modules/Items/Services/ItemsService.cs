@@ -1230,7 +1230,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
     	                            e.save_on_change, files.JSON AS filesJSON, 0 AS itemLinkId, e.regex_validation, e.mandatory, e.language_code,
     	                            # A user can have multiple roles. So we need to check if they have at least one role that has update rights. If it doesn't, then the field should be readonly.
     	                            IF(e.readonly > 0 OR i.readonly > 0 OR SUM(IF(permission.permissions IS NULL OR (permission.permissions & 4) > 0, 1, 0)) = 0, TRUE, FALSE) AS readonly,
-    	                            e.custom_script, permission.permissions, i.readonly AS itemIsReadOnly, e.visibility_path_regex
+    	                            e.custom_script, permission.permissions, i.readonly AS itemIsReadOnly, e.visibility_path_regex, e.enable_aggregation
                                 FROM {WiserTableNames.WiserEntityProperty} e
                                 JOIN {tablePrefix}{WiserTableNames.WiserItem}{{0}} i ON i.id = ?itemId AND i.entity_type = e.entity_name
                                 LEFT JOIN {WiserTableNames.WiserFieldTemplates} t ON t.field_type = e.inputtype
@@ -1263,7 +1263,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
     	                            e.save_on_change, files.JSON AS filesJSON, il.id AS itemLinkId, e.regex_validation, e.mandatory, e.language_code,
     	                            # A user can have multiple roles. So we need to check if they have at least one role that has update rights. If it doesn't, then the field should be readonly.
     	                            IF(e.readonly > 0 OR SUM(IF(permission.permissions IS NULL OR (permission.permissions & 4) > 0, 1, 0)) = 0, TRUE, FALSE) AS readonly, 
-    	                            e.custom_script, permission.permissions, i.readonly AS itemIsReadOnly, e.visibility_path_regex
+    	                            e.custom_script, permission.permissions, i.readonly AS itemIsReadOnly, e.visibility_path_regex, e.enable_aggregation
                                 FROM {WiserTableNames.WiserEntityProperty} e
                                 JOIN {tablePrefix}{WiserTableNames.WiserItem}{{0}} i ON i.id = ?itemId
                                 JOIN {linkTablePrefix}{WiserTableNames.WiserItemLink}{{0}} il ON il.id = ?itemLinkId AND il.type = e.link_type
@@ -1318,6 +1318,30 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             var tenant = await wiserTenantsService.GetSingleAsync(identity);
             var encryptionKey = tenant.ModelObject.EncryptionKey;
 
+            // New aggregation method, check if any of the fields are aggregated, if so fill the values from the item table
+            if (dataTable.AsEnumerable().Any(row => Convert.ToInt32(row["enable_aggregation"]) == 2))
+            {
+                //TODO:get only the selection of fields in this query
+                clientDatabaseConnection.ClearParameters();
+                clientDatabaseConnection.AddParameter("itemId", itemId);
+                var itemQuery = $@"SET SESSION group_concat_max_len = 1000000;
+                                SELECT *
+                                FROM {tablePrefix}{WiserTableNames.WiserItem}{{0}} i
+                                WHERE i.id = ?itemId";
+                var aggregatedFieldsTable = await clientDatabaseConnection.GetAsync(String.Format(itemQuery, (itemIsFromArchive ? WiserTableNames.ArchiveSuffix : "")), skipCache:true);
+                
+                //Neem velden over
+                var rowsToUpdate = dataTable.AsEnumerable()
+                    .Where(row => Convert.ToInt32(row["enable_aggregation"]) == 2)
+                    .Where(row => aggregatedFieldsTable.Columns.Contains(row.Field<string>("property_name")));
+                
+                foreach (var row in rowsToUpdate)
+                {
+                    var fieldName = row.Field<string>("property_name");
+                    row["value"] = aggregatedFieldsTable.Rows[0][fieldName]; //TODO:check gaat dit goed bij grote velden > 1000 tekens?
+                }
+            }
+            
             var dataRows = dataTable.Rows;
             var fieldTemplates = new Dictionary<string, string>();
             foreach (DataRow dataRow in dataRows)
