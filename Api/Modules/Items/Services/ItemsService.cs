@@ -1070,7 +1070,15 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 value = decimalValue.ToString(new CultureInfo("en-US"));
                                 break;
                             case JArray jArrayValue:
-                                value = String.Join(",", jArrayValue.Values<string>());
+                                try
+                                {
+                                    value = String.Join(",", jArrayValue.Values<string>());
+                                }
+                                catch
+                                {
+                                    value = jArrayValue.ToString();
+                                }
+                                
                                 break;
                             default:
                                 value = parameter.Value.ToString().ToMySqlSafeValue(false);
