@@ -1260,7 +1260,7 @@ namespace Api.Modules.Grids.Services
                                                         WHEN 3 THEN 'acceptatie'
                                                         WHEN 4 THEN 'live'
                                                     END AS publishedEnvironment,
-                                                    i.entity_type AS entityType
+                                                    i.entity_type AS entityType,
                                                     ?linkTypeNumber AS linkTypeNumber,
                                                     0 AS linkId,
                                                     i.added_on AS addedOn,
@@ -1588,7 +1588,9 @@ namespace Api.Modules.Grids.Services
                                 var name = propertyName?.ToLowerInvariant().MakeJsonPropertyName();
                                 if (String.IsNullOrWhiteSpace(name) || rowData.ContainsKey(name))
                                 {
-                                    continue;
+                                    //continue;
+                                    //We want to remove the existing data, because fields always overrule existing (aggregated) values
+                                    rowData.Remove(name);
                                 }
 
                                 var field = results.SchemaModel.Fields.FirstOrDefault(f => f.Key == name).Value;
