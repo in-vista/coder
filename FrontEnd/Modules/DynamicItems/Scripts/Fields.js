@@ -706,7 +706,7 @@ export class Fields {
      * @param {any} options The field options.
      */
     onDropDownChange(event, options) {
-        this.onFieldValueChange(event);
+        this.onFieldValueChange(event, options);
 
         if (options.allowOpeningOfSelectedItem) {
             event.sender.element.closest(".item").find(".openItemButton").toggleClass("hidden", !event.sender.value());
@@ -2471,6 +2471,33 @@ export class Fields {
                             return false;
                         }
                     }
+                    
+                    // Closes the item and refreshes the parent window.
+                    // If there is no parent window (action button on a grid), only the grid will be refreshed
+                    case 'closeCurrentItemAndRefresh': {
+                        // Get the window element.
+                        const kendoWindowElement = element.closest(".popup-container");
+                        
+                        // Get the Kendo window object.
+                        const kendoWindow = kendoWindowElement?.data("kendoWindow");
+                        
+                        // Check if the window element was ever present.
+                        if(kendoWindow) {
+                            // Get the data stored in the window.
+                            const data = kendoWindow.element.data();
+                            
+                            // If the sender of the popup window is a grid, refresh the grid.
+                            if (data.senderGrid) {
+                                this.base.grids.mainGridForceRecount = true;
+                                data.senderGrid.dataSource.read();
+                            }
+                        }
+                        
+                        // Close the window if it exists.
+                        kendoWindow?.close();
+                        
+                        break;
+                    }
 
                     // Custom actions with custom javascript.
                     case "custom": {
@@ -3630,8 +3657,9 @@ export class Fields {
     /**
      * Event that gets fired when the value of any input has been changed.
      * @param {any} event The event from the change action.
+     * @param {any} options the options of the input from the entityproperty table     
      */
-    onFieldValueChange(event) {
+    async onFieldValueChange(event, options = {}) {        
         this.handleDependencies(event);
 
         const fieldContainer = (event.sender ? event.sender.element : $(event.currentTarget)).closest(".item");
@@ -3643,6 +3671,37 @@ export class Fields {
                 saveButton = itemContainer.find(".saveButton");
             }
             saveButton.first().trigger("click");
+        }
+
+        // If a queryIdOnChange is given in the options, then execute the query on change of the input
+        if (options.queryIdOnChange ?? 0 > 0) {
+            const itemIdEncrypted = window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId;
+            const data = {};
+            data.value = event.sender.value();
+            data.itemId = fieldContainer.data().itemId;
+            data.userId = this.base.settings.userId;
+            data.propertyName = fieldContainer.data().propertyName;   
+            
+            Wiser.api({
+                url: dynamicItems.settings.wiserApiRoot + "items/" + encodeURIComponent(itemIdEncrypted) + "/action-button/" + fieldContainer.data().propertyId + "?queryId=" + encodeURIComponent(options.queryIdOnChange) + "&itemLinkId=" + encodeURIComponent(fieldContainer.data().itemLinkId),
+                contentType: "application/json",
+                dataType: "json",
+                method: "POST",
+                data: JSON.stringify(data)
+            }).then((result) => {
+                console.log('Query on change success', result);                
+            }).catch((result) => {
+                console.warn('Query on change error', result);                
+            });
+        }
+
+        // Refresh the current item after this input changes
+        if (options.refreshOnChange ?? false) {
+            const previouslySelectedTab = window.dynamicItems.mainTabStrip.select().index();
+            await window.dynamicItems.loadItem(
+                window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId,
+                previouslySelectedTab,
+                window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.entityType : window.dynamicItems.settings.entityType);
         }
     }
 
@@ -3683,6 +3742,88 @@ export class Fields {
             url: `${this.base.settings.wiserApiRoot}properties/${encodeURIComponent(propertyId)}/width/${encodeURIComponent(width)}`,
             method: "PUT",
             contentType: "application/json"
+        });
+    }
+
+    /**
+     * Initializes all bindings and functionality for Pro6PP-based fields. These will auto-complete address fields depending on the set-up of the fields.
+     * @param {any} container The contains to get the data from.
+     * @param {string} apiKey The API key to use the Pro6PP API.
+     */
+    initializePro6PPBindings(container) {
+        // Constants.
+        const attributeName = 'data-pro6pp';
+        
+        // Retrieve the individual supported fields.
+        const zipCodeField = container.find(`[${attributeName}="zipcode"]`);
+        const houseNumberField = container.find(`[${attributeName}="house_number"]`);
+        const premiseField = container.find(`[${attributeName}="premise"]`);
+        const streetField = container.find(`[${attributeName}="street"]`);
+        const cityField = container.find(`[${attributeName}="city"]`);
+        const countryField = container.find(`[${attributeName}="country"]`);
+        
+        // Combine all listening fields into one jquery object to attach a listener event to them.
+        const listeningFields = $()
+            .add(zipCodeField)
+            .add(houseNumberField)
+            .add(premiseField);
+        
+        // Hold a timer ID for a delayed input event.
+        let debounceTimer;
+        const inputDelay = 1000;
+        
+        // Attach a listener to the relevant fields.
+        listeningFields.on('input', function() {
+            // Clear the delay timer.
+            clearTimeout(debounceTimer);
+            
+            // Start a delayed invocation of the input event.
+            debounceTimer = setTimeout(async () => {
+                // Retrieve the given input.
+                const zipCode = zipCodeField?.val();
+                const houseNumber = houseNumberField?.val();
+                const premise = premiseField?.val();
+                
+                // Build the request URL.
+                const requestUrlBuilder = new URL(`${window.dynamicItems.settings.wiserApiRoot}geolocation/pro6pp`);
+                requestUrlBuilder.searchParams.set('zipCode', zipCode);
+                requestUrlBuilder.searchParams.set('houseNumber', houseNumber);
+                requestUrlBuilder.searchParams.set('premise', premise);
+                const requestUrl = requestUrlBuilder.toString();
+                
+                // Request the address with the given input.
+                try {
+                    const addressResponse = await Wiser.api({
+                        url: requestUrl,
+                        contentType: "application/json"
+                    });
+                    
+                    // Retrieve all the address information from the response.
+                    const street = addressResponse.street;
+                    const city = addressResponse.settlement;
+                    const country = addressResponse.country;
+                    
+                    // Check for each field if it exists and already has a value. If it has no value, set the value to the response.
+                    if(!streetField?.val())
+                        streetField?.val(street);
+
+                    if(!cityField?.val())
+                        cityField?.val(city);
+
+                    if(!countryField?.val())
+                        countryField?.val(country);
+                } catch(error) {
+                    // Keep a list of HTTP status codes that we expect that can be thrown to ignore the exception.
+                    const handledErrorCodes = [ 400, 404 ];
+                    
+                    // Check if the exception has any of the handled error codes.
+                    if(handledErrorCodes.includes(error.status))
+                        return;
+                    
+                    // Throw the error when it is unexpected.
+                    console.error(error);
+                }
+            }, inputDelay);
         });
     }
 }

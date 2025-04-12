@@ -694,7 +694,7 @@ export class Wiser {
                     // If a query ID is set, execute that query first, so that the results can be used in the call to the API.
                     if (action.preRequestQueryId && itemDetails) {
                         const queryResult = await Wiser.api({
-                            method: action.method,
+                            method: "POST",
                             url: `${settings.wiserApiRoot}items/${encodeURIComponent(itemDetails.encryptedId || itemDetails.encrypted_id || itemDetails.encryptedid)}/action-button/0?queryId=${encodeURIComponent(action.preRequestQueryId)}&itemLinkId=${encodeURIComponent(itemDetails.linkId || itemDetails.link_id || 0)}`,
                             data: !extraData ? null : JSON.stringify(extraData),
                             contentType: "application/json"
@@ -720,7 +720,8 @@ export class Wiser {
 
                     // Setup the headers for the request.
                     const headers = {
-                        "X-Api-Url": `${apiOptions.baseUrl}${action.function}`
+                        "X-Api-Url": `${apiOptions.baseUrl}${action.function}`,
+                        "X-Http-Method": `${action.method}`
                     };
 
                     if (action.extraHeaders) {
@@ -853,7 +854,9 @@ export class Wiser {
                 const authenticationRequest = {
                     method: "POST",
                     url: "/ExternalApis/Proxy",
-                    headers: { "X-Api-Url": `${apiOptions.baseUrl}${apiOptions.authentication.accessTokenUrl}` },
+                    headers: { 
+                        "X-Api-Url": `${apiOptions.baseUrl}${apiOptions.authentication.accessTokenUrl}`                        
+                    },
                     data: {}
                 };
 

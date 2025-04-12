@@ -1,6 +1,6 @@
 ﻿(() => {
     const options = {options};
-    const field = $("#field_{propertyIdWithSuffix}").change(window.dynamicItems.fields.onFieldValueChange.bind(window.dynamicItems.fields));
+    const field = $("#field_{propertyIdWithSuffix}").change((event) => { window.dynamicItems.fields.onFieldValueChange(event, options); });
     const container = field.closest(".item");
     
     let imageUrl = options.imageUrl;

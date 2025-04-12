@@ -19,7 +19,7 @@
                 .prop("disabled", {readonly})
                 .appendTo(label);
             var span = $("<span>").addClass("label").text(result.name).appendTo(label);
-            input.change(window.dynamicItems.fields.onFieldValueChange.bind(window.dynamicItems.fields));
+            input.change((event) => { window.dynamicItems.fields.onFieldValueChange(event, {options}); });
             field.append(label);
         }
 

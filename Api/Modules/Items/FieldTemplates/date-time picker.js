@@ -1,5 +1,5 @@
 ﻿(() => {
-const options = $.extend({ change: window.dynamicItems.fields.onFieldValueChange.bind(window.dynamicItems.fields) }, {options});
+const options = $.extend({ change: function(event) { window.dynamicItems.fields.onFieldValueChange(event, {options}); }}, {options});
 const field = $("#field_{propertyIdWithSuffix}");
 const savedValue = field.val();
 const readonly = {readonly};
@@ -88,5 +88,6 @@ switch(options.type) {
 }
 
 kendoComponent.readonly(readonly);
+
 {customScript}
 })();

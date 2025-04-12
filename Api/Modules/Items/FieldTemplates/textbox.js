@@ -54,7 +54,7 @@ if (codeMirrorSettings.mode) {
 	});
 }
 
-field.change(window.dynamicItems.fields.onFieldValueChange.bind(window.dynamicItems.fields)).keyup(window.dynamicItems.fields.onTextFieldKeyUp.bind(window.dynamicItems.fields));
+field.change((event) => { window.dynamicItems.fields.onFieldValueChange(event, options); }).keyup(window.dynamicItems.fields.onTextFieldKeyUp.bind(window.dynamicItems.fields));
 
 {customScript}
 })();
