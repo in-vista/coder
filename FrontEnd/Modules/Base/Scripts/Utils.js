@@ -1504,10 +1504,15 @@ export class Wiser {
  * Miscellaneous utils.
  */
 export class Misc {
-    static loadExternalScript(url) {
+    static loadExternalScript(url, attributes = {}) {
         return new Promise((resolve) => {
             const scriptEl = document.createElement("script");
             scriptEl.src = url;
+
+            // Set all given attributes on the script element.
+            for(const [ attributeKey, attributeValue ] of Object.entries(attributes))
+                scriptEl.setAttribute(attributeKey, attributeValue);
+            
             if (scriptEl.readyState) {  //IE
                 scriptEl.onreadystatechange = () => {
                     if (scriptEl.readyState === "loaded" ||
@@ -1733,6 +1738,19 @@ export class Misc {
         const div = document.createElement('div');
         div.innerHTML = input;
         return div.textContent;
+    }
+    
+    static async loadCss(url) {
+        return new Promise((resolve, reject) => {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = url;
+            
+            link.onload = () => resolve();
+            link.onerror = () => reject(`Failed to dynamically load stylesheet for '${url}'`);
+            
+            document.head.appendChild(link);
+        });
     }
 }
 

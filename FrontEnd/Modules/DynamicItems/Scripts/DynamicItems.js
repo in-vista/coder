@@ -671,6 +671,18 @@ const moduleSettings = {
                 await require("@progress/kendo-ui/js/kendo.grid.js");
                 await require("/kendo/messages/kendo.grid.nl-NL.js");
             }
+            if (scriptTemplate.indexOf("bryntum.calendar.Calendar") > -1) {
+                // These scripts have to be loaded as script tags due to how the library works.
+                await Misc.loadExternalScript('/customscripts/bryntum/calendar/locales/calendar.locale.Nl.js', {
+                    'type': 'module'
+                });
+                
+                await Misc.loadExternalScript('/customscripts/bryntum/calendar/calendar.umd.js', {
+                    'data-default-locale': 'Nl'
+                });
+                
+                await Misc.loadCss('/css/bryntum/calendar/calendar.material.css');
+            }
 
             await require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
         }
