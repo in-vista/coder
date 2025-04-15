@@ -55,8 +55,8 @@ async function initializeCalendar() {
         });
         
         // Register events for the calendar instance.
-        calendar.on('beforeDateChange', event => onDateChange(event.source, event.source.activeView));
-        calendar.on('activeItemChange', event => onDateChange(event.activeItem.calendar, event.activeItem));
+        calendar.on('activeItemChange', event => onDateChange(event.activeItem.calendar));
+        calendar.on('dateRangeChange', event => onDateChange(event.source.calendar));
         calendar.on('beforeActiveItemChange', onBeforeActiveItemChange);
         calendar.on('beforeEventEdit', onBeforeEventEdit);
         
@@ -172,11 +172,12 @@ async function onBeforeActiveItemChange(event) {
 }
 
 // The event fired when the date is changed in the calendar.
-async function onDateChange(calendar, widget) {
-    // Wait a tick.
+async function onDateChange(calendar) {
+    // Wait for a tick.
     await waitTick();
     
     // Retrieve the visible start and end date of the current view.
+    const widget = calendar.activeView;
     const { startDate, endDate } = getVisibleDateRange(widget);
     
     // Reload the data with the given start and end date range.
@@ -259,11 +260,11 @@ function getVisibleDateRange(widget) {
     try {
         startDate = widget.firstVisibleDate;
         endDate = widget.lastVisibleDate;
-    } catch(exception) {
+    } catch (exception) {
         startDate = widget.startDate;
         endDate = widget.endDate;
     }
-    
+
     // Return the start and end date in an object.
     return {
         startDate,
@@ -271,7 +272,6 @@ function getVisibleDateRange(widget) {
     }
 }
 
-// Waits a tick before resolving the promise.
 async function waitTick() {
     return new Promise(resolve => {
         setTimeout(() => {
