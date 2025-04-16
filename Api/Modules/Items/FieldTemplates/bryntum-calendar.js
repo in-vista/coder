@@ -1,8 +1,13 @@
 const options = {options};
 
+const loader = $("#mainLoader");
+
 // Loads the calendar view.
 async function initializeCalendar() {
     return new Promise(resolve => {
+        // Add loading indication.
+        loader.addClass("loading");
+        
         // Set the default language to be Dutch.
         const { LocaleManager } = window.bryntum.calendar;
         LocaleManager.applyLocale('Nl');
@@ -49,16 +54,34 @@ async function initializeCalendar() {
                 month: true
             },
             features: {
-                eventTooltip: true
+                eventTooltip: true,
+                timeRanges: true
+            },
+            async onDateRangeChange(event) {
+                await onDateChange(this);
+            },
+            async onBeforeActiveItemChange(event) {
+                await onDateChange(this);
+            },
+            onBeforeDragResizeEnd(event) {
+                const { eventRecord, resourceRecord, newStartDate, newEndDate } = event;
+                onEditEvent(eventRecord, resourceRecord, newStartDate, newEndDate);
+                return true;
+            },
+            onBeforeDragMoveEnd(event) {
+                const { eventRecord, resourceRecord, newStartDate, newEndDate } = event;
+                onEditEvent(eventRecord, resourceRecord, newStartDate, newEndDate);
+                return true;
             },
             ...options
         });
         
         // Register events for the calendar instance.
-        calendar.on('activeItemChange', event => onDateChange(event.activeItem.calendar));
-        calendar.on('dateRangeChange', event => onDateChange(event.source.calendar));
         calendar.on('beforeActiveItemChange', onBeforeActiveItemChange);
         calendar.on('beforeEventEdit', onBeforeEventEdit);
+
+        // Remove loading indication.
+        loader.removeClass("loading");
         
         // Resolve the promise and return the calendar instance.
         resolve(calendar);
@@ -67,43 +90,119 @@ async function initializeCalendar() {
 
 // Loads the data in the calendar view.
 async function loadData(calendar, startDate, endDate) {
+    // Add loading indication.
+    loader.addClass("loading");
+    
     // Temporarily store the current state of the calendar.
     const calendarState = calendar.state;
     
     // Temporarily clear the previously loaded data.
     calendar.eventStore.data = [];
 
+    // Temporarily clear the previously loaded time ranges for the resource view.
+    const isResourceView = calendar.activeView.isResourceView;
+    if(isResourceView)
+        calendar.resourceTimeRangeStore.data = [];
+
     // Determine the start and end range for this day.
     startDate = new Date(startDate.getTime());
     endDate = new Date(endDate.getTime());
-    startDate.setHours(0);
-    endDate.setHours(24);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
     
-    // Request the events.
-    const eventsResponse = await Wiser.api({
-        method: "POST",
-        url: dynamicItems.settings.wiserApiRoot + "items/" + encodeURIComponent("{itemIdEncrypted}") + "/action-button/{propertyId}?queryId=" + encodeURIComponent(options.queryId || 0),
-        contentType: "application/json",
-        data: JSON.stringify({
-            start_date: startDate,
-            end_date: endDate
+    // A list of promises to run in parallel.
+    const requestTasks = [
+        // Request events.
+        Wiser.api({
+            method: "POST",
+            url: dynamicItems.settings.wiserApiRoot + "items/" + encodeURIComponent("{itemIdEncrypted}") + "/action-button/{propertyId}?queryId=" + encodeURIComponent(options.queryId || 0),
+            contentType: "application/json",
+            data: JSON.stringify({
+                start_date: startDate,
+                end_date: endDate
+            })
         })
-    });
+    ];
+    
+    // If the current view is that of a resource, request the availability.
+    if(isResourceView) {
+        // Request availability.
+        requestTasks.push(new Promise(async resolve => {
+            const availabilityUrlResponse = await Wiser.api({
+                method: 'POST',
+                url: dynamicItems.settings.wiserApiRoot + "items/" + encodeURIComponent("{itemIdEncrypted}") + "/action-button/{propertyId}?queryId=" + encodeURIComponent(options.availabilityUrlQuery || 0),
+                contentType: "application/json"
+            });
+
+            // Format the availability request URL.
+            const formattedStartDate = `${startDate.getFullYear()}-${startDate.getMonth()}-${startDate.getDate()}`;
+            const formattedEndDate = `${endDate.getFullYear()}-${endDate.getMonth()}-${endDate.getDate()}`;
+            const availabilityUrl = availabilityUrlResponse.otherData[0]?.url;
+            const fullAvailabilityUrl = `${availabilityUrl}&startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
+
+            // Prepare the availability request and callback.
+            const request = new XMLHttpRequest();
+            request.onreadystatechange = () => {
+                if(request.readyState !== 4 || request.status !== 200)
+                    return;
+
+                const availability = JSON.parse(request.responseText);
+                resolve(availability);
+            }
+
+            // Prepare the availability request URL and header(s).
+            request.open('GET', fullAvailabilityUrl);
+            request.setRequestHeader('Content-Type', 'application/json');
+
+            // Send the availability request.
+            request.send();
+        }));
+    }
+    
+    // Run the tasks in parallel.
+    const requestTasksResponses = await Promise.allSettled(requestTasks);
+    
+    // Retrieve the responses for each of the request tasks.
+    const eventsResponse = requestTasksResponses[0].value;
+    
+    // Only if the active view is that of a resource, process the availability time ranges.
+    if(isResourceView) {
+        // Retrieve the availability response.
+        const availability = requestTasksResponses[1].value;
+        
+        // Process the availability as time ranges in the calendar view.
+        for (const [resourceIdString, availabilityEntries] of Object.entries(availability)) {
+            const resourceId = Number(resourceIdString);
+            for (const { startDate, endDate } of availabilityEntries) {
+                // Validate start and end date
+                if (startDate > endDate)
+                    continue;
+
+                // Add a new record to the time range store.
+                calendar.resourceTimeRangeStore.add({
+                    resourceId: resourceId,
+                    startDate: startDate,
+                    endDate: endDate
+                });
+            }
+        }
+    }
 
     // Process the events.
-    calendar.eventStore.data = eventsResponse.otherData.map(reservation => {
-        const duration = (new Date(reservation.end).getTime() - new Date(reservation.start).getTime()) / 60000;
-        const name = `${reservation.title}${(reservation.arrangement_title ? ` (${reservation.arrangement_title})` : '')}${(reservation.notes ? ` ${reservation.notes}` : '')}`;
-        const color = reservation.arrangement_color?.replace(/^#/, '');
+    const events = eventsResponse.otherData;
+    calendar.eventStore.data = events.map(event => {
+        const duration = (new Date(event.end).getTime() - new Date(event.start).getTime()) / 60000;
+        const name = `${event.title}${(event.arrangement_title ? ` (${event.arrangement_title})` : '')}${(event.notes ? ` ${event.notes}` : '')}`;
+        const color = event.arrangement_color?.replace(/^#/, '');
 
         return {
-            id: reservation.id,
-            encryptedId: reservation.encryptedId,
-            resourceId: reservation.medewerker,
-            draggable: false,
-            resizable: false,
-            allDay: !!reservation.all_day,
-            startDate: reservation.start,
+            id: event.id,
+            encryptedId: event.encryptedId,
+            resourceId: event.medewerker,
+            draggable: true,
+            resizable: true,
+            allDay: !!event.all_day,
+            startDate: event.start,
             duration: duration,
             durationUnit: 'minute',
             name: name,
@@ -113,6 +212,9 @@ async function loadData(calendar, startDate, endDate) {
 
     // Re-apply the calendar's state before (re)loading the data.
     calendar.state = calendarState;
+    
+    // Remove loading indication.
+    loader.removeClass("loading");
 }
 
 // Load the resources for the calendar.
@@ -125,6 +227,7 @@ async function loadResources(calendar, startDate, endDate) {
     endDate = new Date(endDate.getTime());
     startDate.setHours(0);
     endDate.setHours(24);
+    endDate.setTime(endDate.getTime() - 1);
     
     // Request the resource data.
     const resourcesResponse = await Wiser.api({
@@ -140,11 +243,16 @@ async function loadResources(calendar, startDate, endDate) {
 
     // Process resources.
     calendar.resourceStore.data = resourcesResponse.otherData.map(employee => {
-        const employeeId = employee.value;
+        const employeeId = Math.round(employee.value);
+        
+        // Generate a unique hex color based on the employee's ID.
+        const employeeColor = Misc.idToHexColor(employeeId);
+        
         return {
             id: employeeId,
             name: employee.text,
-            image: !!employee.photo ? `items/${employeeId}/files/photo/0.jpg?subDomain={subDomain}` : false
+            image: !!employee.photo ? `items/${employeeId}/files/photo/0.jpg?subDomain={subDomain}` : false,
+            eventColor: employeeColor
         }
     });
 }
@@ -158,11 +266,19 @@ function determineCheckedResources(calendar) {
     const resources = calendar.resourceStore.records.map(resource => resource.data);
     const events = calendar.eventStore.records.map(event => event.data);
     
-    // Go over all resources where any of the events in the view matches their respective resource id.
-    // Then, only retrieve the IDs of the resources and set them to be selected by the resource filter.
-    resourceFilter.selected = resources
-        .filter(resource => events.some(event => event.resourceId === resource.id))
-        .map(resource => resource.id);
+    if(events.length) {
+        // Go over all resources where any of the events in the view matches their respective resource id.
+        // Then, only retrieve the IDs of the resources and set them to be selected by the resource filter.
+        resourceFilter.selected = resources
+            .filter(resource => events.some(event => event.resourceId === resource.id))
+            .map(resource => resource.id);
+    } else {
+        // If there are no events to show, we want to enable all the resource filters.
+        // This has to be done, because if we were to not select a single resource filter programatically, switching
+        // dates would not be detected anymore and no data is loaded, unless we manually enable one of the resource
+        // filters again.
+        resourceFilter.selected = resources.map(resource => resource.id);
+    }
 }
 
 // The event fired before the view is changed. This event is used to clear the current event store.
@@ -187,6 +303,30 @@ async function onDateChange(calendar) {
     determineCheckedResources(calendar);
 }
 
+// The event fired when an event record is either moved or its start/end date is being adjusted.
+async function onEditEvent(eventRecord, resourceRecord, startDate, endDate) {
+    const eventId = eventRecord.data.realEventId;
+    const resourceId = resourceRecord?.value ?? eventRecord.data.resourceId;
+    
+    const editQueryId = options.editQuery;
+    
+    if(!editQueryId)
+        return;
+
+    await Wiser.api({
+        url: dynamicItems.settings.wiserApiRoot + "items/" + encodeURIComponent("{itemIdEncrypted}") + "/action-button/{propertyId}?queryId=" + encodeURIComponent(editQueryId) + "&itemLinkId={itemLinkId}",
+        contentType: 'application/json',
+        dataType: 'json',
+        method: 'POST',
+        data: JSON.stringify({
+            id: eventId,
+            medewerker: resourceId,
+            start: startDate,
+            end: endDate
+        })
+    });
+}
+
 // The event fired when creating/editing an event in the calendar.
 function onBeforeEventEdit(event) {
     // Retrieve data from the event.
@@ -203,6 +343,10 @@ function onBeforeEventEdit(event) {
             event.eventRecord.remove();
             return;
         }
+        
+        // Ignore reloading the overview since the item was cancelled anyways.
+        if(itemDetails === null)
+            return;
 
         // Reload the calendar's data.
         const calendar = event.source;
@@ -261,8 +405,8 @@ function getVisibleDateRange(widget) {
         startDate = widget.firstVisibleDate;
         endDate = widget.lastVisibleDate;
     } catch (exception) {
-        startDate = widget.startDate;
-        endDate = widget.endDate;
+        startDate = widget.calendar.date;
+        endDate = startDate;
     }
 
     // Return the start and end date in an object.
