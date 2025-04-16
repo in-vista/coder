@@ -750,7 +750,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         await clientDatabaseConnection.ExecuteAsync("UNLOCK TABLES");
                     }
                     
-                    // Set the environment on the branch. This will add an entry to the history to activate the item on production after a merge has been performed.
+                    // Set the environment on the branch. This will add an entry to the history to activate the item on production after a merge has been performed. 
                     newItem.PublishedEnvironment = Environments.Development | Environments.Test | Environments.Acceptance | Environments.Live;
                     await wiserItemsService.UpdateAsync(newItem.Id, newItem, userId: userId, username: username, encryptionKey: encryptionKey, createNewTransaction: false, skipPermissionsCheck: true);
                     
