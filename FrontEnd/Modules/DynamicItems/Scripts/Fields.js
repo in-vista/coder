@@ -1959,6 +1959,12 @@ export class Fields {
                                 kendo.alert(queryActionResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals.");
                                 return false;
                             }
+                            else {
+                                const message = queryActionResult.otherData?.[0]?.showMessage;
+                                if (message) {
+                                    kendo.alert(message);
+                                }
+                            }
                         } else {
                             // We have an array with selected items, which means this is an action button in a grid and we want to execute this action once for every selected item.
                             for (let item of selectedItems) {
