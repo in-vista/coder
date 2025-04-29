@@ -706,10 +706,7 @@ export class Fields {
      * @param {any} options The field options.
      */
     onDropDownChange(event, options) {
-        // Indicate whether the item should refresh after a change.
-        const refresh = options.refreshOnChange ?? false;
-        
-        this.onFieldValueChange(event, refresh);
+        this.onFieldValueChange(event, options);
 
         if (options.allowOpeningOfSelectedItem) {
             event.sender.element.closest(".item").find(".openItemButton").toggleClass("hidden", !event.sender.value());
@@ -1961,7 +1958,7 @@ export class Fields {
                             if (!queryActionResult.success) {
                                 kendo.alert(queryActionResult.errorMessage || "Er is iets fout gegaan met het uitvoeren van de actie (executeQuery), probeer het a.u.b. nogmaals.");
                                 return false;
-                            }
+                            }                            
                         } else {
                             // We have an array with selected items, which means this is an action button in a grid and we want to execute this action once for every selected item.
                             for (let item of selectedItems) {
@@ -3660,9 +3657,9 @@ export class Fields {
     /**
      * Event that gets fired when the value of any input has been changed.
      * @param {any} event The event from the change action.
-     * @param {any} refresh Whether to refresh the item after changing the value.
+     * @param {any} options the options of the input from the entityproperty table     
      */
-    async onFieldValueChange(event, refresh = false) {
+    async onFieldValueChange(event, options = {}) {        
         this.handleDependencies(event);
 
         const fieldContainer = (event.sender ? event.sender.element : $(event.currentTarget)).closest(".item");
@@ -3676,7 +3673,30 @@ export class Fields {
             saveButton.first().trigger("click");
         }
 
-        if (refresh) {
+        // If a queryIdOnChange is given in the options, then execute the query on change of the input
+        if (options.queryIdOnChange ?? 0 > 0) {
+            const itemIdEncrypted = window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId;
+            const data = {};
+            data.value = event.sender.value();
+            data.itemId = fieldContainer.data().itemId;
+            data.userId = this.base.settings.userId;
+            data.propertyName = fieldContainer.data().propertyName;   
+            
+            Wiser.api({
+                url: dynamicItems.settings.wiserApiRoot + "items/" + encodeURIComponent(itemIdEncrypted) + "/action-button/" + fieldContainer.data().propertyId + "?queryId=" + encodeURIComponent(options.queryIdOnChange) + "&itemLinkId=" + encodeURIComponent(fieldContainer.data().itemLinkId),
+                contentType: "application/json",
+                dataType: "json",
+                method: "POST",
+                data: JSON.stringify(data)
+            }).then((result) => {
+                console.log('Query on change success', result);                
+            }).catch((result) => {
+                console.warn('Query on change error', result);                
+            });
+        }
+
+        // Refresh the current item after this input changes
+        if (options.refreshOnChange ?? false) {
             const previouslySelectedTab = window.dynamicItems.mainTabStrip.select().index();
             await window.dynamicItems.loadItem(
                 window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId,

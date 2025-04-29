@@ -402,9 +402,19 @@ const moduleSettings = {
             // Close panel
             $(".close-panel").click((event) => {
                 var target = $(event.target);
-
-                target.closest(".k-window").find(".entity-container").removeClass("info-active");
-                target.closest(".k-window").find("#right-pane").removeClass("info-active");
+                
+                // Find the closest k-window instance.
+                const kWindow = target.closest('.k-window');
+                
+                // Check if the context of this button lives in a k-window instance.
+                if(kWindow.length > 0) {
+                    kWindow.find(".entity-container").removeClass("info-active");
+                    kWindow.find("#right-pane").removeClass("info-active");
+                } else {
+                    // If the context of this button does not live in a k-window, we want to look for a different context.
+                    const window = target.closest('#window');
+                    window.find('#right-pane').removeClass('info-active');
+                }
             });
 
             $("body").on("click", ".imgZoom", (event) => {

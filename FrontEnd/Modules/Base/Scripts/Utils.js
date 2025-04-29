@@ -720,7 +720,8 @@ export class Wiser {
 
                     // Setup the headers for the request.
                     const headers = {
-                        "X-Api-Url": `${apiOptions.baseUrl}${action.function}`
+                        "X-Api-Url": `${apiOptions.baseUrl}${action.function}`,
+                        "X-Http-Method": `${action.method}`
                     };
 
                     if (action.extraHeaders) {
@@ -853,7 +854,9 @@ export class Wiser {
                 const authenticationRequest = {
                     method: "POST",
                     url: "/ExternalApis/Proxy",
-                    headers: { "X-Api-Url": `${apiOptions.baseUrl}${apiOptions.authentication.accessTokenUrl}` },
+                    headers: { 
+                        "X-Api-Url": `${apiOptions.baseUrl}${apiOptions.authentication.accessTokenUrl}`                        
+                    },
                     data: {}
                 };
 
