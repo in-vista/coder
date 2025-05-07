@@ -1533,8 +1533,8 @@ const moduleSettings = {
                 }
             }).data("kendoMultiSelect");
 
-            // Set the selected login roles.
-            this.userRolesDropDown.value(this.templateSettings.loginRoles);
+            // Set the selected login roles if the dropdown exists.
+            this.userRolesDropDown?.value(this.templateSettings.loginRoles);
 
             // Save the current settings so that we can keep track of any changes and warn the user if they're about to leave without saving.
             this.initialTemplateSettings = this.getCurrentTemplateSettings();
