@@ -1763,11 +1763,14 @@ export class Fields {
 
             // Then execute the actions, using the entered user parameters if there are any.
             try {
-                const executeQuery = () => {
+                const executeQuery = (additionalBody = {}) => {
                     return Wiser.api({
                         method: "POST",
                         url: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(mainItemDetails.encryptedId || mainItemDetails.encrypted_id || mainItemDetails.encryptedid)}/action-button/${propertyId}?queryId=${encodeURIComponent(action.queryId || this.base.settings.zeroEncrypted)}&itemLinkId=${encodeURIComponent(mainItemDetails.linkId || mainItemDetails.link_id || 0)}`,
-                        data: JSON.stringify(userParametersWithValues),
+                        data: JSON.stringify({
+                            ...userParametersWithValues,
+                            ...additionalBody
+                        }),
                         contentType: "application/json"
                     });
                 };
@@ -2447,15 +2450,27 @@ export class Fields {
                     // Send a notification to a Wiser user via Pusher.
                     case "pusher": {
                         const userId = action.pusherUserId || userParametersWithValues.pusherUserId;
-                        if (!userId) {
+                        const isGlobalMessage = action.isGlobalMessage;
+                        
+                        if (!userId && !isGlobalMessage) {
                             kendo.alert("Er is geen ontvanger ingesteld voor pusher. Neem a.u.b. contact op met ons.");
                             return false;
                         }
-
+                        
                         let eventData = action.eventData;
-                        if (typeof eventData === "object") {
-                            eventData = JSON.stringify(eventData);
+                        
+                        if (action.queryId) {
+                            const eventDataBody = queryActionResult?.otherData?.[0] || {};
+                            eventData = (await executeQuery(eventDataBody)).otherData?.[0];
                         }
+                        
+                        let channel = action.channel || 'agendering';
+                        if(eventData?.channel)
+                            channel = eventData.channel;
+                        
+                        let eventName = action.eventName;
+                        if(eventData?.eventName)
+                            eventName = eventData?.eventName;
 
                         // Send a pusher to notify the receiving user.
                         await Wiser.api({
@@ -2464,8 +2479,10 @@ export class Fields {
                             contentType: "application/json",
                             data: JSON.stringify({
                                 userId: userId,
-                                channel: action.channel || "agendering",
-                                eventData: eventData || ""
+                                isGlobalMessage: isGlobalMessage,
+                                channel: channel,
+                                eventName: eventName,
+                                eventData: eventData || ''
                             })
                         });
 
