@@ -2457,34 +2457,42 @@ export class Fields {
                             return false;
                         }
                         
-                        let eventData = action.eventData;
+                        let eventData = [ action.eventData ];
                         
                         if (action.queryId) {
                             const eventDataBody = queryActionResult?.otherData?.[0] || {};
-                            eventData = (await executeQuery(eventDataBody)).otherData?.[0];
+                            eventData = (await executeQuery(eventDataBody)).otherData;
                         }
                         
-                        let channel = action.channel || 'agendering';
-                        if(eventData?.channel)
-                            channel = eventData.channel;
+                        // Prepare a function that triggers a single Pusher message.
+                        const triggerPusher = async eventData => {
+                            // Determine the channel and event name values based on the options or from the query results.
+                            // The query results get priority. If they are not set in there, the option's values will be used.
+                            const channel = eventData?.channel ?? action.channel ?? 'agendering';
+                            const eventName = eventData?.eventName ?? action.eventName;
+                            
+                            await Wiser.api({
+                                method: "POST",
+                                url: `${this.base.settings.wiserApiRoot}pusher/message`,
+                                contentType: "application/json",
+                                data: JSON.stringify({
+                                    userId: userId,
+                                    isGlobalMessage: isGlobalMessage,
+                                    channel: channel,
+                                    eventName: eventName,
+                                    eventData: eventData || ''
+                                })
+                            });
+                        };
                         
-                        let eventName = action.eventName;
-                        if(eventData?.eventName)
-                            eventName = eventData?.eventName;
-
-                        // Send a pusher to notify the receiving user.
-                        await Wiser.api({
-                            method: "POST",
-                            url: `${this.base.settings.wiserApiRoot}pusher/message`,
-                            contentType: "application/json",
-                            data: JSON.stringify({
-                                userId: userId,
-                                isGlobalMessage: isGlobalMessage,
-                                channel: channel,
-                                eventName: eventName,
-                                eventData: eventData || ''
-                            })
-                        });
+                        // Check if there is event data to be sent. If so, loop through all event data messages.
+                        if(eventData?.length) {
+                            for(const data of eventData)
+                                await triggerPusher(data);
+                        // Otherwise, send a single Pusher message with no data.
+                        } else {
+                            await triggerPusher(null);
+                        }
 
                         break;
                     }
