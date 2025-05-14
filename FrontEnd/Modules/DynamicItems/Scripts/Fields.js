@@ -2526,6 +2526,10 @@ export class Fields {
                                 data.senderGrid.dataSource.read();
                             }
                         }
+
+                        // Refresh active kendoComponents with datasources (like calendars)
+                        if (kendoComponent && kendoComponent.dataSource)
+                            await kendoComponent.dataSource.read();
                         
                         // Close the window if it exists.
                         kendoWindow?.close();
