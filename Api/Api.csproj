@@ -160,6 +160,10 @@
     <EmbeddedResource Include="Modules\Items\FieldTemplates\chartjs.html" />
     <None Remove="Modules\Items\FieldTemplates\chartjs.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\chartjs.js" />
+    <None Remove="Modules\Items\FieldTemplates\bryntum-calendar.html" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\bryntum-calendar.html" />
+    <None Remove="Modules\Items\FieldTemplates\bryntum-calendar.js" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\bryntum-calendar.js" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1507,10 +1507,15 @@ export class Wiser {
  * Miscellaneous utils.
  */
 export class Misc {
-    static loadExternalScript(url) {
+    static loadExternalScript(url, attributes = {}) {
         return new Promise((resolve) => {
             const scriptEl = document.createElement("script");
             scriptEl.src = url;
+
+            // Set all given attributes on the script element.
+            for(const [ attributeKey, attributeValue ] of Object.entries(attributes))
+                scriptEl.setAttribute(attributeKey, attributeValue);
+            
             if (scriptEl.readyState) {  //IE
                 scriptEl.onreadystatechange = () => {
                     if (scriptEl.readyState === "loaded" ||
@@ -1736,6 +1741,55 @@ export class Misc {
         const div = document.createElement('div');
         div.innerHTML = input;
         return div.textContent;
+    }
+    
+    static async loadCss(url) {
+        return new Promise((resolve, reject) => {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = url;
+            
+            link.onload = () => resolve();
+            link.onerror = () => reject(`Failed to dynamically load stylesheet for '${url}'`);
+            
+            document.head.appendChild(link);
+        });
+    }
+
+    /**
+     * Converts a given ID into a unique hex color that represents the ID.
+     * @param id - The ID to generate a hex color for.
+     * @param saturation - (Optional) the saturation level to apply to the generated hex color.
+     * @param lightness - (Optional) the lightness level to apply to the generated hex color.
+     * @return {string} A hex color consistently generated based on the given ID.
+     */
+    static idToHexColor(id, saturation = 70, lightness = 50) {
+        const hue = (id * 137) % 360;
+
+        // HSL to RGB conversion.
+        const h = hue / 360;
+        const sNorm = saturation / 100;
+        const lNorm = lightness / 100;
+
+        const chroma = (1 - Math.abs(2 * lNorm - 1)) * sNorm;
+        const x = chroma * (1 - Math.abs((h * 6) % 2 - 1));
+        const m = lNorm - chroma / 2;
+
+        let r = 0, g = 0, b = 0;
+
+        if (h < 1/6)      [r, g, b] = [chroma, x, 0];
+        else if (h < 2/6) [r, g, b] = [x, chroma, 0];
+        else if (h < 3/6) [r, g, b] = [0, chroma, x];
+        else if (h < 4/6) [r, g, b] = [0, x, chroma];
+        else if (h < 5/6) [r, g, b] = [x, 0, chroma];
+        else              [r, g, b] = [chroma, 0, x];
+
+        const toHex = val => {
+            const hex = Math.round((val + m) * 255).toString(16);
+            return hex.padStart(2, '0');
+        };
+
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     }
 }
 

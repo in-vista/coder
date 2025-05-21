@@ -111,8 +111,9 @@ export class Windows {
      * @param {string} windowTitle Optional: The title of the window. If empty, it will use the item title.
      * @param {any} kendoComponent Optional: If this item is being created via a field with a kendo component (such as a grid or dropdown), add the instance of it here, so we can refresh the data source after.
      * @param {int} linkType Optional: If the item was opened via a specific link, enter the type number of that link here.
+     * @param {function} callback Optional: a callback function called when the window is closed. The callback will have a parameter holding the item of this window. If the item was discarded or deleted, the item is given as 'null'.
      */
-    async loadItemInWindow(isNewItem, itemId, encryptedItemId, entityType, title, showTitleField, senderGrid, fieldOptions, linkId, windowTitle = null, kendoComponent = null, linkType = 0) {
+    async loadItemInWindow(isNewItem, itemId, encryptedItemId, entityType, title, showTitleField, senderGrid, fieldOptions, linkId, windowTitle = null, kendoComponent = null, linkType = 0, callback = null) {
         let currentItemWindow;
         try {
             // Clone the window template and initialize a new window from that clone, then open it.
@@ -179,6 +180,8 @@ export class Windows {
                     }
 
                     closeFunction();
+                    
+                    callback?.(null);
                 }
             }).data("kendoWindow");
 
@@ -265,9 +268,9 @@ export class Windows {
                 currentItemWindow.close();
             });
 
-            const afterSave = async () => {   
-                if (kendoComponent !== null){
-                    if (!kendoComponent || !kendoComponent.dataSource) {
+            const afterSave = async () => {
+                if(kendoComponent) {
+                    if (!kendoComponent.dataSource) {
                         if (kendoComponent.find(".tabStripPopup")?.data("kendoTabStrip") === undefined) return;
 
                         const previouslySelectedTab = kendoComponent.find(".tabStripPopup").data("kendoTabStrip").select().index();
@@ -284,7 +287,13 @@ export class Windows {
                             kendoComponent.value(itemId);
                             validator.validateInput(kendoComponent.element);
                         }
-                    }    
+                    }
+                }
+                
+                // If there is a callback given, only then retrieve the item's updated information and invoke the callback.
+                if(callback) {
+                    const itemDetails = await this.base.getItemDetails(encryptedItemId, entityType);
+                    callback?.(itemDetails);
                 }
             };
 
