@@ -45,8 +45,19 @@ async function initializeCalendar() {
                     resourceWidth: '20em',
                     viewGap: 0,
                     hideNonWorkingDays: false,
+                    dayStartTime: 7,
+                    dayEndTime: 20,
+                    hourHeight: 64,
                     view: {
-                        type: 'dayview'
+                        type: 'dayview',
+                        eventRenderer({ eventRecord, renderData }) {
+                            const eventData = eventRecord.data;
+                            
+                            // Set the event color to that of the event_color property of the event's data object.
+                            // If no value is set, use the fallback color.
+                            const fallbackColor = '#24C5FF';
+                            renderData.eventColor = eventData.eventColor ?? fallbackColor;
+                        }
                     },
                     meta: resource => resource.title
                 },
@@ -170,16 +181,21 @@ async function loadData(calendar, startDate, endDate) {
         // Retrieve the availability response.
         const availability = requestTasksResponses[1].value;
         
+        // Store an array with mapped availability to be stored in the Calendar's store.
+        const availabilityStoreData = [];
+        
         // Process the availability as time ranges in the calendar view.
         for (const [resourceIdString, availabilityEntries] of Object.entries(availability)) {
             const resourceId = Number(resourceIdString);
             for (const { startDate, endDate } of availabilityEntries) {
-                // Validate start and end date
+                // Validate start and end date.
                 if (startDate > endDate)
                     continue;
 
                 // Add a new record to the time range store.
                 calendar.resourceTimeRangeStore.add({
+                    alignment: 'start',
+                    name: ' ',
                     resourceId: resourceId,
                     startDate: startDate,
                     endDate: endDate
@@ -192,8 +208,8 @@ async function loadData(calendar, startDate, endDate) {
     const events = eventsResponse.otherData;
     calendar.eventStore.data = events.map(event => {
         const duration = (new Date(event.end).getTime() - new Date(event.start).getTime()) / 60000;
-        const name = `${event.title}${(event.arrangement_title ? ` (${event.arrangement_title})` : '')}${(event.notes ? ` ${event.notes}` : '')}`;
-        const color = event.arrangement_color?.replace(/^#/, '');
+        const name = `${event.title}${(event.event_title ? ` (${event.event_title})` : '')}${(event.notes ? ` ${event.notes}` : '')}`;
+        const color = event.event_color;
 
         return {
             id: event.id,
