@@ -35,4 +35,8 @@
   <ItemGroup>
     <EmbeddedResource Remove="temp\**" />
   </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\customscripts\bryntum\locale\scheduler.locale.Nl.js" />
+  </ItemGroup>
 </Project>
