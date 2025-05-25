@@ -1504,21 +1504,22 @@ export class Fields {
                                 options.value = new Date();
                             }
 
+                            let extraData = {};
+                            if (selectedItems && selectedItems.length) {
+                                for (let item of selectedItems) {
+                                    // Enter the values of all properties in userParametersWithValues, so that they can be used in actions.
+                                    for (let key in item.dataItem) {
+                                        if (!item.dataItem.hasOwnProperty(key) || (typeof item.dataItem[key] === "object" && !(item.dataItem[key] || {}).getDate)) {
+                                            continue;
+                                        }
+
+                                        extraData[`selected_${key}`] = (item.dataItem[key] || {}).getDate ? DateTime.fromJSDate(item.dataItem[key], { locale: "nl-NL" }).toFormat("yyyy-LL-dd HH:mm:ss") : item.dataItem[key];
+                                    }
+                                }
+                            }
+
                             if (options.defaultValueQueryId) {
                                 try {
-                                    let extraData = {};
-                                    if (selectedItems && selectedItems.length) {
-                                        for (let item of selectedItems) {
-                                            // Enter the values of all properties in userParametersWithValues, so that they can be used in actions.
-                                            for (let key in item.dataItem) {
-                                                if (!item.dataItem.hasOwnProperty(key) || (typeof item.dataItem[key] === "object" && !(item.dataItem[key] || {}).getDate)) {
-                                                    continue;
-                                                }
-
-                                                extraData[`selected_${key}`] = (item.dataItem[key] || {}).getDate ? DateTime.fromJSDate(item.dataItem[key], { locale: "nl-NL" }).toFormat("yyyy-LL-dd HH:mm:ss") : item.dataItem[key];
-                                            }
-                                        }
-                                    }
                                     const queryResult = await Wiser.api({
                                         method: "POST",
                                         url: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(mainItemDetails.encryptedId || mainItemDetails.encrypted_id || mainItemDetails.encryptedid)}/action-button/${propertyId}?queryId=${encodeURIComponent(options.defaultValueQueryId)}`,
@@ -1546,7 +1547,8 @@ export class Fields {
                                                 const queryResult = await Wiser.api({
                                                     method: "POST",
                                                     url: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(mainItemDetails.encryptedId || mainItemDetails.encrypted_id || mainItemDetails.encryptedid)}/action-button/${propertyId}?queryId=${encodeURIComponent(queryId)}`,
-                                                    contentType: "application/json"
+                                                    contentType: "application/json",
+                                                    data: JSON.stringify(extraData)
                                                 });
 
                                                 kendoOptions.success(queryResult.otherData);
