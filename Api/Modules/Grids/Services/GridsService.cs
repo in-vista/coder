@@ -1173,8 +1173,7 @@ namespace Api.Modules.Grids.Services
                                             FROM (
                                                 # Sub query so that we can first limit the items, then get all fields of those remaining items and group by item.
                                                 # If we don't do this, MySQL will first get all items to group them, then it will add the limit, which is a lot slower.
-                                                SELECT 
-	                                                i.id,
+                                                SELECT	                                                
 	                                                i.id AS encryptedId_encrypt_withdate,
                                                     i.original_item_id AS originalItemId,
                                                     CASE i.published_environment
@@ -1249,8 +1248,7 @@ namespace Api.Modules.Grids.Services
                                                 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
                                                 [if({{hasWhere}}=1)]AND ({{where}})[endif]";
 
-                                selectQuery = $@"SELECT
-	                                                i.id,
+                                selectQuery = $@"SELECT	                                                
 	                                                i.id AS encryptedId_encrypt_withdate,
                                                     i.unique_uuid AS uniqueUuid,
                                                     CASE i.published_environment
@@ -1313,8 +1311,7 @@ namespace Api.Modules.Grids.Services
                                                 {(linkTypeNumber <= 0 ? "" : "AND il.type = ?linkTypeNumber")}
                                                 [if({{hasWhere}}=1)]AND ({{where}})[endif]";
 
-                                selectQuery = $@"SELECT
-	                                                i.id,
+                                selectQuery = $@"SELECT	                                                
 	                                                i.id AS encryptedId_encrypt_withdate,
                                                     i.unique_uuid AS uniqueUuid,
                                                     CASE i.published_environment
@@ -1358,8 +1355,7 @@ namespace Api.Modules.Grids.Services
 
                                                 UNION
 
-                                                SELECT
-	                                                i.id,
+                                                SELECT	                                                
 	                                                i.id AS encryptedId_encrypt_withdate,
                                                     i.unique_uuid AS uniqueUuid,
                                                     CASE i.published_environment
