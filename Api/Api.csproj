@@ -100,6 +100,8 @@
     <EmbeddedResource Include="Modules\Items\FieldTemplates\action-button.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\auto-increment.html" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\auto-increment.js" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\bryntum-scheduler.html" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\bryntum-scheduler.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\chart.html" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\chart.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\checkbox-switch.html" />
