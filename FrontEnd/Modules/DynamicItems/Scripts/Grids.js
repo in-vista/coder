@@ -1228,6 +1228,9 @@ export class Grids {
                 ? `data-roles="${Misc.encodeHtml(rolesAttributeValue)}"`
                 : '';
             
+            const showOnReadOnlyValue = customAction.showOnReadOnly !== undefined ? customAction.showOnReadOnly : true;
+            const showOnReadOnlyAttribute = `data-show-on-read-only="${Misc.encodeHtml(showOnReadOnlyValue)}"`
+            
             const minimumRows = customAction.minimumRows;
             const minimumRowsAttribute = minimumRows
                 ? `data-minimum-rows=${minimumRows}`
@@ -1240,7 +1243,9 @@ export class Grids {
             
             const selector = gridSelector.replace(/#/g, "\\#");
             
-            const { condition, roles, ...customActionData } = customAction;
+            const { condition, roles, showOnReadOnly, ...customActionData } = customAction;
+            
+            const defaultAttributes = `${conditionAttribute} ${rolesAttribute} ${showOnReadOnlyAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute}`;
             
             if (customAction.groupName) {
                 let group = groups.filter(g => g.name === customAction.groupName)[0];
@@ -1254,12 +1259,12 @@ export class Grids {
                     groups.push(group);
                 }
                 
-                group.actions.push(`<a class='k-button k-button-icontext ${className}' href='\\#' ${conditionAttribute} ${rolesAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span>${customAction.text}</span></a>`);
+                group.actions.push(`<a class='k-button k-button-icontext ${className}' href='\\#' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span>${customAction.text}</span></a>`);
             } else {
                 actionsWithoutGroups.push({
                     name: `customAction${i.toString()}`,
                     text: customAction.text,
-                    template: `<a class='k-button k-button-icontext ${className}' href='\\#' ${conditionAttribute} ${rolesAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
+                    template: `<a class='k-button k-button-icontext ${className}' href='\\#' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
                 });
             }
         }
@@ -1735,6 +1740,7 @@ export class Grids {
             const button = $(this);
             const condition = button.data('condition');
             const roles = button.data('roles');
+            const showOnReadOnly = button.data('show-on-read-only');
             const minimumRows = button.data('minimum-rows') ?? 0;
             const maximumRows = button.data('maximum-rows') ?? Number.MAX_VALUE;
             
@@ -1775,6 +1781,11 @@ export class Grids {
                 // Check whether the user's role is required by the action button.
                 const rolesArray = roles.split(',');
                 shouldHide = !rolesArray.includes(userRole);
+            }
+            
+            // Check whether any of the selected rows is set to be read-only.
+            if(!shouldHide && !showOnReadOnly) {
+                debugger;
             }
             
             // Check whether the user has selected more or less than the allowed rows selected of the action button.

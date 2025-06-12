@@ -23,5 +23,12 @@
         field.find(".originalText").html(options.text);
     }
     const kendoComponent = field.kendoButton(options).data("kendoButton");
+    
+    // Hide the action button if the item is set to be read-only and the "show-on-read-only" is false.
+    const showOnReadOnly = options.showOnReadOnly !== undefined ? options.showOnReadOnly : true;
+    debugger;
+    if(!showOnReadOnly && {readonly})
+        field.closest('.item').hide();
+    
     {customScript}
 })();
