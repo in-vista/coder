@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <Folder Include="Modules\Base\Scripts\codemirror\" />
+    <Folder Include="wwwroot\customscripts\daypilot\" />
   </ItemGroup>
 
   <ItemGroup>

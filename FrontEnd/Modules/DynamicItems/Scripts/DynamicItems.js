@@ -693,6 +693,10 @@ const moduleSettings = {
                 
                 await Misc.loadCss('/css/bryntum/calendar/calendar.material.css');
             }
+            if(scriptTemplate.indexOf('DayPilot') > -1) {
+                await Misc.loadCss('/customscripts/daypilot/themes/coder.css');
+                await Misc.loadExternalScript('/customscripts/daypilot/daypilot-all.src.js');
+            }
 
             await require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
         }
