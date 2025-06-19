@@ -350,7 +350,12 @@ const moduleSettings = {
             } else if (typeof componentModeKey === "number") {
                 componentMode = componentModeKey.toString();
             } else {
-                componentMode = this.componentModeComboBox.value();
+                const value = this.componentModeComboBox.value();
+                
+                if(!isNaN(value))
+                    componentMode = this.getComponentModeFromKey(value).name;
+                else
+                    componentMode = value;
             }
 
             //Group visibility
