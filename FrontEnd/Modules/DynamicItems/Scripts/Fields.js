@@ -3824,6 +3824,19 @@ export class Fields {
                 const houseNumber = houseNumberField?.val();
                 const premise = premiseField?.val();
                 
+                // Validate whether the user has filled in the full address.
+                const zipCodeHouseNumberCombination = `${zipCode} ${houseNumber}`;
+                const zipCodeRegex = /^\d{4}\s?[a-zA-Z]{2}\s\d+$/;
+                if(!zipCodeRegex.test(zipCodeHouseNumberCombination))
+                    return;
+                
+                // Validate whether any of all the fields are empty. If not, there is no need to auto-fill.
+                const streetValue = streetField?.val();
+                const cityValue = cityField?.val();
+                const countryValue = countryField?.val();
+                if(streetValue || cityValue || countryValue)
+                    return;
+                
                 // Build the request URL.
                 const requestUrlBuilder = new URL(`${window.dynamicItems.settings.wiserApiRoot}geolocation/pro6pp`);
                 requestUrlBuilder.searchParams.set('zipCode', zipCode);
@@ -3844,13 +3857,13 @@ export class Fields {
                     const country = addressResponse.country;
                     
                     // Check for each field if it exists and already has a value. If it has no value, set the value to the response.
-                    if(!streetField?.val())
+                    if(!streetValue)
                         streetField?.val(street);
 
-                    if(!cityField?.val())
+                    if(!cityValue)
                         cityField?.val(city);
 
-                    if(!countryField?.val())
+                    if(!countryValue)
                         countryField?.val(country);
                 } catch(error) {
                     // Keep a list of HTTP status codes that we expect that can be thrown to ignore the exception.
