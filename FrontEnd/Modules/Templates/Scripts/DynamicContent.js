@@ -277,8 +277,6 @@ const moduleSettings = {
 
             try {
                 this.selectedComponentData.component = newComponent;
-                await this.reloadComponentModes(newComponent, newComponentMode);
-                this.selectedComponentData.componentMode = this.componentModeComboBox.text();
 
                 const response = await Wiser.api({
                     url: `/Modules/DynamicContent/${encodeURIComponent(newComponent)}/DynamicContentTabPane`,
@@ -291,6 +289,9 @@ const moduleSettings = {
                 this.initializeDynamicKendoComponents();
                 await this.transformCodeMirrorViews();
                 this.initBindings();
+
+                await this.reloadComponentModes(newComponent, newComponentMode);
+                this.selectedComponentData.componentMode = this.componentModeComboBox.text();
             } catch (exception) {
                 console.error(exception);
                 kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw");
@@ -350,7 +351,12 @@ const moduleSettings = {
             } else if (typeof componentModeKey === "number") {
                 componentMode = componentModeKey.toString();
             } else {
-                componentMode = this.componentModeComboBox.value();
+                const value = this.componentModeComboBox.value();
+                
+                if(!isNaN(value))
+                    componentMode = this.getComponentModeFromKey(value).name;
+                else
+                    componentMode = value;
             }
 
             //Group visibility
