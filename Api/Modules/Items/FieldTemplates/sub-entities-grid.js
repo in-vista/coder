@@ -776,7 +776,7 @@ async function generateGrid(data, model, columns) {
         },
         dataBound: async (event) => {
             // To hide toolbar buttons that require a row to be selected.
-            dynamicItems.grids.onGridSelectionChange(event);
+            dynamicItems.grids.onGridSelectionChange(event, readonly);
 
             // Save the filters
             if (kendoGridOptions.keepFiltersState !== false && filtersChanged) {
@@ -871,7 +871,7 @@ async function generateGrid(data, model, columns) {
             }
         },
         filter: (event) => {filtersChanged = true;},
-        change: dynamicItems.grids.onGridSelectionChange.bind(dynamicItems.grids)
+        change: event => dynamicItems.grids.onGridSelectionChange.bind(dynamicItems.grids, event, readonly)
     }, options);
 
     kendoGridOptions.editable = editable;

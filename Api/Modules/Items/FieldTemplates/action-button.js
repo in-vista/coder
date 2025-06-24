@@ -1,13 +1,18 @@
 ﻿(() => {
     const field = $("#field_{propertyIdWithSuffix}");
     const userItemPermissions = {userItemPermissions};
+    const encryptedItemId = '{itemIdEncrypted}';
+    const entityType = '{entityType}';
+    const propertyId = {propertyId};
+    const readOnly = {readonly};
+    let options = {options};
     
-    const options = $.extend({
+    options = $.extend({
         click: (event) => {
-            window.dynamicItems.fields.onActionButtonClick(event, "{itemIdEncrypted}", {propertyId}, {options}, field); 
+            window.dynamicItems.fields.onActionButtonClick(event, encryptedItemId, propertyId, options, field); 
         },
         icon: "gear"
-    }, {options});
+    }, options);
 
     if (options.doesCreate && (userItemPermissions & window.dynamicItems.permissionsEnum.create) === 0) {
         options.enable = false;
@@ -26,8 +31,9 @@
     
     // Hide the action button if the item is set to be read-only and the "show-on-read-only" is false.
     const showOnReadOnly = options.showOnReadOnly !== undefined ? options.showOnReadOnly : true;
-    debugger;
-    if(!showOnReadOnly && {readonly})
+
+    // Hide the item if it should not be visible if it is read-only.
+    if(!showOnReadOnly && readOnly)
         field.closest('.item').hide();
     
     {customScript}
