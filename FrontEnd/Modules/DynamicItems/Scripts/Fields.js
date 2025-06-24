@@ -1505,15 +1505,21 @@ export class Fields {
                             }
 
                             let extraData = {};
-                            if (selectedItems && selectedItems.length) {
-                                for (let item of selectedItems) {
-                                    // Enter the values of all properties in userParametersWithValues, so that they can be used in actions.
-                                    for (let key in item.dataItem) {
-                                        if (!item.dataItem.hasOwnProperty(key) || (typeof item.dataItem[key] === "object" && !(item.dataItem[key] || {}).getDate)) {
-                                            continue;
-                                        }
+                            
+                            // Determine whether to include "selected" variables of the selected items in the user parameter.
+                            const includeSelectedItemVariables = parameter.includeSelectedItemVariables ?? true;
+                            
+                            if(includeSelectedItemVariables) {
+                                if (selectedItems && selectedItems.length) {
+                                    for (let item of selectedItems) {
+                                        // Enter the values of all properties in userParametersWithValues, so that they can be used in actions.
+                                        for (let key in item.dataItem) {
+                                            if (!item.dataItem.hasOwnProperty(key) || (typeof item.dataItem[key] === "object" && !(item.dataItem[key] || {}).getDate)) {
+                                                continue;
+                                            }
 
-                                        extraData[`selected_${key}`] = (item.dataItem[key] || {}).getDate ? DateTime.fromJSDate(item.dataItem[key], { locale: "nl-NL" }).toFormat("yyyy-LL-dd HH:mm:ss") : item.dataItem[key];
+                                            extraData[`selected_${key}`] = (item.dataItem[key] || {}).getDate ? DateTime.fromJSDate(item.dataItem[key], {locale: "nl-NL"}).toFormat("yyyy-LL-dd HH:mm:ss") : item.dataItem[key];
+                                        }
                                     }
                                 }
                             }
@@ -1780,38 +1786,44 @@ export class Fields {
                 const combineValuesFromAllSelectedItemsAndAddToUserParameters = async () => {
                     const temporaryValues = {};
 
-                    // First build an object with an array for every property.
-                    for (let item of selectedItems) {
-                        // If there is a certain column selected, use only values with the same suffix, that makes it possible to execute action buttons on specific columns instead of an entire row.
-                        const suffixToUse = getSuffixFromSelectedColumn(item);
+                    // Determine whether to include "selected" variables of the selected items in the user parameter.
+                    const includeSelectedItemVariables = action.includeSelectedItemVariables ?? true;
+                    
+                    // Check whether to use variables of the currently selected items.
+                    if(includeSelectedItemVariables) {
+                        // First build an object with an array for every property.
+                        for (let item of selectedItems) {
+                            // If there is a certain column selected, use only values with the same suffix, that makes it possible to execute action buttons on specific columns instead of an entire row.
+                            const suffixToUse = getSuffixFromSelectedColumn(item);
 
-                        // Enter the values of all properties in userParametersWithValues, so that they can be used in actions.
-                        for (let key in item.dataItem) {
-                            if (!item.dataItem.hasOwnProperty(key) || (typeof item.dataItem[key] === "object" && !(item.dataItem[key] || {}).getDate)) {
-                                continue;
+                            // Enter the values of all properties in userParametersWithValues, so that they can be used in actions.
+                            for (let key in item.dataItem) {
+                                if (!item.dataItem.hasOwnProperty(key) || (typeof item.dataItem[key] === "object" && !(item.dataItem[key] || {}).getDate)) {
+                                    continue;
+                                }
+
+                                // If we have a suffix from a selected column, skip properties with a different suffix.
+                                if (suffixToUse && !key.endsWith(`_${suffixToUse}`)) {
+                                    continue;
+                                }
+
+                                let selectedKey = `selected_${key}`;
+
+                                if (suffixToUse) {
+                                    selectedKey = selectedKey.substr(0, selectedKey.length - suffixToUse.length - 1);
+                                }
+
+                                if (!temporaryValues[selectedKey]) {
+                                    temporaryValues[selectedKey] = [];
+                                }
+
+                                // Don't add empty or duplicate values.
+                                if (item.dataItem[key] === "" || temporaryValues[selectedKey].indexOf(item.dataItem[key]) > -1) {
+                                    continue;
+                                }
+
+                                temporaryValues[selectedKey].push((item.dataItem[key] || {}).getDate ? DateTime.fromJSDate(item.dataItem[key], { locale: "nl-NL" }).toFormat("yyyy-LL-dd HH:mm:ss") : item.dataItem[key]);
                             }
-
-                            // If we have a suffix from a selected column, skip properties with a different suffix.
-                            if (suffixToUse && !key.endsWith(`_${suffixToUse}`)) {
-                                continue;
-                            }
-
-                            let selectedKey = `selected_${key}`;
-
-                            if (suffixToUse) {
-                                selectedKey = selectedKey.substr(0, selectedKey.length - suffixToUse.length - 1);
-                            }
-
-                            if (!temporaryValues[selectedKey]) {
-                                temporaryValues[selectedKey] = [];
-                            }
-
-                            // Don't add empty or duplicate values.
-                            if (item.dataItem[key] === "" || temporaryValues[selectedKey].indexOf(item.dataItem[key]) > -1) {
-                                continue;
-                            }
-
-                            temporaryValues[selectedKey].push((item.dataItem[key] || {}).getDate ? DateTime.fromJSDate(item.dataItem[key], { locale: "nl-NL" }).toFormat("yyyy-LL-dd HH:mm:ss") : item.dataItem[key]);
                         }
                     }
 
