@@ -1645,14 +1645,9 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
 
                 // Setup any extra CSS for the field.
                 if (width > 0)
-                {
-                    containerCss = $"width: {width}%;";
-                }
-
+                    containerCss = $"width: {width}%;{containerCss}";
                 if (height > 0)
-                {
                     elementCss = $"height: {height}px;";
-                }
 
                 // Certain fields can be setup so that their value will be saved in wiser_itemlink, instead of wiser_itemdetail. we need to check for that here.
                 if (optionsObject.ContainsKey("saveValueAsItemLink") && optionsObject.Value<bool>("saveValueAsItemLink"))
