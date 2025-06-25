@@ -19,8 +19,6 @@ import taskAlerts from "./components/task-alerts";
 import {DropDownList} from "@progress/kendo-vue-dropdowns";
 import WiserDialog from "./components/wiser-dialog";
 
-import { Wiser } from "../../Modules/Base/Scripts/Utils.js";
-
 import "../Scss/main.scss";
 import "../Scss/task-alerts.scss";
 
@@ -393,9 +391,6 @@ class Main {
             async created() {
                 this.$store.dispatch(GET_TENANT_TITLE, this.appSettings.subDomain);
                 document.addEventListener("keydown", this.onAppKeyDown.bind(this));
-
-                // Load system styling.
-                await Misc.injectSystemStyling();
             },
             computed: {
                 loginStatus() {
