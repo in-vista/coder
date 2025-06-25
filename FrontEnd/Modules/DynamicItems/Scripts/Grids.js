@@ -1101,9 +1101,9 @@ export class Grids {
                         }
                     }
                 },
-                serverPaging: true,
-                    serverSorting: true,
-                    serverFiltering: true,
+                serverPaging: options.serverSidePaging ?? false,
+                    serverSorting: options.serverSideSorting ?? false,
+                    serverFiltering: options.serverSideFiltering ?? false,
                     pageSize: options.pageSize || 10,
                     schema: {
                     data: "data",
