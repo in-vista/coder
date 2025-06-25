@@ -601,7 +601,6 @@ export class Grids {
                     counterContainer.find(".singular").toggle(totalCount === 1);
 
                     // To hide toolbar buttons that require a row to be selected.
-                    // TODO: Make 'readOnly' parameter dynamic based on the selected rows.
                     this.onGridSelectionChange(event, false);
 
                     if (gridViewSettings.keepFiltersState !== false && filtersChanged) {
@@ -616,8 +615,25 @@ export class Grids {
                         })
                     }
                 },
-                // TODO: Make 'readOnly' parameter dynamic based on the selected rows.
-                change: event => this.onGridSelectionChange.bind(this, event, false),
+                change: event => {
+                    // Retrieve the elements of the selected rows
+                    const selectedRows = event.sender.wrapper.find('tr.k-state-selected');
+                    
+                    // Gather field data for each selected row in the grid.
+                    const selectedData = [];
+                    selectedRows.each(function() {
+                        const row = $(this);
+                        const grid = row.closest('.k-grid').data('kendoGrid');
+                        const rowData = grid.dataItem(row);
+                        selectedData.push(rowData);
+                    });
+                    
+                    // Determine whether any of the selected items is marked to be read-only.
+                    const readOnly = selectedData.some(row => row.read_only ?? false);
+                    
+                    // Invoke the grid selection change event.
+                    this.onGridSelectionChange(event, readOnly);
+                },
                 resizable: true,
                 sortable: true,
                 scrollable: usingDataSelector || (gridViewSettings.groupable && gridViewSettings.clientSidePaging) ? true : {
@@ -1729,6 +1745,8 @@ export class Grids {
     /**
      * Event handler for when a user (de)selects one or more rows in a Kendo UI grid.
      * @param {any} event
+     * @param {boolean} readOnly - Whether the contextual item is read-only and should not show action buttons if they
+     * are supposed to be hidden if the item is read-only.
      */
     async onGridSelectionChange(event, readOnly = false) {
         // Check based on given condition to hide.
