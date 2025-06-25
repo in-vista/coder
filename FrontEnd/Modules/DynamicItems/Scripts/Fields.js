@@ -839,7 +839,7 @@ export class Fields {
         const itemDetails = !itemId ? { encryptedId: this.base.settings.zeroEncrypted } : (await this.base.getItemDetails(itemId, entityType));
 
         const userParametersWithValues = {};
-        const success = await this.executeActionButtonActions(actionDetails.actions, userParametersWithValues, itemDetails, propertyId, selectedItems, senderGrid.element);
+        const success = await this.executeActionButtonActions(actionDetails.actions, userParametersWithValues, itemDetails, propertyId, entityType, selectedItems, senderGrid.element);
 
         if (senderGrid && senderGrid.element) {
             senderGrid.element.siblings(".grid-loader").removeClass("loading");
@@ -923,7 +923,7 @@ export class Fields {
 
             // Execute all actions that are configured for this button.
             const userParametersWithValues = {};
-            const success = await this.executeActionButtonActions(options.actions, userParametersWithValues, itemDetails, propertyId, [], button);
+            const success = await this.executeActionButtonActions(options.actions, userParametersWithValues, itemDetails, propertyId, entityType, [], button);
             event.sender.element.removeClass("loading");
             if (success && !options.disableSuccessMessages) {
                 this.base.notification.show({ message: `Alle acties zijn uitgevoerd.` }, "success");
@@ -1290,11 +1290,12 @@ export class Fields {
      * @param {any} userParametersWithValues An object in which to remember all variables that the user entered values for.
      * @param {any} mainItemDetails The details of the main item that contains the action button.
      * @param {number} propertyId The ID of the property/field that contains the action button.
+     * @param {string} entityType The entity type of the item that contains the action button.
      * @param {Array<any>} selectedItems Optional: If the action button is part of a grid, this parameter should contain all the selected items of that grid, so that the actions will be executed for all those items.
      * @returns {boolean} Whether the actions were all successful or not.
      * @param {any} element The action button or grid.
      */
-    async executeActionButtonActions(actions, userParametersWithValues, mainItemDetails, propertyId, selectedItems = [], element = null) {
+    async executeActionButtonActions(actions, userParametersWithValues, mainItemDetails, propertyId, entityType, selectedItems = [], element = null) {
         userParametersWithValues = userParametersWithValues || {};
 
         const getSuffixFromSelectedColumn = (selectedItem) => {
@@ -1505,15 +1506,21 @@ export class Fields {
                             }
 
                             let extraData = {};
-                            if (selectedItems && selectedItems.length) {
-                                for (let item of selectedItems) {
-                                    // Enter the values of all properties in userParametersWithValues, so that they can be used in actions.
-                                    for (let key in item.dataItem) {
-                                        if (!item.dataItem.hasOwnProperty(key) || (typeof item.dataItem[key] === "object" && !(item.dataItem[key] || {}).getDate)) {
-                                            continue;
-                                        }
+                            
+                            // Determine whether to include "selected" variables of the selected items in the user parameter.
+                            const includeSelectedItemVariables = parameter.includeSelectedItemVariables ?? true;
+                            
+                            if(includeSelectedItemVariables) {
+                                if (selectedItems && selectedItems.length) {
+                                    for (let item of selectedItems) {
+                                        // Enter the values of all properties in userParametersWithValues, so that they can be used in actions.
+                                        for (let key in item.dataItem) {
+                                            if (!item.dataItem.hasOwnProperty(key) || (typeof item.dataItem[key] === "object" && !(item.dataItem[key] || {}).getDate)) {
+                                                continue;
+                                            }
 
-                                        extraData[`selected_${key}`] = (item.dataItem[key] || {}).getDate ? DateTime.fromJSDate(item.dataItem[key], { locale: "nl-NL" }).toFormat("yyyy-LL-dd HH:mm:ss") : item.dataItem[key];
+                                            extraData[`selected_${key}`] = (item.dataItem[key] || {}).getDate ? DateTime.fromJSDate(item.dataItem[key], {locale: "nl-NL"}).toFormat("yyyy-LL-dd HH:mm:ss") : item.dataItem[key];
+                                        }
                                     }
                                 }
                             }
@@ -1780,38 +1787,44 @@ export class Fields {
                 const combineValuesFromAllSelectedItemsAndAddToUserParameters = async () => {
                     const temporaryValues = {};
 
-                    // First build an object with an array for every property.
-                    for (let item of selectedItems) {
-                        // If there is a certain column selected, use only values with the same suffix, that makes it possible to execute action buttons on specific columns instead of an entire row.
-                        const suffixToUse = getSuffixFromSelectedColumn(item);
+                    // Determine whether to include "selected" variables of the selected items in the user parameter.
+                    const includeSelectedItemVariables = action.includeSelectedItemVariables ?? true;
+                    
+                    // Check whether to use variables of the currently selected items.
+                    if(includeSelectedItemVariables) {
+                        // First build an object with an array for every property.
+                        for (let item of selectedItems) {
+                            // If there is a certain column selected, use only values with the same suffix, that makes it possible to execute action buttons on specific columns instead of an entire row.
+                            const suffixToUse = getSuffixFromSelectedColumn(item);
 
-                        // Enter the values of all properties in userParametersWithValues, so that they can be used in actions.
-                        for (let key in item.dataItem) {
-                            if (!item.dataItem.hasOwnProperty(key) || (typeof item.dataItem[key] === "object" && !(item.dataItem[key] || {}).getDate)) {
-                                continue;
+                            // Enter the values of all properties in userParametersWithValues, so that they can be used in actions.
+                            for (let key in item.dataItem) {
+                                if (!item.dataItem.hasOwnProperty(key) || (typeof item.dataItem[key] === "object" && !(item.dataItem[key] || {}).getDate)) {
+                                    continue;
+                                }
+
+                                // If we have a suffix from a selected column, skip properties with a different suffix.
+                                if (suffixToUse && !key.endsWith(`_${suffixToUse}`)) {
+                                    continue;
+                                }
+
+                                let selectedKey = `selected_${key}`;
+
+                                if (suffixToUse) {
+                                    selectedKey = selectedKey.substr(0, selectedKey.length - suffixToUse.length - 1);
+                                }
+
+                                if (!temporaryValues[selectedKey]) {
+                                    temporaryValues[selectedKey] = [];
+                                }
+
+                                // Don't add empty or duplicate values.
+                                if (item.dataItem[key] === "" || temporaryValues[selectedKey].indexOf(item.dataItem[key]) > -1) {
+                                    continue;
+                                }
+
+                                temporaryValues[selectedKey].push((item.dataItem[key] || {}).getDate ? DateTime.fromJSDate(item.dataItem[key], { locale: "nl-NL" }).toFormat("yyyy-LL-dd HH:mm:ss") : item.dataItem[key]);
                             }
-
-                            // If we have a suffix from a selected column, skip properties with a different suffix.
-                            if (suffixToUse && !key.endsWith(`_${suffixToUse}`)) {
-                                continue;
-                            }
-
-                            let selectedKey = `selected_${key}`;
-
-                            if (suffixToUse) {
-                                selectedKey = selectedKey.substr(0, selectedKey.length - suffixToUse.length - 1);
-                            }
-
-                            if (!temporaryValues[selectedKey]) {
-                                temporaryValues[selectedKey] = [];
-                            }
-
-                            // Don't add empty or duplicate values.
-                            if (item.dataItem[key] === "" || temporaryValues[selectedKey].indexOf(item.dataItem[key]) > -1) {
-                                continue;
-                            }
-
-                            temporaryValues[selectedKey].push((item.dataItem[key] || {}).getDate ? DateTime.fromJSDate(item.dataItem[key], { locale: "nl-NL" }).toFormat("yyyy-LL-dd HH:mm:ss") : item.dataItem[key]);
                         }
                     }
 
@@ -2356,7 +2369,7 @@ export class Fields {
                         if (kendoWindow.length === 0) {
                             // The opened item is in the main window.
                             const previouslySelectedTab = this.base.mainTabStrip.select().index();
-                            await this.base.loadItem(this.base.settings.initialItemId ? this.base.settings.initialItemId : this.base.selectedItem.id, previouslySelectedTab);
+                            await this.base.loadItem(this.base.settings.initialItemId ? this.base.settings.initialItemId : this.base.selectedItem.id, previouslySelectedTab, entityType);
                         } else {
                             // The opened item is in a window.
                             const previouslySelectedTab = kendoWindow.find(".tabStripPopup").data("kendoTabStrip").select().index();
@@ -3824,6 +3837,19 @@ export class Fields {
                 const houseNumber = houseNumberField?.val();
                 const premise = premiseField?.val();
                 
+                // Validate whether the user has filled in the full address.
+                const zipCodeHouseNumberCombination = `${zipCode} ${houseNumber}`;
+                const zipCodeRegex = /^\d{4}\s?[a-zA-Z]{2}\s\d+$/;
+                if(!zipCodeRegex.test(zipCodeHouseNumberCombination))
+                    return;
+                
+                // Validate whether any of all the fields are empty. If not, there is no need to auto-fill.
+                const streetValue = streetField?.val();
+                const cityValue = cityField?.val();
+                const countryValue = countryField?.val();
+                if(streetValue || cityValue || countryValue)
+                    return;
+                
                 // Build the request URL.
                 const requestUrlBuilder = new URL(`${window.dynamicItems.settings.wiserApiRoot}geolocation/pro6pp`);
                 requestUrlBuilder.searchParams.set('zipCode', zipCode);
@@ -3844,13 +3870,13 @@ export class Fields {
                     const country = addressResponse.country;
                     
                     // Check for each field if it exists and already has a value. If it has no value, set the value to the response.
-                    if(!streetField?.val())
+                    if(!streetValue)
                         streetField?.val(street);
 
-                    if(!cityField?.val())
+                    if(!cityValue)
                         cityField?.val(city);
 
-                    if(!countryField?.val())
+                    if(!countryValue)
                         countryField?.val(country);
                 } catch(error) {
                     // Keep a list of HTTP status codes that we expect that can be thrown to ignore the exception.
