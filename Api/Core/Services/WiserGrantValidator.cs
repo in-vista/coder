@@ -9,6 +9,7 @@ using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Tenants.Models;
 using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Core.Models;
+using GeeksCoreLibrary.Modules.GclReplacements.Interfaces;
 using IdentityModel;
 using IdentityServer4.Models;
 using IdentityServer4.Validation;
@@ -28,16 +29,18 @@ namespace Api.Core.Services
         private readonly IUsersService usersService;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly GclSettings gclSettings;
+        private readonly ApiSettings apiSettings;
 
         /// <summary>
         /// Creates a new instance of <see cref="WiserGrantValidator"/>.
         /// </summary>
-        public WiserGrantValidator(ILogger<WiserGrantValidator> logger, IUsersService usersService, IHttpContextAccessor httpContextAccessor, IOptions<GclSettings> gclSettings)
+        public WiserGrantValidator(ILogger<WiserGrantValidator> logger, IUsersService usersService, IHttpContextAccessor httpContextAccessor, IOptions<GclSettings> gclSettings, IOptions<ApiSettings> apiSettings)
         {
             this.logger = logger;
             this.usersService = usersService;
             this.httpContextAccessor = httpContextAccessor;
             this.gclSettings = gclSettings.Value;
+            this.apiSettings = apiSettings.Value;
         }
 
         /// <inheritdoc />
@@ -79,7 +82,8 @@ namespace Api.Core.Services
 
             // If the regular user login failed, try to login as an admin account.
             var totpSuccessAdmin = false;
-            if (loginResult.StatusCode != HttpStatusCode.OK)
+            
+            if ((loginResult.StatusCode != HttpStatusCode.OK) || (loginResult.ModelObject.Id == 1 && apiSettings.AdminSubDomains.Contains(subDomain)))
             {
                 var adminAccountLoginResult = await usersService.LoginAdminAccountAsync(context.UserName, context.Password, totpPin: totpPin);
                 if (adminAccountLoginResult.StatusCode != HttpStatusCode.OK)

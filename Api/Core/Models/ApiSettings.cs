@@ -85,5 +85,10 @@ namespace Api.Core.Models
         /// Default is 4 hours.
         /// </summary>
         public int SqlCommandTimeoutForExportsAndLongQueries { get; set; } = 14400;
+        
+        /// <summary>
+        /// Gets or sets the subdomains on which user 1 must be addressed as admin user
+        /// </summary>
+        public List<string> AdminSubDomains { get; set; }
     }
 }
