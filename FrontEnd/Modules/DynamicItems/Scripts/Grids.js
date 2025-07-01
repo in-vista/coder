@@ -601,7 +601,7 @@ export class Grids {
                     counterContainer.find(".singular").toggle(totalCount === 1);
 
                     // To hide toolbar buttons that require a row to be selected.
-                    this.onGridSelectionChange(event);
+                    this.onGridSelectionChange(event, false);
 
                     if (gridViewSettings.keepFiltersState !== false && filtersChanged) {
                         await this.saveGridViewFiltersState(`main_grid_filters_${this.base.settings.moduleId}`, event.sender);
@@ -615,7 +615,25 @@ export class Grids {
                         })
                     }
                 },
-                change: this.onGridSelectionChange.bind(this),
+                change: event => {
+                    // Retrieve the elements of the selected rows
+                    const selectedRows = event.sender.wrapper.find('tr.k-state-selected');
+                    
+                    // Gather field data for each selected row in the grid.
+                    const selectedData = [];
+                    selectedRows.each(function() {
+                        const row = $(this);
+                        const grid = row.closest('.k-grid').data('kendoGrid');
+                        const rowData = grid.dataItem(row);
+                        selectedData.push(rowData);
+                    });
+                    
+                    // Determine whether any of the selected items is marked to be read-only.
+                    const readOnly = selectedData.some(row => row.read_only ?? false);
+                    
+                    // Invoke the grid selection change event.
+                    this.onGridSelectionChange(event, readOnly);
+                },
                 resizable: true,
                 sortable: true,
                 scrollable: usingDataSelector || (gridViewSettings.groupable && gridViewSettings.clientSidePaging) ? true : {
@@ -1228,6 +1246,9 @@ export class Grids {
                 ? `data-roles="${Misc.encodeHtml(rolesAttributeValue)}"`
                 : '';
             
+            const showOnReadOnlyValue = customAction.showOnReadOnly !== undefined ? customAction.showOnReadOnly : true;
+            const showOnReadOnlyAttribute = `data-show-on-read-only="${Misc.encodeHtml(showOnReadOnlyValue)}"`;
+            
             const minimumRows = customAction.minimumRows;
             const minimumRowsAttribute = minimumRows
                 ? `data-minimum-rows=${minimumRows}`
@@ -1240,7 +1261,9 @@ export class Grids {
             
             const selector = gridSelector.replace(/#/g, "\\#");
             
-            const { condition, roles, ...customActionData } = customAction;
+            const { condition, roles, showOnReadOnly, ...customActionData } = customAction;
+            
+            const defaultAttributes = `${conditionAttribute} ${rolesAttribute} ${showOnReadOnlyAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute}`;
             
             if (customAction.groupName) {
                 let group = groups.filter(g => g.name === customAction.groupName)[0];
@@ -1253,13 +1276,13 @@ export class Grids {
 
                     groups.push(group);
                 }
-                
-                group.actions.push(`<a class='k-button k-button-icontext ${className}' href='\\#' ${conditionAttribute} ${rolesAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span>${customAction.text}</span></a>`);
+
+                group.actions.push(`<a class='k-button k-button-icontext ${className}' href='\\#' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span>${customAction.text}</span></a>`);
             } else {
                 actionsWithoutGroups.push({
                     name: `customAction${i.toString()}`,
                     text: customAction.text,
-                    template: `<a class='k-button k-button-icontext ${className}' href='\\#' ${conditionAttribute} ${rolesAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
+                    template: `<a class='k-button k-button-icontext ${className}' href='\\#' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
                 });
             }
         }
@@ -1722,19 +1745,31 @@ export class Grids {
     /**
      * Event handler for when a user (de)selects one or more rows in a Kendo UI grid.
      * @param {any} event
+     * @param {boolean} readOnly - Whether the contextual item is read-only and should not show action buttons if they
+     * are supposed to be hidden if the item is read-only.
      */
-    async onGridSelectionChange(event) {
+    async onGridSelectionChange(event, readOnly = false) {
         // Check based on given condition to hide.
         const conditionalButtons = event.sender.wrapper.find('.k-button.hide-when-no-selected-rows');
 
         // Retrieve the elements of the selected rows
-        const selectedRows = event.sender.wrapper.find('tr.k-state-selected')
+        const selectedRows = event.sender.wrapper.find('tr.k-state-selected');
+
+        // Gather field data for each selected row in the grid.
+        const selectedData = [];
+        selectedRows.each(function() {
+            const row = $(this);
+            const grid = row.closest('.k-grid').data('kendoGrid');
+            const rowData = grid.dataItem(row);
+            selectedData.push(rowData);
+        });
         
         conditionalButtons.each(async function () {
             // Retrieve data of the button.
             const button = $(this);
             const condition = button.data('condition');
             const roles = button.data('roles');
+            const showOnReadOnly = button.data('show-on-read-only');
             const minimumRows = button.data('minimum-rows') ?? 0;
             const maximumRows = button.data('maximum-rows') ?? Number.MAX_VALUE;
             
@@ -1744,15 +1779,6 @@ export class Grids {
             // Conditional check.
             if(condition) {
                 const decodedCondition = Misc.decodeHtml(condition);
-                
-                // Gather field data for each selected row in the grid.
-                const selectedData = [];
-                selectedRows.each(function() {
-                    const row = $(this);
-                    const grid = row.closest('.k-grid').data('kendoGrid');
-                    const rowData = grid.dataItem(row);
-                    selectedData.push(rowData);
-                });
 
                 // Evaluate the condition for every selected row in the grid.
                 shouldHide = !selectedData.every(function(element, index, array) {
@@ -1776,6 +1802,9 @@ export class Grids {
                 const rolesArray = roles.split(',');
                 shouldHide = !rolesArray.includes(userRole);
             }
+            
+            // Check whether any of the selected rows is set to be read-only and should be hidden.
+            shouldHide = !shouldHide && !showOnReadOnly && readOnly;
             
             // Check whether the user has selected more or less than the allowed rows selected of the action button.
             if(!shouldHide) {
