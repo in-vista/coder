@@ -2249,14 +2249,29 @@ export class Fields {
                                     linkIds.push(item.dataItem["linkId"] || item.dataItem["link_id"]);
                                 }
 
-                                // The camel case parameters are for backwards compatibility, because we used snake case in the past for some things like this.
-                                url += `&selectedId=${ids.join(",")}&selected_id=${ids.join(",")}`;
-                                url += `&selectedLinkId=${linkIds.join(",")}&selected_link_id=${linkIds.join(",")}`;
+                                // The camel case parameters are for backwards compatibility, because we used snake case in the past for some things like this.                                
+                                if (url.indexOf('selectedId=') === -1)
+                                    url += `&selectedId=${ids.join(",")}`;
+                                if (url.indexOf('selected_id=') === -1)
+                                    url += `&selected_id=${ids.join(",")}`;
+                                if (url.indexOf('selectedLinkId=') === -1)
+                                    url += `&selectedLinkId=${linkIds.join(",")}`;
+                                if (url.indexOf('selected_link_id=') === -1)
+                                    url += `&selected_link_id=${linkIds.join(",")}`;
                                 allUrls.push(url);
                             } else {
                                 for (let item of selectedItems) {
                                     // The camel case parameters are for backwards compatibility, because we used snake case in the past for some things like this.
-                                    allUrls.push(`${url}&selectedId=${item.dataItem["id"]}&selected_id=${item.dataItem["id"]}&selectedLinkId=${item.dataItem["linkId"] || item.dataItem["link_id"]}&selected_link_id=${item.dataItem["linkId"] || item.dataItem["link_id"]}`);
+                                    let urlItem = url;
+                                    if (urlItem.indexOf('selectedId=') === -1)
+                                        urlItem += `&selectedId=${item.dataItem["id"]}`;
+                                    if (urlItem.indexOf('selected_id=') === -1)
+                                        urlItem += `&selected_id=${item.dataItem["id"]}`;
+                                    if (urlItem.indexOf('selectedLinkId=') === -1)
+                                        urlItem += `&selectedLinkId=${item.dataItem["linkId"] || item.dataItem["link_id"]}`;
+                                    if (urlItem.indexOf('selected_link_id=') === -1)
+                                        urlItem += `&selected_link_id=${item.dataItem["linkId"] || item.dataItem["link_id"]}`;
+                                    allUrls.push(urlItem);
                                 }
                             }
                         }
