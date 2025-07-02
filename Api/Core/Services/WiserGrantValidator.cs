@@ -117,7 +117,7 @@ namespace Api.Core.Services
                 if (String.IsNullOrWhiteSpace(selectedUser))
                 {
                     // Admin account has not selected a user, so return a list of users.
-                    var usersList = await usersService.GetAsync();
+                    var usersList = await usersService.GetAsync(includeParent:true);
                     if (usersList.ModelObject.Count == 1)
                     {
                         // If there is only one user, immediately login as that user.

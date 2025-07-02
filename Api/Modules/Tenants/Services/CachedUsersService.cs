@@ -39,14 +39,14 @@ namespace Api.Modules.Tenants.Services
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<List<FlatItemModel>>> GetAsync(bool includeAdminUsers = false)
+        public async Task<ServiceResult<List<FlatItemModel>>> GetAsync(bool includeAdminUsers = false, bool includeParent = false)
         {
             await databaseConnection.EnsureOpenConnectionForReadingAsync();
             return await cache.GetOrAdd($"users_{databaseConnection.GetDatabaseNameForCaching()}_{includeAdminUsers}",
                 async cacheEntry =>
                 {
                     cacheEntry.AbsoluteExpirationRelativeToNow = apiSettings.DefaultUsersCacheDuration;
-                    return await usersService.GetAsync(includeAdminUsers);
+                    return await usersService.GetAsync(includeAdminUsers, includeParent);
                 }, cacheService.CreateMemoryCacheEntryOptions(CacheAreas.WiserItems));
         }
         
