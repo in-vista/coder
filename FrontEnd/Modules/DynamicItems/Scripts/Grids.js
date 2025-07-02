@@ -615,7 +615,7 @@ export class Grids {
                         })
                     }
                 },
-                change: event => {
+                change: (event) => {
                     // Retrieve the elements of the selected rows
                     const selectedRows = event.sender.wrapper.find('tr.k-state-selected');
                     
