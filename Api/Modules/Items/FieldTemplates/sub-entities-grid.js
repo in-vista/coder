@@ -873,7 +873,7 @@
                 }
             },
             filter: (event) => {filtersChanged = true;},
-            change: event => dynamicItems.grids.onGridSelectionChange.bind(dynamicItems.grids, event, readonly)
+            change: event => dynamicItems.grids.onGridSelectionChange(event, readonly)
         }, options);
     
         kendoGridOptions.editable = editable;
