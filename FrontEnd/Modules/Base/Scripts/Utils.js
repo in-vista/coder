@@ -129,7 +129,13 @@ export class Dates {
     static parseDate(value) {
         value = value || "";
 
-        return typeof(value) === "string" ? DateTime.fromSQL(value.trim(), { locale: "nl-NL" }) : DateTime.fromJSDate(value, { locale: "nl-NL" });
+        //return typeof(value) === "string" ? DateTime.fromSQL(value.trim(), { locale: "nl-NL" }) : DateTime.fromJSDate(value, { locale: "nl-NL" });
+
+        let d = typeof(value) === "string" ? DateTime.fromSQL(value.trim(), { locale: "nl-NL" }) : DateTime.fromJSDate(value, { locale: "nl-NL" });
+        if (!d.isValid && DateTime.fromFormat(value, 'd-M-yyyy HH:mm:ss').isValid)
+            d = DateTime.fromFormat(value, 'd-M-yyyy HH:mm:ss');
+        
+        return d;
     }
 
     /**

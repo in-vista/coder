@@ -2915,7 +2915,11 @@ export class Fields {
                                     modal: true,
                                     actions: [
                                         {
-                                            text: "Annuleren"
+                                            text: "Annuleren",
+                                            action: (event) =>{
+                                                mailDialog.close();
+                                                previewWindow.open(); // Zorgt ervoor dat het preview scherm weer weergegeven wordt
+                                            }
                                         },
                                         {
                                             text: "Verstuur",
