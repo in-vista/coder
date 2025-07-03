@@ -3136,7 +3136,7 @@ LEFT JOIN {WiserTableNames.WiserUserRoles} AS userRole ON userRole.user_id = ?us
 LEFT JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = userRole.role_id AND permission.item_id = item.id
 
 WHERE (permission.id IS NULL OR (permission.permissions & 1) > 0)
-AND item.entity_type = ?childEntityTypes
+AND item.entity_type = ?entityType
 AND (?searchEverywhere = TRUE OR link.id IS NOT NULL)
 {searchQueryPart}
 
