@@ -331,6 +331,8 @@ namespace Api
             app.UseSwaggerUI(config => { config.SwaggerEndpoint("/swagger/v3/swagger.json", "Wiser.WebApi V3"); });
 
             app.UseHttpsRedirection();
+            
+            app.UseStaticFiles();
 
             app.UseRouting();
 
