@@ -2247,13 +2247,13 @@ VALUES (?content_id, ?destination_template_id, ?added_on, ?added_by)");
             }
             catch (MySqlException mySqlException)
             {
-                switch (mySqlException.Number)
+                switch (mySqlException.ErrorCode)
                 {
-                    case (int)MySqlErrorCode.DuplicateKeyEntry:
+                    case MySqlErrorCode.DuplicateKeyEntry:
                         // We ignore duplicate key errors, because it's possible that a template already exists in a branch, but it wasn't deployed to the correct environment.
                         // So we ignore this error, so we can still deploy that template to production in the branch, see the next bit of code after this try/catch.
                         break;
-                    case (int)MySqlErrorCode.WrongValueCountOnRow:
+                    case MySqlErrorCode.WrongValueCountOnRow:
                         return new ServiceResult<bool>
                         {
                             StatusCode = HttpStatusCode.Conflict,
