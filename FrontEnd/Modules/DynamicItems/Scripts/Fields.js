@@ -645,7 +645,7 @@ export class Fields {
      * @param {any} event
      */
     onFieldLabelContextMenu(event) {
-        if (!this.base.settings.adminAccountLoggedIn) {
+        if (!this.base.settings.adminlogin) {
             return;
         }
 
