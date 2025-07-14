@@ -218,7 +218,7 @@ namespace Api.Core.Services
                 // Never retry single queries if we're in a transaction, because transactions will get rolled back when a deadlock occurs,
                 // so retrying a single query in a transaction is not very useful on most/all cases.
                 // Also, if we've reached the maximum number of retries, don't retry anymore.
-                if (HasActiveTransaction() || retryCount >= gclSettings.MaximumRetryCountForQueries || MySqlDatabaseConnection.MySqlErrorCodesToRetry.Contains(mySqlException.Number))
+                if (HasActiveTransaction() || retryCount >= gclSettings.MaximumRetryCountForQueries || MySqlHelpers.IsErrorToRetry(mySqlException))
                 {
                     logger.LogError(mySqlException, "Error trying to run this query: {query}", query);
                     throw new GclQueryException("Error trying to run query", query, mySqlException);
@@ -293,7 +293,7 @@ namespace Api.Core.Services
                 // Never retry single queries if we're in a transaction, because transactions will get rolled back when a deadlock occurs,
                 // so retrying a single query in a transaction is not very useful on most/all cases.
                 // Also, if we've reached the maximum number of retries, don't retry anymore.
-                if (HasActiveTransaction() || retryCount >= gclSettings.MaximumRetryCountForQueries || MySqlDatabaseConnection.MySqlErrorCodesToRetry.Contains(mySqlException.Number))
+                if (HasActiveTransaction() || retryCount >= gclSettings.MaximumRetryCountForQueries || MySqlHelpers.IsErrorToRetry(mySqlException))
                 {
                     logger.LogError(mySqlException, "Error trying to run this query: {query}", query);
                     throw new GclQueryException("Error trying to run query", query, mySqlException);
@@ -412,7 +412,7 @@ namespace Api.Core.Services
                 // Never retry single queries if we're in a transaction, because transactions will get rolled back when a deadlock occurs,
                 // so retrying a single query in a transaction is not very useful on most/all cases.
                 // Also, if we've reached the maximum number of retries, don't retry anymore.
-                if (HasActiveTransaction() || retryCount >= gclSettings.MaximumRetryCountForQueries || MySqlDatabaseConnection.MySqlErrorCodesToRetry.Contains(mySqlException.Number))
+                if (HasActiveTransaction() || retryCount >= gclSettings.MaximumRetryCountForQueries || MySqlHelpers.IsErrorToRetry(mySqlException))
                 {
                     logger.LogError(mySqlException, "Error trying to run this query: {query}", query);
                     throw new GclQueryException("Error trying to run query", query, mySqlException);
