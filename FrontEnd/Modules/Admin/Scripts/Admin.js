@@ -128,6 +128,7 @@ const moduleSettings = {
                 GENERATEFILE: { text: "Genereer HTML of PDF bestand", id: "generateFile" },
                 GENERATETEXTFILE: { text: "Genereer tekst bestand", id: "generateTextFile" },
                 REFRESHCURRENTITEM: { text: "Ververs het item", id: "refreshCurrentItem" },
+                APICALL: { text: "Voer een API call uit", id: "apiCall" },
                 ACTIONCONFIRMDIALOG: { text: "Bevestigingsvenster", id: "actionConfirmDialog" },
                 CREATENEWITEM: { text: "Maak nieuw item", id: "createNewItem" },
                 CUSTOM: { text: "Custom javascript", id: "custom" }
