@@ -27,6 +27,7 @@ import {
     AUTH_LOGOUT,
     AUTH_REQUEST,
     CHANGE_PASSWORD,
+    BRANCH_CHANGE_COMPLETED,
     CLEAR_CACHE,
     CLEAR_CACHE_ERROR,
     CLEAR_LOCAL_TOTP_BACKUP_CODES,
@@ -449,6 +450,9 @@ class Main {
                 },
                 tenantManagementIsOpened() {
                     return this.$store.state.modules.openedModules.filter(m => m.moduleId === "tenantManagement").length > 0;
+                },
+                branchChangeCompleted() {
+                    return this.$store.state.branches.branchChangeCompleted;
                 },
                 createBranchError() {
                     return this.$store.state.branches.createBranchError;
@@ -1242,6 +1246,8 @@ class Main {
                 },
 
                 async onSelectedBranchChange(event) {
+                    await this.$store.dispatch(BRANCH_CHANGE_COMPLETED, false);
+                    
                     let selectedBranchId = event;
                     if (!selectedBranchId) {
                         selectedBranchId = 0;
@@ -1270,6 +1276,8 @@ class Main {
                     this.branchMergeSettings.linkTypes.all.everything = false;
                     this.updateBranchChangeList(false, "entities", "all", "everything");
                     this.updateBranchChangeList(false, "linkTypes", "all", "everything");
+
+                    await this.$store.dispatch(BRANCH_CHANGE_COMPLETED, true);
                 },
 
                 async countBranchChanges() {

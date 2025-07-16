@@ -65,7 +65,7 @@ const moduleSettings = {
             
             const user = JSON.parse(localStorage.getItem("userData"));
             this.settings.oldStyleUserId = user.oldStyleUserId;
-            this.settings.adminAccountLoggedIn = !!user.adminAccountName;
+            this.settings.adminAccountLoggedIn = !!user.adminlogin;
             
             this.settings.serviceRoot = `${this.settings.wiserApiRoot}templates/get-and-execute-query`;
             
