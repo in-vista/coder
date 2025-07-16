@@ -2322,6 +2322,20 @@ SELECT entity_type FROM {tableName}_archive WHERE id = ?itemId";
 
             var linkTypesToHideFromTreeViewList = String.Join(",", linkTypesToHideFromTreeView);
             
+            // Figure out which items have children, so the tree view knows where to show arrows for expanding items.
+            // We used to do this in the original queries above, but with the new option of linking items via parent_item_id from wiser_item, instead of via wiser_itemlink,
+            // this got a lot more complicated and the original queries got too slow when adding all that to them.
+            // So now we have a separate query just to check which items have children.
+            
+            var firstSubChild = childEntitySettings.AcceptedChildTypes.FirstOrDefault();
+
+            if (firstSubChild is null)
+            {
+                return new ServiceResult<List<TreeViewItemModel>>(results);
+            }
+
+            var childPrefix = await wiserItemsService.GetTablePrefixForEntityAsync(firstSubChild);
+            
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
             clientDatabaseConnection.ClearParameters();
             clientDatabaseConnection.AddParameter("moduleId", moduleId);
@@ -2400,7 +2414,7 @@ ORDER BY {orderByClause}";
             if (parentId > 0)
             {
                 query = $@"SELECT COUNT(*) AS total
-                        FROM {{parentTablePrefix}}{{WiserTableNames.WiserItem}} AS item
+                        FROM {parentTablePrefix}{WiserTableNames.WiserItem} AS item
                         JOIN {WiserTableNames.WiserLink} AS link ON link.destination_entity_type = item.entity_type AND link.use_item_parent_id = 1
                         WHERE item.id = ?parentId";
             }
@@ -2478,20 +2492,6 @@ ORDER BY {orderByClause}";
             {
                 return new ServiceResult<List<TreeViewItemModel>>(results);
             }
-
-            // Figure out which items have children, so the tree view knows where to show arrows for expanding items.
-            // We used to do this in the original queries above, but with the new option of linking items via parent_item_id from wiser_item, instead of via wiser_itemlink,
-            // this got a lot more complicated and the original queries got too slow when adding all that to them.
-            // So now we have a separate query just to check which items have children.
-            
-            var firstSubChild = childEntitySettings.AcceptedChildTypes.FirstOrDefault();
-
-            if (firstSubChild is null)
-            {
-                return new ServiceResult<List<TreeViewItemModel>>(results);
-            }
-
-            var childPrefix = await wiserItemsService.GetTablePrefixForEntityAsync(firstSubChild);
             
             query = $@"SELECT 
 	                    item.id,

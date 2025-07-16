@@ -1795,6 +1795,7 @@ export class EntityTab {
         let contentItemId = popUpHtml.find("#contentItemId");
         let emailDataQueryId = popUpHtml.find("#emailDataQueryId");
         let actionButtonUrlWindowOpen = popUpHtml.find("#actionButtonUrlWindowOpen");
+        let actionButtonApiCallConnection = popUpHtml.find("#actionButtonApiCallConnection");
 
         const showFields = (fieldType) => {
             const fieldTypes = this.base.fieldTypesDropDown;
@@ -1841,6 +1842,8 @@ export class EntityTab {
             document.getElementById("pdfBackgroundPropertyName").value = "";
             document.getElementById("pdfDocumentOptionsPropertyName").value = "";
             document.getElementById("pdfFilename").value = "";
+            // api call
+            this.actionButtonApiCallConnection.value("");
             // confirm dialog
             document.getElementById("actionButtonConfirmDialogTitle").value = "";
             document.getElementById("actionButtonConfirmDialogText").value = "";

@@ -263,7 +263,7 @@ ORDER BY CONCAT(IF(entity.friendly_name IS NULL OR entity.friendly_name = '', en
                                 childEntity.name, 
                                 IF(childEntity.friendly_name IS NULL OR childEntity.friendly_name = '', childEntity.name, childEntity.friendly_name) AS displayName
                             FROM {WiserTableNames.WiserEntity} AS entity
-                            LEFT JOIN {{tablePrefix}}{{WiserTableNames.WiserItem}} AS item ON item.entity_type = entity.name AND item.moduleid = entity.module_id
+                            LEFT JOIN {tablePrefix}{WiserTableNames.WiserItem} AS item ON item.entity_type = entity.name AND item.moduleid = entity.module_id
                             JOIN {WiserTableNames.WiserEntity} AS childEntity ON childEntity.module_id = ?moduleId AND childEntity.name <> '' AND FIND_IN_SET(childEntity.name, entity.accepted_childtypes)
                             WHERE entity.module_id = ?moduleId
                             AND ((?parentId = 0 AND entity.name = '') OR (?parentId > 0 AND item.id = ?parentId AND (?entityType = '' OR entity.name = ?entityType)))
