@@ -1019,19 +1019,19 @@ const moduleSettings = {
                                 {
                                     name: "Open",
                                     text: "",
-                                    iconClass: "k-icon k-i-edit",
+                                    iconClass: "k-font-icon k-i-edit",
                                     click: this.onDynamicContentOpenClick.bind(this)
                                 },
                                 {
                                     name: "Duplicate",
                                     text: "",
-                                    iconClass: "k-icon k-i-copy",
+                                    iconClass: "k-font-icon k-i-copy",
                                     click: this.onDynamicContentDuplicateClick.bind(this, id)
                                 },
                                 {
                                     name: "Delete",
                                     text: "",
-                                    iconClass: "k-icon k-i-trash",
+                                    iconClass: "k-font-icon k-i-trash",
                                     click: this.onDynamicContentDeleteClick.bind(this)
                                 },
                             ],
@@ -1044,17 +1044,17 @@ const moduleSettings = {
                         {
                             name: "add",
                             text: "Nieuw",
-                            template: `<a class='k-button k-button-icontext' href='\\#' onclick='return window.Templates.openDynamicContentWindow(0, "Nieuw dynamische content toevoegen")'><span class='k-icon k-i-file-add'></span>Nieuw item toevoegen</a>`
+                            template: `<a class='k-button k-button-icontext' href='\\#' onclick='return window.Templates.openDynamicContentWindow(0, "Nieuw dynamische content toevoegen")'><span class='k-font-icon k-i-file-add'></span>Nieuw item toevoegen</a>`
                         },
                         {
                             name: "linkExisting",
                             text: "Component van andere template koppelen",
-                            template: `<a class='k-button k-button-icontext' href='\\#' onclick='return window.Templates.openLinkableComponentsDialog(${id})'><span class='k-icon k-i-hyperlink-insert'></span>Component van andere template koppelen</a>`
+                            template: `<a class='k-button k-button-icontext' href='\\#' onclick='return window.Templates.openLinkableComponentsDialog(${id})'><span class='k-font-icon k-i-hyperlink-insert'></span>Component van andere template koppelen</a>`
                         },
                         {
                             name: "publishToEnvironments",
                             text: "Deploy",
-                            template: `<a class='k-button k-button-icontext deploy-button hidden' href='\\#' onclick='return window.Templates.openDeployDynamicContentWindow()'><span class='k-icon k-i-cloud'></span>&nbsp;Deploy</a>`
+                            template: `<a class='k-button k-button-icontext deploy-button hidden' href='\\#' onclick='return window.Templates.openDeployDynamicContentWindow()'><span class='k-font-icon k-i-cloud'></span>&nbsp;Deploy</a>`
                         }
                     ],
                     change: this.onDynamicContentGridChange.bind(this),
@@ -1377,7 +1377,7 @@ const moduleSettings = {
                     toolbar: ["create"],
                     columns: [
                         { field: "uri" },
-                        { command: { name: "destroy", text: "", iconClass: "k-icon k-i-delete" }, width: 140 }
+                        { command: { name: "destroy", text: "", iconClass: "k-font-icon k-i-delete" }, width: 140 }
                     ],
                     dataSource: dataSource,
                     edit: (event) => {

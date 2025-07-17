@@ -471,7 +471,7 @@ footer {
     height: 16px;
 }
 
-.historyTagline .k-icon {
+.historyTagline .k-font-icon {
     margin: 0 2px;
 }
 
@@ -563,11 +563,11 @@ footer {
     background-color: var(--accept-color);
 }
 
-#dynamic-grid .k-button-icontext .k-icon {
+#dynamic-grid .k-button-icontext .k-font-icon {
     margin: 0;
 }
 
-#dynamic-grid.k-grid .k-icon {
+#dynamic-grid.k-grid .k-font-icon {
     opacity: 0.75;
 }
 

@@ -1076,7 +1076,7 @@ export class EntityTab {
                 command: [
                     { name: "moveup", text: "↑", click: this.base.moveUp.bind(this.base) },
                     { name: "movedown", text: "↓", click: this.base.moveDown.bind(this.base) },
-                    { name: "destroy", text: "", iconClass: "k-icon k-i-delete" }
+                    { name: "destroy", text: "", iconClass: "k-font-icon k-i-delete" }
                 ]
             }]
         }).data("kendoGrid");
@@ -1513,7 +1513,7 @@ export class EntityTab {
                 },
                 {
                     command: [
-                        { name: "edit", text: "", iconClass: "k-icon k-i-edit", click: this.onActionButtonGridEditButtonClick.bind(this) },
+                        { name: "edit", text: "", iconClass: "k-font-icon k-i-edit", click: this.onActionButtonGridEditButtonClick.bind(this) },
                         { name: "moveup", text: "↑", click: this.base.moveUp.bind(this.base) },
                         { name: "movedown", text: "↓", click: this.base.moveDown.bind(this.base) },
                         { name: "destroy", text: "", iconClass: "k-icon k-i-delete" }

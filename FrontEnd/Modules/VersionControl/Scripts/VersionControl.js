@@ -669,7 +669,7 @@ const moduleSettings = {
                                 {
                                     name: "view",
                                     text: "",
-                                    iconClass: "view-template-button k-icon k-i-eye",
+                                    iconClass: "view-template-button k-font-icon k-i-eye",
                                     visible: function(dataItem) {
                                         // Note: For some reason Kendo throw an "Uncaught Error: Invalid template" error when using an arrow function here, that's why this is a regular function.
                                         return !dataItem.deleted;
@@ -807,7 +807,7 @@ const moduleSettings = {
                                 {
                                     name: "view",
                                     text: "",
-                                    iconClass: "view-template-button k-icon k-i-eye",
+                                    iconClass: "view-template-button k-font-icon k-i-eye",
                                     visible: function(dataItem) {
                                         // Note: For some reason Kendo throw an "Uncaught Error: Invalid template" error when using an arrow function here, that's why this is a regular function.
                                         return !dataItem.deleted;

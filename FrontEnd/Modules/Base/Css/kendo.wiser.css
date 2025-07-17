@@ -265,7 +265,7 @@
 	padding: 12px 8px;
 	text-transform: none;
 }
-.k-button-icontext .k-icon,
+.k-button-icontext .k-font-icon,
 .k-button-icontext .k-image,
 .k-button-icontext .k-sprite {
 	margin: 0 8px 0 0;
@@ -319,7 +319,7 @@
 	height: 50px;
 	width: 50px;
 }
-.k-button-round .k-icon {
+.k-button-round .k-font-icon {
 	font-size: 30px;
 }
 .k-button-round .k-notification {
@@ -499,7 +499,7 @@
 	text-transform: none;
 }
 /* KENDO - BUTTON ICONS */
-.k-button-icon .k-icon,
+.k-button-icon .k-font-icon,
 .k-window-actions .k-button-icon {
 	font-family: 'icomoon' !important;
 	speak: none;
@@ -518,26 +518,26 @@
 	width: 24px;
 	min-width: 24px;
 }
-.k-scheduler-toolbar .k-button-icon .k-icon {
+.k-scheduler-toolbar .k-button-icon .k-font-icon {
 	font-family: 'WebComponentsIcons' !important;
 }
-.k-button-icon.k-primary .k-icon,
-.k-button-icon.k-button-solid-primary .k-icon {
+.k-button-icon.k-primary .k-font-icon,
+.k-button-icon.k-button-solid-primary .k-font-icon {
 	color: var(--white-color);
 }
-.k-button-icon .k-icon.k-i-verwijderen:before,
-.k-button-icon .k-icon.k-i-delete:before,
-.k-button-icon.k-icon.k-i-verwijderen:before {
+.k-button-icon .k-font-icon.k-i-verwijderen:before,
+.k-button-icon .k-font-icon.k-i-delete:before,
+.k-button-icon.k-font-icon.k-i-verwijderen:before {
 	content: "\e9c7";
 }
-.k-button-icon .k-icon.k-i-verversen:before,
-.k-button-icon .k-icon.k-i-refresh:before,
-.k-button-icon.k-icon.k-i-verversen:before,
-.k-button-icon.k-icon.k-i-refresh:before {
+.k-button-icon .k-font-icon.k-i-verversen:before,
+.k-button-icon .k-font-icon.k-i-refresh:before,
+.k-button-icon.k-font-icon.k-i-verversen:before,
+.k-button-icon.k-font-icon.k-i-refresh:before {
 	content: "\e9b9";
 }
-.k-button-icon .k-icon.k-i-close:before,
-.k-window-actions .k-button-icon.k-icon.k-i-close:before {
+.k-button-icon .k-font-icon.k-i-close:before,
+.k-window-actions .k-button-icon.k-font-icon.k-i-close:before {
 	content: "\e98d";
 }
 .k-i-css:before {
@@ -688,7 +688,7 @@
 	margin: 0;
 	z-index: 100;
 }
-.k-tabstrip > .k-button.k-flat .k-icon {
+.k-tabstrip > .k-button.k-flat .k-font-icon {
 	font: 16px/1 WebComponentsIcons !important;
 }
 .k-tabstrip > .k-tabstrip-prev {
@@ -1128,7 +1128,7 @@ span.k-input .k-input:hover {
 .k-colorpicker .k-picker-wrap {
 	padding: 0.16em 0;
 }
-.k-colorpicker .k-picker-wrap .k-icon {
+.k-colorpicker .k-picker-wrap .k-font-icon {
 	right: 6px;
 }
 .k-colorpicker input {

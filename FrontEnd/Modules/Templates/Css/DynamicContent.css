@@ -118,7 +118,7 @@
     height: 16px;
 }
 
-.historyTagline .k-icon {
+.historyTagline .k-font-icon {
     margin: 0 2px;
 }
 
@@ -243,14 +243,14 @@
 }
 
 /** KENDO DROPDOWNS **/
-.k-combobox .k-icon,
-.k-dropdown .k-icon,
-.k-picker-wrap .k-icon {
+.k-combobox .k-font-icon,
+.k-dropdown .k-font-icon,
+.k-picker-wrap .k-font-icon {
     top: 14px;
 }
-.item[data-label-style="float"] .k-combobox .k-icon.k-i-arrow-60-down,
-.item[data-label-style="float"] .k-dropdown .k-icon.k-i-arrow-60-down,
-.item[data-label-style="float"] .k-picker-wrap .k-icon.k-i-arrow-60-down,
-.item[data-label-style="float"] .k-input .k-datetimepicker .k-icon {
+.item[data-label-style="float"] .k-combobox .k-font-icon.k-i-arrow-60-down,
+.item[data-label-style="float"] .k-dropdown .k-font-icon.k-i-arrow-60-down,
+.item[data-label-style="float"] .k-picker-wrap .k-font-icon.k-i-arrow-60-down,
+.item[data-label-style="float"] .k-input .k-datetimepicker .k-font-icon {
     top: 24px;
 }

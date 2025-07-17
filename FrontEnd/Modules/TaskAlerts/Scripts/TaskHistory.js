@@ -182,7 +182,7 @@ const moduleSettings = {
                             return "";
                         }
                         
-                        return `<button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base returnTaskButton"><span class="k-icon k-i-undo k-button-icon"></span><span class="k-button-text">Terugzetten</span></button>`;
+                        return `<button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base returnTaskButton"><span class="k-font-icon k-i-undo k-button-icon"></span><span class="k-button-text">Terugzetten</span></button>`;
                     }
                 })
 

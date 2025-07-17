@@ -217,7 +217,7 @@ export class Grids {
                 if (!disableOpeningOfItems) {
                     commands.push({
                         name: "openDetails",
-                        iconClass: "k-icon k-i-hyperlink-open",
+                        iconClass: "k-font-icon k-i-hyperlink-open",
                         text: "",
                         click: (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }, false); }
                     });
@@ -227,7 +227,7 @@ export class Grids {
 
                         commands.push({
                             name: "openDetailsInNewTab",
-                            iconClass: "k-icon k-i-window",
+                            iconClass: "k-font-icon k-i-window",
                             text: "",
                             click: (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }, true); }
                         });
@@ -258,7 +258,7 @@ export class Grids {
 
                     commands.push({
                         name: "remove",
-                        iconClass: "k-icon k-i-delete",
+                        iconClass: "k-font-icon k-i-delete",
                         text: "",
                         click: onDeleteClick.bind(this)
                     });
@@ -269,7 +269,7 @@ export class Grids {
                     commands.push({
                         name: "remove",
                         text: "",
-                        iconClass: "k-icon k-i-delete",
+                        iconClass: "k-font-icon k-i-delete",
                         click: (event) => { this.base.grids.onDeleteItemClick(event, this.mainGrid, "deleteItem", gridViewSettings); }
                     });
                 }
@@ -288,9 +288,9 @@ export class Grids {
             if (!gridViewSettings.toolbar || !gridViewSettings.toolbar.hideRefreshButton) {
                 toolbar.push({
                     name: "refreshCustom",
-                    iconClass: "k-icon k-i-refresh",
+                    iconClass: "k-font-icon k-i-refresh",
                     text: "",
-                    template: `<a class='k-button k-button-icontext k-grid-refresh' href='\\#' title='Verversen'><span class='k-icon k-i-refresh'></span></a>`
+                    template: `<a class='k-button k-button-icontext k-grid-refresh' href='\\#' title='Verversen'><span class='k-font-icon k-i-refresh'></span></a>`
                 });
             }
 
@@ -298,7 +298,7 @@ export class Grids {
                 toolbar.push({
                     name: "clearAllFilters",
                     text: "",
-                    template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' href='\\#' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-icon k-i-filter-clear'></span></a>`
+                    template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' href='\\#' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>`
                 });
             }
 
@@ -332,7 +332,7 @@ export class Grids {
                 toolbar.push({
                     name: "add",
                     text: "Nieuw",
-                    template: `<a class='k-button k-button-icontext' href='\\#' onclick='return window.dynamicItems.dialogs.openCreateItemDialog(null, null, null, ${gridViewSettings.skipNameForNewItems})'><span class='k-icon k-i-${createButtonIcon}'></span>${createButtonText}</a>`
+                    template: `<a class='k-button k-button-icontext' href='\\#' onclick='return window.dynamicItems.dialogs.openCreateItemDialog(null, null, null, ${gridViewSettings.skipNameForNewItems})'><span class='k-font-icon k-i-${createButtonIcon}'></span>${createButtonText}</a>`
                 });
             }
 
@@ -876,7 +876,7 @@ export class Grids {
 
                         commands.push({
                             name: "openDetails",
-                            iconClass: "k-icon k-i-hyperlink-open",
+                            iconClass: "k-font-icon k-i-hyperlink-open",
                             text: "",
                             click: (event) => { this.onShowDetailsClick(event, kendoGrid, options, false); }
                         });
@@ -886,7 +886,7 @@ export class Grids {
 
                             commands.push({
                                 name: "openDetailsInNewTab",
-                                iconClass: "k-icon k-i-window",
+                                iconClass: "k-font-icon k-i-window",
                                 text: "",
                                 click: (event) => { this.onShowDetailsClick(event, kendoComponent, options, true); }
                             });
@@ -966,7 +966,7 @@ export class Grids {
                     if (!options.disableOpeningOfItems) {
                         commands.push({
                             name: "openDetails",
-                            iconClass: "k-icon k-i-hyperlink-open",
+                            iconClass: "k-font-icon k-i-hyperlink-open",
                             text: "",
                             click: (event) => { this.onShowDetailsClick(event, kendoGrid, options, false); }
                         });
@@ -976,7 +976,7 @@ export class Grids {
 
                             commands.push({
                                 name: "openDetailsInNewTab",
-                                iconClass: "k-icon k-i-window",
+                                iconClass: "k-font-icon k-i-window",
                                 text: "",
                                 click: (event) => { this.onShowDetailsClick(event, kendoComponent, options, true); }
                             });
@@ -1023,14 +1023,14 @@ export class Grids {
             toolbar.push({
                 name: "clearAllFilters",
                 text: "",
-                template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' href='\\#' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-icon k-i-filter-clear'></span></a>`
+                template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' href='\\#' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>`
             });
         }
         if (!options.toolbar || !options.toolbar.hideFullScreenButton) {
             toolbar.push({
                 name: "fullScreen",
                 text: "",
-                template: `<a class='k-button k-button-icontext full-screen' title='Grid naar fullscreen' href='\\#' onclick='return window.dynamicItems.grids.onMaximizeGridClick(event)'><span class='k-icon k-i-wiser-maximize'></span></a>`
+                template: `<a class='k-button k-button-icontext full-screen' title='Grid naar fullscreen' href='\\#' onclick='return window.dynamicItems.grids.onMaximizeGridClick(event)'><span class='k-font-icon k-i-wiser-maximize'></span></a>`
             });
         }
         if (element.data("kendoGrid")) {
@@ -1282,7 +1282,7 @@ export class Grids {
                 actionsWithoutGroups.push({
                     name: `customAction${i.toString()}`,
                     text: customAction.text,
-                    template: `<a class='k-button k-button-icontext ${className}' href='\\#' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
+                    template: `<a class='k-button k-button-icontext ${className}' href='\\#' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-font-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
                 });
             }
         }
@@ -1293,7 +1293,7 @@ export class Grids {
                 name: "buttonGroup",
                 text: "",
                 template: `<div class='k-button-drop'>
-                            <span class='k-button-toggle k-button k-button-icontext'><span class='k-icon k-i-${group.icon}'></span>${group.name}</span>
+                            <span class='k-button-toggle k-button k-button-icontext'><span class='k-font-icon k-i-${group.icon}'></span>${group.name}</span>
                             <div>
                                 ${group.actions.join("")}
                             </div>

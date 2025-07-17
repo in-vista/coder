@@ -173,7 +173,7 @@ Wiser.api({
         if (!options.disableOpeningOfItems) {
             commands.push({
                 name: "openDetails",
-                iconClass: "k-icon k-i-hyperlink-open",
+                iconClass: "k-font-icon k-i-hyperlink-open",
                 text: "&nbsp;",
                 click: (event) => { window.dynamicItems.grids.onShowDetailsClick(event, grid, options, false); }
             });
@@ -183,7 +183,7 @@ Wiser.api({
 
                 commands.push({
                     name: "openDetailsInNewTab",
-                    iconClass: "k-icon k-i-window",
+                    iconClass: "k-font-icon k-i-window",
                     text: "",
                     click: (event) => { window.dynamicItems.grids.onShowDetailsClick(event, kendoComponent, options, true); }
                 });
@@ -196,7 +196,7 @@ Wiser.api({
             commands.push({
                 name: "remove",
                 text: "",
-                iconClass: "k-icon k-i-delete",
+                iconClass: "k-font-icon k-i-delete",
                 click: (event) => { window.dynamicItems.grids.onDeleteItemClick(event, this, options.deletionOfItems, options, false); }
             });
         }
@@ -218,7 +218,7 @@ Wiser.api({
         toolbar.push({
             name: "checkAll",
             text: "Alles selecteren",
-            template: "<a class='k-button k-button-icontext' href='\\#' onclick='return window.dynamicItems.grids.onItemLinkerSelectAll(\"\\#checkTree_{propertyIdWithSuffix}\", true)'><span class='k-icon k-i-checkbox-checked'></span>Alles selecteren</a>"
+            template: "<a class='k-button k-button-icontext' href='\\#' onclick='return window.dynamicItems.grids.onItemLinkerSelectAll(\"\\#checkTree_{propertyIdWithSuffix}\", true)'><span class='k-font-icon k-i-checkbox-checked'></span>Alles selecteren</a>"
         });
     }
 
@@ -226,7 +226,7 @@ Wiser.api({
         toolbar.push({
             name: "uncheckAll",
             text: "Alles deselecteren",
-            template: "<a class='k-button k-button-icontext' href='\\#' onclick='return window.dynamicItems.grids.onItemLinkerSelectAll(\"\\#checkTree_{propertyIdWithSuffix}\", false)'><span class='k-icon k-i-checkbox'></span>Alles deselecteren</a>"
+            template: "<a class='k-button k-button-icontext' href='\\#' onclick='return window.dynamicItems.grids.onItemLinkerSelectAll(\"\\#checkTree_{propertyIdWithSuffix}\", false)'><span class='k-font-icon k-i-checkbox'></span>Alles deselecteren</a>"
         });
     }
 

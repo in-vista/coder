@@ -1508,7 +1508,7 @@ const moduleSettings = {
                     width: 80,
                     command: [{
                         name: "openDetails",
-                        iconClass: "k-icon k-i-hyperlink-open",
+                        iconClass: "k-font-icon k-i-hyperlink-open",
                         text: "",
                         click: (event) => { this.base.grids.onShowDetailsClick(event, grid, {}); }
                     }]

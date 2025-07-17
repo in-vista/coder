@@ -1208,7 +1208,7 @@ const moduleSettings = {
                     columns: [
                         { field: "k", title: "Naam" },
                         { field: "v", title: "Waarde" },
-                        { command: { name: "destroy", text: "", iconClass: "k-icon k-i-delete" }, width: 150 }
+                        { command: { name: "destroy", text: "", iconClass: "k-font-icon k-i-delete" }, width: 150 }
                     ],
                     editable: {
                         mode: "incell",

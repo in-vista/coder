@@ -610,7 +610,7 @@ const moduleSettings = {
                     const treshold = 1;
                     if (Math.abs(scrollHeight - clientHeight - scrollTop) < treshold) {
                         // if history pane is active load next batch of history rows
-                        if (container.parentElement.classList.contains("k-state-active")) {
+                        if (container.parentElement.classList.contains("k-active")) {
                             this.loadNextHistoryPart();
                         }
                     }

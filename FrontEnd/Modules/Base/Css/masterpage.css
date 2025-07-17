@@ -841,7 +841,7 @@ dd {
 	padding: 3px 8px;
 	margin-top: 8px;
 }
-.item[data-label-style="float"] .k-selection-multiple .k-chip span.k-icon {
+.item[data-label-style="float"] .k-selection-multiple .k-chip span.k-font-icon {
 	line-height: 28px;
 	height: 28px;
 }
@@ -860,13 +860,13 @@ dd {
 .item[data-label-style="float"] .k-colorpicker .k-picker-wrap .k-select {
 	line-height: 32px;
 }
-.item[data-label-style="float"] .k-combobox .k-icon.k-i-arrow-60-down,
-.item[data-label-style="float"] .k-dropdown .k-icon.k-i-arrow-60-down,
-.item[data-label-style="float"] .k-picker-wrap .k-icon.k-i-arrow-60-down,
-.item[data-label-style="float"] .k-input .k-datetimepicker .k-icon {
+.item[data-label-style="float"] .k-combobox .k-font-icon.k-i-arrow-60-down,
+.item[data-label-style="float"] .k-dropdown .k-font-icon.k-i-arrow-60-down,
+.item[data-label-style="float"] .k-picker-wrap .k-font-icon.k-i-arrow-60-down,
+.item[data-label-style="float"] .k-input .k-datetimepicker .k-font-icon {
 	top: 10px;
 }
-.item[data-label-style="float"] .k-colorpicker .k-picker-wrap .k-icon.k-i-arrow-60-down {
+.item[data-label-style="float"] .k-colorpicker .k-picker-wrap .k-font-icon.k-i-arrow-60-down {
 	top: 0;
 }
 .item[data-label-style="float"] .info,
