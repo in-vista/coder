@@ -466,18 +466,6 @@ a.k-font-icon:hover {
     margin: 0;
 }
 
-.k-group,
-.k-grouping-header,
-.k-pager-wrap,
-.k-group-footer td,
-.k-grid-footer,
-.k-footer-template td,
-.k-widget .k-status,
-.k-dropzone-hovered,
-.k-popup {
-    background-color: var(--color-1);
-}
-
 .k-grouping-row td,
 td.k-group-cell,
 .k-resize-handle-inner {
@@ -585,38 +573,8 @@ textarea.k-textbox:hover,
     color: var(--white-color);
 }
 
-.k-header,
-.k-grid-header,
-.k-dropdown-wrap,
-.k-picker-wrap,
-.k-numeric-wrap,
-.k-grouping-header,
-.k-pager-wrap,
-.k-textbox,
-.k-progressbar,
-.k-draghandle,
-.k-autocomplete,
-.k-state-highlight,
-.k-tabstrip-items .k-item,
-.k-panelbar .k-tabstrip-items .k-item,
-.km-pane-wrapper > .km-pane > .km-view > .km-content {
-    background-position: 50% 50%;
-    background-color: var(--color-1);
-}
-
 .k-widget.k-tooltip {
     background-image: none;
-}
-
-.k-block,
-.k-header,
-.k-grid-header,
-.k-grouping-header,
-.k-pager-wrap,
-.k-draghandle,
-.k-treemap-tile,
-html .km-pane-wrapper .k-header {
-    background-color: var(--color-1);
 }
 
 .k-hr {

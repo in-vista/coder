@@ -282,13 +282,13 @@ body.iframe .editMenu {
     order: 6;
 }
 
-#gridView .k-grid-toolbar .k-grid-refresh {
+#gridView .k-grid-toolbar .k-toolbar-item:has(.k-grid-refresh) {
     order: 5;
 }
 
 .k-grid-toolbar .k-grid-excel,
-.k-grid-toolbar .clear-all-filters,
-.k-grid-toolbar .full-screen {
+.k-grid-toolbar .k-toolbar-item:has(.clear-all-filters),
+.k-grid-toolbar .k-toolbar-item:has(.full-screen) {
     order: 4;
 }
 
@@ -315,7 +315,7 @@ body.iframe .editMenu {
         margin: 0;
     }
 
-.k-grid-toolbar .counterContainer {
+.k-grid-toolbar .k-toolbar-item:has(.counterContainer) {
     line-height: 38px;
     color: var(--dark-txt);
     margin-left: auto;
@@ -440,4 +440,8 @@ body.iframe .editMenu {
     border: 0;
     height: 100%;
     width: 100%;
+}
+
+.k-svg-icon > svg {
+    width: inherit;
 }

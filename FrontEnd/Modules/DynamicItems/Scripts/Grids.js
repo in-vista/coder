@@ -332,7 +332,7 @@ export class Grids {
                 toolbar.push({
                     name: "add",
                     text: "Nieuw",
-                    template: `<a class='k-button k-button-icontext' href='\\#' onclick='return window.dynamicItems.dialogs.openCreateItemDialog(null, null, null, ${gridViewSettings.skipNameForNewItems})'><span class='k-font-icon k-i-${createButtonIcon}'></span>${createButtonText}</a>`
+                    template: `<a class='k-button k-button-icontext' onclick='return window.dynamicItems.dialogs.openCreateItemDialog(null, null, null, ${gridViewSettings.skipNameForNewItems})'><span class='k-font-icon k-i-${createButtonIcon}'></span>${createButtonText}</a>`
                 });
             }
 

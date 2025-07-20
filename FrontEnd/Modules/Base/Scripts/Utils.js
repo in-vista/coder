@@ -377,9 +377,7 @@ export class Wiser {
                 console.error("Refresh token failed!");
 
                 // If we got a 401 while using the refresh token, it means the refresh token is no longer valid, so logout the user.
-                if (window.parent && window.parent.main && window.parent.main.vueApp) {
-                    window.parent.main.vueApp.logout();
-                }
+                wiserMainWindow?.vueApp.logout();
             }
         });
     }
