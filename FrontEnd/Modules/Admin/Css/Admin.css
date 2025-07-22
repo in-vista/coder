@@ -1,10 +1,6 @@
 ﻿@import "../../Base/Scss/base.scss";
 
-#wiser {
-    display: block;
-}
-
-#MainTabStrip.k-widget {
+#wiser, #MainTabStrip.k-tabstrip {
     display: block;
 }
 
@@ -229,14 +225,14 @@ li.hint span {
 }
 
 /* GRIDS */
-.multi-check tr.k-state-selected,
-.multi-check td.k-state-selected {
+.multi-check tr.k-selected,
+.multi-check td.k-selected {
     background-color: var(--white-color);
     color: var(--dark-txt);
 }
 
-.multi-check tr.k-state-selected > td,
-.multi-check td.k-state-selected {
+.multi-check tr.k-selected > td,
+.multi-check td.k-selected {
     border-color: var(--border-color);
 }
 

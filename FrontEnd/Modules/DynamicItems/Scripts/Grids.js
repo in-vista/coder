@@ -290,7 +290,7 @@ export class Grids {
                     name: "refreshCustom",
                     iconClass: "k-font-icon k-i-refresh",
                     text: "",
-                    template: `<a class='k-button k-button-icontext k-grid-refresh' href='\\#' title='Verversen'><span class='k-font-icon k-i-refresh'></span></a>`
+                    template: `<a class='k-button k-button-icontext k-grid-refresh' title='Verversen'><span class='k-font-icon k-i-refresh'></span></a>`
                 });
             }
 
@@ -298,7 +298,7 @@ export class Grids {
                 toolbar.push({
                     name: "clearAllFilters",
                     text: "",
-                    template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' href='\\#' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>`
+                    template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>`
                 });
             }
 
@@ -617,7 +617,7 @@ export class Grids {
                 },
                 change: (event) => {
                     // Retrieve the elements of the selected rows
-                    const selectedRows = event.sender.wrapper.find('tr.k-state-selected');
+                    const selectedRows = event.sender.wrapper.find('tr.k-selected');
                     
                     // Gather field data for each selected row in the grid.
                     const selectedData = [];
@@ -1023,14 +1023,14 @@ export class Grids {
             toolbar.push({
                 name: "clearAllFilters",
                 text: "",
-                template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' href='\\#' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>`
+                template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>`
             });
         }
         if (!options.toolbar || !options.toolbar.hideFullScreenButton) {
             toolbar.push({
                 name: "fullScreen",
                 text: "",
-                template: `<a class='k-button k-button-icontext full-screen' title='Grid naar fullscreen' href='\\#' onclick='return window.dynamicItems.grids.onMaximizeGridClick(event)'><span class='k-font-icon k-i-wiser-maximize'></span></a>`
+                template: `<a class='k-button k-button-icontext full-screen' title='Grid naar fullscreen' onclick='return window.dynamicItems.grids.onMaximizeGridClick(event)'><span class='k-font-icon k-i-wiser-maximize'></span></a>`
             });
         }
         if (element.data("kendoGrid")) {
@@ -1277,12 +1277,12 @@ export class Grids {
                     groups.push(group);
                 }
 
-                group.actions.push(`<a class='k-button k-button-icontext ${className}' href='\\#' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span>${customAction.text}</span></a>`);
+                group.actions.push(`<a class='k-button k-button-icontext ${className}' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span>${customAction.text}</span></a>`);
             } else {
                 actionsWithoutGroups.push({
                     name: `customAction${i.toString()}`,
                     text: customAction.text,
-                    template: `<a class='k-button k-button-icontext ${className}' href='\\#' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-font-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
+                    template: `<a class='k-button k-button-icontext ${className}' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-font-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
                 });
             }
         }
@@ -1753,7 +1753,7 @@ export class Grids {
         const conditionalButtons = event.sender.wrapper.find('.k-button.hide-when-no-selected-rows');
 
         // Retrieve the elements of the selected rows
-        const selectedRows = event.sender.wrapper.find('tr.k-state-selected');
+        const selectedRows = event.sender.wrapper.find('tr.k-table-row.k-selected');
 
         // Gather field data for each selected row in the grid.
         const selectedData = [];
@@ -1804,7 +1804,8 @@ export class Grids {
             }
             
             // Check whether any of the selected rows is set to be read-only and should be hidden.
-            shouldHide = !shouldHide && !showOnReadOnly && readOnly;
+            if(!shouldHide)
+                shouldHide = !showOnReadOnly && readOnly;
             
             // Check whether the user has selected more or less than the allowed rows selected of the action button.
             if(!shouldHide) {

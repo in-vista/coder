@@ -218,7 +218,7 @@ Wiser.api({
         toolbar.push({
             name: "checkAll",
             text: "Alles selecteren",
-            template: "<a class='k-button k-button-icontext' href='\\#' onclick='return window.dynamicItems.grids.onItemLinkerSelectAll(\"\\#checkTree_{propertyIdWithSuffix}\", true)'><span class='k-font-icon k-i-checkbox-checked'></span>Alles selecteren</a>"
+            template: "<a class='k-button k-button-icontext' onclick='return window.dynamicItems.grids.onItemLinkerSelectAll(\"\\#checkTree_{propertyIdWithSuffix}\", true)'><span class='k-font-icon k-i-checkbox-checked'></span>Alles selecteren</a>"
         });
     }
 
@@ -226,7 +226,7 @@ Wiser.api({
         toolbar.push({
             name: "uncheckAll",
             text: "Alles deselecteren",
-            template: "<a class='k-button k-button-icontext' href='\\#' onclick='return window.dynamicItems.grids.onItemLinkerSelectAll(\"\\#checkTree_{propertyIdWithSuffix}\", false)'><span class='k-font-icon k-i-checkbox'></span>Alles deselecteren</a>"
+            template: "<a class='k-button k-button-icontext' onclick='return window.dynamicItems.grids.onItemLinkerSelectAll(\"\\#checkTree_{propertyIdWithSuffix}\", false)'><span class='k-font-icon k-i-checkbox'></span>Alles deselecteren</a>"
         });
     }
 

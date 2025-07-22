@@ -242,7 +242,7 @@
             toolbar.push({
                 name: "clearAllFilters",
                 text: "",
-                template: "<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' href='\\#' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>"
+                template: "<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>"
             });
         }
     
@@ -250,7 +250,7 @@
             toolbar.push({
                 name: "fullScreen",
                 text: "",
-                template: `<a class='k-button k-button-icontext full-screen' title='Grid naar fullscreen' href='\\#' onclick='return window.dynamicItems.grids.onMaximizeGridClick(event)'><span class='k-font-icon k-i-wiser-maximize'></span></a>`
+                template: `<a class='k-button k-button-icontext full-screen' title='Grid naar fullscreen' onclick='return window.dynamicItems.grids.onMaximizeGridClick(event)'><span class='k-font-icon k-i-wiser-maximize'></span></a>`
             });
         }
     
@@ -276,7 +276,7 @@
                 : {
                     name: "add",
                     text: "Nieuw",
-                    template: "<a class='k-button k-button-icontext' href='\\#' onclick='return window.dynamicItems.grids.onNewSubEntityClick(\"{itemIdEncrypted}\", \"" + options.entityType + "\", \"\\#overviewGrid{propertyIdWithSuffix}\", " + !options.hideTitleColumn + ", \"" + (options.linkTypeNumber || "") + "\")'><span class='k-font-icon k-i-file-add'></span>" + window.dynamicItems.getEntityTypeFriendlyName(options.entityType) + " toevoegen</a>"
+                    template: "<a class='k-button k-button-icontext' onclick='return window.dynamicItems.grids.onNewSubEntityClick(\"{itemIdEncrypted}\", \"" + options.entityType + "\", \"\\#overviewGrid{propertyIdWithSuffix}\", " + !options.hideTitleColumn + ", \"" + (options.linkTypeNumber || "") + "\")'><span class='k-font-icon k-i-file-add'></span>" + window.dynamicItems.getEntityTypeFriendlyName(options.entityType) + " toevoegen</a>"
                 });
         }
     
@@ -284,7 +284,7 @@
             toolbar.push({
                 name: "link",
                 text: "Koppelen",
-                template: "<a class='k-button k-button-icontext' href='\\#' onclick='return window.dynamicItems.grids.onLinkSubEntityClick(\"{itemIdEncrypted}\", {itemId}, \"{entityType}\", \"" + options.entityType + "\", \"\\#overviewGrid{propertyIdWithSuffix}\", \"" + (options.linkTypeNumber || "") + "\", " + (options.hideIdColumn || false) + ", " + (options.hideLinkIdColumn || false) + ", " + (options.hideTypeColumn || false) + ", " + (options.hideEnvironmentColumn || false) + ", " + (options.hideTitleColumn || false) + ", {propertyId}, \"" + JSON.stringify(options).replace(/"/g, '\\"') + "\")'><span class='k-font-icon k-i-link-horizontal'></span>" + window.dynamicItems.getEntityTypeFriendlyName(options.entityType) + " koppelen</a>"
+                template: "<a class='k-button k-button-icontext' onclick='return window.dynamicItems.grids.onLinkSubEntityClick(\"{itemIdEncrypted}\", {itemId}, \"{entityType}\", \"" + options.entityType + "\", \"\\#overviewGrid{propertyIdWithSuffix}\", \"" + (options.linkTypeNumber || "") + "\", " + (options.hideIdColumn || false) + ", " + (options.hideLinkIdColumn || false) + ", " + (options.hideTypeColumn || false) + ", " + (options.hideEnvironmentColumn || false) + ", " + (options.hideTitleColumn || false) + ", {propertyId}, \"" + JSON.stringify(options).replace(/"/g, '\\"') + "\")'><span class='k-font-icon k-i-link-horizontal'></span>" + window.dynamicItems.getEntityTypeFriendlyName(options.entityType) + " koppelen</a>"
             });
         }
     

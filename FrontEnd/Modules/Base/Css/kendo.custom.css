@@ -2555,18 +2555,6 @@ span.k-colorpicker {
     border-bottom-width: 0;
 }
 
-.k-tabstrip-items .k-state-active,
-.k-panelbar .k-tabstrip-items .k-state-active {
-    background-color: var(--item-bg-color);
-    background-image: none;
-    border-top-color: var(--color-2);
-}
-
-.k-tabstrip .k-content.k-state-active {
-    border-color: transparent;
-    outline: none;
-}
-
 .k-tabstrip-items .k-item.k-state-hover {
     background: #00c0f3;
     border-color: #00c0f3;
@@ -2731,11 +2719,15 @@ td.k-group-cell,
     color: var(--white-color);
 }
 
-.k-scheduler-layout .k-state-selected,
-.k-scheduler .k-today.k-state-selected,
-.k-grid tr.k-state-selected,
-.k-grid td.k-state-selected,
-.k-grid td.k-state-selected.k-state-focused,
+.k-scheduler-layout .k-selected,
+.k-scheduler .k-today.k-selected,
+.k-grid tr.k-selected,
+.k-grid td.k-selected,
+.k-grid td.k-selected.k-state-focused,
+.k-grid td.k-selected,
+.k-grid .k-table-row.k-selected > td,
+.k-grid .k-table-td.k-selected,
+.k-grid .k-table-row.k-selected > .k-table-td,
 .k-marquee-color,
 .k-gantt .k-treelist .k-state-selected,
 .k-gantt .k-treelist .k-state-selected td,
@@ -2750,10 +2742,10 @@ td.k-group-cell,
     color: var(--row-selected-background-color);
 }
 
-.k-grid tr.k-state-selected,
-.k-grid td.k-state-selected,
-.k-listview > .k-state-selected,
-.k-state-selected .k-progress-status {
+.k-grid tr.k-selected,
+.k-grid td.k-selected,
+.k-listview > .k-selected,
+.k-selected .k-progress-status {
     color: var(--black-color);
 }
 
@@ -2766,13 +2758,8 @@ td.k-group-cell,
     background: none;
 }
 
-.k-grid td.k-state-selected,
-.k-grid tr.k-state-selected > td {
-    border-color: var(--row-selected-hover-background-color);
-}
-
-.k-grid td.k-state-selected:hover,
-.k-grid tr.k-state-selected:hover td {
+.k-grid td.k-selected:hover,
+.k-grid tr.k-selected:hover td {
     background-color: var(--row-selected-hover-background-color);
 }
 
