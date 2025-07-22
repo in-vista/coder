@@ -70,6 +70,11 @@ const moduleSettings = {
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Flags to use in wiser_field_templates, so that we can add code there that depends on code in this file, without having to deploy this to live right away.
             this.fieldTemplateFlags = {
                 enableSubEntitiesGridsOrdering: true
@@ -523,7 +528,7 @@ const moduleSettings = {
                 axis: "x",
                 container: "ul.k-tabstrip-items",
                 hint: (element) => {
-                    return $(`<div id='hint' class='k-widget k-header k-tabstrip'><ul class='k-tabstrip-items k-reset'><li class='k-item k-state-active k-tab-on-top'>${element.html()}</li></ul></div>`);
+                    return $(`<div id='hint' class='k-widget k-header k-tabstrip'><ul class='k-tabstrip-items k-reset'><li class='k-item k-active k-tab-on-top'>${element.html()}</li></ul></div>`);
                 },
                 start: (event) => {
                     this.mainTabStrip.activateTab(event.item);

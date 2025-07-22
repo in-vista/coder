@@ -646,12 +646,6 @@
 .k-tabstrip-items-wrapper {
 	background-color: var(--white-color);
 }
-.k-tabstrip-items-wrapper .k-tabstrip-items .k-item.k-state-active {
-	background-color: var(--item-bg-color);
-	color: var(--dark-txt);
-	border-bottom-color: transparent;
-	border-top-width: 1px;
-}
 .k-tabstrip .k-tabstrip-items {
 	background-color: var(--white-color);
 	margin: 0 !important;
@@ -666,10 +660,12 @@
 .k-tabstrip-items .k-item .k-sprite {
 	display: none;
 }
-.k-panelbar .k-tabstrip > .k-content, .k-tabstrip > .k-content {
-	padding: 1px;
+.k-panelbar .k-tabstrip > .k-content,
+.k-tabstrip > .k-content,
+.k-tabstrip >.k-tabstrip-content {
+	padding: 0;
 }
-.k-tabstrip-top > .k-tabstrip-items .k-state-active,
+.k-tabstrip-top > .k-tabstrip-items .k-active,
 .k-tabstrip-top > .k-tabstrip-items .k-tab-on-top {
 	margin-bottom: 0;
 }
@@ -706,7 +702,7 @@
 	font-weight: normal;
 	text-transform: none;
 }
-.k-tabstrip-items .k-item.k-state-active .k-link {
+.k-tabstrip-items .k-item.k-active .k-link {
 	color: var(--dark-txt);
 	font-family: var(--medium-txt);
 	font-weight: 500;
@@ -1185,8 +1181,11 @@ span.k-input .k-input:hover {
 }
 
 /* KENDO - GRID */
-.k-filter-row th {
-	padding: 0;
+.k-filter-row th, .k-filter-row td {
+	padding: 0 !important;
+}
+.k-table-thead {
+	background-color: inherit;
 }
 .item .k-grid .k-loading-mask {
 	display: none;
@@ -1245,7 +1244,7 @@ span.k-input .k-input:hover {
 	bottom: 6px;
 	right: 5px;
 }
-.k-grid-header th.k-header .k-grid-filter.k-state-active:before {
+.k-grid-header th.k-header .k-grid-filter.k-active:before {
 	content: "";
 	background-color: var(--bg-color);
 	position: absolute;
@@ -1255,14 +1254,14 @@ span.k-input .k-input:hover {
 	right: 0;
 	z-index: 0;
 }
-.k-grid-header th.k-header .k-state-active span {
+.k-grid-header th.k-header .k-active span {
 	position: relative;
 	z-index: 5;
 }
 .k-grid-header .k-grid-filter.k-state-border-down {
 	background-color: var(--filter-color);
 }
-.k-grid-header th.k-header .k-grid-filter.k-state-active:before {
+.k-grid-header th.k-header .k-grid-filter.k-active:before {
 	content: "";
 	background-color: var(--color-1);
 	position: absolute;
@@ -1272,7 +1271,7 @@ span.k-input .k-input:hover {
 	right: 0;
 	z-index: 0;
 }
-.k-grid-header th.k-header .k-grid-filter.k-state-active .k-icon {
+.k-grid-header th.k-header .k-grid-filter.k-active .k-icon {
 	color: var(--white-color);
 	opacity: 1;
 }
@@ -1348,6 +1347,7 @@ k-filter-menu .k-autocomplete,
 .k-filter-menu .k-timepicker {
 	width: 100%;
 }
+
 /* Grid in an iframe / full window */
 .gridViewMode .k-grid-content {
 	resize: none;
@@ -1770,6 +1770,7 @@ textarea[readonly],
 .k-editor,
 .k-editor .k-toolbar {
 	background-color: var(--bg-color);
+	width: 100%;
 }
 
 .k-editor .k-button {

@@ -56,6 +56,11 @@ const moduleSettings = {
         constructor(settings) {
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Base settings.
             this.settings = {};
             Object.assign(this.settings, settings);

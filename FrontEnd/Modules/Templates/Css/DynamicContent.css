@@ -49,11 +49,11 @@
     top: 74px;
 }
 
-#left-pane .k-tabstrip .k-content.k-state-active {
+#left-pane .k-tabstrip .k-content.k-active {
     padding: 12px;
 }
 
-#right-pane .k-tabstrip .k-content.k-state-active {
+#right-pane .k-tabstrip .k-content.k-active {
     padding: 5px 2px;
 }
 

@@ -73,6 +73,11 @@ const moduleSettings = {
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Default settings
             this.settings = {
                 moduleId: 0,

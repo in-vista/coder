@@ -215,7 +215,7 @@ body.gridViewMode #mainScreenForm {
 #previewFrame .k-content-frame iframe {
     border: none;
     width: 100%;
-    height: calc(100% - 5px);
+    height: 100%;
 }
 
 #previewFrame table.k-editor {
@@ -242,7 +242,7 @@ iframe.iframe:not(.hidden) + table.k-editor {
         top: 0;
     }
 
-#previewFrame .k-tabstrip .k-content.k-state-active {
+#previewFrame .k-tabstrip .k-content.k-active {
     background-color: var(--white-color);
 }
 

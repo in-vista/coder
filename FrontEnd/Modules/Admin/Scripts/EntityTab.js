@@ -504,7 +504,7 @@ export class EntityTab {
                 }
             },
             select: (event) => {
-                const tabName = event.item.querySelector(".k-link").innerHTML.toLowerCase();
+                const tabName = event.item.querySelector(".k-link > .k-link-text").innerHTML.toLowerCase();
                 switch (tabName) {
                     case "velden":
                         if (!this.checkIfEntityIsSet())
@@ -520,7 +520,7 @@ export class EntityTab {
                 }
             },
             activate: (event) => {
-                const tabName = event.item.querySelector(".k-link").innerHTML.toLowerCase();
+                const tabName = event.item.querySelector(".k-link > .k-link-text").innerHTML.toLowerCase();
 
                 if (tabName === "eigenschappen") {
                     // Refresh code mirrors, otherwise they won't work properly because they were invisible when they were initialized.
