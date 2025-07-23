@@ -512,7 +512,7 @@ export class RoleTab {
     }
 
     getSelectedTabName() {
-        return this.rolesTabStrip.select().find(".k-link").text();
+        return this.rolesTabStrip.select().find(".k-link > .k-link-text").text();
     }
 
     /** Init Kendo listview component */
@@ -529,11 +529,11 @@ export class RoleTab {
                 }
             },
             select: (event) => {
-                const selectedTab = event.item.querySelector(".k-link").innerHTML.toLowerCase();
+                const selectedTab = event.item.querySelector(".k-link > .k-link-text").innerHTML.toLowerCase();
                 console.log("rolesTabStrip select", selectedTab);
             },
             activate: (event) => {
-                const selectedTab = event.item.querySelector(".k-link").innerHTML.toLowerCase();
+                const selectedTab = event.item.querySelector(".k-link > .k-link-text").innerHTML.toLowerCase();
                 const dataItem = this.roleList.dataItem(this.roleList.select());
                 console.log("rolesTabStrip activate", selectedTab, dataItem);
                 if (typeof dataItem === "undefined") {

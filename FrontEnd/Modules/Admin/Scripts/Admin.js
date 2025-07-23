@@ -49,6 +49,11 @@ const moduleSettings = {
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Base settings.
             this.settings = {};
             Object.assign(this.settings, settings);
@@ -398,7 +403,7 @@ const moduleSettings = {
                     }
                 },
                 select: (event) => {
-                    const tabName = event.item.querySelector(".k-link").innerHTML.toLowerCase();
+                    const tabName = event.item.querySelector(".k-link > .k-link-text").innerHTML.toLowerCase();
 
                     if (tabName === "query's" || tabName === "entiteiten" || tabName === "modules") {
                         $("footer").show();
@@ -407,7 +412,7 @@ const moduleSettings = {
                     }
                 },
                 activate: (event) => {
-                    const tabName = event.item.querySelector(".k-link").innerHTML.toLowerCase();
+                    const tabName = event.item.querySelector(".k-link > .k-link-text").innerHTML.toLowerCase();
                     this.activeMainTab = tabName;
 
                     // Refresh code mirrors in the currently activated tab.

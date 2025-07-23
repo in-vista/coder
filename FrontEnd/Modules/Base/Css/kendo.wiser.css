@@ -265,7 +265,7 @@
 	padding: 12px 8px;
 	text-transform: none;
 }
-.k-button-icontext .k-icon,
+.k-button-icontext .k-font-icon,
 .k-button-icontext .k-image,
 .k-button-icontext .k-sprite {
 	margin: 0 8px 0 0;
@@ -319,7 +319,7 @@
 	height: 50px;
 	width: 50px;
 }
-.k-button-round .k-icon {
+.k-button-round .k-font-icon {
 	font-size: 30px;
 }
 .k-button-round .k-notification {
@@ -499,7 +499,7 @@
 	text-transform: none;
 }
 /* KENDO - BUTTON ICONS */
-.k-button-icon .k-icon,
+.k-button-icon .k-font-icon,
 .k-window-actions .k-button-icon {
 	font-family: 'icomoon' !important;
 	speak: none;
@@ -518,26 +518,26 @@
 	width: 24px;
 	min-width: 24px;
 }
-.k-scheduler-toolbar .k-button-icon .k-icon {
+.k-scheduler-toolbar .k-button-icon .k-font-icon {
 	font-family: 'WebComponentsIcons' !important;
 }
-.k-button-icon.k-primary .k-icon,
-.k-button-icon.k-button-solid-primary .k-icon {
+.k-button-icon.k-primary .k-font-icon,
+.k-button-icon.k-button-solid-primary .k-font-icon {
 	color: var(--white-color);
 }
-.k-button-icon .k-icon.k-i-verwijderen:before,
-.k-button-icon .k-icon.k-i-delete:before,
-.k-button-icon.k-icon.k-i-verwijderen:before {
+.k-button-icon .k-font-icon.k-i-verwijderen:before,
+.k-button-icon .k-font-icon.k-i-delete:before,
+.k-button-icon.k-font-icon.k-i-verwijderen:before {
 	content: "\e9c7";
 }
-.k-button-icon .k-icon.k-i-verversen:before,
-.k-button-icon .k-icon.k-i-refresh:before,
-.k-button-icon.k-icon.k-i-verversen:before,
-.k-button-icon.k-icon.k-i-refresh:before {
+.k-button-icon .k-font-icon.k-i-verversen:before,
+.k-button-icon .k-font-icon.k-i-refresh:before,
+.k-button-icon.k-font-icon.k-i-verversen:before,
+.k-button-icon.k-font-icon.k-i-refresh:before {
 	content: "\e9b9";
 }
-.k-button-icon .k-icon.k-i-close:before,
-.k-window-actions .k-button-icon.k-icon.k-i-close:before {
+.k-button-icon .k-font-icon.k-i-close:before,
+.k-window-actions .k-button-icon.k-font-icon.k-i-close:before {
 	content: "\e98d";
 }
 .k-i-css:before {
@@ -646,12 +646,6 @@
 .k-tabstrip-items-wrapper {
 	background-color: var(--white-color);
 }
-.k-tabstrip-items-wrapper .k-tabstrip-items .k-item.k-state-active {
-	background-color: var(--item-bg-color);
-	color: var(--dark-txt);
-	border-bottom-color: transparent;
-	border-top-width: 1px;
-}
 .k-tabstrip .k-tabstrip-items {
 	background-color: var(--white-color);
 	margin: 0 !important;
@@ -666,10 +660,12 @@
 .k-tabstrip-items .k-item .k-sprite {
 	display: none;
 }
-.k-panelbar .k-tabstrip > .k-content, .k-tabstrip > .k-content {
-	padding: 1px;
+.k-panelbar .k-tabstrip > .k-content,
+.k-tabstrip > .k-content,
+.k-tabstrip >.k-tabstrip-content {
+	padding: 0;
 }
-.k-tabstrip-top > .k-tabstrip-items .k-state-active,
+.k-tabstrip-top > .k-tabstrip-items .k-active,
 .k-tabstrip-top > .k-tabstrip-items .k-tab-on-top {
 	margin-bottom: 0;
 }
@@ -688,7 +684,7 @@
 	margin: 0;
 	z-index: 100;
 }
-.k-tabstrip > .k-button.k-flat .k-icon {
+.k-tabstrip > .k-button.k-flat .k-font-icon {
 	font: 16px/1 WebComponentsIcons !important;
 }
 .k-tabstrip > .k-tabstrip-prev {
@@ -706,7 +702,7 @@
 	font-weight: normal;
 	text-transform: none;
 }
-.k-tabstrip-items .k-item.k-state-active .k-link {
+.k-tabstrip-items .k-item.k-active .k-link {
 	color: var(--dark-txt);
 	font-family: var(--medium-txt);
 	font-weight: 500;
@@ -1128,7 +1124,7 @@ span.k-input .k-input:hover {
 .k-colorpicker .k-picker-wrap {
 	padding: 0.16em 0;
 }
-.k-colorpicker .k-picker-wrap .k-icon {
+.k-colorpicker .k-picker-wrap .k-font-icon {
 	right: 6px;
 }
 .k-colorpicker input {
@@ -1185,8 +1181,11 @@ span.k-input .k-input:hover {
 }
 
 /* KENDO - GRID */
-.k-filter-row th {
-	padding: 0;
+.k-filter-row th, .k-filter-row td {
+	padding: 0 !important;
+}
+.k-table-thead {
+	background-color: inherit;
 }
 .item .k-grid .k-loading-mask {
 	display: none;
@@ -1245,7 +1244,7 @@ span.k-input .k-input:hover {
 	bottom: 6px;
 	right: 5px;
 }
-.k-grid-header th.k-header .k-grid-filter.k-state-active:before {
+.k-grid-header th.k-header .k-grid-filter.k-active:before {
 	content: "";
 	background-color: var(--bg-color);
 	position: absolute;
@@ -1255,14 +1254,14 @@ span.k-input .k-input:hover {
 	right: 0;
 	z-index: 0;
 }
-.k-grid-header th.k-header .k-state-active span {
+.k-grid-header th.k-header .k-active span {
 	position: relative;
 	z-index: 5;
 }
 .k-grid-header .k-grid-filter.k-state-border-down {
 	background-color: var(--filter-color);
 }
-.k-grid-header th.k-header .k-grid-filter.k-state-active:before {
+.k-grid-header th.k-header .k-grid-filter.k-active:before {
 	content: "";
 	background-color: var(--color-1);
 	position: absolute;
@@ -1272,7 +1271,7 @@ span.k-input .k-input:hover {
 	right: 0;
 	z-index: 0;
 }
-.k-grid-header th.k-header .k-grid-filter.k-state-active .k-icon {
+.k-grid-header th.k-header .k-grid-filter.k-active .k-icon {
 	color: var(--white-color);
 	opacity: 1;
 }
@@ -1348,6 +1347,7 @@ k-filter-menu .k-autocomplete,
 .k-filter-menu .k-timepicker {
 	width: 100%;
 }
+
 /* Grid in an iframe / full window */
 .gridViewMode .k-grid-content {
 	resize: none;
@@ -1770,6 +1770,7 @@ textarea[readonly],
 .k-editor,
 .k-editor .k-toolbar {
 	background-color: var(--bg-color);
+	width: 100%;
 }
 
 .k-editor .k-button {

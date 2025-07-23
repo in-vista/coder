@@ -16,6 +16,11 @@ const moduleSettings = {
         constructor(settings) {
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Base settings.
             this.settings = {};
             Object.assign(this.settings, settings);
@@ -1208,7 +1213,7 @@ const moduleSettings = {
                     columns: [
                         { field: "k", title: "Naam" },
                         { field: "v", title: "Waarde" },
-                        { command: { name: "destroy", text: "", iconClass: "k-icon k-i-delete" }, width: 150 }
+                        { command: { name: "destroy", text: "", iconClass: "k-font-icon k-i-delete" }, width: 150 }
                     ],
                     editable: {
                         mode: "incell",

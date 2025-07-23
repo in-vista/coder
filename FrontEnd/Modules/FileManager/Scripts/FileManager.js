@@ -17,7 +17,7 @@ require("@progress/kendo-ui/js/kendo.window.js");
 require("@progress/kendo-ui/js/kendo.numerictextbox.js");
 require("@progress/kendo-ui/js/kendo.dropdownlist.js");
 require("@progress/kendo-ui/js/kendo.tabstrip.js");
-require("@progress/kendo-ui/js/filemanager/contextmenu.js");
+// require("@progress/kendo-ui/js/filemanager/contextmenu.js");
 require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
 require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
 
@@ -72,6 +72,11 @@ const moduleSettings = {
 
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
+
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
 
             // Default settings
             this.settings = {

@@ -11,8 +11,8 @@
     <title>Coder 3 - Templates module</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="//kendo.cdn.telerik.com/2022.2.621/styles/kendo.common-material.min.css" rel="stylesheet" />
-    <link href="//kendo.cdn.telerik.com/2022.2.621/styles/kendo.material.min.css" rel="stylesheet" />
+    <link href="https://unpkg.com/@@progress/kendo-theme-material@11.1.0/dist/material-main.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-font-icons/dist/index.css" />
     <script>
         window.wiserVersion = "@Model.WiserVersion?.ToString()";
     </script>
@@ -84,7 +84,7 @@
                         <div id="right-pane" style="background-color: #eeeeee;">
                             <div id="tabStrip" class="tabstrip k-tabstrip-wrapper">
                                 <ul>
-                                    <li class="development-tab k-state-active" data-name="development">Development</li>
+                                    <li class="development-tab k-active" data-name="development">Development</li>
                                     @* <li class="config-tab" data-name="configuration" disabled>Configuration</li> *@
                                     <li class="dynamic-tab" data-name="dynamic-content">Dynamische content</li>
                                     <li class="history-tab" data-name="history">Historie</li>

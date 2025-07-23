@@ -70,6 +70,11 @@ const moduleSettings = {
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Flags to use in wiser_field_templates, so that we can add code there that depends on code in this file, without having to deploy this to live right away.
             this.fieldTemplateFlags = {
                 enableSubEntitiesGridsOrdering: true
@@ -523,7 +528,7 @@ const moduleSettings = {
                 axis: "x",
                 container: "ul.k-tabstrip-items",
                 hint: (element) => {
-                    return $(`<div id='hint' class='k-widget k-header k-tabstrip'><ul class='k-tabstrip-items k-reset'><li class='k-item k-state-active k-tab-on-top'>${element.html()}</li></ul></div>`);
+                    return $(`<div id='hint' class='k-widget k-header k-tabstrip'><ul class='k-tabstrip-items k-reset'><li class='k-item k-active k-tab-on-top'>${element.html()}</li></ul></div>`);
                 },
                 start: (event) => {
                     this.mainTabStrip.activateTab(event.item);
@@ -655,7 +660,7 @@ const moduleSettings = {
                 await require("@progress/kendo-ui/js/kendo.timepicker.js");
             }
             if (scriptTemplate.indexOf("kendoChart") > -1) {
-                await require("@progress/kendo-ui/js/dataviz/chart/chart.js");
+                await require("@progress/kendo-ui/js/kendo.dataviz.chart.js");
             }
             if (scriptTemplate.indexOf("kendoColorPicker") > -1) {
                 await require("@progress/kendo-ui/js/kendo.colorpicker.js");
@@ -1508,7 +1513,7 @@ const moduleSettings = {
                     width: 80,
                     command: [{
                         name: "openDetails",
-                        iconClass: "k-icon k-i-hyperlink-open",
+                        iconClass: "k-font-icon k-i-hyperlink-open",
                         text: "",
                         click: (event) => { this.base.grids.onShowDetailsClick(event, grid, {}); }
                     }]

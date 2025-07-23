@@ -4,6 +4,14 @@
 //// MIXINS
 @import 'mixin/mixin';
 
+// Overwrite location for web icons font.
+@font-face {
+    font-family: "WebComponentsIcons";
+    font-style: normal;
+    font-weight: normal;
+    src: url("../Fonts/kendo-font-icons.ttf") format("truetype");
+}
+
 /**
  *  Kendo custom styling
  **/
@@ -212,7 +220,7 @@
         float: right;
     }
 
-    .k-icon {
+    .k-font-icon {
         color: inherit;
         display: inline-block;
         font-family: 'icomoon' !important;
@@ -387,7 +395,7 @@
  *  Kendo icon styling
  **/
 .k-button-icon {
-    .k-icon {
+    .k-font-icon {
         @include icon-font;
         color: $text-color;
         font-size: 24px;
