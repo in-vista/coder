@@ -108,14 +108,14 @@ jobs:
 
     - name: Install NPM modules
       run: npm install
-      working-directory: 'coder\FrontEnd'
+      working-directory: 'coder/FrontEnd'
 
     - name: Write Kendo UI license to file
       run: echo "${{ secrets.KENDO_UI_LICENSE }}" > "./coder/FrontEnd/telerik-license.txt"
 
     - name: Activate Kendo UI License
       run: npx kendo-ui-license activate
-      working-directory: 'FrontEnd'
+      working-directory: 'coder/FrontEnd'
         
     - name: Compile scripts and styles with webpack
       run: node_modules\.bin\webpack --mode=development
