@@ -113,7 +113,7 @@ jobs:
     - name: Write Kendo UI license to file
       run: |
         [System.IO.File]::WriteAllText("telerik-license.txt", "${{ secrets.KENDO_UI_LICENSE }}", [System.Text.Encoding]::UTF8)
-      shell: pwsh
+      shell: powershell
       working-directory: coder/FrontEnd
 
     - name: Log content of Telerik license
