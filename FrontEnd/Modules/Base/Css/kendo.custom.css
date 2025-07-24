@@ -364,12 +364,15 @@
     border-color: transparent;
 }
 
-.k-header .k-window-actions .k-link {
+.k-header .k-window-actions .k-link,
+.k-header .k-window-titlebar-actions .k-link {
     color: inherit;
 }
 
 .k-window-actions .k-i-window-restore:before,
-.k-window-actions .k-i-window-maximize:before {
+.k-window-actions .k-i-window-maximize:before,
+.k-window-titlebar-actions .k-i-window-restore:before,
+.k-window-titlebar-actions .k-i-window-maximize:before {
     font-family: WebComponentsIcons !important;
 }
 
@@ -484,11 +487,11 @@ td.k-group-cell,
     background-color: var(--white-color);
 }
 
-.k-alt,
+.k-table-alt-row,
 .k-separator,
 .k-resource.k-alt,
 .k-pivot-layout > tbody > tr:first-child > td:first-child {
-    background-color: var(--light-color);
+    background-color: var(--lightest-color) !important;
 }
 
 .k-pivot-rowheaders .k-alt .k-alt,

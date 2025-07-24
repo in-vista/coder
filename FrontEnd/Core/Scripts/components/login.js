@@ -129,7 +129,9 @@ export default {
         userFilterChange(event) {
             this.users = [];
             this.$store.state.login.listOfUsers.forEach(user => {
-                if (user.title.toLowerCase().includes(event.filter.value.toLowerCase())) {
+                const title = user.title ?? user.Title;
+                
+                if (title?.toLowerCase().includes(event.filter.value.toLowerCase())) {
                     this.users.push(user);
                 }
             });
