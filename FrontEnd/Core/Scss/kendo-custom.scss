@@ -15,6 +15,10 @@
 /**
  *  Kendo custom styling
  **/
+.k-font-icon {
+    text-indent: 0;
+}
+
 .k-window {
     @include drop-shadow($black-color, 10px, 0.2);
     border-radius: 6px;
@@ -111,7 +115,7 @@
         opacity: 1;
     }
 
-    .k-window-actions {
+    .k-window-actions, .k-window-titlebar-actions {
         height: 43px;
         line-height: 43px;
         right: 16px;
@@ -413,7 +417,7 @@
             content: "\e9b9";
         }
 
-        &.k-i-close:before {
+        &.k-i-x:before {
             content: "\e98d";
         }
 

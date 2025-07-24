@@ -9,6 +9,10 @@ html, body {
     display: block;
 }
 
+.k-font-icon {
+    text-indent: 0;
+}
+
 dl {
     border-left: 1px solid var(--dark-bd-color);
     margin: 10px;

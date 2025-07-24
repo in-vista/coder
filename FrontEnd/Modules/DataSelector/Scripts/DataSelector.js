@@ -351,7 +351,7 @@ const moduleSettings = {
             const orderByWidget = orderBy.getKendoMultiSelect();
             orderByWidget.wrapper.on("click", "li.k-button", (e) => {
                 const clickedElement = $(e.target);
-                if (clickedElement.has(".k-i-close").length > 0 || clickedElement.closest(".k-i-close").length > 0) {
+                if (clickedElement.has(".k-i-x").length > 0 || clickedElement.closest(".k-i-x").length > 0) {
                     return;
                 }
 
