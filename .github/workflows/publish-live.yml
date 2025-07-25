@@ -109,15 +109,21 @@ jobs:
 
     - name: Install NPM modules
       run: npm install
-      working-directory: 'coder\FrontEnd'
+      working-directory: 'coder/FrontEnd'
 
     - name: Write Kendo UI license to file
-      run: echo "${{ secrets.KENDO_UI_LICENSE }}" > "./coder/FrontEnd/kendo-ui-license.txt"
+      run: |
+        [System.IO.File]::WriteAllText("telerik-license.txt", "${{ secrets.KENDO_UI_LICENSE }}", [System.Text.Encoding]::UTF8)
+      shell: powershell
+      working-directory: coder/FrontEnd
 
-    # Disabled for now, due to the error "License key signature is not valid" appearing when running the command
-    # - name: Activate Kendo UI License
-    #   run: npx kendo-ui-license activate
-    #   working-directory: 'FrontEnd'
+    - name: Log content of Telerik license
+      run: Get-Content telerik-license.txt
+      working-directory: coder/FrontEnd
+
+    - name: Activate Kendo UI License
+      run: npx kendo-ui-license activate
+      working-directory: 'coder/FrontEnd'
         
     - name: Compile scripts and styles with webpack
       run: node_modules\.bin\webpack --mode=production

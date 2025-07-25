@@ -114,7 +114,7 @@ namespace Api.Modules.Tenants.Services
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<List<FlatItemModel>>> GetAsync(bool includeAdminUsers = false)
+        public async Task<ServiceResult<List<FlatItemModel>>> GetAsync(bool includeAdminUsers = false, bool includeParent = false)
         {
             var result = new List<FlatItemModel>();
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
@@ -122,12 +122,13 @@ namespace Api.Modules.Tenants.Services
 
             string query = $@"SELECT 
     user.id, 
-	IFNULL(NULLIF(user.title, ''), username.value) AS name, 
+    {(includeParent ? "CONCAT_WS(' - ', parent.title, IFNULL(NULLIF(user.title, ''), username.value)) AS name," : "IFNULL(NULLIF(user.title, ''), username.value) AS name,")}
     username.`value` AS username
 FROM {WiserTableNames.WiserItem} AS user
 JOIN {WiserTableNames.WiserItemDetail} AS username ON username.item_id = user.id AND username.`key` = '{UserUsernameKey}'
+{(includeParent ? $"LEFT JOIN {WiserTableNames.WiserItem} parent ON parent.id=user.parent_item_id" : "")}
 WHERE user.entity_type = '{WiserUserEntityType}'
-ORDER BY username.`value` ASC";
+ORDER BY name ASC";
 
             DataTable dataTable;
             if (includeAdminUsers)

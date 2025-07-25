@@ -70,6 +70,11 @@ const moduleSettings = {
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Flags to use in wiser_field_templates, so that we can add code there that depends on code in this file, without having to deploy this to live right away.
             this.fieldTemplateFlags = {
                 enableSubEntitiesGridsOrdering: true
@@ -175,7 +180,7 @@ const moduleSettings = {
             const user = JSON.parse(localStorage.getItem("userData"));
             this.settings.oldStyleUserId = user.oldStyleUserId;
             this.settings.username = user.adminAccountName ? `${user.adminAccountName} (Admin)` : user.name;
-            this.settings.adminAccountLoggedIn = !!user.adminAccountName;
+            this.settings.adminAccountLoggedIn = !!user.adminlogin;
 
             if (!this.settings.wiserApiRoot.endsWith("/")) {
                 this.settings.wiserApiRoot += "/";
@@ -523,7 +528,7 @@ const moduleSettings = {
                 axis: "x",
                 container: "ul.k-tabstrip-items",
                 hint: (element) => {
-                    return $(`<div id='hint' class='k-widget k-header k-tabstrip'><ul class='k-tabstrip-items k-reset'><li class='k-item k-state-active k-tab-on-top'>${element.html()}</li></ul></div>`);
+                    return $(`<div id='hint' class='k-widget k-header k-tabstrip'><ul class='k-tabstrip-items k-reset'><li class='k-item k-active k-tab-on-top'>${element.html()}</li></ul></div>`);
                 },
                 start: (event) => {
                     this.mainTabStrip.activateTab(event.item);
@@ -591,8 +596,18 @@ const moduleSettings = {
                 dataSource: {
                     transport: {
                         read: (options) => {
+                            let urlPart = '';
+                            if (options.data.encryptedItemId) {
+                                let item = this.mainTreeView.dataSource.get(options.data.encryptedItemId)
+                                let entityType = item.entityType;
+
+                                if (entityType) {
+                                    urlPart = `&parentEntityType=${entityType}`;
+                                }
+                            }
+                            
                             Wiser.api({
-                                url: `${this.base.settings.wiserApiRoot}items/tree-view?moduleId=${this.base.settings.moduleId}`,
+                                url: `${this.base.settings.wiserApiRoot}items/tree-view?moduleId=${this.base.settings.moduleId}${urlPart}`,
                                 dataType: "json",
                                 method: "GET",
                                 data: options.data
@@ -616,7 +631,6 @@ const moduleSettings = {
                 expand: this.onTreeViewExpandItem.bind(this),
                 drop: this.onTreeViewDropItem.bind(this),
                 drag: this.onTreeViewDragItem.bind(this),
-                dataValueField: "encryptedItemId",
                 dataTextField: "title",
                 dataSpriteCssClassField: "spriteCssClass"
             }).data("kendoTreeView");
@@ -625,7 +639,8 @@ const moduleSettings = {
                 target: "#treeview",
                 filter: ".k-in",
                 open: this.onContextMenuOpen.bind(this),
-                select: this.onContextMenuClick.bind(this)
+                select: this.onContextMenuClick.bind(this),
+                close: this.onContextMenuClose.bind(this)
             }).data("kendoContextMenu");
         }
 
@@ -645,7 +660,7 @@ const moduleSettings = {
                 await require("@progress/kendo-ui/js/kendo.timepicker.js");
             }
             if (scriptTemplate.indexOf("kendoChart") > -1) {
-                await require("@progress/kendo-ui/js/dataviz/chart/chart.js");
+                await require("@progress/kendo-ui/js/kendo.dataviz.chart.js");
             }
             if (scriptTemplate.indexOf("kendoColorPicker") > -1) {
                 await require("@progress/kendo-ui/js/kendo.colorpicker.js");
@@ -753,10 +768,23 @@ const moduleSettings = {
          */
         async onContextMenuOpen(event) {
             try {
-                const nodeId = this.mainTreeView.dataItem(event.target).id;
-                let contextMenu = await Wiser.api({ url: `${this.base.settings.serviceRoot}/GET_CONTEXT_MENU?moduleId=${encodeURIComponent(this.base.settings.moduleId)}&itemId=${encodeURIComponent(nodeId)}` });
-                //TODO: DIT MOET ANDERS MAAR KOMT ZO VERKEERD UIT WISER
-                contextMenu = JSON.parse(JSON.stringify(contextMenu).replace(/"attr":\[/g, '"attr":').replace(/\}\]\},/g, "}},").replace("}]}]", "}}]"));
+                const dataItem = this.mainTreeView.dataItem(event.target);
+                const nodeId = dataItem.id;
+                const entityType = this.mainTreeView.dataItem(event.target).entityType;
+                let contextMenu = await Wiser.api({ url: `${this.base.settings.wiserApiRoot}items/context-menu?moduleId=${encodeURIComponent(this.base.settings.moduleId)}&encryptedItemId=${encodeURIComponent(nodeId)}&entityType=${encodeURIComponent(entityType)}` });
+                contextMenu = contextMenu.map(item => {
+                    // Create or ensure the `attr` object exists
+                    item.attr = item.attr || {};
+
+                    // Move the `action` property into the `attr` object
+                    if ('action' in item) {
+                        item.attr.action = item.action;
+                        delete item.action; // Remove `action` from the top level
+                    }
+
+                    return item;
+                });
+                
                 this.mainTreeViewContextMenu.setOptions({
                     dataSource: contextMenu
                 });
@@ -774,6 +802,18 @@ const moduleSettings = {
             const button = $(event.item);
             const action = button.attr("action");
             await this.handleContextMenuAction($(event.target), action);
+        }
+
+        /**
+         * This event gets fired when the context menu gets closes
+         * @param {any} event The click event.
+         */
+        async onContextMenuClose(event) {
+            // Empty context menu on close to prevent old menu from 
+            // showing momentarily when getting the menu for a different item
+            this.mainTreeViewContextMenu.setOptions({
+                dataSource: []
+            });
         }
 
         async handleContextMenuAction(selectedNode, action) {
@@ -1124,7 +1164,7 @@ const moduleSettings = {
             });
 
             // Get available entity types, for creating new sub items.
-            await this.base.dialogs.loadAvailableEntityTypesInDropDown(itemId);
+            await this.base.dialogs.loadAvailableEntityTypesInDropDown(itemId, dataItem.entityType);
         }
 
         /**
@@ -1473,7 +1513,7 @@ const moduleSettings = {
                     width: 80,
                     command: [{
                         name: "openDetails",
-                        iconClass: "k-icon k-i-hyperlink-open",
+                        iconClass: "k-font-icon k-i-hyperlink-open",
                         text: "",
                         click: (event) => { this.base.grids.onShowDetailsClick(event, grid, {}); }
                     }]
@@ -2265,10 +2305,11 @@ const moduleSettings = {
         /**
          * Gets all available entity types that can be added as a child to the given parent.
          * @param {string} parentId The (encrypted) ID of the parent to get the available entity types of.
+         * @param {string} parentEntityType The entityType of the parent to get the available entity types of.
          * @return {any} An array with all the available entity types.
          */
-        async getAvailableEntityTypes(parentId) {
-            return await Wiser.api({ url: `${this.base.settings.wiserApiRoot}entity-types/${encodeURIComponent(this.settings.moduleId)}?parentId=${encodeURIComponent(parentId)}` });
+        async getAvailableEntityTypes(parentId, parentEntityType) {
+            return await Wiser.api({url: `${this.base.settings.wiserApiRoot}entity-types/${encodeURIComponent(this.settings.moduleId)}?parentId=${encodeURIComponent(parentId)}&parentEntityType=${encodeURIComponent(parentEntityType)}`});
         }
 
         /**

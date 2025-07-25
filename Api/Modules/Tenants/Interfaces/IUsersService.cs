@@ -20,8 +20,9 @@ namespace Api.Modules.Tenants.Interfaces
         /// Gets a list of all users for a tenant.
         /// </summary>
         /// <param name="includeAdminUsers">Optional: Whether to also get the admin users from the main Wiser database. Default is false.</param>
+        /// <param name="includeParent">Optional: Whether to include the title of the parent in the name of the users.</param>
         /// <returns>A list of <see cref="WiserItemModel">ItemModel</see>.</returns>
-        Task<ServiceResult<List<FlatItemModel>>> GetAsync(bool includeAdminUsers = false);
+        Task<ServiceResult<List<FlatItemModel>>> GetAsync(bool includeAdminUsers = false, bool includeParent = false);
         
         /// <summary>
         /// Gets a list of all users for the agenda for a tenant.

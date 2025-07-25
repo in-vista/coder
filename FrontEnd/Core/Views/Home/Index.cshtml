@@ -322,7 +322,7 @@
                     </section>
 
                     <div v-if="!isMainBranch || (branchMergeSettings.selectedBranch && branchMergeSettings.selectedBranch.id)">
-                        <div v-if="!branchChangesLoaded">
+                        <div v-if="!branchChangesLoaded && branchChangeCompleted">
 						    <div class="col col-12 form-row no-bottom-margin">
 							    <label>Alle mogelijke entiteiten</label>
 						    </div>
@@ -383,7 +383,7 @@
 							    <p>Let op, dit kan lang (een kwartier of meer) duren bij branches met veel wijzigingen.</p>
 						    </div>
 						</div>
-						<div v-else>
+                        <div v-else-if="branchChangesLoaded">
 							<div class="col col-12 form-row no-bottom-margin">
 								<label>Selecteer te synchroniseren items</label>
 							</div>
@@ -1140,13 +1140,4 @@
 
 <webpack-script file-name="runtime.js"></webpack-script>
 <webpack-script file-name="vendors.js"></webpack-script>
-<webpack-script file-name="kendo-intl.js"></webpack-script>
-<webpack-script file-name="kendo-vue-common.js"></webpack-script>
-<webpack-script file-name="kendo-popup-common.js"></webpack-script>
-<webpack-script file-name="kendo-vue-buttons.js"></webpack-script>
-<webpack-script file-name="kendo-vue-dropdowns.js"></webpack-script>
-<webpack-script file-name="kendo-vue-intl.js"></webpack-script>
-<webpack-script file-name="kendo-vue-animation.js"></webpack-script>
-<webpack-script file-name="kendo-vue-popup.js"></webpack-script>
-<webpack-script file-name="kendo-svg-icons.js"></webpack-script>
 <webpack-script file-name="main.js"></webpack-script>

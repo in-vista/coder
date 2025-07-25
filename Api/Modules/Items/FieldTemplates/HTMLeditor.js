@@ -1,24 +1,36 @@
-﻿(function() {
+﻿(() => {
     const readonly = {readonly};
     let kendoComponent = null;
 
     const imageTool = {
         name: "wiserImage",
+        ui: {
+            icon: 'wiser-image'
+        },
         tooltip: "Afbeelding toevoegen",
         exec: (event) => window.dynamicItems.fields.onHtmlEditorImageExec.call(window.dynamicItems.fields, event, kendoComponent)
     };
     const fileTool = {
         name: "wiserFile",
+        ui: {
+            icon: 'wiser-file'
+        },
         tooltip: "Link naar bestand toevoegen",
         exec: (event) => window.dynamicItems.fields.onHtmlEditorFileExec.call(window.dynamicItems.fields, event, kendoComponent)
     };
     const templateTool = {
         name: "wiserTemplate",
+        ui: {
+            icon: 'wiser-template'
+        },
         tooltip: "Template toevoegen",
         exec: (event) => window.dynamicItems.fields.onHtmlEditorTemplateExec.call(window.dynamicItems.fields, event, kendoComponent)
     };
     const htmlSourceTool = {
         name: "wiserHtmlSource",
+        ui: {
+            icon: 'wiser-html-source',
+        },
         tooltip: "HTML bekijken/aanpassen",
         exec: (e) => {
             window.dynamicItems.fields.onHtmlEditorHtmlSourceExec.call(window.dynamicItems.fields, event, kendoComponent, "{itemId}")
@@ -26,21 +38,33 @@
     };
     const maximizeTool = {
         name: "wiserMaximizeEditor",
+        ui: {
+            icon: 'wiser-maximize-editor'
+        },
         tooltip: "Vergroten",
         exec: (event) => window.dynamicItems.fields.onHtmlEditorFullScreenExec.call(window.dynamicItems.fields, event, kendoComponent, "{itemId}")
     };
     const entityBlockTool = {
         name: "wiserEntityBlock",
+        ui: {
+            icon: 'wiser-entity-block'
+        },
         tooltip: "Entiteit-blok",
         exec: (event) => window.dynamicItems.fields.onHtmlEditorEntityBlockExec.call(window.dynamicItems.fields, event, kendoComponent)
     };
     const dataSelectorTool = {
         name: "wiserDataSelector",
+        ui: {
+            icon: 'wiser-data-selector'
+        },
         tooltip: "Data selector met template",
         exec: (event) => window.dynamicItems.fields.onHtmlEditorDataSelectorExec.call(window.dynamicItems.fields, event, kendoComponent)
     };
     const youTubeTool = {
         name: "wiserYouTube",
+        ui: {
+            icon: 'wiser-you-tube'
+        },
         tooltip: "YouTube video invoegen",
         exec: (event) => window.dynamicItems.fields.onHtmlEditorYouTubeExec.call(window.dynamicItems.fields, event, kendoComponent)
     };
@@ -48,6 +72,9 @@
     const wiserApiRoot = window.dynamicItems.fields.base.settings.wiserApiRoot;
     const translationsTool = {
         name: "wiserTranslation",
+        ui: {
+            icon: 'wiser-translation'
+        },
         tooltip: "Vertaling invoegen",
         exec: (event) => Wiser.onHtmlEditorTranslationExec.call(Wiser, event, kendoComponent, wiserApiRoot)
     };
