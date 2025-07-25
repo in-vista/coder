@@ -20,6 +20,11 @@ const moduleSettings = {
         constructor(settings) {
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Base settings.
             this.settings = {};
             Object.assign(this.settings, settings);
@@ -94,7 +99,7 @@ const moduleSettings = {
             const user = JSON.parse(localStorage.getItem("userData"));
             this.settings.oldStyleUserId = user.oldStyleUserId;
             this.settings.username = user.adminAccountName ? `${user.adminAccountName} (Admin)` : user.name;
-            this.settings.adminAccountLoggedIn = user.adminAccountName;
+            this.settings.adminAccountLoggedIn = user.adminlogin;
             
             const userData = await Wiser.getLoggedInUserData(this.settings.wiserApiRoot);
             this.settings.userId = userData.encryptedId;

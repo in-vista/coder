@@ -49,6 +49,11 @@ const moduleSettings = {
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Base settings.
             this.settings = {};
             Object.assign(this.settings, settings);
@@ -128,6 +133,7 @@ const moduleSettings = {
                 GENERATEFILE: { text: "Genereer HTML of PDF bestand", id: "generateFile" },
                 GENERATETEXTFILE: { text: "Genereer tekst bestand", id: "generateTextFile" },
                 REFRESHCURRENTITEM: { text: "Ververs het item", id: "refreshCurrentItem" },
+                APICALL: { text: "Voer een API call uit", id: "apiCall" },
                 ACTIONCONFIRMDIALOG: { text: "Bevestigingsvenster", id: "actionConfirmDialog" },
                 CREATENEWITEM: { text: "Maak nieuw item", id: "createNewItem" },
                 CUSTOM: { text: "Custom javascript", id: "custom" }
@@ -170,7 +176,7 @@ const moduleSettings = {
             const user = JSON.parse(localStorage.getItem("userData"));
             this.settings.oldStyleUserId = user.oldStyleUserId;
             this.settings.username = user.adminAccountName ? `${user.adminAccountName} (Admin)` : user.name;
-            this.settings.adminAccountLoggedIn = !!user.adminAccountName;
+            this.settings.adminAccountLoggedIn = !!user.adminlogin;
 
             const userData = await Wiser.getLoggedInUserData(this.settings.wiserApiRoot);
             this.settings.userId = userData.encryptedId;
@@ -397,7 +403,7 @@ const moduleSettings = {
                     }
                 },
                 select: (event) => {
-                    const tabName = event.item.querySelector(".k-link").innerHTML.toLowerCase();
+                    const tabName = event.item.querySelector(".k-link > .k-link-text").innerHTML.toLowerCase();
 
                     if (tabName === "query's" || tabName === "entiteiten" || tabName === "modules") {
                         $("footer").show();
@@ -406,7 +412,7 @@ const moduleSettings = {
                     }
                 },
                 activate: (event) => {
-                    const tabName = event.item.querySelector(".k-link").innerHTML.toLowerCase();
+                    const tabName = event.item.querySelector(".k-link > .k-link-text").innerHTML.toLowerCase();
                     this.activeMainTab = tabName;
 
                     // Refresh code mirrors in the currently activated tab.

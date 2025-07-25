@@ -3,7 +3,7 @@ import "./Processing.js";
 import * as Diff2Html from "diff2html/lib/diff2html"
 import "diff2html/bundles/css/diff2html.min.css"
 
-window.$ = require("jquery");
+window.$ = window.jQuery = require("jquery");
 
 /**
  * This function overrides the default ":contains" psuedo from jQuery, so that it's no longer case sensitive.
@@ -129,7 +129,13 @@ export class Dates {
     static parseDate(value) {
         value = value || "";
 
-        return typeof(value) === "string" ? DateTime.fromSQL(value.trim(), { locale: "nl-NL" }) : DateTime.fromJSDate(value, { locale: "nl-NL" });
+        //return typeof(value) === "string" ? DateTime.fromSQL(value.trim(), { locale: "nl-NL" }) : DateTime.fromJSDate(value, { locale: "nl-NL" });
+
+        let d = typeof(value) === "string" ? DateTime.fromSQL(value.trim(), { locale: "nl-NL" }) : DateTime.fromJSDate(value, { locale: "nl-NL" });
+        if (!d.isValid && DateTime.fromFormat(value, 'd-M-yyyy HH:mm:ss').isValid)
+            d = DateTime.fromFormat(value, 'd-M-yyyy HH:mm:ss');
+        
+        return d;
     }
 
     /**
@@ -371,9 +377,7 @@ export class Wiser {
                 console.error("Refresh token failed!");
 
                 // If we got a 401 while using the refresh token, it means the refresh token is no longer valid, so logout the user.
-                if (window.parent && window.parent.main && window.parent.main.vueApp) {
-                    window.parent.main.vueApp.logout();
-                }
+                wiserMainWindow?.vueApp.logout();
             }
         });
     }

@@ -18,6 +18,11 @@ const moduleSettings = {
         constructor(settings) {
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Base settings.
             this.settings = {
                 pageSize: 100
@@ -64,7 +69,7 @@ const moduleSettings = {
             const user = JSON.parse(localStorage.getItem("userData"));
             this.settings.oldStyleUserId = user.oldStyleUserId;
             this.settings.username = user.adminAccountName ? `${user.adminAccountName} (Admin)` : user.name;
-            this.settings.adminAccountLoggedIn = user.adminAccountName;
+            this.settings.adminAccountLoggedIn = user.adminlogin;
             
             const userData = await Wiser.getLoggedInUserData(this.settings.wiserApiRoot);
             this.settings.userId = userData.encryptedId;
@@ -182,7 +187,7 @@ const moduleSettings = {
                             return "";
                         }
                         
-                        return `<button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base returnTaskButton"><span class="k-icon k-i-undo k-button-icon"></span><span class="k-button-text">Terugzetten</span></button>`;
+                        return `<button type="button" class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base returnTaskButton"><span class="k-font-icon k-i-undo k-button-icon"></span><span class="k-button-text">Terugzetten</span></button>`;
                     }
                 })
 

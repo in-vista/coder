@@ -2249,14 +2249,29 @@ export class Fields {
                                     linkIds.push(item.dataItem["linkId"] || item.dataItem["link_id"]);
                                 }
 
-                                // The camel case parameters are for backwards compatibility, because we used snake case in the past for some things like this.
-                                url += `&selectedId=${ids.join(",")}&selected_id=${ids.join(",")}`;
-                                url += `&selectedLinkId=${linkIds.join(",")}&selected_link_id=${linkIds.join(",")}`;
+                                // The camel case parameters are for backwards compatibility, because we used snake case in the past for some things like this.                                
+                                if (url.indexOf('selectedId=') === -1)
+                                    url += `&selectedId=${ids.join(",")}`;
+                                if (url.indexOf('selected_id=') === -1)
+                                    url += `&selected_id=${ids.join(",")}`;
+                                if (url.indexOf('selectedLinkId=') === -1)
+                                    url += `&selectedLinkId=${linkIds.join(",")}`;
+                                if (url.indexOf('selected_link_id=') === -1)
+                                    url += `&selected_link_id=${linkIds.join(",")}`;
                                 allUrls.push(url);
                             } else {
                                 for (let item of selectedItems) {
                                     // The camel case parameters are for backwards compatibility, because we used snake case in the past for some things like this.
-                                    allUrls.push(`${url}&selectedId=${item.dataItem["id"]}&selected_id=${item.dataItem["id"]}&selectedLinkId=${item.dataItem["linkId"] || item.dataItem["link_id"]}&selected_link_id=${item.dataItem["linkId"] || item.dataItem["link_id"]}`);
+                                    let urlItem = url;
+                                    if (urlItem.indexOf('selectedId=') === -1)
+                                        urlItem += `&selectedId=${item.dataItem["id"]}`;
+                                    if (urlItem.indexOf('selected_id=') === -1)
+                                        urlItem += `&selected_id=${item.dataItem["id"]}`;
+                                    if (urlItem.indexOf('selectedLinkId=') === -1)
+                                        urlItem += `&selectedLinkId=${item.dataItem["linkId"] || item.dataItem["link_id"]}`;
+                                    if (urlItem.indexOf('selected_link_id=') === -1)
+                                        urlItem += `&selected_link_id=${item.dataItem["linkId"] || item.dataItem["link_id"]}`;
+                                    allUrls.push(urlItem);
                                 }
                             }
                         }
@@ -2900,7 +2915,11 @@ export class Fields {
                                     modal: true,
                                     actions: [
                                         {
-                                            text: "Annuleren"
+                                            text: "Annuleren",
+                                            action: (event) =>{
+                                                mailDialog.close();
+                                                previewWindow.open(); // Zorgt ervoor dat het preview scherm weer weergegeven wordt
+                                            }
                                         },
                                         {
                                             text: "Verstuur",
@@ -3240,7 +3259,9 @@ export class Fields {
      */
     async onHtmlEditorHtmlSourceExec(event, editor, itemId) {
         const htmlWindow = $("#htmlSourceWindow").clone(true);
-        const textArea = htmlWindow.find("textarea").val(editor.value());
+        const editorValue = editor.value();
+        const breakLineEditorValue = editorValue.replace(/<br ?\/>/g, '\n');
+        const textArea = htmlWindow.find("textarea").val(breakLineEditorValue);
         // Prettify code from minified text.
         const pretty = await require('pretty');
         textArea[0].value = pretty(textArea[0].value, {
@@ -3302,7 +3323,9 @@ export class Fields {
 
         htmlWindow.find(".k-primary, .k-button-solid-primary").kendoButton({
             click: () => {
-                editor.value(codeMirrorInstance.getValue());
+                const value = codeMirrorInstance.getValue();
+                const newLinedValue = value.replace(/\n/g, '<br/>');
+                editor.value(newLinedValue);
                 kendoWindow.close();
             },
             icon: "save"

@@ -217,7 +217,7 @@ export class Grids {
                 if (!disableOpeningOfItems) {
                     commands.push({
                         name: "openDetails",
-                        iconClass: "k-icon k-i-hyperlink-open",
+                        iconClass: "k-font-icon k-i-hyperlink-open",
                         text: "",
                         click: (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }, false); }
                     });
@@ -227,7 +227,7 @@ export class Grids {
 
                         commands.push({
                             name: "openDetailsInNewTab",
-                            iconClass: "k-icon k-i-window",
+                            iconClass: "k-font-icon k-i-window",
                             text: "",
                             click: (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }, true); }
                         });
@@ -258,7 +258,7 @@ export class Grids {
 
                     commands.push({
                         name: "remove",
-                        iconClass: "k-icon k-i-delete",
+                        iconClass: "k-font-icon k-i-delete",
                         text: "",
                         click: onDeleteClick.bind(this)
                     });
@@ -269,7 +269,7 @@ export class Grids {
                     commands.push({
                         name: "remove",
                         text: "",
-                        iconClass: "k-icon k-i-delete",
+                        iconClass: "k-font-icon k-i-delete",
                         click: (event) => { this.base.grids.onDeleteItemClick(event, this.mainGrid, "deleteItem", gridViewSettings); }
                     });
                 }
@@ -288,9 +288,9 @@ export class Grids {
             if (!gridViewSettings.toolbar || !gridViewSettings.toolbar.hideRefreshButton) {
                 toolbar.push({
                     name: "refreshCustom",
-                    iconClass: "k-icon k-i-refresh",
+                    iconClass: "k-font-icon k-i-refresh",
                     text: "",
-                    template: `<a class='k-button k-button-icontext k-grid-refresh' href='\\#' title='Verversen'><span class='k-icon k-i-refresh'></span></a>`
+                    template: `<a class='k-button k-button-icontext k-grid-refresh' title='Verversen'><span class='k-font-icon k-i-refresh'></span></a>`
                 });
             }
 
@@ -298,7 +298,7 @@ export class Grids {
                 toolbar.push({
                     name: "clearAllFilters",
                     text: "",
-                    template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' href='\\#' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-icon k-i-filter-clear'></span></a>`
+                    template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>`
                 });
             }
 
@@ -332,7 +332,7 @@ export class Grids {
                 toolbar.push({
                     name: "add",
                     text: "Nieuw",
-                    template: `<a class='k-button k-button-icontext' href='\\#' onclick='return window.dynamicItems.dialogs.openCreateItemDialog(null, null, null, ${gridViewSettings.skipNameForNewItems})'><span class='k-icon k-i-${createButtonIcon}'></span>${createButtonText}</a>`
+                    template: `<a class='k-button k-button-icontext' onclick='return window.dynamicItems.dialogs.openCreateItemDialog(null, null, null, ${gridViewSettings.skipNameForNewItems})'><span class='k-font-icon k-i-${createButtonIcon}'></span>${createButtonText}</a>`
                 });
             }
 
@@ -601,7 +601,7 @@ export class Grids {
                     counterContainer.find(".singular").toggle(totalCount === 1);
 
                     // To hide toolbar buttons that require a row to be selected.
-                    this.onGridSelectionChange(event);
+                    this.onGridSelectionChange(event, false);
 
                     if (gridViewSettings.keepFiltersState !== false && filtersChanged) {
                         await this.saveGridViewFiltersState(`main_grid_filters_${this.base.settings.moduleId}`, event.sender);
@@ -615,7 +615,25 @@ export class Grids {
                         })
                     }
                 },
-                change: this.onGridSelectionChange.bind(this),
+                change: (event) => {
+                    // Retrieve the elements of the selected rows
+                    const selectedRows = event.sender.wrapper.find('tr.k-selected');
+                    
+                    // Gather field data for each selected row in the grid.
+                    const selectedData = [];
+                    selectedRows.each(function() {
+                        const row = $(this);
+                        const grid = row.closest('.k-grid').data('kendoGrid');
+                        const rowData = grid.dataItem(row);
+                        selectedData.push(rowData);
+                    });
+                    
+                    // Determine whether any of the selected items is marked to be read-only.
+                    const readOnly = selectedData.some(row => row.read_only ?? false);
+                    
+                    // Invoke the grid selection change event.
+                    this.onGridSelectionChange(event, readOnly);
+                },
                 resizable: true,
                 sortable: true,
                 scrollable: usingDataSelector || (gridViewSettings.groupable && gridViewSettings.clientSidePaging) ? true : {
@@ -858,7 +876,7 @@ export class Grids {
 
                         commands.push({
                             name: "openDetails",
-                            iconClass: "k-icon k-i-hyperlink-open",
+                            iconClass: "k-font-icon k-i-hyperlink-open",
                             text: "",
                             click: (event) => { this.onShowDetailsClick(event, kendoGrid, options, false); }
                         });
@@ -868,7 +886,7 @@ export class Grids {
 
                             commands.push({
                                 name: "openDetailsInNewTab",
-                                iconClass: "k-icon k-i-window",
+                                iconClass: "k-font-icon k-i-window",
                                 text: "",
                                 click: (event) => { this.onShowDetailsClick(event, kendoComponent, options, true); }
                             });
@@ -948,7 +966,7 @@ export class Grids {
                     if (!options.disableOpeningOfItems) {
                         commands.push({
                             name: "openDetails",
-                            iconClass: "k-icon k-i-hyperlink-open",
+                            iconClass: "k-font-icon k-i-hyperlink-open",
                             text: "",
                             click: (event) => { this.onShowDetailsClick(event, kendoGrid, options, false); }
                         });
@@ -958,7 +976,7 @@ export class Grids {
 
                             commands.push({
                                 name: "openDetailsInNewTab",
-                                iconClass: "k-icon k-i-window",
+                                iconClass: "k-font-icon k-i-window",
                                 text: "",
                                 click: (event) => { this.onShowDetailsClick(event, kendoComponent, options, true); }
                             });
@@ -1005,14 +1023,14 @@ export class Grids {
             toolbar.push({
                 name: "clearAllFilters",
                 text: "",
-                template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' href='\\#' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-icon k-i-filter-clear'></span></a>`
+                template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>`
             });
         }
         if (!options.toolbar || !options.toolbar.hideFullScreenButton) {
             toolbar.push({
                 name: "fullScreen",
                 text: "",
-                template: `<a class='k-button k-button-icontext full-screen' title='Grid naar fullscreen' href='\\#' onclick='return window.dynamicItems.grids.onMaximizeGridClick(event)'><span class='k-icon k-i-wiser-maximize'></span></a>`
+                template: `<a class='k-button k-button-icontext full-screen' title='Grid naar fullscreen' onclick='return window.dynamicItems.grids.onMaximizeGridClick(event)'><span class='k-font-icon k-i-wiser-maximize'></span></a>`
             });
         }
         if (element.data("kendoGrid")) {
@@ -1228,6 +1246,9 @@ export class Grids {
                 ? `data-roles="${Misc.encodeHtml(rolesAttributeValue)}"`
                 : '';
             
+            const showOnReadOnlyValue = customAction.showOnReadOnly !== undefined ? customAction.showOnReadOnly : true;
+            const showOnReadOnlyAttribute = `data-show-on-read-only="${Misc.encodeHtml(showOnReadOnlyValue)}"`;
+            
             const minimumRows = customAction.minimumRows;
             const minimumRowsAttribute = minimumRows
                 ? `data-minimum-rows=${minimumRows}`
@@ -1240,7 +1261,9 @@ export class Grids {
             
             const selector = gridSelector.replace(/#/g, "\\#");
             
-            const { condition, roles, ...customActionData } = customAction;
+            const { condition, roles, showOnReadOnly, ...customActionData } = customAction;
+            
+            const defaultAttributes = `${conditionAttribute} ${rolesAttribute} ${showOnReadOnlyAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute}`;
             
             if (customAction.groupName) {
                 let group = groups.filter(g => g.name === customAction.groupName)[0];
@@ -1253,13 +1276,13 @@ export class Grids {
 
                     groups.push(group);
                 }
-                
-                group.actions.push(`<a class='k-button k-button-icontext ${className}' href='\\#' ${conditionAttribute} ${rolesAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span>${customAction.text}</span></a>`);
+
+                group.actions.push(`<a class='k-button k-button-icontext ${className}' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span>${customAction.text}</span></a>`);
             } else {
                 actionsWithoutGroups.push({
                     name: `customAction${i.toString()}`,
                     text: customAction.text,
-                    template: `<a class='k-button k-button-icontext ${className}' href='\\#' ${conditionAttribute} ${rolesAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
+                    template: `<a class='k-button k-button-icontext ${className}' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-font-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
                 });
             }
         }
@@ -1270,7 +1293,7 @@ export class Grids {
                 name: "buttonGroup",
                 text: "",
                 template: `<div class='k-button-drop'>
-                            <span class='k-button-toggle k-button k-button-icontext'><span class='k-icon k-i-${group.icon}'></span>${group.name}</span>
+                            <span class='k-button-toggle k-button k-button-icontext'><span class='k-font-icon k-i-${group.icon}'></span>${group.name}</span>
                             <div>
                                 ${group.actions.join("")}
                             </div>
@@ -1722,19 +1745,31 @@ export class Grids {
     /**
      * Event handler for when a user (de)selects one or more rows in a Kendo UI grid.
      * @param {any} event
+     * @param {boolean} readOnly - Whether the contextual item is read-only and should not show action buttons if they
+     * are supposed to be hidden if the item is read-only.
      */
-    async onGridSelectionChange(event) {
+    async onGridSelectionChange(event, readOnly = false) {
         // Check based on given condition to hide.
         const conditionalButtons = event.sender.wrapper.find('.k-button.hide-when-no-selected-rows');
 
         // Retrieve the elements of the selected rows
-        const selectedRows = event.sender.wrapper.find('tr.k-state-selected')
+        const selectedRows = event.sender.wrapper.find('tr.k-table-row.k-selected');
+
+        // Gather field data for each selected row in the grid.
+        const selectedData = [];
+        selectedRows.each(function() {
+            const row = $(this);
+            const grid = row.closest('.k-grid').data('kendoGrid');
+            const rowData = grid.dataItem(row);
+            selectedData.push(rowData);
+        });
         
         conditionalButtons.each(async function () {
             // Retrieve data of the button.
             const button = $(this);
             const condition = button.data('condition');
             const roles = button.data('roles');
+            const showOnReadOnly = button.data('show-on-read-only');
             const minimumRows = button.data('minimum-rows') ?? 0;
             const maximumRows = button.data('maximum-rows') ?? Number.MAX_VALUE;
             
@@ -1744,15 +1779,6 @@ export class Grids {
             // Conditional check.
             if(condition) {
                 const decodedCondition = Misc.decodeHtml(condition);
-                
-                // Gather field data for each selected row in the grid.
-                const selectedData = [];
-                selectedRows.each(function() {
-                    const row = $(this);
-                    const grid = row.closest('.k-grid').data('kendoGrid');
-                    const rowData = grid.dataItem(row);
-                    selectedData.push(rowData);
-                });
 
                 // Evaluate the condition for every selected row in the grid.
                 shouldHide = !selectedData.every(function(element, index, array) {
@@ -1776,6 +1802,10 @@ export class Grids {
                 const rolesArray = roles.split(',');
                 shouldHide = !rolesArray.includes(userRole);
             }
+            
+            // Check whether any of the selected rows is set to be read-only and should be hidden.
+            if(!shouldHide)
+                shouldHide = !showOnReadOnly && readOnly;
             
             // Check whether the user has selected more or less than the allowed rows selected of the action button.
             if(!shouldHide) {

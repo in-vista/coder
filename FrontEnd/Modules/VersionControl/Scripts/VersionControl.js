@@ -60,6 +60,11 @@ const moduleSettings = {
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Default settings
             this.settings = {
                 tenantId: 0,
@@ -102,7 +107,7 @@ const moduleSettings = {
             const user = JSON.parse(localStorage.getItem("userData"));
             this.settings.oldStyleUserId = user.oldStyleUserId;
             this.settings.username = user.adminAccountName ? `${user.adminAccountName} (Admin)` : user.name;
-            this.settings.adminAccountLoggedIn = !!user.adminAccountName;
+            this.settings.adminAccountLoggedIn = !!user.adminlogin;
 
             const userData = await Wiser.getLoggedInUserData(this.settings.wiserApiRoot);
             console.log(userData);
@@ -669,7 +674,7 @@ const moduleSettings = {
                                 {
                                     name: "view",
                                     text: "",
-                                    iconClass: "view-template-button k-icon k-i-eye",
+                                    iconClass: "view-template-button k-font-icon k-i-eye",
                                     visible: function(dataItem) {
                                         // Note: For some reason Kendo throw an "Uncaught Error: Invalid template" error when using an arrow function here, that's why this is a regular function.
                                         return !dataItem.deleted;
@@ -807,7 +812,7 @@ const moduleSettings = {
                                 {
                                     name: "view",
                                     text: "",
-                                    iconClass: "view-template-button k-icon k-i-eye",
+                                    iconClass: "view-template-button k-font-icon k-i-eye",
                                     visible: function(dataItem) {
                                         // Note: For some reason Kendo throw an "Uncaught Error: Invalid template" error when using an arrow function here, that's why this is a regular function.
                                         return !dataItem.deleted;

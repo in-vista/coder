@@ -136,7 +136,7 @@
     top: 10px;
 }
 
-.next-button .k-icon, .save-button .k-icon {
+.next-button .k-font-icon, .save-button .k-font-icon {
     margin-right: 0;
     margin-left: 3px;
     margin-left: .1875em;
