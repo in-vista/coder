@@ -1795,6 +1795,46 @@ export class Misc {
 
         return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     }
+
+    /**
+     * Load CSS based on a plain system object string or query ID referencing a query that loads a CSS string.
+     */
+    static async injectSystemStyling() {
+        // Retrieve and validate the existence of a user. If none exists, skip injecting the system styling.
+        const user = JSON.parse(localStorage.getItem("userData"));
+        if(!user)
+            return;
+        
+        try {
+            // Request the CSS styling string.
+            const cssString = await Wiser.api({
+                url: `${window.main.appSettings.apiBase}api/v3/styling/system-styling`,
+                dataType: 'json',
+                method: 'GET'
+            });
+
+            // Delete any previous system styling upon successfully retrieving it.
+            this.removeSystemStyling();
+
+            // Inject the system-based CSS into the document.
+            if(cssString) {
+                const style = document.createElement('style');
+                style.id = 'systemStyling';
+                style.innerText = cssString;
+                document.head.appendChild(style);
+            }
+        } catch(exception) {
+            console.error('Error loading system styling.', exception);
+        }
+    }
+
+    /**
+     * Delete any previous system styling upon successfully retrieving it.
+     */
+    static removeSystemStyling() {
+        const previousSystemStyling = document.getElementById('systemStyling');
+        previousSystemStyling?.remove();
+    }
 }
 
 // Make the classes globally available, so that they also work in scripts that are not loaded via Webpack.

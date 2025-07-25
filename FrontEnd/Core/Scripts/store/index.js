@@ -173,6 +173,8 @@ const loginModule = {
                 totpQrImageUrl: ""
             };
             state.requirePasswordChange = false;
+            
+            Misc.removeSystemStyling();
         },
         [FORGOT_PASSWORD]: (state) => {
             state.resetPassword = false;
@@ -303,6 +305,9 @@ const loginModule = {
             if (!rootState.users.updateTimeActiveTimerWorking && user.hasOwnProperty("encryptedLoginLogId")) {
                 await this.dispatch(START_UPDATE_TIME_ACTIVE_TIMER);
             }
+            
+            // Load system styling.
+            await Misc.injectSystemStyling();
         },
 
         [AUTH_LOGOUT]({ commit }) {

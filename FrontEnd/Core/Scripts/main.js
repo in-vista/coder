@@ -392,6 +392,12 @@ class Main {
             async created() {
                 this.$store.dispatch(GET_TENANT_TITLE, this.appSettings.subDomain);
                 document.addEventListener("keydown", this.onAppKeyDown.bind(this));
+                
+                // Add an event for when the DOM is loaded.
+                document.addEventListener('DOMContentLoaded', async function() {
+                    // Load system styling.
+                    await Misc.injectSystemStyling();
+                });
             },
             computed: {
                 loginStatus() {
