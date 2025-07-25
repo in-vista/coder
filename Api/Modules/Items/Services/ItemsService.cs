@@ -1084,6 +1084,9 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                     actionQuery = actionQuery.Replace($"{{{parameter.Key.ToMySqlSafeValue(false)}}}", value.ToMySqlSafeValue(false), StringComparison.OrdinalIgnoreCase);
                 }
             }
+            
+            // Perform replacement for extra parameters.
+            actionQuery = stringReplacementsService.DoReplacements(actionQuery, extraParameters, forQuery: true);
 
             // Do replacements on the data query with the details of the current item.
             if (dataTable.Rows.Count > 0)
