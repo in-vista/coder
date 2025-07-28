@@ -75,4 +75,15 @@
 
 	--kendo-font-size: 14px;
 	--kendo-spacing-3: 0.5rem;
-	}
+	
+	--kendo-color-base: #fff;
+	--kendo-color-base-hover: #e1e1e1;
+	--kendo-color-base-active: #d7d7d7;
+	--kendo-color-base-subtle: #e1e1e1;
+	--kendo-color-base-subtle-hover: #d7d7d7;
+	--kendo-color-subtle: #e1e1e1;
+	--kendo-color-subtle-hover: #d7d7d7;
+	--kendo-color-surface: #fff;
+	--kendo-color-primary-on-surface: #000;
+	--kendo-color-primary: #1EAA8FFF;
+}
