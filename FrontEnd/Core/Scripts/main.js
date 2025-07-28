@@ -33,6 +33,7 @@ import {
     CLEAR_LOCAL_TOTP_BACKUP_CODES,
     CLOSE_ALL_MODULES,
     CLOSE_MODULE,
+    CLEAR_ALL_MODULES,
     CREATE_BRANCH,
     CREATE_BRANCH_ERROR,
     DELETE_BRANCH,
@@ -711,6 +712,7 @@ class Main {
                     // Update the user's active time one last time.
                     await this.$store.dispatch(UPDATE_ACTIVE_TIME);
                     this.$store.dispatch(CLOSE_ALL_MODULES);
+                    this.$store.dispatch(CLEAR_ALL_MODULES);
                     await this.$store.dispatch(AUTH_LOGOUT);
                     
                     // Remove the system styling.

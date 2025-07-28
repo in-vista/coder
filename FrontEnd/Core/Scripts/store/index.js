@@ -20,6 +20,7 @@ import {
     CLEAR_LOCAL_TOTP_BACKUP_CODES,
     CLOSE_ALL_MODULES,
     CLOSE_MODULE,
+    CLEAR_ALL_MODULES,
     CREATE_BRANCH,
     CREATE_BRANCH_ERROR,
     CREATE_BRANCH_SUCCESS,
@@ -304,6 +305,9 @@ const loginModule = {
                 await this.dispatch(START_UPDATE_TIME_ACTIVE_TIMER);
             }
             
+            // Reload the modules after a succesful login.
+            await this.dispatch(MODULES_REQUEST);
+            
             // Load system styling.
             await Misc.injectSystemStyling();
         },
@@ -490,6 +494,10 @@ const modulesModule = {
             state.activeModule = null;
             state.openedModules = [];
         },
+        [CLEAR_ALL_MODULES]: (state) => {
+            state.allModules = [];
+            state.moduleGroups = [];
+        },
         [TOGGLE_PIN_MODULE]: (state, moduleId) => {
             const module = state.allModules.filter(m => m.moduleId === moduleId)[0];
 
@@ -610,6 +618,10 @@ const modulesModule = {
 
         [CLOSE_ALL_MODULES]({ commit }) {
             commit(CLOSE_ALL_MODULES);
+        },
+
+        [CLEAR_ALL_MODULES]({ commit }) {
+            commit(CLEAR_ALL_MODULES);
         },
 
         async [TOGGLE_PIN_MODULE]({ commit, state }, moduleId) {
