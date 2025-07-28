@@ -173,8 +173,6 @@ const loginModule = {
                 totpQrImageUrl: ""
             };
             state.requirePasswordChange = false;
-            
-            Misc.removeSystemStyling();
         },
         [FORGOT_PASSWORD]: (state) => {
             state.resetPassword = false;
