@@ -24,6 +24,7 @@ export const MODULES_LOADED = "modulesLoaded";
 export const OPEN_MODULE = "openModule";
 export const CLOSE_MODULE = "closeModule";
 export const CLOSE_ALL_MODULES = "closeAllModules";
+export const CLEAR_ALL_MODULES = "clearAllModules";
 export const ACTIVATE_MODULE = "activateModule";
 export const TOGGLE_PIN_MODULE = "togglePinModule";
 
