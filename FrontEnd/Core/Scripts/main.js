@@ -712,6 +712,9 @@ class Main {
                     await this.$store.dispatch(UPDATE_ACTIVE_TIME);
                     this.$store.dispatch(CLOSE_ALL_MODULES);
                     await this.$store.dispatch(AUTH_LOGOUT);
+                    
+                    // Remove the system styling.
+                    Misc.removeSystemStyling();
                 },
 
                 openModule(module) {
