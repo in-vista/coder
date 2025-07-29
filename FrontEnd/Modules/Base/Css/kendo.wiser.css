@@ -1726,44 +1726,44 @@ textarea[readonly],
 }
 
 /* HTML EDITOR */
-.k-editor .k-i-wiser-file:before {
+.k-i-wiser-file:before {
 	content: "\e906";
 }
-.k-editor .k-i-wiser-image:before {
+.k-i-wiser-image:before {
 	content: "\e501";
 }
-.k-editor .k-i-wiser-template:before {
+.k-i-wiser-template:before {
 	content: "\e647";
 }
-.k-editor .k-i-wiser-dynamic-content:before {
+.k-i-wiser-dynamic-content:before {
 	content: "\e919";
 }
-.k-editor .k-i-wiser-html-source:before {
+.k-i-wiser-html-source:before {
 	content: "\e918";
 }
-.k-editor .k-i-wiser-maximize-editor:before,
+.k-i-wiser-maximize-editor:before,
 .k-i-wiser-maximize:before {
 	content: "\e137";
 }
-.k-editor .k-i-wiser-minimize-editor:before {
+.k-i-wiser-minimize-editor:before {
 	content: "\e139";
 }
-.k-editor .k-i-wiser-content-builder:before {
+.k-i-wiser-content-builder:before {
 	content: "\e648";
 }
-.k-editor .k-i-wiser-entity-block:before {
+.k-i-wiser-entity-block:before {
 	content: "\e63b";
 }
-.k-editor .k-i-wiser-data-selector:before {
+.k-i-wiser-data-selector:before {
 	content: "\e13b";
 }
-.k-editor .k-i-wiser-paste-without-formatting:before {
+.k-i-wiser-paste-without-formatting:before {
 	content: "\e665";
 }
-.k-editor .k-i-wiser-you-tube:before {
+.k-i-wiser-you-tube:before {
 	content: "\e82b";
 }
-.k-editor .k-i-wiser-translation:before {
+.k-i-wiser-translation:before {
 	content: "\e701";
 }
 .maximize-editor-window {
