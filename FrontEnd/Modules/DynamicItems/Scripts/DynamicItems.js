@@ -434,8 +434,48 @@ const moduleSettings = {
                         resizable: true
                     }).data("kendoDialog");
                 }
+                
+                // Make a clone of the image element for the popup window.
+                const imageClone = image.clone();
+                
+                // Create a zoom container element.
+                const imageZoomContainer = $('<div class="image-zoom-container"></div>');
+                imageZoomContainer.append(imageClone);
+                
+                // Keep a state of the zoom.
+                let imageZoomed = false;
+                
+                // Add a click event on the image clone to zoom in/out on the image.
+                imageZoomContainer.click(() => {
+                    imageZoomed = !imageZoomed;
+                    
+                    imageZoomContainer.toggleClass('zoomed');
+                    
+                    if(!imageZoomed) {
+                        imageClone.css({
+                            transform: 'scale(1)',
+                            'transform-origin': 'center center'
+                        });
+                    }
+                });
+                
+                // Add a mouse over event for handling the offset of the zoomed image.
+                imageZoomContainer.on('mousemove', function(event) {
+                    if(!imageZoomed)
+                        return;
 
-                dialog.content(image.clone());
+                    const offset = imageZoomContainer.offset();
+                    const x = ((event.pageX - offset.left) / imageZoomContainer.width()) * 100;
+                    const y = ((event.pageY - offset.top) / imageZoomContainer.height()) * 100;
+
+                    imageClone.css({
+                        transform: 'scale(2)',
+                        'transform-origin': `${x}% ${y}%`,
+                    });
+                });
+                
+                // Set the content of the dialog and open it.
+                dialog.content(imageZoomContainer.get());
                 dialog.open();
             });
 

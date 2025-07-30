@@ -450,14 +450,24 @@ body.iframe .editMenu {
     width: inherit;
 }
 
-#imageDialog:has(> img) {
+#imageDialog img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+#imageDialog > .image-zoom-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    cursor: zoom-in;
+
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-#imageDialog > img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+#imageDialog > .image-zoom-container.zoomed {
+    cursor: zoom-out;
 }
