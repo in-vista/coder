@@ -430,7 +430,7 @@ const moduleSettings = {
                     dialog = dialogElement.kendoDialog({
                         title: "Afbeelding",
                         closable: true,
-                        modal: false,
+                        modal: true,
                         resizable: true
                     }).data("kendoDialog");
                 }
