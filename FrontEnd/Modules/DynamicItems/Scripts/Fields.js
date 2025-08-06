@@ -2245,32 +2245,54 @@ export class Fields {
                                 let ids = [];
                                 let linkIds = [];
                                 for (let item of selectedItems) {
-                                    ids.push(item.dataItem["id"]);
-                                    linkIds.push(item.dataItem["linkId"] || item.dataItem["link_id"]);
+                                    const itemId = item.dataItem["id"];
+                                    const linkId = item.dataItem["linkId"] || item.dataItem["link_id"];
+                                    
+                                    if(itemId)
+                                        ids.push(itemId);
+                                    
+                                    if(linkId)
+                                        linkIds.push(linkId);
                                 }
 
                                 // The camel case parameters are for backwards compatibility, because we used snake case in the past for some things like this.                                
-                                if (url.indexOf('selectedId=') === -1)
-                                    url += `&selectedId=${ids.join(",")}`;
-                                if (url.indexOf('selected_id=') === -1)
-                                    url += `&selected_id=${ids.join(",")}`;
-                                if (url.indexOf('selectedLinkId=') === -1)
-                                    url += `&selectedLinkId=${linkIds.join(",")}`;
-                                if (url.indexOf('selected_link_id=') === -1)
-                                    url += `&selected_link_id=${linkIds.join(",")}`;
+                                if(ids.length > 0) {
+                                    if (url.indexOf('selectedId=') === -1)
+                                        url += `&selectedId=${ids.join(",")}`;
+                                    if (url.indexOf('selected_id=') === -1)
+                                        url += `&selected_id=${ids.join(",")}`;
+                                }
+                                
+                                if(linkIds.length > 0) {
+                                    if (url.indexOf('selectedLinkId=') === -1)
+                                        url += `&selectedLinkId=${linkIds.join(",")}`;
+                                    if (url.indexOf('selected_link_id=') === -1)
+                                        url += `&selected_link_id=${linkIds.join(",")}`;
+                                }
+                                
                                 allUrls.push(url);
                             } else {
                                 for (let item of selectedItems) {
                                     // The camel case parameters are for backwards compatibility, because we used snake case in the past for some things like this.
                                     let urlItem = url;
-                                    if (urlItem.indexOf('selectedId=') === -1)
-                                        urlItem += `&selectedId=${item.dataItem["id"]}`;
-                                    if (urlItem.indexOf('selected_id=') === -1)
-                                        urlItem += `&selected_id=${item.dataItem["id"]}`;
-                                    if (urlItem.indexOf('selectedLinkId=') === -1)
-                                        urlItem += `&selectedLinkId=${item.dataItem["linkId"] || item.dataItem["link_id"]}`;
-                                    if (urlItem.indexOf('selected_link_id=') === -1)
-                                        urlItem += `&selected_link_id=${item.dataItem["linkId"] || item.dataItem["link_id"]}`;
+                                    
+                                    const itemId = item.dataItem["id"];
+                                    const linkId = item.dataItem["linkId"];
+                                    
+                                    if(itemId) {
+                                        if (urlItem.indexOf('selectedId=') === -1)
+                                            urlItem += `&selectedId=${item.dataItem["id"]}`;
+                                        if (urlItem.indexOf('selected_id=') === -1)
+                                            urlItem += `&selected_id=${item.dataItem["id"]}`;
+                                    }
+                                    
+                                    if(linkId) {
+                                        if (urlItem.indexOf('selectedLinkId=') === -1)
+                                            urlItem += `&selectedLinkId=${item.dataItem["linkId"] || item.dataItem["link_id"]}`;
+                                        if (urlItem.indexOf('selected_link_id=') === -1)
+                                            urlItem += `&selected_link_id=${item.dataItem["linkId"] || item.dataItem["link_id"]}`;
+                                    }
+                                    
                                     allUrls.push(urlItem);
                                 }
                             }
@@ -2283,7 +2305,7 @@ export class Fields {
                         const mainItemId = mainItemDetails.encryptedId || mainItemDetails.encrypted_id || mainItemDetails.encryptedid;
                         let itemId = mainItemId;
                         let linkId = mainItemDetails.linkId || mainItemDetails.link_id || 0;
-                        const extraParameters = {};
+                        let extraParameters = {};
                         if (selectedItems.length > 0) {
                             const selectedId = selectedItems[0].dataItem.itemId || selectedItems[0].dataItem.item_id || selectedItems[0].dataItem.id;
                             const selectedLinkId = selectedItems[0].dataItem.linkId || selectedItems[0].dataItem.link_id;
@@ -2295,6 +2317,12 @@ export class Fields {
                             }
                             if (selectedId) {
                                 extraParameters.selectedLinkId = selectedLinkId;
+                            }
+                            
+                            // Adds all information of the first selected row.
+                            extraParameters = {
+                                ...extraParameters,
+                                ...selectedItems[0].dataItem
                             }
                         }
                         if (action.emailDataQueryId) {
@@ -3324,8 +3352,7 @@ export class Fields {
         htmlWindow.find(".k-primary, .k-button-solid-primary").kendoButton({
             click: () => {
                 const value = codeMirrorInstance.getValue();
-                const newLinedValue = value.replace(/\n/g, '<br/>');
-                editor.value(newLinedValue);
+                editor.value(value);
                 kendoWindow.close();
             },
             icon: "save"
@@ -3670,6 +3697,14 @@ export class Fields {
      * @returns {*} The HTML contents of the editor.
      */
     onHtmlEditorSerialization(html) {
+        // Check if there is a temporary table element. If so, it was used as a wrapper for a root <tr> element.
+        // Now, we have to remove the table wrapper.
+        if (/<table[^>]*id=["']coder_temp["'][^>]*>/i.test(html)) {
+            html = html
+                .replace(/<table[^>]*id=["']coder_temp["'][^>]*>\s*<tbody>/i, '')
+                .replace(/<\/tbody>\s*<\/table>/i, '');
+        }
+        
         return html.replace(/\[(>|&gt;)\]([\w:?]+)\[(<|&lt;)\]/g, "{$2}");
     }
 
@@ -3679,6 +3714,14 @@ export class Fields {
      * @returns {*} The HTML contents of the editor.
      */
     onHtmlEditorDeserialization(html) {
+        // Check if the HTML's root element is of <tr>. If so, we have to wrap it in a table temporary.
+        if(/^<tr>(\n|\w|.)*?<\/tr>$/.test(html)) {
+            html = `<table id="coder_temp"><tbody>${html}</tbody></table>`;
+        }
+        
+        // Replace line endings on text nodes with <br/> elements.
+        html = Misc.replaceNewlinesInTextNodes(html);
+
         return html.replace(/{([\w:?]+)}/g, "[>]$1[<]");
     }
 

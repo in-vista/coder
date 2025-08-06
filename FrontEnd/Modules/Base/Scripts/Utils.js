@@ -1835,6 +1835,38 @@ export class Misc {
         const previousSystemStyling = document.getElementById('systemStyling');
         previousSystemStyling?.remove();
     }
+
+    /**
+     * Replaces new line characters in a HTML string with <br/> elements.
+     * @param htmlString - The HTML string to replace new lines in.
+     * @return {string} - The mutated HTML string with <br/> elements for new lines.
+     */
+    static replaceNewlinesInTextNodes(htmlString) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = htmlString;
+
+        const walker = document.createTreeWalker(wrapper, NodeFilter.SHOW_TEXT);
+
+        let node;
+        while ((node = walker.nextNode())) {
+            const value = node.nodeValue;
+            if (value.includes('\n') && value.trim().length > 0) {
+                const parts = value.split('\n');
+                const fragment = document.createDocumentFragment();
+
+                parts.forEach((part, index) => {
+                    fragment.appendChild(document.createTextNode(part));
+                    if (index < parts.length - 1) {
+                        fragment.appendChild(document.createElement('br'));
+                    }
+                });
+
+                node.parentNode.replaceChild(fragment, node);
+            }
+        }
+
+        return wrapper.innerHTML;
+    }
 }
 
 // Make the classes globally available, so that they also work in scripts that are not loaded via Webpack.
