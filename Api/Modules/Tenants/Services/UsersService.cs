@@ -123,7 +123,7 @@ namespace Api.Modules.Tenants.Services
             string query = $@"SELECT 
     user.id, 
     {(includeParent ? "CONCAT_WS(' - ', parent.title, IFNULL(NULLIF(user.title, ''), username.value)) AS name," : "IFNULL(NULLIF(user.title, ''), username.value) AS name,")}
-    username.`value` AS username
+    {(includeParent ? "CONCAT_WS('~',parent.id,username.`value`) AS username" : "username.`value` AS username")}    
 FROM {WiserTableNames.WiserItem} AS user
 JOIN {WiserTableNames.WiserItemDetail} AS username ON username.item_id = user.id AND username.`key` = '{UserUsernameKey}'
 {(includeParent ? $"LEFT JOIN {WiserTableNames.WiserItem} parent ON parent.id=user.parent_item_id" : "")}
@@ -305,16 +305,25 @@ ORDER BY name ASC";
         /// <inheritdoc />
         public async Task<ServiceResult<UserModel>> LoginTenantAsync(string username, string password, string encryptedAdminAccountId = null, string subDomain = null, bool generateAuthenticationTokenForCookie = false, string ipAddress = null, ClaimsIdentity identity = null, string totpPin = null, string totpBackupCode = null)
         {
+            var userNameWithoutParent = username.ToLower();
+            var parentId = 0UL;
+
+            if (username.Contains('~'))
+            {
+                parentId = Convert.ToUInt64(username.Split('~')[0]);
+                userNameWithoutParent = username.Split('~')[1];
+            }
+            
             if (await UsernameIsBlockedAsync(username, clientDatabaseConnection, apiSettings.MaximumLoginAttemptsForUsers))
             {
                 return new ServiceResult<UserModel>
                 {
-                    ErrorMessage = "Username is blocked due to too many failed login attempts",
+                    ErrorMessage = "User is blocked due to too many failed login attempts",
                     StatusCode = HttpStatusCode.Unauthorized
                 };
             }
 
-            if (String.IsNullOrWhiteSpace(username) || (String.IsNullOrWhiteSpace(password) && String.IsNullOrWhiteSpace(encryptedAdminAccountId)))
+            if (String.IsNullOrWhiteSpace(userNameWithoutParent) || (String.IsNullOrWhiteSpace(password) && String.IsNullOrWhiteSpace(encryptedAdminAccountId)))
             {
                 await AddFailedLoginAttemptAsync(ipAddress, username);
                 return new ServiceResult<UserModel>
@@ -329,8 +338,9 @@ ORDER BY name ASC";
 
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
             clientDatabaseConnection.ClearParameters();
-            clientDatabaseConnection.AddParameter("username", username);
+            clientDatabaseConnection.AddParameter("username", userNameWithoutParent);
             clientDatabaseConnection.AddParameter("now", DateTime.Now);
+            clientDatabaseConnection.AddParameter("parentid", parentId);
 
             var query = $@"SELECT 
                             user.id, 
@@ -358,6 +368,7 @@ ORDER BY name ASC";
                         LEFT JOIN {WiserTableNames.WiserItemDetail} totpSecret on totpSecret.item_id = user.id and totpSecret.`key` = '{TotpSecretKey}'
                         LEFT JOIN {WiserTableNames.WiserItemDetail} totpRequiresSetup on totpRequiresSetup.item_id = user.id and totpRequiresSetup.`key` = '{TotpRequiresSetupKey}'
                         WHERE user.entity_type = '{WiserUserEntityType}'
+                        {(parentId != 0 ? "AND user.parent_item_id=?parentid" : "")}
                         AND user.published_environment > 0";
 
             var dataTable = await clientDatabaseConnection.GetAsync(query);
