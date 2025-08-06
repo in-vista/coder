@@ -3352,8 +3352,7 @@ export class Fields {
         htmlWindow.find(".k-primary, .k-button-solid-primary").kendoButton({
             click: () => {
                 const value = codeMirrorInstance.getValue();
-                const newLinedValue = value.replace(/\n/g, '<br/>');
-                editor.value(newLinedValue);
+                editor.value(value);
                 kendoWindow.close();
             },
             icon: "save"
@@ -3698,6 +3697,14 @@ export class Fields {
      * @returns {*} The HTML contents of the editor.
      */
     onHtmlEditorSerialization(html) {
+        // Check if there is a temporary table element. If so, it was used as a wrapper for a root <tr> element.
+        // Now, we have to remove the table wrapper.
+        if (/<table[^>]*id=["']coder_temp["'][^>]*>/i.test(html)) {
+            html = html
+                .replace(/<table[^>]*id=["']coder_temp["'][^>]*>\s*<tbody>/i, '')
+                .replace(/<\/tbody>\s*<\/table>/i, '');
+        }
+        
         return html.replace(/\[(>|&gt;)\]([\w:?]+)\[(<|&lt;)\]/g, "{$2}");
     }
 
@@ -3707,6 +3714,14 @@ export class Fields {
      * @returns {*} The HTML contents of the editor.
      */
     onHtmlEditorDeserialization(html) {
+        // Check if the HTML's root element is of <tr>. If so, we have to wrap it in a table temporary.
+        if(/^<tr>(\n|\w|.)*?<\/tr>$/.test(html)) {
+            html = `<table id="coder_temp"><tbody>${html}</tbody></table>`;
+        }
+        
+        // Replace line endings on text nodes with <br/> elements.
+        html = Misc.replaceNewlinesInTextNodes(html);
+
         return html.replace(/{([\w:?]+)}/g, "[>]$1[<]");
     }
 
