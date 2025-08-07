@@ -693,7 +693,7 @@ const moduleSettings = {
             if (window.parent) {
                 window.parent.main.vueApp.openModule({
                     moduleId: `taskHistory`,
-                    name: `Agendering historie`,
+                    name: `Alle agenderingen`,
                     type: "TaskAlerts",
                     iframe: true,
                     fileName: "/History"
