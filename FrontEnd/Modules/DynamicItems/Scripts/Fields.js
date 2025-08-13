@@ -262,7 +262,7 @@ export class Fields {
             }
 
             // Ignore elements that are part of the Kendo control.
-            if (element.classList.contains("k-input-inner")) {
+            if (element.classList.contains("k-input-inner") && element.id?.indexOf("field_") !== 0) {
                 return;
             }
 
