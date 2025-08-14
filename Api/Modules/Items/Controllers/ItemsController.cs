@@ -67,14 +67,15 @@ namespace Api.Modules.Items.Controllers
         /// <param name="itemLinkId">Optional: The id of the item link from wiser_itemlink. This should be used when opening an item via a sub-entities-grid, to show link fields. Default value is 0.</param>
         /// <param name="entityType">Optional: The entity type of the item. Default value is <see langword="null"/>.</param>
         /// <param name="linkType">Optional: The type number of the link, if this item also contains fields on a link.</param>
+        /// <param name="propertyId">Optional: The ID of the property from which the HTML must me returned.</param>
         /// <returns>A <see cref="ItemHtmlAndScriptModel"/> with the HTML and javascript needed to load this item in Wiser.</returns>
         [HttpGet]
         [Route("{encryptedId}")]
         [ProducesResponseType(typeof(ItemHtmlAndScriptModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetItemAsync(string encryptedId, [FromQuery]string propertyIdSuffix = null, [FromQuery]ulong itemLinkId = 0, [FromQuery]string entityType = null, [FromQuery]int linkType = 0)
+        public async Task<IActionResult> GetItemAsync(string encryptedId, [FromQuery]string propertyIdSuffix = null, [FromQuery]ulong itemLinkId = 0, [FromQuery]string entityType = null, [FromQuery]int linkType = 0, [FromQuery]int propertyId = 0)
         {
-            return (await itemsService.GetItemHtmlAsync(encryptedId, (ClaimsIdentity)User.Identity, propertyIdSuffix, itemLinkId, entityType, linkType)).GetHttpResponseMessage();
+            return (await itemsService.GetItemHtmlAsync(encryptedId, (ClaimsIdentity)User.Identity, propertyIdSuffix, itemLinkId, entityType, linkType, propertyId)).GetHttpResponseMessage();
         }
 
         /// <summary>

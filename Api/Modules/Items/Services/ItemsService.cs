@@ -1173,7 +1173,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<ItemHtmlAndScriptModel>> GetItemHtmlAsync(string encryptedId, ClaimsIdentity identity, string propertyIdSuffix = null, ulong itemLinkId = 0, string entityType = null, int linkType = 0)
+        public async Task<ServiceResult<ItemHtmlAndScriptModel>> GetItemHtmlAsync(string encryptedId, ClaimsIdentity identity, string propertyIdSuffix = null, ulong itemLinkId = 0, string entityType = null, int linkType = 0, int propertyId = 0)
         {
             var results = new ItemHtmlAndScriptModel();
             var userId = IdentityHelpers.GetWiserUserId(identity);
@@ -1250,7 +1250,9 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                     WHERE userRole.user_id = ?userId
                                 ) permission ON permission.entity_property_id = e.id OR permission.entity_property_id IS NULL
 
-                                WHERE permission.permissions IS NULL OR permission.permissions > 0
+                                WHERE (permission.permissions IS NULL OR permission.permissions > 0)
+                                {(propertyId > 0 ? $"AND e.id={propertyId.ToString()}" : "")}
+
                                 GROUP BY id
                                 
                                 UNION ALL
@@ -1285,6 +1287,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 ) permission ON permission.entity_property_id = e.id OR permission.entity_property_id IS NULL
 
                                 WHERE e.link_type > 0 AND (permission.permissions IS NULL OR permission.permissions > 0)
+                                {(propertyId > 0 ? $"AND e.id={propertyId.ToString()}" : "")}
+
                                 GROUP BY id
                                 
                                 ORDER BY ordering";
@@ -1473,7 +1477,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 var longValue = dataRow.Field<string>("long_value");
                 var value = dataRow.Field<string>("value");
                 var defaultValue = dataRow.Field<string>("default_value") ?? "";
-                var propertyId = dataRow.Field<int>("id");
+                propertyId = dataRow.Field<int>("id");
                 var width = dataRow.Field<short>("width");
                 var height = dataRow.Field<short>("height");
                 var regExValidation = dataRow.Field<string>("regex_validation");

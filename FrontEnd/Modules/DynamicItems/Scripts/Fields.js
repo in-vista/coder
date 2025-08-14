@@ -277,7 +277,7 @@ export class Fields {
      * @param {any} event The change event of the field where the value was changed.
      * @param {string} selectedTab The name of the selected tab.
      */
-    handleDependencies(event, selectedTab) {
+     handleDependencies(event, selectedTab) {
         let valueOfElement;
         let currentDependencies = [];
         let container;
@@ -444,38 +444,56 @@ export class Fields {
 
             switch (dependency.dependsOnAction || this.base.dependencyActionsEnum.toggleVisibility) {
                 case this.base.dependencyActionsEnum.refresh: {
-                    const fields = container.closest(".k-tabstrip").find(`[data-property-id='${dependency.propertyId}'].item`).find(this.fieldSelector);
-
-                    for (let field of fields) {
-                        field = $(field);
-                        const kendoControlName = field.data("kendoControl");
-                        if (!kendoControlName && (field.attr("name") || "").indexOf("_input") !== -1) {
-                            console.warn(`Refreshing non-kendo fields is not implemented yet!`);
-                            continue;
+                    if (typeof event.preventDefault === "function") { // Only refresh when input changes, not when item is loaded
+                        let itemElement = container.closest(".k-tabstrip").find(`[data-property-id='${dependency.propertyId}'].item`);
+    
+                        if (itemElement.hasClass("emptyItem")) {
+                            // Refresh empty item
+                            const itemIdEncrypted = itemElement.data("itemIdEncrypted");
+                            
+                            Wiser.api({
+                                url: this.base.settings.wiserApiRoot + `items/${encodeURIComponent(itemIdEncrypted)}?entityType=${entityType}&propertyId=${dependency.propertyId}`,
+                                method: "GET"
+                            }).then(function(results) {
+                                // Set HTML from server call to 'empty' property
+                               itemElement.replaceWith(results.tabs[0].htmlTemplate);                            
+                            });                        
                         }
-
-                        let kendoControl = field.data(kendoControlName);
-
-                        if (!kendoControl && kendoControlName === "kendoComboBox") {
-                            kendoControl = field.data("kendoDropDownList");
+                        else {
+                            const fields = itemElement.find(this.fieldSelector);
+        
+                            for (let field of fields) {
+                                field = $(field);
+                                const kendoControlName = field.data("kendoControl");
+                                if (!kendoControlName && (field.attr("name") || "").indexOf("_input") !== -1) {
+                                    console.warn(`Refreshing non-kendo fields is not implemented yet!`);
+                                    continue;
+                                }
+        
+                                let kendoControl = field.data(kendoControlName);
+        
+                                if (!kendoControl && kendoControlName === "kendoComboBox") {
+                                    kendoControl = field.data("kendoDropDownList");
+                                }
+        
+                                if (!kendoControl) {
+                                    console.warn(`Kendo control found, but it hasn't been initialized properly, so we can't refresh it.`);
+                                    continue;
+                                }
+        
+                                if (!kendoControl.dataSource) {
+                                    console.warn(`Kendo control found, but it has no data source property. Refreshing is only implemented for kendo controls with a data source.`);
+                                    continue;
+                                }
+        
+                                // Get the new data of the property which initiates the refresh
+                                var currentData = {};
+                                currentData[container.data("propertyName")] = event.sender.value();
+        
+                                // Reload the data source.
+                                kendoControl.dataSource.read({extraValuesForQuery: currentData});
+                            }
                         }
-
-                        if (!kendoControl) {
-                            console.warn(`Kendo control found, but it hasn't been initialized properly, so we can't refresh it.`);
-                            continue;
-                        }
-
-                        if (!kendoControl.dataSource) {
-                            console.warn(`Kendo control found, but it has no data source property. Refreshing is only implemented for kendo controls with a data source.`);
-                            continue;
-                        }
-
-                        // Get the new data of the property which initiates the refresh
-                        var currentData = {};
-                        currentData[container.data("propertyName")] = event.sender.value();
-
-                        // Reload the data source.
-                        kendoControl.dataSource.read({extraValuesForQuery: currentData});
                     }
 
                     break;
@@ -3778,18 +3796,18 @@ export class Fields {
      * @param {any} event The event from the change action.
      * @param {any} options the options of the input from the entityproperty table     
      */
-    async onFieldValueChange(event, options = {}) {        
-        this.handleDependencies(event);
-
+    async onFieldValueChange(event, options = {}) {
         const fieldContainer = (event.sender ? event.sender.element : $(event.currentTarget)).closest(".item");
         const itemContainer = fieldContainer.closest("#right-pane, .popup-container");
         const saveOnChange = fieldContainer.data("saveOnChange");
         if (saveOnChange) {
             let saveButton = itemContainer.find(".saveBottomPopup");
-            if (!saveButton.length) {
-                saveButton = itemContainer.find(".saveButton");
+            if (!saveButton.length) {                
+                await dynamicItems.onSaveButtonClick(event);
             }
-            saveButton.first().trigger("click");
+            else {
+                await dynamicItems.windows.onSaveItemPopupClick(event, false, false, event.sender.element.closest(".popup-container"));
+            }
         }
 
         // If a queryIdOnChange is given in the options, then execute the query on change of the input
@@ -3801,7 +3819,7 @@ export class Fields {
             data.userId = this.base.settings.userId;
             data.propertyName = fieldContainer.data().propertyName;   
             
-            Wiser.api({
+            await Wiser.api({                
                 url: dynamicItems.settings.wiserApiRoot + "items/" + encodeURIComponent(itemIdEncrypted) + "/action-button/" + fieldContainer.data().propertyId + "?queryId=" + encodeURIComponent(options.queryIdOnChange) + "&itemLinkId=" + encodeURIComponent(fieldContainer.data().itemLinkId),
                 contentType: "application/json",
                 dataType: "json",
@@ -3813,6 +3831,9 @@ export class Fields {
                 console.warn('Query on change error', result);                
             });
         }
+
+        // Handle dependencies
+        await this.handleDependencies(event);
 
         // Refresh the current item after this input changes
         if (options.refreshOnChange ?? false) {

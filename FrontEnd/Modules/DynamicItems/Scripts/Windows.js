@@ -519,11 +519,14 @@ export class Windows {
      * @param {any} args The arguments of the click event.
      * @param {boolean} alsoCloseWindow Indicates whether or not to close the window/popup after saving.
      * @param {boolean} addToTreeView Indicates whether or not to add the new item to the main tree view.
+     * @param {element} popupWindowContainer Given container if save is triggered from function instead of click on button.
      */
-    async onSaveItemPopupClick(args, alsoCloseWindow = true, addToTreeView = true) {
-        args.event.preventDefault();
-        const popupWindowContainer = $(args.event.currentTarget).closest(".popup-container");
-
+    async onSaveItemPopupClick(args, alsoCloseWindow = true, addToTreeView = true, popupWindowContainer = undefined) {
+        if (popupWindowContainer === undefined) {
+            args.event.preventDefault();
+            popupWindowContainer = $(args.event.currentTarget).closest(".popup-container");    
+        }
+        
         try {
             popupWindowContainer.find(".popup-loader").addClass("loading");
             popupWindowContainer.data("saving", true);
