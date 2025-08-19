@@ -839,7 +839,7 @@ dd {
 }
 .item[data-label-style="float"] .k-selection-multiple .k-chip {
 	padding: 3px 8px;
-	margin-top: 8px;
+	margin-top: 18px;
 }
 .item[data-label-style="float"] .k-selection-multiple .k-chip span.k-font-icon {
 	line-height: 28px;
