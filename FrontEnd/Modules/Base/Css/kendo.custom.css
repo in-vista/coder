@@ -498,6 +498,11 @@ td.k-group-cell,
     background-color: color-mix(in srgb, var(--kendo-color-on-app-surface, #1D1B20) 8%, transparent) !important;
 }
 
+.k-table th:focus::after {
+    width: initial !important;
+    height: initial !important;
+}
+
 .k-pivot-rowheaders .k-alt .k-alt,
 .k-header.k-alt {
     background-color: #dedede;
@@ -1984,7 +1989,7 @@ html .km-pane-wrapper .km-widget,
 }
 
 .k-tabstrip > .k-content, .k-tabstrip > .k-tabstrip-content.k-active {
-    padding-top: 10px;
+    padding-top: 0;
     overflow: inherit;
 }
 
@@ -2724,6 +2729,11 @@ td.k-group-cell,
 .k-grouping-header .k-link,
 .k-grouping-header .k-link:link {
     color: var(--white-color);
+}
+
+.k-grid td {
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 
 .k-scheduler-layout .k-selected,

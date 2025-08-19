@@ -888,14 +888,6 @@
     
         kendoComponent = field.kendoGrid(kendoGridOptions).data("kendoGrid");
     
-        kendoComponent.thead.kendoTooltip({
-            filter: "th",
-            content: function (event) {
-                const target = event.target; // element for which the tooltip is shown
-                return $(target).text();
-            }
-        });
-    
         if (!options.disableOpeningOfItems) {
             field.on("dblclick", "tbody tr[data-uid] td", function (event) {
                 window.dynamicItems.grids.onShowDetailsClick(event, kendoComponent, options, false);

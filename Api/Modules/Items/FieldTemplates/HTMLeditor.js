@@ -80,7 +80,12 @@
     };
 
     const options = $.extend(true, {
-        resizable: true,
+        resizable: {
+            content: true,
+            toolbar: {
+                mode: 'none'
+            }
+        },
         pasteCleanup: {
             all: false,
             css: false,
