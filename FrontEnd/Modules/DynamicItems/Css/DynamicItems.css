@@ -270,6 +270,10 @@ iframe.iframe:not(.hidden) + table.k-editor {
         z-index: 1;
     }
 
+.item.linked-item {
+    margin-top: -44px;
+}
+    
 .item.linked-item span.k-input {
     overflow: auto;
 }
