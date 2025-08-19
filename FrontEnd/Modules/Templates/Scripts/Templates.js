@@ -1070,7 +1070,7 @@ const moduleSettings = {
                 dynamicGridDiv.kendoTooltip({ filter: ".k-grid-Delete", content: "Verwijderen" });
 
                 // Open dynamic content by double clicking on a row.
-                dynamicGridDiv.on("dblclick", "tr.k-state-selected", this.onDynamicContentOpenClick.bind(this));
+                dynamicGridDiv.on("dblclick", "tr.k-selected", this.onDynamicContentOpenClick.bind(this));
             } catch (exception) {
                 console.error(exception);
                 kendo.alert(`Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.<br>${exception.responseText || exception}`);
