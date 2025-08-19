@@ -474,17 +474,20 @@ export class Windows {
     async onDeleteItemPopupClick(event, kendoComponent) {
         event.preventDefault();
 
-        await Wiser.showConfirmDialog("Weet u zeker dat u dit item wilt verwijderen?");
-
         const popupWindowContainer = $(event.currentTarget).closest(".k-window").find(".popup-container");
+        let title = popupWindowContainer.data("kendoWindow").element.data().title;
+        let entityType = popupWindowContainer.data("entityTypeDetails").entityType;
+        let displayName = popupWindowContainer.data("entityTypeDetails").displayName;
+        if (displayName === "") {displayName = entityType; }
+        if (title === "") {title = "dit item"; }
+
+        await Wiser.showConfirmDialog(`Weet je zeker dat je ${title} (${displayName}) wilt verwijderen?`);
 
         try {
             popupWindowContainer.find(".popup-loader").addClass("loading");
             popupWindowContainer.data("saving", true);
 
             const kendoWindow = popupWindowContainer.data("kendoWindow");
-            let entityType = popupWindowContainer.data("entityTypeDetails").entityType;
-
             const data = kendoWindow.element.data();
             const encryptedItemId = data.itemId;
 
@@ -509,7 +512,7 @@ export class Windows {
                 const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
                 kendo.alert(message);
             } else {
-                kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het nogmaals.");
             }
         }
     }
