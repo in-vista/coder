@@ -2726,6 +2726,11 @@ td.k-group-cell,
     color: var(--white-color);
 }
 
+.k-grid td {
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
 .k-scheduler-layout .k-selected,
 .k-scheduler .k-today.k-selected,
 .k-grid tr.k-selected,
