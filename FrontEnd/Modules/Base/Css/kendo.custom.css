@@ -498,6 +498,11 @@ td.k-group-cell,
     background-color: color-mix(in srgb, var(--kendo-color-on-app-surface, #1D1B20) 8%, transparent) !important;
 }
 
+.k-table th:focus::after {
+    width: initial !important;
+    height: initial !important;
+}
+
 .k-pivot-rowheaders .k-alt .k-alt,
 .k-header.k-alt {
     background-color: #dedede;
