@@ -498,7 +498,10 @@ td.k-group-cell,
     background-color: color-mix(in srgb, var(--kendo-color-on-app-surface, #1D1B20) 8%, transparent) !important;
 }
 
-.k-table th:focus::after {
+.k-table td:focus::after,
+.k-table td.k-focus::after,
+.k-table th:focus::after,
+.k-table th.k-focus::after {
     width: initial !important;
     height: initial !important;
 }
