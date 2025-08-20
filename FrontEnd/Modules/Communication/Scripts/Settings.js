@@ -279,6 +279,9 @@ const communicationModuleSettings = {
 
                 const translationsTool = {
                     name: "wiserTranslation",
+                    ui: {
+                        icon: 'wiser-translation'
+                    },
                     tooltip: "Vertaling invoegen",
                     exec: function(e) { Wiser.onHtmlEditorTranslationExec.call(Wiser, e, $(this).data("kendoEditor"), wiserApiRoot); }
                 };

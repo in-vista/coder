@@ -1204,11 +1204,17 @@ const moduleSettings = {
                 // HTML editor
                 const insertDynamicContentTool = {
                     name: "wiserDynamicContent",
+                    ui: {
+                        icon: 'wiser-dynamic-content',
+                    },
                     tooltip: "Dynamische inhoud toevoegen",
                     exec: this.onHtmlEditorDynamicContentExec.bind(this)
                 };
                 const htmlSourceTool = {
                     name: "wiserHtmlSource",
+                    ui: {
+                        icon: 'wiser-html-source',
+                    },
                     tooltip: "HTML bekijken/aanpassen",
                     exec: this.onHtmlEditorHtmlSourceExec.bind(this)
                 };
@@ -1219,18 +1225,27 @@ const moduleSettings = {
 
                 const translationsTool = {
                     name: "wiserTranslation",
+                    ui: {
+                        icon: 'wiser-translation'
+                    },
                     tooltip: "Vertaling invoegen",
                     exec: function(e) { Wiser.onHtmlEditorTranslationExec.call(Wiser, e, $(this).data("kendoEditor"), wiserApiRoot); }
                 };
 
                 const imageTool = {
                     name: "wiserImage",
+                    ui: {
+                        icon: 'wiser-image'
+                    },
                     tooltip: "Afbeelding toevoegen",
                     exec: function(e){ Wiser.onHtmlEditorImageExec.call(Wiser, e, $(this).data("kendoEditor"), "templates", imagesRootId); }
                 };
 
                 const fileTool = {
                     name: "wiserFile",
+                    ui: {
+                        icon: 'wiser-file'
+                    },
                     tooltip: "Link naar bestand toevoegen",
                     exec: function(e) { Wiser.onHtmlEditorFileExec.call(Wiser, e, $(this).data("kendoEditor"), "templates", filesRootId); }
                 };
