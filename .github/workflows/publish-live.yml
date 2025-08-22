@@ -151,14 +151,22 @@ jobs:
        run: |
         $backupPath = "C:\backups"
 
-        Get-ChildItem -Path $backupPath -Directory | ForEach-Object {
-          $projectFolder = $_.FullName
+        $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
+        $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
 
-          $backups = Get-ChildItem -Path $projectFolder -Directory | Sort-Object CreationTime -Descending
+        $projects = @($baseApi, $baseFrontend)
 
-          $oldBackups = $backups | Select-Object -Skip 2
-          foreach ($old in $oldBackups) {
-            Write-Host "Deleting backup $($old.FullName)"
-            Remove-Item -Path $old.FullName -Recurse -Force
+        foreach ($project in $projects) {
+          $projectFolder = Join-Path $backupPath $project
+
+          if (Test-Path $projectFolder) {
+            $backups = Get-ChildItem -Path $projectFolder -Directory | Sort-Object CreationTime -Descending
+
+            $oldBackups = $backups | Select-Object -Skip 2
+
+            foreach ($old in $oldBackups) {
+              Write-Host "Deleting backup $($old.FullName)"
+              Remove-Item -Path $old.FullName -Recurse -Force
+            }
           }
         }
