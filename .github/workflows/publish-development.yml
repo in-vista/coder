@@ -140,3 +140,24 @@ jobs:
     - name: Disable maintenance notice FrontEnd
       if: ${{ always() }}
       run: Rename-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\App_Offline.htm" -NewName "_App_Offline.htm"
+  clear-backup:
+    runs-on: cluster1_transip
+    environment: Development
+    needs: [build-coder]
+
+    steps:
+     - name: Remove backups older than 30 days
+       run: |
+        $backupPath = "C:\backups"
+
+        Get-ChildItem -Path $backupPath -Directory | ForEach-Object {
+          $projectFolder = $_.FullName
+
+          $backups = Get-ChildItem -Path $projectFolder -Directory | Sort-Object CreationTime -Descending
+
+          $oldBackups = $backups | Select-Object -Skip 2
+          foreach ($old in $oldBackups) {
+            Write-Host "Deleting backup $($old.FullName)"
+            Remove-Item -Path $old.FullName -Recurse -Force
+          }
+        }
