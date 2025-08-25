@@ -18,6 +18,10 @@
     <Compile Remove="temp\**" />   
     <None Remove="temp\**" />
     <Content Remove="temp\**" />
+    <Content Update="Core\Fonts\kendo-font-icons.ttf">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +34,7 @@
 
   <ItemGroup>
     <Folder Include="Modules\Base\Scripts\codemirror\" />
+    <Folder Include="wwwroot\fonts\" />
   </ItemGroup>
 
   <ItemGroup>

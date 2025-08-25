@@ -3,7 +3,7 @@ import "./Processing.js";
 import * as Diff2Html from "diff2html/lib/diff2html"
 import "diff2html/bundles/css/diff2html.min.css"
 
-window.$ = require("jquery");
+window.$ = window.jQuery = require("jquery");
 
 /**
  * This function overrides the default ":contains" psuedo from jQuery, so that it's no longer case sensitive.
@@ -377,9 +377,7 @@ export class Wiser {
                 console.error("Refresh token failed!");
 
                 // If we got a 401 while using the refresh token, it means the refresh token is no longer valid, so logout the user.
-                if (window.parent && window.parent.main && window.parent.main.vueApp) {
-                    window.parent.main.vueApp.logout();
-                }
+                wiserMainWindow?.vueApp.logout();
             }
         });
     }
@@ -1796,6 +1794,78 @@ export class Misc {
         };
 
         return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    /**
+     * Load CSS based on a plain system object string or query ID referencing a query that loads a CSS string.
+     */
+    static async injectSystemStyling() {
+        // Retrieve and validate the existence of a user. If none exists, skip injecting the system styling.
+        const user = JSON.parse(localStorage.getItem("userData"));
+        if(!user)
+            return;
+        
+        try {
+            // Request the CSS styling string.
+            const cssString = await Wiser.api({
+                url: `${window.main.appSettings.apiBase}api/v3/styling/system-styling`,
+                dataType: 'json',
+                method: 'GET'
+            });
+
+            // Delete any previous system styling upon successfully retrieving it.
+            this.removeSystemStyling();
+
+            // Inject the system-based CSS into the document.
+            if(cssString) {
+                const style = document.createElement('style');
+                style.id = 'systemStyling';
+                style.innerText = cssString;
+                document.head.appendChild(style);
+            }
+        } catch(exception) {
+            console.error('Error loading system styling.', exception);
+        }
+    }
+
+    /**
+     * Delete any previous system styling upon successfully retrieving it.
+     */
+    static removeSystemStyling() {
+        const previousSystemStyling = document.getElementById('systemStyling');
+        previousSystemStyling?.remove();
+    }
+
+    /**
+     * Replaces new line characters in a HTML string with <br/> elements.
+     * @param htmlString - The HTML string to replace new lines in.
+     * @return {string} - The mutated HTML string with <br/> elements for new lines.
+     */
+    static replaceNewlinesInTextNodes(htmlString) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = htmlString;
+
+        const walker = document.createTreeWalker(wrapper, NodeFilter.SHOW_TEXT);
+
+        let node;
+        while ((node = walker.nextNode())) {
+            const value = node.nodeValue;
+            if (value.includes('\n') && value.trim().length > 0) {
+                const parts = value.split('\n');
+                const fragment = document.createDocumentFragment();
+
+                parts.forEach((part, index) => {
+                    fragment.appendChild(document.createTextNode(part));
+                    if (index < parts.length - 1) {
+                        fragment.appendChild(document.createElement('br'));
+                    }
+                });
+
+                node.parentNode.replaceChild(fragment, node);
+            }
+        }
+
+        return wrapper.innerHTML;
     }
 }
 

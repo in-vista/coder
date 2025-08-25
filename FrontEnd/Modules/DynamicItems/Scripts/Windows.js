@@ -474,17 +474,20 @@ export class Windows {
     async onDeleteItemPopupClick(event, kendoComponent) {
         event.preventDefault();
 
-        await Wiser.showConfirmDialog("Weet u zeker dat u dit item wilt verwijderen?");
-
         const popupWindowContainer = $(event.currentTarget).closest(".k-window").find(".popup-container");
+        let title = popupWindowContainer.data("kendoWindow").element.data().title;
+        let entityType = popupWindowContainer.data("entityTypeDetails").entityType;
+        let displayName = popupWindowContainer.data("entityTypeDetails").displayName;
+        if (displayName === "") {displayName = entityType; }
+        if (title === "") {title = "dit item"; }
+
+        await Wiser.showConfirmDialog(`Weet je zeker dat je ${title} (${displayName}) wilt verwijderen?`);
 
         try {
             popupWindowContainer.find(".popup-loader").addClass("loading");
             popupWindowContainer.data("saving", true);
 
             const kendoWindow = popupWindowContainer.data("kendoWindow");
-            let entityType = popupWindowContainer.data("entityTypeDetails").entityType;
-
             const data = kendoWindow.element.data();
             const encryptedItemId = data.itemId;
 
@@ -509,7 +512,7 @@ export class Windows {
                 const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
                 kendo.alert(message);
             } else {
-                kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het nogmaals.");
             }
         }
     }
@@ -519,11 +522,14 @@ export class Windows {
      * @param {any} args The arguments of the click event.
      * @param {boolean} alsoCloseWindow Indicates whether or not to close the window/popup after saving.
      * @param {boolean} addToTreeView Indicates whether or not to add the new item to the main tree view.
+     * @param {element} popupWindowContainer Given container if save is triggered from function instead of click on button.
      */
-    async onSaveItemPopupClick(args, alsoCloseWindow = true, addToTreeView = true) {
-        args.event.preventDefault();
-        const popupWindowContainer = $(args.event.currentTarget).closest(".popup-container");
-
+    async onSaveItemPopupClick(args, alsoCloseWindow = true, addToTreeView = true, popupWindowContainer = undefined) {
+        if (popupWindowContainer === undefined) {
+            args.event.preventDefault();
+            popupWindowContainer = $(args.event.currentTarget).closest(".popup-container");    
+        }
+        
         try {
             popupWindowContainer.find(".popup-loader").addClass("loading");
             popupWindowContainer.data("saving", true);
@@ -669,7 +675,7 @@ export class Windows {
             for (let element of allItemsOnCurrentPage) {
                 const row = $(element);
                 const dataItem = grid.dataItem(row);
-                const isChecked = row.find("td > input[type=checkbox]").prop("checked");
+                const isChecked = row.find("td > .k-checkbox-wrap > input[type=checkbox]").prop("checked");
 
                 if (isChecked) {
                     if (alreadyLinkedItems.filter((item) => (item.id || item[`ID_${this.searchItemsWindowSettings.entityType}`]) === dataItem.id).length === 0) {

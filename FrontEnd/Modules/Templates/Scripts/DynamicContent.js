@@ -64,6 +64,11 @@ const moduleSettings = {
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Add logged in user access token to default authorization headers for all jQuery ajax requests.
             $.ajaxSetup({
                 headers: { "Authorization": `Bearer ${localStorage.getItem("accessToken")}` }
@@ -106,7 +111,7 @@ const moduleSettings = {
             const user = JSON.parse(localStorage.getItem("userData"));
             this.settings.oldStyleUserId = user.oldStyleUserId;
             this.settings.username = user.adminAccountName ? `${user.adminAccountName} (Admin)` : user.name;
-            this.settings.adminAccountLoggedIn = !!user.adminAccountName;
+            this.settings.adminAccountLoggedIn = !!user.adminlogin;
 
             const userData = await Wiser.getLoggedInUserData(this.settings.wiserApiRoot);
             this.settings.userId = userData.encryptedId;
@@ -205,7 +210,8 @@ const moduleSettings = {
                 panes: [{
                     collapsible: true,
                     scrollable: false,
-                    size: "75%"
+                    size: '100%',
+                    collapsedSize: "75%"
                 }, {
                     collapsible: true
                 }]
@@ -610,7 +616,7 @@ const moduleSettings = {
                     const treshold = 1;
                     if (Math.abs(scrollHeight - clientHeight - scrollTop) < treshold) {
                         // if history pane is active load next batch of history rows
-                        if (container.parentElement.classList.contains("k-state-active")) {
+                        if (container.parentElement.classList.contains("k-active")) {
                             this.loadNextHistoryPart();
                         }
                     }

@@ -9,6 +9,10 @@ html, body {
     display: block;
 }
 
+.k-font-icon {
+    text-indent: 0;
+}
+
 dl {
     border-left: 1px solid var(--dark-bd-color);
     margin: 10px;
@@ -215,7 +219,7 @@ body.gridViewMode #mainScreenForm {
 #previewFrame .k-content-frame iframe {
     border: none;
     width: 100%;
-    height: calc(100% - 5px);
+    height: 100%;
 }
 
 #previewFrame table.k-editor {
@@ -242,7 +246,7 @@ iframe.iframe:not(.hidden) + table.k-editor {
         top: 0;
     }
 
-#previewFrame .k-tabstrip .k-content.k-state-active {
+#previewFrame .k-tabstrip .k-content.k-active {
     background-color: var(--white-color);
 }
 
@@ -266,6 +270,10 @@ iframe.iframe:not(.hidden) + table.k-editor {
         z-index: 1;
     }
 
+.item.linked-item {
+    margin-top: -44px;
+}
+    
 .item.linked-item span.k-input {
     overflow: auto;
 }
@@ -282,13 +290,13 @@ body.iframe .editMenu {
     order: 6;
 }
 
-#gridView .k-grid-toolbar .k-grid-refresh {
+#gridView .k-grid-toolbar .k-toolbar-item:has(.k-grid-refresh) {
     order: 5;
 }
 
 .k-grid-toolbar .k-grid-excel,
-.k-grid-toolbar .clear-all-filters,
-.k-grid-toolbar .full-screen {
+.k-grid-toolbar .k-toolbar-item:has(.clear-all-filters),
+.k-grid-toolbar .k-toolbar-item:has(.full-screen) {
     order: 4;
 }
 
@@ -310,12 +318,12 @@ body.iframe .editMenu {
     padding: 12px;
 }
 
-    .k-grid-toolbar .k-grid-excel .k-icon {
+    .k-grid-toolbar .k-grid-excel .k-font-icon {
         position: absolute;
         margin: 0;
     }
 
-.k-grid-toolbar .counterContainer {
+.k-grid-toolbar .k-toolbar-item:has(.counterContainer) {
     line-height: 38px;
     color: var(--dark-txt);
     margin-left: auto;
@@ -440,4 +448,30 @@ body.iframe .editMenu {
     border: 0;
     height: 100%;
     width: 100%;
+}
+
+.k-svg-icon > svg {
+    width: inherit;
+}
+
+#imageDialog img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+#imageDialog > .image-zoom-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    cursor: zoom-in;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#imageDialog > .image-zoom-container.zoomed {
+    cursor: zoom-out;
 }

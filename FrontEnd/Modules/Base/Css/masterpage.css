@@ -203,11 +203,11 @@ dd {
 .k-window-content > .pane-content .k-tabstrip-wrapper {
 	width: 100%;
 }
-.k-window-content > .pane-content .k-widget.k-tabstrip {
+.k-window-content > .pane-content .k-tabstrip {
 	height: 100%;
 	width: 100%;
 }
-.k-window-content > .pane-content .k-tabstrip .k-content.k-state-active {
+.k-window-content > .pane-content .k-tabstrip .k-content.k-active {
 	height: calc(100% - 50px);
 	overflow: visible;
 }
@@ -839,9 +839,9 @@ dd {
 }
 .item[data-label-style="float"] .k-selection-multiple .k-chip {
 	padding: 3px 8px;
-	margin-top: 8px;
+	margin-top: 18px;
 }
-.item[data-label-style="float"] .k-selection-multiple .k-chip span.k-icon {
+.item[data-label-style="float"] .k-selection-multiple .k-chip span.k-font-icon {
 	line-height: 28px;
 	height: 28px;
 }
@@ -860,13 +860,13 @@ dd {
 .item[data-label-style="float"] .k-colorpicker .k-picker-wrap .k-select {
 	line-height: 32px;
 }
-.item[data-label-style="float"] .k-combobox .k-icon.k-i-arrow-60-down,
-.item[data-label-style="float"] .k-dropdown .k-icon.k-i-arrow-60-down,
-.item[data-label-style="float"] .k-picker-wrap .k-icon.k-i-arrow-60-down,
-.item[data-label-style="float"] .k-input .k-datetimepicker .k-icon {
+.item[data-label-style="float"] .k-combobox .k-font-icon.k-i-arrow-60-down,
+.item[data-label-style="float"] .k-dropdown .k-font-icon.k-i-arrow-60-down,
+.item[data-label-style="float"] .k-picker-wrap .k-font-icon.k-i-arrow-60-down,
+.item[data-label-style="float"] .k-input .k-datetimepicker .k-font-icon {
 	top: 10px;
 }
-.item[data-label-style="float"] .k-colorpicker .k-picker-wrap .k-icon.k-i-arrow-60-down {
+.item[data-label-style="float"] .k-colorpicker .k-picker-wrap .k-font-icon.k-i-arrow-60-down {
 	top: 0;
 }
 .item[data-label-style="float"] .info,
@@ -1254,20 +1254,20 @@ footer input ~ .meta-data li.meta-toggle label span:last-child {
 .k-window-content > .pane-content {
 	min-height: auto;
 }
-.k-window-content > .pane-content .k-tabstrip .k-content.k-state-active,
+.k-window-content > .pane-content .k-tabstrip .k-content.k-active,
 .k-window-content > .pane-content .k-tabstrip .dynamicTabContent {
 	height: auto;
 }
 
-.k-window-content > .pane-content .k-tabstrip .dynamicTabContent .gridview:last-child:nth-child(2),
-.k-window-content > .pane-content .k-tabstrip .dynamicTabContent script ~ .gridview:last-child:nth-child(3) {
+.k-window-content > .pane-content .k-tabstrip .dynamicTabContent .gridview:nth-child(2),
+.k-window-content > .pane-content .k-tabstrip .dynamicTabContent script ~ .gridview:nth-child(3) {
 	height: 100%;
 	max-height: calc(100% - 138px);
 	display: flex;
 	flex-direction: column;
 }
 
-.k-window-content > .pane-content .k-tabstrip .dynamicTabContent script ~ .gridview:last-child:nth-child(3) .k-grid {
+.k-window-content > .pane-content .k-tabstrip .dynamicTabContent script ~ .gridview:nth-child(3) .k-grid {
 	flex-basis: 100%;
 	display: flex;
 	flex-direction: column;
@@ -1291,21 +1291,21 @@ footer input ~ .meta-data li.meta-toggle label span:last-child {
 }
 .pane-content.entity-container .k-tabstrip-wrapper,
 .pane-content.entity-container .k-tabstrip-wrapper .k-tabstrip {
-	height: calc(100% - 5px);
+	height: 100%;
 }
 
-.pane-content.entity-container .k-tabstrip .k-tabstrip-items.hidden + .k-content.k-state-active {
+.pane-content.entity-container .k-tabstrip .k-tabstrip-items.hidden + .k-content.k-active {
 	height: 100%;
 	display: flex !important;
 	flex-direction: column;
 }
 
-.pane-content.entity-container .k-tabstrip .k-tabstrip-items.hidden + .k-content.k-state-active .formview:last-child:nth-child(2) {
+.pane-content.entity-container .k-tabstrip .k-tabstrip-items.hidden + .k-content.k-active .formview:last-child:nth-child(2) {
 	flex-grow: 1;
 }
 
-.pane-content.entity-container .k-tabstrip .k-tabstrip-items.hidden + .k-content.k-state-active .formview:last-child:nth-child(2) .gridview,
-.pane-content.entity-container .k-tabstrip .k-tabstrip-items.hidden + .k-content.k-state-active .formview:last-child:nth-child(2) .gridview .k-grid {
+.pane-content.entity-container .k-tabstrip .k-tabstrip-items.hidden + .k-content.k-active .formview:last-child:nth-child(2) .gridview,
+.pane-content.entity-container .k-tabstrip .k-tabstrip-items.hidden + .k-content.k-active .formview:last-child:nth-child(2) .gridview .k-grid {
 	height: 100%;
 	max-height: 100%;
 }

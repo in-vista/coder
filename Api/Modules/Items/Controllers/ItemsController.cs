@@ -50,15 +50,13 @@ namespace Api.Modules.Items.Controllers
         /// Gets all items from Wiser. It's possible to use filters here.
         /// The results will be returned in multiple pages, with a max of 500 items per page.
         /// </summary>
-        /// <param name="pagedRequest">Optional: Which page to get and how many items per page to get.</param>
-        /// <param name="useFriendlyPropertyNames">Optional: Whether to use friendly property names or not. Default is <see langword="true"/>.</param>
-        /// <param name="filters">Optional: Add filters if you only want specific results.</param>
+        /// <param name="input">The filters and paging settings to specify the items you're looking for.</param>
         /// <returns>A PagedResults with information about the total amount of items, page number etc. The results property contains the actual results, of type FlatItemModel.</returns>
         [HttpGet]
         [ProducesResponseType(typeof(PagedResults<FlatItemModel>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetItemsAsync([FromQuery]PagedRequest pagedRequest = null, bool useFriendlyPropertyNames = true, [FromQuery]WiserItemModel filters = null)
+        public async Task<IActionResult> GetItemsAsync([FromQuery]GetItemsInputModel input = null)
         {
-            return (await itemsService.GetItemsAsync((ClaimsIdentity)User.Identity, pagedRequest, useFriendlyPropertyNames, filters)).GetHttpResponseMessage();
+            return (await itemsService.GetItemsAsync((ClaimsIdentity)User.Identity, input)).GetHttpResponseMessage();
         }
 
         /// <summary>
@@ -69,14 +67,15 @@ namespace Api.Modules.Items.Controllers
         /// <param name="itemLinkId">Optional: The id of the item link from wiser_itemlink. This should be used when opening an item via a sub-entities-grid, to show link fields. Default value is 0.</param>
         /// <param name="entityType">Optional: The entity type of the item. Default value is <see langword="null"/>.</param>
         /// <param name="linkType">Optional: The type number of the link, if this item also contains fields on a link.</param>
+        /// <param name="propertyId">Optional: The ID of the property from which the HTML must me returned.</param>
         /// <returns>A <see cref="ItemHtmlAndScriptModel"/> with the HTML and javascript needed to load this item in Wiser.</returns>
         [HttpGet]
         [Route("{encryptedId}")]
         [ProducesResponseType(typeof(ItemHtmlAndScriptModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetItemAsync(string encryptedId, [FromQuery]string propertyIdSuffix = null, [FromQuery]ulong itemLinkId = 0, [FromQuery]string entityType = null, [FromQuery]int linkType = 0)
+        public async Task<IActionResult> GetItemAsync(string encryptedId, [FromQuery]string propertyIdSuffix = null, [FromQuery]ulong itemLinkId = 0, [FromQuery]string entityType = null, [FromQuery]int linkType = 0, [FromQuery]int propertyId = 0)
         {
-            return (await itemsService.GetItemHtmlAsync(encryptedId, (ClaimsIdentity)User.Identity, propertyIdSuffix, itemLinkId, entityType, linkType)).GetHttpResponseMessage();
+            return (await itemsService.GetItemHtmlAsync(encryptedId, (ClaimsIdentity)User.Identity, propertyIdSuffix, itemLinkId, entityType, linkType, propertyId)).GetHttpResponseMessage();
         }
 
         /// <summary>

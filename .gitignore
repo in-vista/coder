@@ -424,3 +424,6 @@ FodyWeavers.xsd
 /FrontEnd/appsettings.Development.json
 /FrontEnd/appsettings.Production.json
 /FrontEnd/appsettings.Test.json
+
+# Telerik
+/FrontEnd/telerik-license.txt

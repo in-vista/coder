@@ -5,7 +5,7 @@
     height: 100%;
 }
 
-.tabstrip .k-tabstrip-content.k-state-active {
+.tabstrip .k-tabstrip-content.k-active {
     display: flex;
     flex-direction: column;
     height: calc(100% - 50px) !important;
@@ -13,7 +13,7 @@
     padding: 0 10px;
 }
 
-.tabstrip .k-tabstrip-content.k-state-active .formData {
+.tabstrip .k-tabstrip-content.k-active .formData {
     flex: 1;
     overflow: auto;
     margin-bottom: 50px;

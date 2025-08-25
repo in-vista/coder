@@ -335,7 +335,7 @@ namespace Api.Modules.Grids.Services
                     results.Columns.Add(new GridColumn {Field = "duedate", Title = "Due-date", Format = "{0:dd MMMM yyyy}"});
                     results.Columns.Add(new GridColumn {Field = "sender", Title = "Verzonden door"});
                     results.Columns.Add(new GridColumn {Field = "receiver", Title = "Verzonden aan"});
-                    results.Columns.Add(new GridColumn {Field = "content", Title = "Tekst", Width = "600px"});
+                    results.Columns.Add(new GridColumn {Field = "content", Title = "Tekst", Width = "600px", Template = "#= content #"});
                     results.Columns.Add(new GridColumn {Field = "checkeddate", Title = "Afgevinkt op", Format = "{0:dd MMMM yyyy - HH:mm:ss}"});
 
                     countQuery = $@"SELECT COUNT(*)
@@ -356,7 +356,7 @@ namespace Api.Modules.Grids.Services
 	                                    STR_TO_DATE(checkedDate.`value`, '%Y-%m-%d %H:%i:%s') AS checkedDate,
 	                                    IFNULL(sender.`value`, '') AS sender,
 	                                    receiver.`value` AS receiver,
-	                                    content.`value` AS content
+	                                    REPLACE(content.`value`,'\r\n','<br />') AS content
                                     FROM {WiserTableNames.WiserItem} i
 
                                     JOIN {WiserTableNames.WiserItemDetail} dueDate ON dueDate.item_id = i.id AND dueDate.`key` = 'agendering_date' [if({{dueDate}}!)]AND dueDate.`value` <> ''AND DATE(dueDate.`value`) {{dueDate_filter}}[endif] 

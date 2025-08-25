@@ -20,8 +20,8 @@ require("@progress/kendo-ui/js/kendo.grid.js");
 require("@progress/kendo-ui/js/kendo.notification.js");
 require("@progress/kendo-ui/js/kendo.datepicker.js");
 require("@progress/kendo-ui/js/kendo.daterangepicker.js");
-require("@progress/kendo-ui/js/dataviz/chart/chart.js");
-require("@progress/kendo-ui/js/dataviz/chart/kendo-chart.js");
+require("@progress/kendo-ui/js/kendo.dataviz.chart.js");
+// require("@progress/kendo-ui/js/dataviz/chart/kendo-chart.js");
 require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
 require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
 
@@ -112,6 +112,11 @@ const moduleSettings = {
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Add logged in user access token to default authorization headers for all jQuery ajax requests.
             $.ajaxSetup({
                 headers: { "Authorization": `Bearer ${localStorage.getItem("accessToken")}` }
@@ -153,7 +158,7 @@ const moduleSettings = {
             const user = JSON.parse(localStorage.getItem("userData"));
             this.settings.oldStyleUserId = user.oldStyleUserId;
             this.settings.username = user.adminAccountName ? `${user.adminAccountName} (Admin)` : user.name;
-            this.settings.adminAccountLoggedIn = !!user.adminAccountName;
+            this.settings.adminAccountLoggedIn = !!user.adminlogin;
 
             const userData = await Wiser.getLoggedInUserData(this.settings.wiserApiRoot);
             this.settings.userId = userData.encryptedId;
@@ -1019,19 +1024,19 @@ const moduleSettings = {
                                 {
                                     name: "Open",
                                     text: "",
-                                    iconClass: "k-icon k-i-edit",
+                                    iconClass: "k-font-icon k-i-edit",
                                     click: this.onDynamicContentOpenClick.bind(this)
                                 },
                                 {
                                     name: "Duplicate",
                                     text: "",
-                                    iconClass: "k-icon k-i-copy",
+                                    iconClass: "k-font-icon k-i-copy",
                                     click: this.onDynamicContentDuplicateClick.bind(this, id)
                                 },
                                 {
                                     name: "Delete",
                                     text: "",
-                                    iconClass: "k-icon k-i-trash",
+                                    iconClass: "k-font-icon k-i-trash",
                                     click: this.onDynamicContentDeleteClick.bind(this)
                                 },
                             ],
@@ -1044,17 +1049,17 @@ const moduleSettings = {
                         {
                             name: "add",
                             text: "Nieuw",
-                            template: `<a class='k-button k-button-icontext' href='\\#' onclick='return window.Templates.openDynamicContentWindow(0, "Nieuw dynamische content toevoegen")'><span class='k-icon k-i-file-add'></span>Nieuw item toevoegen</a>`
+                            template: `<a class='k-button k-button-icontext' onclick='return window.Templates.openDynamicContentWindow(0, "Nieuw dynamische content toevoegen")'><span class='k-font-icon k-i-file-add'></span>Nieuw item toevoegen</a>`
                         },
                         {
                             name: "linkExisting",
                             text: "Component van andere template koppelen",
-                            template: `<a class='k-button k-button-icontext' href='\\#' onclick='return window.Templates.openLinkableComponentsDialog(${id})'><span class='k-icon k-i-hyperlink-insert'></span>Component van andere template koppelen</a>`
+                            template: `<a class='k-button k-button-icontext' onclick='return window.Templates.openLinkableComponentsDialog(${id})'><span class='k-font-icon k-i-hyperlink-insert'></span>Component van andere template koppelen</a>`
                         },
                         {
                             name: "publishToEnvironments",
                             text: "Deploy",
-                            template: `<a class='k-button k-button-icontext deploy-button hidden' href='\\#' onclick='return window.Templates.openDeployDynamicContentWindow()'><span class='k-icon k-i-cloud'></span>&nbsp;Deploy</a>`
+                            template: `<a class='k-button k-button-icontext deploy-button hidden' onclick='return window.Templates.openDeployDynamicContentWindow()'><span class='k-font-icon k-i-cloud'></span>&nbsp;Deploy</a>`
                         }
                     ],
                     change: this.onDynamicContentGridChange.bind(this),
@@ -1065,7 +1070,7 @@ const moduleSettings = {
                 dynamicGridDiv.kendoTooltip({ filter: ".k-grid-Delete", content: "Verwijderen" });
 
                 // Open dynamic content by double clicking on a row.
-                dynamicGridDiv.on("dblclick", "tr.k-state-selected", this.onDynamicContentOpenClick.bind(this));
+                dynamicGridDiv.on("dblclick", "tr.k-selected", this.onDynamicContentOpenClick.bind(this));
             } catch (exception) {
                 console.error(exception);
                 kendo.alert(`Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.<br>${exception.responseText || exception}`);
@@ -1199,11 +1204,17 @@ const moduleSettings = {
                 // HTML editor
                 const insertDynamicContentTool = {
                     name: "wiserDynamicContent",
+                    ui: {
+                        icon: 'wiser-dynamic-content',
+                    },
                     tooltip: "Dynamische inhoud toevoegen",
                     exec: this.onHtmlEditorDynamicContentExec.bind(this)
                 };
                 const htmlSourceTool = {
                     name: "wiserHtmlSource",
+                    ui: {
+                        icon: 'wiser-html-source',
+                    },
                     tooltip: "HTML bekijken/aanpassen",
                     exec: this.onHtmlEditorHtmlSourceExec.bind(this)
                 };
@@ -1214,18 +1225,27 @@ const moduleSettings = {
 
                 const translationsTool = {
                     name: "wiserTranslation",
+                    ui: {
+                        icon: 'wiser-translation'
+                    },
                     tooltip: "Vertaling invoegen",
                     exec: function(e) { Wiser.onHtmlEditorTranslationExec.call(Wiser, e, $(this).data("kendoEditor"), wiserApiRoot); }
                 };
 
                 const imageTool = {
                     name: "wiserImage",
+                    ui: {
+                        icon: 'wiser-image'
+                    },
                     tooltip: "Afbeelding toevoegen",
                     exec: function(e){ Wiser.onHtmlEditorImageExec.call(Wiser, e, $(this).data("kendoEditor"), "templates", imagesRootId); }
                 };
 
                 const fileTool = {
                     name: "wiserFile",
+                    ui: {
+                        icon: 'wiser-file'
+                    },
                     tooltip: "Link naar bestand toevoegen",
                     exec: function(e) { Wiser.onHtmlEditorFileExec.call(Wiser, e, $(this).data("kendoEditor"), "templates", filesRootId); }
                 };
@@ -1377,7 +1397,7 @@ const moduleSettings = {
                     toolbar: ["create"],
                     columns: [
                         { field: "uri" },
-                        { command: { name: "destroy", text: "", iconClass: "k-icon k-i-delete" }, width: 140 }
+                        { command: { name: "destroy", text: "", iconClass: "k-font-icon k-i-delete" }, width: 140 }
                     ],
                     dataSource: dataSource,
                     edit: (event) => {

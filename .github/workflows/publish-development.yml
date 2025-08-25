@@ -108,15 +108,21 @@ jobs:
 
     - name: Install NPM modules
       run: npm install
-      working-directory: 'coder\FrontEnd'
+      working-directory: 'coder/FrontEnd'
 
     - name: Write Kendo UI license to file
-      run: echo "${{ secrets.KENDO_UI_LICENSE }}" > "./coder/FrontEnd/kendo-ui-license.txt"
+      run: |
+        [System.IO.File]::WriteAllText("telerik-license.txt", "${{ secrets.KENDO_UI_LICENSE }}", [System.Text.Encoding]::UTF8)
+      shell: powershell
+      working-directory: coder/FrontEnd
 
-    # Disabled for now, due to the error "License key signature is not valid" appearing when running the command
-    # - name: Activate Kendo UI License
-    #   run: npx kendo-ui-license activate
-    #   working-directory: 'FrontEnd'
+    - name: Log content of Telerik license
+      run: Get-Content telerik-license.txt
+      working-directory: coder/FrontEnd
+
+    - name: Activate Kendo UI License
+      run: npx kendo-ui-license activate
+      working-directory: 'coder/FrontEnd'
         
     - name: Compile scripts and styles with webpack
       run: node_modules\.bin\webpack --mode=development
@@ -134,3 +140,32 @@ jobs:
     - name: Disable maintenance notice FrontEnd
       if: ${{ always() }}
       run: Rename-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\App_Offline.htm" -NewName "_App_Offline.htm"
+  clear-backup:
+    runs-on: cluster1_transip
+    environment: Development
+    needs: [build-coder]
+
+    steps:
+     - name: Remove backups older than 30 days
+       run: |
+        $backupPath = "C:\backups"
+
+        $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
+        $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
+
+        $projects = @($baseApi, $baseFrontend)
+
+        foreach ($project in $projects) {
+          $projectFolder = Join-Path $backupPath $project
+
+          if (Test-Path $projectFolder) {
+            $backups = Get-ChildItem -Path $projectFolder -Directory | Sort-Object CreationTime -Descending
+
+            $oldBackups = $backups | Select-Object -Skip 2
+
+            foreach ($old in $oldBackups) {
+              Write-Host "Deleting backup $($old.FullName)"
+              Remove-Item -Path $old.FullName -Recurse -Force
+            }
+          }
+        }
