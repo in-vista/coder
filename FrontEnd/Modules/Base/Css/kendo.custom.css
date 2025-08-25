@@ -1993,7 +1993,7 @@ html .km-pane-wrapper .km-widget,
 
 .k-tabstrip > .k-content, .k-tabstrip > .k-tabstrip-content.k-active {
     padding-top: 0;
-    overflow: inherit;
+    overflow: auto;
 }
 
 .k-menu.k-header,
