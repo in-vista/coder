@@ -749,6 +749,10 @@ table:not(.k-scheduler-dayview) .k-scheduler-header-wrap .k-today {
     background-color: var(--white-color);
 }
 
+.kendo-scheduler .k-event, .k-event {
+    min-height: initial;
+}
+
 .k-scheduler-marquee:before,
 .k-scheduler-marquee:after {
     border-color: var(--white-color);
