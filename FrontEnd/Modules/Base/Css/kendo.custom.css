@@ -753,6 +753,10 @@ table:not(.k-scheduler-dayview) .k-scheduler-header-wrap .k-today {
     min-height: initial;
 }
 
+.k-current-time {
+    width: initial;
+}
+
 .k-scheduler-marquee:before,
 .k-scheduler-marquee:after {
     border-color: var(--white-color);
