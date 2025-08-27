@@ -1449,7 +1449,12 @@ export class Grids {
      */
     onLinkSubEntityClick(encryptedParentId, plainParentId, currentEntityType, entityType, senderGridSelector, linkTypeNumber, hideIdColumn, hideLinkIdColumn, hideTypeColumn, hideEnvironmentColumn, hideTitleColumn, propertyId, gridOptions) {
         linkTypeNumber = linkTypeNumber || "";
+        
         if (typeof gridOptions === "string") {
+            gridOptions = gridOptions
+                .replace(/&quot;/g, '"')
+                .replace(/&apos;/, "'");
+            
             gridOptions = JSON.parse(gridOptions);
         }
 
