@@ -72,7 +72,18 @@ namespace Api.Modules.Queries.Interfaces
         /// <param name="id">The ID from wiser_query.</param>
         /// <param name="asKeyValuePair">If set to true the result of the query will be converted to a single object. Only columns with the names "key" and "value" are used.</param>
         /// <param name="parameters">The parameters to set before executing the query.</param>
+        /// <param name="checkPermissions">Whether to check if the user has the permissions to execute the query.</param>
         /// <returns></returns>
-        Task<ServiceResult<JToken>> GetQueryResultAsJsonAsync(ClaimsIdentity identity, int id, bool asKeyValuePair, List<KeyValuePair<string, object>> parameters);
+        Task<ServiceResult<JToken>> GetQueryResultAsJsonAsync(ClaimsIdentity identity, int id, bool asKeyValuePair, List<KeyValuePair<string, object>> parameters, bool checkPermissions);
+        
+        /// <summary>
+        /// Execute a query and return the results in JSON format.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <param name="id">The encrypted ID from wiser_query.</param>
+        /// <param name="asKeyValuePair">If set to true the result of the query will be converted to a single object. Only columns with the names "key" and "value" are used.</param>
+        /// <param name="parameters">The parameters to set before executing the query.</param>
+        /// <returns></returns>
+        Task<ServiceResult<JToken>> GetSecureQueryResultAsJsonAsync(ClaimsIdentity identity, string id, bool asKeyValuePair, List<KeyValuePair<string, object>> parameters);
     }
 }
