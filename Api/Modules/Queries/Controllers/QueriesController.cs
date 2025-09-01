@@ -133,7 +133,25 @@ namespace Api.Modules.Queries.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetQueryResultsAsJson(int id, [FromQuery] bool asKeyValuePair = false, [FromBody] List<KeyValuePair<string, object>> parameters = null)
         {
-            return (await queriesService.GetQueryResultAsJsonAsync((ClaimsIdentity) User.Identity, id, asKeyValuePair, parameters)).GetHttpResponseMessage();
+            return (await queriesService.GetQueryResultAsJsonAsync((ClaimsIdentity) User.Identity, id, asKeyValuePair, parameters, true)).GetHttpResponseMessage();
+        }
+        
+        /// <summary>
+        /// Execute a wiser_query by encrypted ID and return the results as JSON.
+        /// Unlike the <see cref="GetQueryResultsAsJson"/>, this method accepts an encrypted query ID which omits the need to check for permissions.
+        /// </summary>
+        /// <param name="id">The encrypted ID from wiser_query.</param>
+        /// <param name="asKeyValuePair">If set to true the result of the query will be converted to a single object. Only columns with the names "key" and "value" are used.</param>
+        /// <param name="parameters">The parameters to set before executing the query.</param>
+        /// <returns>The results of the query as JSON.</returns>
+        [HttpPost]
+        [Route("{id}/json-result-secure")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetSecureQueryResultsAsJson(string id, [FromQuery] bool asKeyValuePair = false, [FromBody] List<KeyValuePair<string, object>> parameters = null)
+        {
+            return (await queriesService.GetSecureQueryResultAsJsonAsync((ClaimsIdentity) User.Identity, id, asKeyValuePair, parameters)).GetHttpResponseMessage();
         }
     }
 }

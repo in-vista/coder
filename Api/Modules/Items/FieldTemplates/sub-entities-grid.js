@@ -281,10 +281,12 @@
         }
     
         if (!readonly && options.entityType && (!options.toolbar || !options.toolbar.hideLinkButton)) {
+            const escapedOptions = JSON.stringify(options).replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+            
             toolbar.push({
                 name: "link",
                 text: "Koppelen",
-                template: "<a class='k-button k-button-icontext' onclick='return window.dynamicItems.grids.onLinkSubEntityClick(\"{itemIdEncrypted}\", {itemId}, \"{entityType}\", \"" + options.entityType + "\", \"\\#overviewGrid{propertyIdWithSuffix}\", \"" + (options.linkTypeNumber || "") + "\", " + (options.hideIdColumn || false) + ", " + (options.hideLinkIdColumn || false) + ", " + (options.hideTypeColumn || false) + ", " + (options.hideEnvironmentColumn || false) + ", " + (options.hideTitleColumn || false) + ", {propertyId}, \"" + JSON.stringify(options).replace(/"/g, '\\"') + "\")'><span class='k-font-icon k-i-link-horizontal'></span>" + window.dynamicItems.getEntityTypeFriendlyName(options.entityType) + " koppelen</a>"
+                template: `<a class='k-button k-button-icontext' onclick='return window.dynamicItems.grids.onLinkSubEntityClick("{itemIdEncrypted}", {itemId}, "{entityType}", "${options.entityType}", "\\#overviewGrid{propertyIdWithSuffix}", "${options.linkTypeNumber || ""}", ${options.hideIdColumn || false}, ${options.hideLinkIdColumn || false}, ${options.hideTypeColumn || false}, ${options.hideEnvironmentColumn || false}, ${options.hideTitleColumn}, {propertyId}, ${escapedOptions})'><span class='k-font-icon k-i-link-horizontal'></span>${window.dynamicItems.getEntityTypeFriendlyName(options.entityType)} koppelen</a>`
             });
         }
     

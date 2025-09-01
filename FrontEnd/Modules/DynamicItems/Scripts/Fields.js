@@ -593,6 +593,9 @@ export class Fields {
             await this.base.loadKendoScripts(tabFields.script);
             $.globalEval(tabFields.script);
             tabFields.executed = true;
+            
+            // Mark the tab to be loaded.
+            tabContentContainer.data('loaded', true);
 
             this.base.fields.handleAllDependenciesOfContainer(tabContentContainer, tabFields.entityType, tabName, windowId);
         } catch (exception) {

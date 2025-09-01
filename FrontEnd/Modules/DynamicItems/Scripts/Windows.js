@@ -219,7 +219,14 @@ export class Windows {
                 validateOnBlur: false,
                 rules: {
                     required: (input) => {
+                        // Check if the input is a required property.
                         if (input.prop("required") && !input.closest(".item").hasClass("dependency-hidden")) {
+                            // Skip validation on fields that were not loaded and are not new.
+                            // Since they weren't loaded in the first place, we know they haven't been changed.
+                            if(!input.closest('.k-tabstrip-content')?.data('loaded') && !isNewItem)
+                                return true;
+                            
+                            // Validate the value.
                             return $.trim(input.val()) !== "";
                         }
 

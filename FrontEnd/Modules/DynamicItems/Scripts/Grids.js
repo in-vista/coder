@@ -45,10 +45,24 @@ export class Grids {
      */
     async setupInformationBlock() {
         let hideGrid = false;
+        
         const informationBlockSettings = this.base.settings.gridViewSettings.informationBlock;
-
-        if (!informationBlockSettings || !informationBlockSettings.initialItem) {
+        
+        if (!informationBlockSettings || (!informationBlockSettings.initialItem && !informationBlockSettings.initialItemQueryId)) {
             return hideGrid;
+        }
+        
+        // If an initial item query ID is given, retrieve the information for the initial item and feed it to the information block.
+        const initialItemQueryId = informationBlockSettings.initialItemQueryId;
+        if(initialItemQueryId !== undefined) {
+            const initialItemResults = await Wiser.api({
+                method: 'POST',
+                url: `${this.base.settings.wiserApiRoot}queries/${encodeURIComponent(initialItemQueryId)}/json-result-secure`,
+                data: JSON.stringify([]),
+                contentType: "application/json"
+            });
+            
+            informationBlockSettings.initialItem = initialItemResults?.[0];
         }
 
         this.base.settings.openGridItemsInBlock = informationBlockSettings.openGridItemsInBlock;
@@ -1449,7 +1463,12 @@ export class Grids {
      */
     onLinkSubEntityClick(encryptedParentId, plainParentId, currentEntityType, entityType, senderGridSelector, linkTypeNumber, hideIdColumn, hideLinkIdColumn, hideTypeColumn, hideEnvironmentColumn, hideTitleColumn, propertyId, gridOptions) {
         linkTypeNumber = linkTypeNumber || "";
+        
         if (typeof gridOptions === "string") {
+            gridOptions = gridOptions
+                .replace(/&quot;/g, '"')
+                .replace(/&apos;/, "'");
+            
             gridOptions = JSON.parse(gridOptions);
         }
 
