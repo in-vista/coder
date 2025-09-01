@@ -127,7 +127,7 @@ namespace Api.Modules.Tenants.Services
 FROM {WiserTableNames.WiserItem} AS user
 JOIN {WiserTableNames.WiserItemDetail} AS username ON username.item_id = user.id AND username.`key` = '{UserUsernameKey}'
 {(includeParent ? $"LEFT JOIN {WiserTableNames.WiserItem} parent ON parent.id=user.parent_item_id" : "")}
-WHERE user.entity_type = '{WiserUserEntityType}'
+WHERE user.entity_type = '{WiserUserEntityType}' AND user.published_environment>0
 ORDER BY name ASC";
 
             DataTable dataTable;
