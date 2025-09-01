@@ -1,0 +1,41 @@
+﻿@using System.Web
+@model FrontEnd.Modules.TimelineScheduler.Models.TimelineSchedulerViewModel
+@addTagHelper FrontEnd.Core.TagHelpers.WebpackScriptTagHelper, FrontEnd
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TimelineScheduler</title>
+</head>
+<body>
+    Coder Timeline Scheduler <br /><br />
+    <div id="app" v-cloak>
+    </div>
+
+    <script id="vue-config" type="application/json">
+        {
+            "apiBase": "@Model.Settings.ApiBaseUrl",
+            "apiRoot": "@Model.ApiRoot",
+            "subDomain": "@Model.SubDomain" ,
+            "isTestEnvironment": @Model.IsTestEnvironment.ToString().ToLowerInvariant(),
+            "wiser1BaseUrl": "@Model.Wiser1BaseUrl",
+            "loadPartnerStyle": @Model.LoadPartnerStyle.ToString().ToLowerInvariant(),
+            "apiClientId": "@Model.Settings.ApiClientId",
+            "apiClientSecret": "@Model.Settings.ApiClientSecret",
+            "trackJsToken": "@Model.Settings.TrackJsToken",
+            "markerIoToken": "@Model.Settings.MarkerIoToken",
+            "wiserItemId": @Model.WiserItemId,
+            "propertyName": "@Model.PropertyName",
+            "languageCode": "@Model.LanguageCode",
+            "encryptedUserId": "@Html.Raw(Model.UserId)",
+            "zeroEncrypted": "@Html.Raw(Model.ZeroEncrypted)",
+            "resourcesQueryId": "@Html.Raw(Model.ResourcesQueryId)"
+        }
+    </script>
+<webpack-script file-name="runtime.js"></webpack-script>
+<webpack-script file-name="vendors.js"></webpack-script>
+<webpack-script file-name="TimelineScheduler.js"></webpack-script>
+</body>
+</html>

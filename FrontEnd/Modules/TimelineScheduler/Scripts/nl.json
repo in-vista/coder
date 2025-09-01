@@ -1,0 +1,19 @@
+{
+  "scheduler": {
+    "today": "Vandaag",
+    "allDay": "Hele dag",
+    "showWorkDay": "Toon werkdag",
+    "showFullDay": "Toon volledige dag",
+    "dayViewTitle": "Dag",
+    "weekViewTitle": "Week",
+    "monthViewTitle": "Maand",
+    "editorValidationRequired": "Veld is verplicht",
+    "editorValidationStart": "Starttijd moet voor eindtijd zijn.",
+    "editorValidationEnd": "Eindtijd moet na starttijd zijn.",
+    "workWeekViewTitle": "Werkweek",
+    "agendaViewTitle": "Agenda",
+    "previousTitle": "Vorige",
+    "nextTitle": "Volgende"
+  }
+}
+  

@@ -3,6 +3,7 @@
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const {WebpackManifestPlugin} = require("webpack-manifest-plugin");
+const { VueLoaderPlugin } = require('vue-loader');
 
 module.exports = {
     context: path.join(__dirname, "Core/Scripts"),
@@ -39,7 +40,8 @@ module.exports = {
         CommunicationIndex: "../../Modules/Communication/Scripts/Index.js",
         CommunicationSettings: "../../Modules/Communication/Scripts/Settings.js",
         FileManager: "../../Modules/FileManager/Scripts/FileManager.js",
-        Configuration: "../../Modules/Configuration/Scripts/Configuration.js"
+        Configuration: "../../Modules/Configuration/Scripts/Configuration.js",
+        TimelineScheduler: "../../Modules/TimelineScheduler/Scripts/main.js"
     },
     output: {
         path: path.join(__dirname, "wwwroot/scripts"),
@@ -52,7 +54,8 @@ module.exports = {
         new NodePolyfillPlugin(),
         // Add JSON manifest for loading files in .NET with a dynamic hash in the name, so that users don't need to clear their browser cache after every Wiser update.
         new WebpackManifestPlugin({}),
-        new HtmlWebpackPlugin()
+        new HtmlWebpackPlugin(),
+        new VueLoaderPlugin()
     ],
     resolve: {
         alias: {
@@ -74,6 +77,10 @@ module.exports = {
     },
     module: {
         rules: [
+            {
+                test: /\.vue$/,
+                loader: 'vue-loader'
+            },
             {
                 test: /\.[s]?[ac]ss$/i,
                 use: ["style-loader", "css-loader", "sass-loader"]
