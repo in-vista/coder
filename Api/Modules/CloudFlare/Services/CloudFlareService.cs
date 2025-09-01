@@ -70,7 +70,7 @@ namespace Api.Modules.CloudFlare.Services
             {
                 return String.Empty;
             }
-            return uploadResult.Result.Variants.FirstOrDefault(url => url.Contains(useVariant)) ??
+            return uploadResult.Result.Variants.FirstOrDefault(url => !string.IsNullOrEmpty(useVariant) && url.Contains(useVariant)) ??
                    uploadResult.Result.Variants.First();
         }
 
