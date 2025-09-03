@@ -809,6 +809,14 @@ const moduleSettings = {
          */
         async onContextMenuOpen(event) {
             this.lastTreeViewNode = event.target;
+
+            this.mainTreeViewContextMenu.setOptions({
+                dataSource: [
+                    {
+                        text: "Laden..."
+                    }
+                ]
+            });
             
             try {
                 const dataItem = this.mainTreeView.dataItem(event.target);
@@ -834,7 +842,15 @@ const moduleSettings = {
             } catch (exception) {
                 console.error(exception);
                 kendo.alert("Er is iets fout gegaan tijdens het ophalen van het rechtermuismenu van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+
+                this.mainTreeViewContextMenu.setOptions({
+                    dataSource: []
+                });
             }
+            
+            $(this.mainTreeViewContextMenu.popup.element[0]).closest('.k-child-animation-container').css({
+                'width': '100%'
+            });
         }
 
         /**
