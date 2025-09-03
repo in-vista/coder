@@ -55,6 +55,7 @@ const moduleSettings = {
             this.mainSplitter = null;
             this.mainTreeView = null;
             this.mainTreeViewContextMenu = null;
+            this.lastTreeViewNode = null;
             this.mainTabStrip = null;
             this.mainTabStripSortable = null;
             this.mainValidator = null;
@@ -677,7 +678,7 @@ const moduleSettings = {
 
             this.mainTreeViewContextMenu = $("#menu").kendoContextMenu({
                 target: "#treeview",
-                filter: ".k-in",
+                filter: ".k-treeview-leaf",
                 open: this.onContextMenuOpen.bind(this),
                 select: this.onContextMenuClick.bind(this),
                 close: this.onContextMenuClose.bind(this)
@@ -807,6 +808,16 @@ const moduleSettings = {
          * @param {any} event The context open event.
          */
         async onContextMenuOpen(event) {
+            this.lastTreeViewNode = event.target;
+
+            this.mainTreeViewContextMenu.setOptions({
+                dataSource: [
+                    {
+                        text: "Laden..."
+                    }
+                ]
+            });
+            
             try {
                 const dataItem = this.mainTreeView.dataItem(event.target);
                 const nodeId = dataItem.id;
@@ -831,7 +842,15 @@ const moduleSettings = {
             } catch (exception) {
                 console.error(exception);
                 kendo.alert("Er is iets fout gegaan tijdens het ophalen van het rechtermuismenu van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+
+                this.mainTreeViewContextMenu.setOptions({
+                    dataSource: []
+                });
             }
+            
+            $(this.mainTreeViewContextMenu.popup.element[0]).closest('.k-child-animation-container').css({
+                'width': '100%'
+            });
         }
 
         /**
@@ -841,7 +860,7 @@ const moduleSettings = {
         async onContextMenuClick(event) {
             const button = $(event.item);
             const action = button.attr("action");
-            await this.handleContextMenuAction($(event.target), action);
+            await this.handleContextMenuAction($(this.lastTreeViewNode), action);
         }
 
         /**

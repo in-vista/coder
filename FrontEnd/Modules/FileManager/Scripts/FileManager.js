@@ -458,7 +458,7 @@ const moduleSettings = {
             // Setup the context menu for the tree view.
             this.imagesUploaderWindowTreeViewContextMenu = $("#imagesUploaderTreeViewContextMenu").kendoContextMenu({
                 target: "#imagesUploaderTreeView",
-                filter: ".k-in",
+                filter: ".k-treeview-leaf",
                 open: (openEvent) => {
                     this.imagesUploaderWindowTreeViewContextMenuTarget = $(openEvent.target).closest("li.k-item");
                     const isDirectory = this.imagesUploaderWindowTreeView.dataItem(this.imagesUploaderWindowTreeViewContextMenuTarget).isDirectory;
@@ -680,7 +680,7 @@ const moduleSettings = {
             // Setup the context menu for the tree view.
             this.filesUploaderWindowTreeViewContextMenu = $("#filesUploaderTreeViewContextMenu").kendoContextMenu({
                 target: "#filesUploaderTreeView",
-                filter: ".k-in",
+                filter: ".k-treeview-leaf",
                 open: (openEvent) => {
                     this.filesUploaderWindowTreeViewContextMenuTarget = $(openEvent.target).closest("li.k-item");
                     const isDirectory = this.filesUploaderWindowTreeView.dataItem(this.filesUploaderWindowTreeViewContextMenuTarget).isDirectory;
