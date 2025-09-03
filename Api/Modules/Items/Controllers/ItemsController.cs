@@ -11,6 +11,7 @@ using Api.Modules.Grids.Models;
 using Api.Modules.Items.Interfaces;
 using Api.Modules.Items.Models;
 using Api.Modules.Kendo.Models;
+using Api.Modules.Tenants.Interfaces;
 using GeeksCoreLibrary.Core.Enums;
 using GeeksCoreLibrary.Core.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -38,7 +39,11 @@ namespace Api.Modules.Items.Controllers
         /// <summary>
         /// Initializes a new instance of <see cref="ItemsController"/>.
         /// </summary>
-        public ItemsController(IItemsService itemsService, IGridsService gridsService, IFilesService filesService, IOptions<GclSettings> gclSettings)
+        public ItemsController(
+            IItemsService itemsService,
+            IGridsService gridsService,
+            IFilesService filesService,
+            IOptions<GclSettings> gclSettings)
         {
             this.itemsService = itemsService;
             this.gridsService = gridsService;
@@ -413,6 +418,21 @@ namespace Api.Modules.Items.Controllers
         public async Task<IActionResult> GetItemsForTreeViewAsync([FromQuery] int moduleId, [FromQuery] string encryptedItemId = null, [FromQuery] string entityType = null, [FromQuery] string orderBy = null, [FromQuery] string checkId = null, [FromQuery] int linkType = 0)
         {
             return (await itemsService.GetItemsForTreeViewAsync(moduleId, (ClaimsIdentity)User.Identity, entityType, encryptedItemId, orderBy, checkId, linkType)).GetHttpResponseMessage();
+        }
+        
+        /// <summary>
+        /// Get the context menu items for the given item dependant on what the user is allowed to do.
+        /// </summary>
+        /// <param name="moduleId">the module the item is in.</param>
+        /// <param name="encryptedItemId">The item of the item to get the menu items for.</param>
+        /// <param name="entityType">The entity type of the item.</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("context-menu")]
+        [ProducesResponseType(typeof(List<ContextMenuItem>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetContextMenuAsync([FromQuery] int moduleId, [FromQuery] string encryptedItemId, string entityType = "")
+        {
+            return (await itemsService.GetContextMenuAsync((ClaimsIdentity)User.Identity, moduleId, encryptedItemId, entityType)).GetHttpResponseMessage();
         }
 
         /// <summary>

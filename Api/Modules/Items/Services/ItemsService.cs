@@ -3177,10 +3177,10 @@ ORDER BY link.ordering ASC, item.title ASC";
             {
                 return new ServiceResult<List<ContextMenuItem>>(menuItems);
             }
-            
+
             if ((permissions & AccessRights.Update) > 0)
             {
-                menuItems.Add(new ContextMenuItem()
+                menuItems.Add(new ContextMenuItem
                 {
                     Text = $"'{item.Title}' hernoemen (F2)",
                     SpriteCssClass = "icon-rename",
@@ -3196,7 +3196,7 @@ ORDER BY link.ordering ASC, item.title ASC";
                     var childEntity = settings.AcceptedChildTypes.First();
                     var childSettings = await wiserItemsService.GetEntityTypeSettingsAsync(childEntity);
 
-                    menuItems.Add(new ContextMenuItem()
+                    menuItems.Add(new ContextMenuItem
                     {
                         Text = $"Nieuw(e) '{childEntity}' aanmaken (SHIFT+N)",
                         SpriteCssClass = childSettings.IconAdd,
@@ -3204,8 +3204,8 @@ ORDER BY link.ordering ASC, item.title ASC";
                         EntityType = item.EntityType
                     });
                 }
-                
-                menuItems.Add(new ContextMenuItem()
+
+                menuItems.Add(new ContextMenuItem
                 {
                     Text = $"'{item.Title}' dupliceren (SHIFT+D)",
                     SpriteCssClass = "icon-document-duplicate",
@@ -3216,17 +3216,17 @@ ORDER BY link.ordering ASC, item.title ASC";
 
             if ((permissions & AccessRights.Update) > 0)
             {
-                menuItems.Add(new ContextMenuItem()
+                menuItems.Add(new ContextMenuItem
                 {
                     Text = "Publiceer naar live",
                     SpriteCssClass = "icon-globe",
                     Action = "PUBLISH_LIVE",
                     EntityType = item.EntityType
                 });
-                
+
                 if (item.PublishedEnvironment == 0)
                 {
-                    menuItems.Add(new ContextMenuItem()
+                    menuItems.Add(new ContextMenuItem
                     {
                         Text = $"{item.Title} tonen",
                         SpriteCssClass = "item-light-on",
@@ -3236,7 +3236,7 @@ ORDER BY link.ordering ASC, item.title ASC";
                 }
                 else
                 {
-                    menuItems.Add(new ContextMenuItem()
+                    menuItems.Add(new ContextMenuItem
                     {
                         Text = $"{item.Title} verbergen",
                         SpriteCssClass = "item-light-off",
@@ -3248,7 +3248,7 @@ ORDER BY link.ordering ASC, item.title ASC";
 
             if ((permissions & AccessRights.Delete) > 0)
             {
-                menuItems.Add(new ContextMenuItem()
+                menuItems.Add(new ContextMenuItem
                 {
                     Text = $"{item.Title} verwijderen (DEL)",
                     SpriteCssClass = "icon-delete",

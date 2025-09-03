@@ -61,6 +61,7 @@ const moduleSettings = {
             this.linkedTemplates = null;
             this.templateHistory = null;
             this.treeViewContextMenu = null;
+            this.lastTreeViewNode = null;
             this.mainHtmlEditor = null;
             this.dynamicContentGrid = null;
             this.newContentId = 0;
@@ -290,7 +291,7 @@ const moduleSettings = {
                     { text: "Verwijderen", attr: { action: "delete" } }
                 ],
                 target: ".tabstrip-treeview",
-                filter: ".k-item",
+                filter: ".k-treeview-leaf-text",
                 open: this.onContextMenuOpen.bind(this),
                 select: this.onContextMenuSelect.bind(this)
             }).data("kendoContextMenu");
@@ -377,7 +378,7 @@ const moduleSettings = {
                     {text: "Verwijderen", attr: {action: "delete"}}
                 ],
                 target: ".tabstrip-treeview",
-                filter: ".k-item",
+                filter: '.k-treeview-leaf',
                 open: this.onContextMenuOpen.bind(this),
                 select: this.onContextMenuSelect.bind(this)
             }).data("kendoContextMenu");
@@ -665,6 +666,8 @@ const moduleSettings = {
          * @param {any} event The open event of a kendoContextMenu.
          */
         onContextMenuOpen(event) {
+            this.lastTreeViewNode = event.target;
+            
             if (event.target.closest("#search-results-treeview")) {
                 event.preventDefault();
                 return;
@@ -698,13 +701,13 @@ const moduleSettings = {
          */
         onContextMenuSelect(event) {
             const selectedOption = $(event.item);
-            const node = $(event.target);
+            const node = $(this.lastTreeViewNode);
             const treeView = this.mainTreeView[this.treeViewTabStrip.select().index()];
 
             let isFromRootItem;
             let selectedItem;
-            if (!event.target.closest(".k-treeview")) {
-                selectedItem = this.treeViewTabs[$(event.target).index()];
+            if (!this.lastTreeViewNode.closest(".k-treeview")) {
+                selectedItem = this.treeViewTabs[$(this.lastTreeViewNode).index()];
                 isFromRootItem = true;
             } else {
                 selectedItem = treeView.dataItem(node);
@@ -770,6 +773,8 @@ const moduleSettings = {
                     kendo.alert(`Onbekende actie '${action}'. Probeer het a.u.b. opnieuw op neem contact op.`);
                     break;
             }
+
+            this.treeViewContextMenu.close();
         }
 
         /**

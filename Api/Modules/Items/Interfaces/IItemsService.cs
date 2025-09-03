@@ -223,7 +223,7 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="childEntityTypes">Optional: Restricts the returned items to items of the given entity types. This is a string of comma separated values.</param>
         /// <returns>A list of <see cref="TreeViewItemModel"/>.</returns>
         Task<ServiceResult<List<TreeViewItemModel>>> GetItemsForTreeViewAsync(int moduleId, ClaimsIdentity identity, string parentEntityType = null, string encryptedParentId = null, string orderBy = null, string encryptedCheckId = null, int linkType = 0, string childEntityTypes = null);
-
+        
         /// <summary>
         /// Move an item to a different position in the tree view.
         /// </summary>
@@ -277,5 +277,15 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="data">The data for the search, such as the search value, entity type of items to search for etc.</param>
         /// <returns></returns>
         Task<ServiceResult<List<SearchResponseModel>>> SearchAsync(ClaimsIdentity identity, ulong parentId, SearchRequestModel data);
+        
+        /// <summary>
+        /// Get the contact menu items for the given item dependant on what the user is allowed to do.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <param name="moduleId">The id of the module the item is in.</param>
+        /// <param name="encryptedItemId">The encrypted ID of the item to get the menu items for.</param>
+        /// <param name="entityType">The entity type of item to get menu items for.</param>
+        /// <returns></returns>
+        Task<ServiceResult<List<ContextMenuItem>>> GetContextMenuAsync(ClaimsIdentity identity, int moduleId, string encryptedItemId, string entityType);
     }
 }
