@@ -939,23 +939,33 @@ const moduleSettings = {
                 }
 
                 this.mainTabStrip.enable(dynamicContentTab);
-
+                
                 // Dynamic content
                 const dynamicGridDiv = $("#dynamic-grid");
+                this.dynamicContentGrid?.setDataSource([]);
+                this.dynamicContentGrid?.destroy();
                 this.dynamicContentGrid = dynamicGridDiv.kendoGrid({
                     dataSource: {
                         transport: {
-                            read: (readOptions) => {
+                            read: async (readOptions) => {
+                                const process = `loadDynamicContent_${Date.now()}`;
+                                window.processing.addProcess(process);
+
                                 Wiser.api({
                                     url: `${this.settings.wiserApiRoot}templates/${id}/linked-dynamic-content`,
                                     dataType: "json",
                                     method: "GET"
-                                }).then((response) => {
-                                    readOptions.success(response);
-                                    this.initDynamicContentDisplayFields(response);
-                                }).catch((error) => {
-                                    readOptions.error(error);
-                                });
+                                })
+                                    .then(response => {
+                                        readOptions.success(response);
+                                        this.initDynamicContentDisplayFields(response);
+                                    })
+                                    .catch(exception => {
+                                        readOptions.error(exception);
+                                    })
+                                    .finally(() => {
+                                        window.processing.removeProcess(process);
+                                    });
                             }
                         },
                         pageSize: 20
@@ -2040,7 +2050,6 @@ const moduleSettings = {
             $(".window-content #left-pane div.k-content").on("drop", this.onDropFile.bind(this));
 
             document.addEventListener("TemplateConnectedUsers:UsersUpdate", (event) => {
-                console.log("TemplateConnectedUsers:UsersUpdate", event.detail)
                 document.querySelectorAll("div.connected-users").forEach(div => {
                     const list = div.querySelector("div.connected-users-list");
                     list.innerHTML = event.detail.join(", ");
