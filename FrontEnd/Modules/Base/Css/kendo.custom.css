@@ -4413,6 +4413,7 @@ div.k-scheduler-marquee:after {
     color: var(--dark-txt);
     border-color: var(--sec-color);
     background-color: var(--lighter-color);
+    min-height: 50px;
 }
 
 .k-toolbar .k-button {
