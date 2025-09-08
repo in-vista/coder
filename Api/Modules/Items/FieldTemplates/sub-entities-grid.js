@@ -779,6 +779,23 @@
                 }
             },
             dataBound: async (event) => {
+                event.sender.tbody.find('tr.k-table-row').each(function (e) {
+                    const row = $(this);
+                    const model = event.sender.dataItem(row);
+                    
+                    for(const column of event.sender.columns) {
+                        const attributes = column.attributes;
+                        if(!attributes)
+                            continue;
+                        
+                        for(const [ attributeName, attributeValue ] of Object.entries(attributes)) {
+                            const attributeTemplate = kendo.template(attributeValue);
+                            const cell = row.find(`[${attributeName}="${attributeValue}"]`);
+                            cell.attr(attributeName, attributeTemplate(model));
+                        }
+                    }
+                });
+                
                 // To hide toolbar buttons that require a row to be selected.
                 dynamicItems.grids.onGridSelectionChange(event, readonly);
     
