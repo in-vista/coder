@@ -724,7 +724,7 @@ namespace Api.Modules.Grids.Services
                                                 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
                                                 GROUP BY i.id";
 
-                            selectQuery = $@"
+                            selectQuery += $@"
                                             UNION
 
                                             SELECT 
