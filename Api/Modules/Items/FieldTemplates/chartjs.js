@@ -12,6 +12,9 @@
     // Get the chart element.
     const chartElement = document.getElementById('chart_{propertyIdWithSuffix}');
     
+    // Load the autocolors plugin.
+    const autocolors = window['chartjs-plugin-autocolors'];
+    
     // Retrieve data from query.
     let data = [];
     // Option 1: queryId parameter
@@ -149,7 +152,10 @@
                 }
             },
             ...options
-        }
+        },
+        plugins: [
+            autocolors
+        ]
     });
     
     loader.removeClass('loading');
