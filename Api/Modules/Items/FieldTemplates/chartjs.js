@@ -100,9 +100,8 @@
                             const groupSettings = options.group[groupName];
 
                             const groupIndex = findOrCreateGroup(groupName, current);
-
-                            const dataColumn = groupSettings.valueColumn ?? groupSettings.dataColumn;
-                            const dataValue = dataEntry[dataColumn];
+                            
+                            const dataValue = dataEntry[groupSettings.dataColumn];
 
                             current[groupIndex].data.push(dataValue);
                         }
