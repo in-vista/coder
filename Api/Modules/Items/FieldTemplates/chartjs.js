@@ -55,77 +55,98 @@
         
         data = dataResults.otherData;
     }*/
-    
-    // Parse the data into grouped data sets.
-    let datasets;
-    if(options.group) {
-        // Determine the type of group from the settings.
-        const groupType = typeof options.group;
 
-        /**
-         * Function to find-or-create a group in the given array of group.
-         * @param groupName - The name of group to find or create.
-         * @param groups - The collection of groups to look for the group in.
-         * @returns {Number} The index of the (newly created) group in the array of groups.
-         */
-        function findOrCreateGroup(groupName, groups) {
-            let groupIndex = groups.findIndex(set => set.label === groupName);
-            if(groupIndex === -1) {
-                const newGroup = {
-                    label: groupName,
-                    data: []
-                };
-                groups.push(newGroup);
-                groupIndex = groups.length - 1;
+    /**
+     * Function to find-or-create a group in the given array of group.
+     * @param groupName - The name of group to find or create.
+     * @param groups - The collection of groups to look for the group in.
+     * @returns {Number} The index of the (newly created) group in the array of groups.
+     */
+    function findOrCreateGroup(groupName, groups) {
+        let groupIndex = groups.findIndex(set => set.label === groupName);
+        if(groupIndex === -1) {
+            const newGroup = {
+                label: groupName,
+                data: []
+            };
+            groups.push(newGroup);
+            groupIndex = groups.length - 1;
+        }
+
+        return groupIndex;
+    }
+
+    // Parse the data into grouped data sets.
+    let datasets = [];
+    if(options.group || options.dynamicGroups) {
+        if(options.group) {
+            // Determine the type of group from the settings.
+            const groupType = typeof options.group;
+
+            switch (groupType) {
+                case 'string':
+                    datasets = data.reduce((current, dataEntry) => {
+                        const groupName = dataEntry[options.group];
+                        const groupIndex = findOrCreateGroup(groupName, current);
+                        current[groupIndex].data.push(dataEntry);
+
+                        return current;
+                    }, datasets);
+
+                    break;
+                case 'object':
+                    datasets = data.reduce((current, dataEntry) => {
+                        for (const groupName in options.group) {
+                            const groupSettings = options.group[groupName];
+
+                            const groupIndex = findOrCreateGroup(groupName, current);
+
+                            const dataColumn = groupSettings.valueColumn ?? groupSettings.dataColumn;
+                            const dataValue = dataEntry[dataColumn];
+
+                            current[groupIndex].data.push(dataValue);
+                        }
+
+                        return current;
+                    }, datasets);
+
+                    for (const groupName in options.group) {
+                        const groupSettings = options.group[groupName];
+                        const datasetOptions = groupSettings.options;
+
+                        const groupIndex = findOrCreateGroup(groupName, datasets);
+
+                        datasets[groupIndex] = {
+                            ...datasets[groupIndex],
+                            ...datasetOptions
+                        }
+                    }
+
+                    break;
             }
-            
-            return groupIndex;
         }
         
-        switch(groupType) {
-            case 'string':
-                datasets = data.reduce((current, dataEntry) => {
-                    const groupName = dataEntry[options.group];
+        if(options.dynamicGroups) {
+            const dynamicGroups = options.dynamicGroups;
+
+            datasets = data.reduce((current, dataEntry) => {
+                for(const [ dynamicGroupIndex, dynamicGroup ] of dynamicGroups.entries()) {
+                    const { group, value } = dynamicGroup;
+
+                    const groupName = `${dataEntry[group]}_${dynamicGroupIndex}`;
                     const groupIndex = findOrCreateGroup(groupName, current);
-                    current[groupIndex].data.push(dataEntry);
-
-                    return current;
-                }, []);
-                
-                break;
-            case 'object':
-                datasets = data.reduce((current, dataEntry) => {
-                    for(const groupName in options.group) {
-                        const groupSettings = options.group[groupName];
-                        const dataColumn = groupSettings.dataColumn;
-                        
-                        const groupIndex = findOrCreateGroup(groupName, current);
-                        
-                        const dataValue = dataEntry[dataColumn];
-                        current[groupIndex].data.push(dataValue);
-                    }
-
-                    return current;
-                }, []);
-
-                for(const groupName in options.group) {
-                    const groupSettings = options.group[groupName];
-                    const datasetOptions = groupSettings.options;
-
-                    const groupIndex = findOrCreateGroup(groupName, datasets);
-
-                    datasets[groupIndex] = {
-                        ...datasets[groupIndex],
-                        ...datasetOptions
-                    }
+                    
+                    const dataValue = dataEntry[value];
+                    current[groupIndex].data.push(dataValue);
                 }
                 
-                break;
+                return current;
+            }, datasets);
         }
     } else {
         datasets = [
             {
-                data: data
+                data: data.map(entry => entry[options.dataColumn])
             }
         ]
     }
@@ -153,7 +174,7 @@
         options: {
             plugins: {
                 legend: {
-                    display: !!options.group
+                    display: !!options.group || !!options.dynamicGroups
                 }
             },
             ...options
