@@ -138,11 +138,16 @@
         }
     });
     
+    // Make a distinct array of labels.
+    const labels = data
+        .map(row => row[options.labelsColumn])
+        .filter((label, index, array) => array.indexOf(label) === index);
+    
     // Initialize the chart.
     new Chart(chartElement, {
         type: options.type,
         data: {
-            labels: data.map(row => row[options.labelsColumn]),
+            labels: labels,
             datasets: datasets
         },
         options: {
