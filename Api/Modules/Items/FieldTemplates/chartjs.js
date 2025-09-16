@@ -60,13 +60,16 @@
      * Function to find-or-create a group in the given array of group.
      * @param groupName - The name of group to find or create.
      * @param groups - The collection of groups to look for the group in.
+     * @param groupLabel - The display name of the group. If null is given, the groupName parameter will be used.
      * @returns {Number} The index of the (newly created) group in the array of groups.
      */
-    function findOrCreateGroup(groupName, groups) {
-        let groupIndex = groups.findIndex(set => set.label === groupName);
+    function findOrCreateGroup(groupName, groups, groupLabel = null) {
+        groupLabel ??= groupName;
+        
+        let groupIndex = groups.findIndex(set => set.label === groupLabel);
         if(groupIndex === -1) {
             const newGroup = {
-                label: groupName,
+                label: groupLabel,
                 data: []
             };
             groups.push(newGroup);
@@ -98,7 +101,7 @@
                     datasets = data.reduce((current, dataEntry) => {
                         for (const groupName in options.group) {
                             const groupSettings = options.group[groupName];
-
+                            
                             const groupIndex = findOrCreateGroup(groupName, current);
                             
                             const dataValue = dataEntry[groupSettings.dataColumn];
@@ -132,8 +135,9 @@
                 for(const [ dynamicGroupIndex, dynamicGroup ] of dynamicGroups.entries()) {
                     const { group, value } = dynamicGroup;
 
-                    const groupName = `${dataEntry[group]}_${dynamicGroupIndex}`;
-                    const groupIndex = findOrCreateGroup(groupName, current);
+                    const groupLabel = dataEntry[group];
+                    const groupName = `${groupLabel}_${dynamicGroupIndex}`;
+                    const groupIndex = findOrCreateGroup(groupName, current, groupLabel);
                     
                     const dataValue = dataEntry[value];
                     current[groupIndex].data.push(dataValue);
