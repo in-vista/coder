@@ -3004,8 +3004,20 @@ export class Fields {
                                                 const allEditors = container.find(".editor");
                                                 for (let index = 0; index < allEditors.length; index++) {
                                                     const kendoEditor = $(allEditors[index]).data("kendoEditor");
+
+                                                    // Decode HTML editor value.
+                                                    const tempTextArea = document.createElement("textarea");
+                                                    tempTextArea.innerHTML = kendoEditor.value();
+                                                    let editorValue = tempTextArea.value;
+
+                                                    // Post-process break line elements.
+                                                    editorValue = editorValue.replace(
+                                                        /<style[^>]*>([\s\S]*?)<\/style>/gi,
+                                                        (match, css) => `<style>${css.replace(/<br\s*\/?>/gi, '\n')}</style>`
+                                                    );
+                                                    
                                                     const pdfToHtmlData = {
-                                                        html: $("<div/>").text(kendoEditor.value()).html(), // alternative htmlEncode, because kendo.htmlEncode makes from a single quote &#039; (which goes wrong when posted to URL)
+                                                        html: editorValue,
                                                         backgroundPropertyName: currentAction.pdfBackgroundPropertyName || "",
                                                         documentOptions: documentOptions,
                                                         itemId: currentTemplateDetails.id,
