@@ -900,8 +900,12 @@ dd {
 	padding: 4px 10px;
 	pointer-events: none;
 }
-.item[data-label-style="float"] .CodeMirror {
+.item[data-label-style="float"] .CodeMirror:not(.CodeMirror-fullscreen) {
 	padding-top: 25px;
+}
+
+.item[data-label-style="float"] .CodeMirror.CodeMirror-fullscreen {
+    z-index: 100;
 }
 /* SELECTED */
 .item.selected {

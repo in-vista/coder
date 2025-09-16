@@ -25,9 +25,17 @@
         gridMode = 6;
     }
     
-    if (customQueryGrid) {
-        Wiser.api({ 
-            url: `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}${linkTypeParameter}` 
+    let gridRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}${linkTypeParameter}`;
+    
+    const queryId = options.queryId;
+    const countQueryId = options.countQueryId;
+    const usingQueryId = queryId && countQueryId;
+    if(usingQueryId)
+        gridRequestUrl += `?queryId=${encodeURIComponent(queryId)}&countQueryId=${encodeURIComponent(countQueryId)}`;
+    
+    if (customQueryGrid || usingQueryId) {
+        Wiser.api({
+            url: gridRequestUrl
         }).then(function(customQueryResults) {
             if (customQueryResults.extraJavascript) {
                 jQuery.globalEval(customQueryResults.extraJavascript);
@@ -84,7 +92,7 @@
                         iconClass: "k-font-icon k-i-delete",
                         click: function(event) { window.dynamicItems.grids.onDeleteItemClick(event, this, options.deletionOfItems, options); }
                     });
-                } else if (!readonly && customQueryGrid && options.hasCustomDeleteQuery) {
+                } else if (!readonly && (customQueryGrid || usingQueryId) && options.hasCustomDeleteQuery) {
                     commandColumnWidth += 120;
                     
                     commands.push("destroy");
@@ -271,7 +279,7 @@
         }
     
         if (!readonly && (!options.toolbar || !options.toolbar.hideCreateButton)) {
-            toolbar.push(options.fieldGroupName || (customQueryGrid && (!options.entityType || options.hasCustomInsertQuery))
+            toolbar.push(options.fieldGroupName || ((customQueryGrid || usingQueryId) && (!options.entityType || options.hasCustomInsertQuery))
                 ? "create"
                 : {
                     name: "add",
@@ -299,7 +307,7 @@
                 (function () {
                     var column = columns[i];
                     var editable = column.editable;
-                    if (column.field && customQueryGrid) {
+                    if (column.field && (customQueryGrid || usingQueryId)) {
                         column.field = column.field.toLowerCase();
                     }
     
@@ -335,8 +343,8 @@
             editable = "incell";
         } else {
             editable = {
-                destroy: customQueryGrid && (options.hasCustomDeleteQuery || false),
-                update: customQueryGrid && (options.hasCustomUpdateQuery || false) && !options.disableInlineEditing,
+                destroy: (customQueryGrid || usingQueryId) && (options.hasCustomDeleteQuery || false),
+                update: (customQueryGrid || usingQueryId) && (options.hasCustomUpdateQuery || false) && !options.disableInlineEditing,
                 mode: "incell"
             };
         }
@@ -347,7 +355,7 @@
             dataSource: {
                 autoSync: true,
                 serverFiltering: !!options.serverFiltering,
-                sort: customQueryGrid ? undefined : {field: "__ordering", dir: "asc"},
+                sort: (customQueryGrid || usingQueryId) ? undefined : {field: "__ordering", dir: "asc"},
                 transport: {
                     read: function (transportOptions) {
                         try {
@@ -359,10 +367,14 @@
                                 loader.removeClass("loading");
                                 return;
                             }
+                            
+                            let gridsWithFiltersRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids-with-filters/{propertyId}${linkTypeParameter}`;
+                            if(usingQueryId)
+                                gridsWithFiltersRequestUrl += `?queryId=${encodeURIComponent(queryId)}&countQueryId=${encodeURIComponent(countQueryId)}`;
     
-                            if (customQueryGrid) {
+                            if (customQueryGrid || usingQueryId) {
                                 Wiser.api({
-                                    url: `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids-with-filters/{propertyId}${linkTypeParameter}`,
+                                    url: gridsWithFiltersRequestUrl,
                                     method: "POST",
                                     contentType: "application/json",
                                     data: JSON.stringify(transportOptions.data)
@@ -410,10 +422,14 @@
                             }
     
                             loader.addClass("loading");
+
+                            let updateRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}`;
+                            if(usingQueryId)
+                                updateRequestUrl += `?queryId=${encodeURIComponent(queryId)}&countQueryId=${encodeURIComponent(countQueryId)}`;
     
-                            if (customQueryGrid) {
+                            if (customQueryGrid || usingQueryId) {
                                 Wiser.api({
-                                    url: `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}`,
+                                    url: updateRequestUrl,
                                     method: "PUT",
                                     contentType: "application/json",
                                     dataType: "json",
@@ -620,7 +636,7 @@
                                     kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
                                     transportOptions.error(jqXHR);
                                 });
-                            } else if (customQueryGrid) {
+                            } else if (customQueryGrid || usingQueryId) {
                                 loader.addClass("loading");
     
                                 Wiser.api({
@@ -696,7 +712,7 @@
                                     kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
                                     transportOptions.error(jqXHR);
                                 });
-                            } else if (customQueryGrid) {
+                            } else if (customQueryGrid || usingQueryId) {
                                 loader.addClass("loading");
     
                                 Wiser.api({
@@ -779,6 +795,23 @@
                 }
             },
             dataBound: async (event) => {
+                event.sender.tbody.find('tr.k-table-row').each(function (e) {
+                    const row = $(this);
+                    const model = event.sender.dataItem(row);
+                    
+                    for(const column of event.sender.columns) {
+                        const attributes = column.attributes;
+                        if(!attributes)
+                            continue;
+                        
+                        for(const [ attributeName, attributeValue ] of Object.entries(attributes)) {
+                            const attributeTemplate = kendo.template(attributeValue);
+                            const cell = row.find(`[${attributeName}="${attributeValue}"]`);
+                            cell.attr(attributeName, attributeTemplate(model));
+                        }
+                    }
+                });
+                
                 // To hide toolbar buttons that require a row to be selected.
                 dynamicItems.grids.onGridSelectionChange(event, readonly);
     
@@ -902,7 +935,7 @@
     
         dynamicItems.grids.attachSelectionCounter(field[0]);
     
-        if (!customQueryGrid && dynamicItems.fieldTemplateFlags.enableSubEntitiesGridsOrdering && !options.fieldGroupName) {
+        if ((!customQueryGrid && !usingQueryId) && dynamicItems.fieldTemplateFlags.enableSubEntitiesGridsOrdering && !options.fieldGroupName) {
             kendoComponent.table.kendoSortable({
                 autoScroll: true,
                 hint: function (element) {

@@ -2847,8 +2847,20 @@ export class Fields {
                             const currentAction = container.data("action");
                             const kendoEditor = selectedTabContainer.find(".editor").data("kendoEditor");
                             const currentItemDetails = container.data("itemDetails");
+                            
+                            // Decode HTML editor value.
+                            const tempTextArea = document.createElement("textarea");
+                            tempTextArea.innerHTML = kendoEditor.value();
+                            let editorValue = tempTextArea.value;
+                            
+                            // Post-process break line elements.
+                            editorValue = editorValue.replace(
+                                /<style[^>]*>([\s\S]*?)<\/style>/gi,
+                                (match, css) => `<style>${css.replace(/<br\s*\/?>/gi, '\n')}</style>`
+                            );
+                            
                             const pdfToHtmlData = {
-                                html: kendo.htmlEncode(kendoEditor.value()),
+                                html: editorValue,
                                 backgroundPropertyName: currentAction.pdfBackgroundPropertyName || "",
                                 itemId: currentTemplateDetails.id
                             };
