@@ -91,7 +91,11 @@
                     datasets = data.reduce((current, dataEntry) => {
                         const groupName = dataEntry[options.group];
                         const groupIndex = findOrCreateGroup(groupName, current);
-                        current[groupIndex].data.push(dataEntry);
+
+                        current[groupIndex].data.push({
+                            x: dataEntry[options.labelsColumn],
+                            y: dataEntry
+                        });
 
                         return current;
                     }, datasets);
@@ -100,29 +104,22 @@
                 case 'object':
                     datasets = data.reduce((current, dataEntry) => {
                         for (const groupName in options.group) {
-                            const groupSettings = options.group[groupName];
-                            
                             const groupIndex = findOrCreateGroup(groupName, current);
-                            
-                            const dataValue = dataEntry[groupSettings.dataColumn];
+                            const groupOptions = options.group[groupName].options;
 
-                            current[groupIndex].data.push(dataValue);
+                            current[groupIndex].data.push({
+                                x: dataEntry[options.labelsColumn],
+                                y: dataEntry[value]
+                            });
+                            
+                            current[groupIndex] = {
+                                ...current[groupIndex],
+                                ...groupOptions
+                            }
                         }
 
                         return current;
                     }, datasets);
-
-                    for (const groupName in options.group) {
-                        const groupSettings = options.group[groupName];
-                        const datasetOptions = groupSettings.options;
-
-                        const groupIndex = findOrCreateGroup(groupName, datasets);
-
-                        datasets[groupIndex] = {
-                            ...datasets[groupIndex],
-                            ...datasetOptions
-                        }
-                    }
 
                     break;
             }
@@ -139,8 +136,15 @@
                     const groupName = `${groupLabel}_${dynamicGroupIndex}`;
                     const groupIndex = findOrCreateGroup(groupName, current, groupLabel);
                     
-                    const dataValue = dataEntry[value];
-                    current[groupIndex].data.push(dataValue);
+                    current[groupIndex].data.push({
+                        x: dataEntry[options.labelsColumn],
+                        y: dataEntry[value]
+                    });
+                    
+                    current[groupIndex] = {
+                        ...current[groupIndex],
+                        ...dynamicGroup.options
+                    }
                 }
                 
                 return current;
