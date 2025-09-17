@@ -1,6 +1,7 @@
 (async () => {
     // Set up variables for elements in the document.
     const container = $("#container_{propertyIdWithSuffix}");
+    const chartContainer = container.find('.chart-container');
     const loader = container.find(".loader");
     
     // Show the loader.
@@ -8,6 +9,13 @@
     
     // Retrieve the settings of the entity property.
     const options = {options};
+    
+    // Set the height of the chart container.
+    const height = Number('{height}' || 0);
+    if(height)
+        chartContainer.css({
+            height: '{height}px'
+        });
     
     // Get the chart element.
     const chartElement = document.getElementById('chart_{propertyIdWithSuffix}');
@@ -105,11 +113,12 @@
                     datasets = data.reduce((current, dataEntry) => {
                         for (const groupName in options.group) {
                             const groupIndex = findOrCreateGroup(groupName, current);
+                            const groupSettings = options.group[groupName];
                             const groupOptions = options.group[groupName].options;
 
                             current[groupIndex].data.push({
                                 x: dataEntry[options.labelsColumn],
-                                y: dataEntry[value]
+                                y: dataEntry[groupSettings.dataColumn ?? options.dataColumn]
                             });
                             
                             current[groupIndex] = {
@@ -172,13 +181,15 @@
         .filter((label, index, array) => array.indexOf(label) === index);
     
     // Initialize the chart.
-    new Chart(chartElement, {
+    const chart = new Chart(chartElement, {
         type: options.type,
         data: {
             labels: labels,
             datasets: datasets
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     display: !!options.group || !!options.dynamicGroups
