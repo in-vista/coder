@@ -111,11 +111,8 @@ jobs:
 
     - name: Enforce release of files
       run: |
-        $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
-        $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
-        
-        $offlineFileApi = [IO.Path]::Combine("$baseApi", "App_Offline.htm")
-        $offlineFileFrontend = [IO.Path]::Combine("$baseFrontend", "App_Offline.htm")
+        $offlineFileApi = [IO.Path]::Combine("${{ secrets.PUBLISH_LOCATION_API }}", "App_Offline.htm")
+        $offlineFileFrontend = [IO.Path]::Combine("${{ secrets.PUBLISH_LOCATION_FRONT_END }}", "App_Offline.htm")
 
         New-Item -Path $offlineFileApi -ItemType File -Force
         New-Item -Path $offlineFileFrontend -ItemType File -Force
@@ -154,11 +151,8 @@ jobs:
 
     - name: Stop enforce release of files
       run: |
-        $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
-        $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
-        
-        $offlineFileApi = [IO.Path]::Combine("$baseApi", "App_Offline.htm")
-        $offlineFileFrontend = [IO.Path]::Combine("$baseFrontend", "App_Offline.htm")
+        $offlineFileApi = [IO.Path]::Combine("${{ secrets.PUBLISH_LOCATION_API }}", "App_Offline.htm")
+        $offlineFileFrontend = [IO.Path]::Combine("${{ secrets.PUBLISH_LOCATION_FRONT_END }}", "App_Offline.htm")
 
         Remove-Item $offlineFileApi
         Remove-Item $offlineFileFrontend
