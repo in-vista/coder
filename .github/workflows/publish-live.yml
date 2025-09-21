@@ -112,8 +112,8 @@ jobs:
     - name: Stop IIS instances
       run: |
         Import-Module WebAdministration
-        Stop-Website -Name "Coder API - $env:ENVIRONMENT"
-        Stop-Website -Name "Coder Frontend - $env:ENVIRONMENT"
+        Stop-Website -Name "Coder API - ${{ github.environment }}"
+        Stop-Website -Name "Coder Frontend - ${{ github.environment }}"
 
     - name: dotnet publish API
       run: |
@@ -150,8 +150,8 @@ jobs:
     - name: Start IIS instances
       run: |
         Import-Module WebAdministration
-        Start-Website -Name "Coder API - $env:ENVIRONMENT"
-        Start-Website -Name "Coder Frontend - $env:ENVIRONMENT"
+        Start-Website -Name "Coder API - ${{ github.environment }}"
+        Start-Website -Name "Coder Frontend - ${{ github.environment }}"
   clear-backup:
     strategy:
       matrix:
