@@ -180,6 +180,56 @@
         .map(row => row[options.labelsColumn])
         .filter((label, index, array) => array.indexOf(label) === index);
     
+    // Initialize ChartJS plugins.
+    const plugins = [
+        autocolors
+    ];
+    
+    // Create a local ChartJS plugin to draw a horizontal dotted line.
+    const thresholdOptions = options.threshold;
+    if(thresholdOptions) {
+        let thresholdValue = thresholdOptions.value;
+        let thresholdColor = thresholdOptions.color;
+        
+        if(!thresholdValue && thresholdOptions.queryId) {
+            const thresholdValueResults = await Wiser.api({
+                method: 'POST',
+                contentType: 'application/json',
+                dataType: 'json',
+                url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(thresholdOptions.queryId || dynamicItems.settings.zeroEncrypted)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
+                data: JSON.stringify({})
+            });
+            
+            const thresholdValueRow = thresholdValueResults.otherData?.[0];
+            thresholdValue = thresholdValueRow?.value ?? thresholdValue;
+            thresholdColor = thresholdValueRow?.color ?? thresholdColor;
+        }
+        
+        // Create a new plugin that draws a horizontal line on the graph.
+        plugins.push({
+            id: 'horizontalDottedLine',
+            beforeDatasetsDraw(chart, args, options) {
+                const {
+                    ctx,
+                    chartArea: {
+                        top, right, bottom, left, width, height
+                    },
+                    scales: {
+                        x, y
+                    }
+                } = chart;
+
+                ctx.save();
+
+                ctx.setLineDash([5, 3]);
+                ctx.strokeStyle = thresholdColor ?? 'grey';
+                ctx.strokeRect(left, y.getPixelForValue(thresholdValue), width, 0);
+
+                ctx.restore();
+            }
+        });
+    }
+    
     // Initialize the chart.
     const chart = new Chart(chartElement, {
         type: options.type,
@@ -197,9 +247,7 @@
             },
             ...options
         },
-        plugins: [
-            autocolors
-        ]
+        plugins: plugins
     });
     
     loader.removeClass('loading');
