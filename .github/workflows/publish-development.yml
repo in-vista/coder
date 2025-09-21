@@ -100,12 +100,10 @@ jobs:
       working-directory: coder
 
     - name: Stop IIS instances
-      shell: pwsh
       run: |
         Import-Module WebAdministration
-        $environment = "${{ github.environment }}"
-        Stop-Website -Name "Coder API - $environment"
-        Stop-Website -Name "Coder Frontend - $environment"
+        Stop-Website -Name "Coder API - Development"
+        Stop-Website -Name "Coder Frontend - Development"
 
     - name: dotnet publish API
       run: |
@@ -140,12 +138,10 @@ jobs:
       working-directory: coder
 
     - name: Start IIS instances
-      shell: pwsh
       run: |
         Import-Module WebAdministration
-        $environment = "${{ github.environment }}"
-        Start-Website -Name "Coder API - $environment"
-        Start-Website -Name "Coder Frontend - $environment"
+        Start-Website -Name "Coder API - Development"
+        Start-Website -Name "Coder Frontend - Development"
   clear-backup:
     runs-on: cluster1_transip
     environment: Development
