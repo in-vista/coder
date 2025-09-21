@@ -42,11 +42,11 @@ jobs:
         $sourcePathApi = "${{ secrets.PUBLISH_LOCATION_API }}\*"
         $sourcePathFrontend = "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*"
         
-        if (Test-Path "${{ secrets.PUBLISH_LOCATION_API }}) {
-            Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\*" -Destination "$env:FOLDER_PATH_API" -Recurse
+        if (Test-Path "${{ secrets.PUBLISH_LOCATION_API }}") {
+          Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\*" -Destination "$env:FOLDER_PATH_API" -Recurse
         }
 
-        if (Test-Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}) {
+        if (Test-Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}") {
             Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*" -Destination "$env:FOLDER_PATH_FRONT_END" -Recurse
         }
   build-icl:
