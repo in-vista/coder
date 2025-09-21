@@ -108,14 +108,6 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
       working-directory: coder
-      
-    - name: Enable maintenance notice API
-      run: Rename-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\_App_Offline.htm" -NewName "App_Offline.htm"
-      working-directory: coder
-      
-    - name: Enable maintenance notice FrontEnd
-      run: Rename-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\_App_Offline.htm" -NewName "App_Offline.htm"
-      working-directory: coder
 
     - name: dotnet publish API
       run: |
@@ -148,14 +140,6 @@ jobs:
       run: |
         dotnet publish FrontEnd -c Release -o "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" --self-contained true  -r win-x64 /p:EnvironmentName=Live
       working-directory: coder
-      
-    - name: Disable maintenance notice API
-      if: ${{ always() }}
-      run: Rename-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\App_Offline.htm" -NewName "_App_Offline.htm"
-      
-    - name: Disable maintenance notice FrontEnd
-      if: ${{ always() }}
-      run: Rename-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\App_Offline.htm" -NewName "_App_Offline.htm"
   clear-backup:
     strategy:
       matrix:
