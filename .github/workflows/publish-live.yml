@@ -109,11 +109,16 @@ jobs:
       run: dotnet build --no-restore
       working-directory: coder
 
-    - name: Stop IIS instances
+    - name: Enforce release of files
       run: |
-        Import-Module WebAdministration
-        Stop-Website -Name "Coder API - Production"
-        Stop-Website -Name "Coder Frontend - Production"
+        $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
+        $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
+        
+        $offlineFileApi = [IO.Path]::Combine($backupPath, "$baseApi", "App_Offline.htm")
+        $offlineFileFrontend = [IO.Path]::Combine($backupPath, "$baseFrontend", "App_Offline.htm")
+
+        New-Item -Path $offlineFileApi -ItemType File -Force
+        New-Item -Path $offlineFileFrontend -ItemType File -Force
 
     - name: dotnet publish API
       run: |
@@ -147,11 +152,17 @@ jobs:
         dotnet publish FrontEnd -c Release -o "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" --self-contained true  -r win-x64 /p:EnvironmentName=Live
       working-directory: coder
 
-    - name: Start IIS instances
+    - name: Stop enforce release of files
       run: |
-        Import-Module WebAdministration
-        Start-Website -Name "Coder API - Production"
-        Start-Website -Name "Coder Frontend - Production"
+        $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
+        $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
+        
+        $offlineFileApi = [IO.Path]::Combine($backupPath, "$baseApi", "App_Offline.htm")
+        $offlineFileFrontend = [IO.Path]::Combine($backupPath, "$baseFrontend", "App_Offline.htm")
+
+        Remove-Item $offlineFileApi
+        Remove-Item $offlineFileFrontend
+        
   clear-backup:
     strategy:
       matrix:
