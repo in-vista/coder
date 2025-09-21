@@ -99,6 +99,12 @@ jobs:
       run: dotnet build --no-restore
       working-directory: coder
 
+    - name: Stop IIS instances
+      run: |
+        Import-Module WebAdministration
+        Stop-Website -Name "Coder API - $env:ENVIRONMENT"
+        Stop-Website -Name "Coder Frontend - $env:ENVIRONMENT"
+
     - name: dotnet publish API
       run: |
         dotnet publish API -c Release -o "${{ secrets.PUBLISH_LOCATION_API }}" --self-contained true  -r win-x64 /p:EnvironmentName=Development
@@ -130,6 +136,12 @@ jobs:
       run: |
         dotnet publish FrontEnd -c Release -o "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" --self-contained true  -r win-x64 /p:EnvironmentName=Development
       working-directory: coder
+
+    - name: Start IIS instances
+      run: |
+        Import-Module WebAdministration
+        Start-Website -Name "Coder API - $env:ENVIRONMENT"
+        Start-Website -Name "Coder Frontend - $env:ENVIRONMENT"
   clear-backup:
     runs-on: cluster1_transip
     environment: Development
