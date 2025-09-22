@@ -8,7 +8,10 @@ on:
 
 jobs:
   backup:
-    runs-on: [ cluster1_transip, transip-cluster3 ]
+    strategy:
+      matrix:
+        runner: [cluster1_transip, cluster3_transip]
+    runs-on: ${{ matrix.runner }}
     environment: Production
 
     steps:
@@ -38,10 +41,19 @@ jobs:
       run: |
         $sourcePathApi = "${{ secrets.PUBLISH_LOCATION_API }}\*"
         $sourcePathFrontend = "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*"
-        Copy-Item -Path "$sourcePathApi" -Destination "$env:FOLDER_PATH_API" -Recurse
-        Copy-Item -Path "$sourcePathFrontend" -Destination "$env:FOLDER_PATH_FRONT_END" -Recurse
+        
+        if (Test-Path "${{ secrets.PUBLISH_LOCATION_API }}") {
+          Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\*" -Destination "$env:FOLDER_PATH_API" -Recurse
+        }
+
+        if (Test-Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}") {
+            Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*" -Destination "$env:FOLDER_PATH_FRONT_END" -Recurse
+        }
   build-icl:
-    runs-on: [ cluster1_transip, transip-cluster3 ]
+    strategy:
+      matrix:
+        runner: [cluster1_transip, cluster3_transip]
+    runs-on: ${{ matrix.runner }}
     environment: Production
     needs: [ backup ]
 
@@ -73,7 +85,10 @@ jobs:
     - name: Copy files to destination folder
       run: Copy-Item -Path "${{ secrets.WORKER_LOCATION }}\coder\coder\invista-core-library\*" -Destination "C:\invista-core-library" -Recurse
   build-coder:
-    runs-on: [ cluster1_transip, transip-cluster3 ]
+    strategy:
+      matrix:
+        runner: [cluster1_transip, cluster3_transip]
+    runs-on: ${{ matrix.runner }}
     environment: Production
     needs: [build-icl]
 
@@ -82,30 +97,54 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: coder
-    
+
     - name: Restore dependencies
       run: dotnet restore
       working-directory: coder
-      
+
     - name: Copy partner styles
       run: Copy-Item -Path "${{ secrets.PARTNER_STYLES_LOCATION }}\*" -Destination "${{ secrets.WORKER_LOCATION }}\coder\coder\coder\FrontEnd\Core\Css\partner" -Recurse
-      
+
     - name: Build
       run: dotnet build --no-restore
       working-directory: coder
-      
-    - name: Enable maintenance notice API
-      run: Rename-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\_App_Offline.htm" -NewName "App_Offline.htm"
-      working-directory: coder
-      
-    - name: Enable maintenance notice FrontEnd
-      run: Rename-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\_App_Offline.htm" -NewName "App_Offline.htm"
+
+    - name: Place App_Offline.htm
+      run: |
+        $apiPath = "${{ secrets.PUBLISH_LOCATION_API }}"
+        $frontendPath = "${{ secrets.PUBLISH_LOCATION_FRONT_END }}"
+
+        New-Item -Path ([IO.Path]::Combine($apiPath, "App_Offline.htm")) -ItemType File -Force
+        New-Item -Path ([IO.Path]::Combine($frontendPath, "App_Offline.htm")) -ItemType File -Force
+
+    - name: dotnet publish API to temp folder
+      run: |
+        $tempApi = "${{ github.workspace }}\publish\API"
+        Remove-Item $tempApi -Recurse -Force -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory -Path $tempApi -Force
+
+        dotnet publish API -c Release -o $tempApi --self-contained true -r win-x64 /p:EnvironmentName=Live
       working-directory: coder
 
-    - name: dotnet publish API
+    - name: dotnet publish FrontEnd to temp folder
       run: |
-        dotnet publish API -c Release -o "${{ secrets.PUBLISH_LOCATION_API }}" --self-contained true  -r win-x64 /p:EnvironmentName=Live
+        $tempFrontend = "${{ github.workspace }}\publish\FrontEnd"
+        Remove-Item $tempFrontend -Recurse -Force -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory -Path $tempFrontend -Force
+
+        dotnet publish FrontEnd -c Release -o $tempFrontend --self-contained true -r win-x64 /p:EnvironmentName=Live
       working-directory: coder
+
+    - name: Copy API to live folder
+      run: Copy-Item -Path "${{ github.workspace }}\publish\API\*" -Destination "${{ secrets.PUBLISH_LOCATION_API }}" -Recurse -Force
+
+    - name: Copy FrontEnd to live folder
+      run: Copy-Item -Path "${{ github.workspace }}\publish\FrontEnd\*" -Destination "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Recurse -Force
+
+    - name: Remove App_Offline.htm
+      run: |
+        Remove-Item ([IO.Path]::Combine("${{ secrets.PUBLISH_LOCATION_API }}", "App_Offline.htm"))
+        Remove-Item ([IO.Path]::Combine("${{ secrets.PUBLISH_LOCATION_FRONT_END }}", "App_Offline.htm"))
 
     - name: Install NPM modules
       run: npm install
@@ -117,32 +156,19 @@ jobs:
       shell: powershell
       working-directory: coder/FrontEnd
 
-    - name: Log content of Telerik license
-      run: Get-Content telerik-license.txt
-      working-directory: coder/FrontEnd
-
     - name: Activate Kendo UI License
       run: npx kendo-ui-license activate
       working-directory: 'coder/FrontEnd'
-        
+
     - name: Compile scripts and styles with webpack
       run: node_modules\.bin\webpack --mode=production
       working-directory: 'coder/FrontEnd'
-
-    - name: dotnet publish front-end
-      run: |
-        dotnet publish FrontEnd -c Release -o "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" --self-contained true  -r win-x64 /p:EnvironmentName=Live
-      working-directory: coder
-      
-    - name: Disable maintenance notice API
-      if: ${{ always() }}
-      run: Rename-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\App_Offline.htm" -NewName "_App_Offline.htm"
-      
-    - name: Disable maintenance notice FrontEnd
-      if: ${{ always() }}
-      run: Rename-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\App_Offline.htm" -NewName "_App_Offline.htm"
+        
   clear-backup:
-    runs-on: [ cluster1_transip, transip-cluster3 ]
+    strategy:
+      matrix:
+        runner: [cluster1_transip, cluster3_transip]
+    runs-on: ${{ matrix.runner }}
     environment: Production
     needs: [build-coder]
 
