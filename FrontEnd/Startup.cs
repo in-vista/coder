@@ -38,7 +38,7 @@ namespace FrontEnd
         {
             // First set the base settings for the application.
             var builder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", false, true)
+                .AddJsonFile("appsettings.json", false, false)
                 .AddJsonFile($"appsettings.{webHostEnvironment.EnvironmentName}.json", true, true);
 
             // We need to build here already, so that we can read the base directory for secrets.
