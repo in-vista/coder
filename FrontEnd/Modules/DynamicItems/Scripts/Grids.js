@@ -608,6 +608,23 @@ export class Grids {
                 columnHide: (event) => this.saveGridViewColumnsState(`main_grid_columns_${this.base.settings.moduleId}`, event.sender),
                 columnShow: (event) => this.saveGridViewColumnsState(`main_grid_columns_${this.base.settings.moduleId}`, event.sender),
                 dataBound: async (event) => {
+                    event.sender.tbody.find('tr.k-table-row').each(function (e) {
+                        const row = $(this);
+                        const model = event.sender.dataItem(row);
+
+                        for(const column of event.sender.columns) {
+                            const attributes = column.attributes;
+                            if(!attributes)
+                                continue;
+
+                            for(const [ attributeName, attributeValue ] of Object.entries(attributes)) {
+                                const attributeTemplate = kendo.template(attributeValue);
+                                const cell = row.find(`[${attributeName}="${attributeValue}"]`);
+                                cell.attr(attributeName, attributeTemplate(model));
+                            }
+                        }
+                    });
+                    
                     const totalCount = event.sender.dataSource.total();
                     const counterContainer = event.sender.element.find(".k-grid-toolbar .counterContainer");
                     counterContainer.find(".counter").html(kendo.toString(totalCount, "n0"));
