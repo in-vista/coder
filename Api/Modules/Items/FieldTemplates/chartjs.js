@@ -245,7 +245,51 @@
                     display: !!options.group || !!options.dynamicGroups
                 }
             },
-            ...options
+            ...options,
+            onClick: (event) => {
+                // Retrieve the grid options of this chart and check if it is set. If not, skip this behaviour.
+                const gridOptions = options.grid;
+                if(!gridOptions)
+                    return;
+                
+                // Retrieve all clicked elements in the chart.
+                const elements = chart.getElementsAtEventForMode(event, 'nearest', {
+                    intersect: true
+                }, true);
+                
+                // Validate whether there were any elements clicked.
+                if(!elements || elements.length === 0)
+                    return;
+                
+                // Retrieve the firstly clicked element and its properties.
+                const element = elements[0];
+                const { datasetIndex, index } = element;
+                
+                // Retrieve the value of the clicked element as stored in the chart's dataset.
+                const value = chart.data.datasets[datasetIndex].data[index];
+                const label = chart.data.labels[index];
+                
+                // Retrieve the "real value" of the clicked element.
+                // In most cases you can retrieve the real value as is. In other cases the retrieved value comes
+                // as an object of different values. You can use the options to select a specific property from this
+                // object to be used as the "real value".
+                let realValue = value;
+                if(typeof(value) === 'object' && gridOptions.valueProperty)
+                    realValue = value[gridOptions.valueProperty];
+                
+                // Retrieve the connected grid property ID.
+                const gridPropertyId = gridOptions.propertyId;
+                
+                // Retrieve the Kendo grid.
+                const gridElement = $(`#overviewGrid${gridPropertyId}`);
+                const grid = gridElement.data("kendoGrid");
+                
+                // Refresh the grid with the provided chart data.
+                grid.dataSource.read({
+                    chartLabel: label,
+                    chartValue: realValue
+                });
+            }
         },
         plugins: plugins
     });
