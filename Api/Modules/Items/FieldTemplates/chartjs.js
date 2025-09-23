@@ -291,8 +291,10 @@
                 
                 // Refresh the grid with the provided chart data.
                 grid.dataSource.read({
-                    [chartLabelDataField]: label,
-                    [chartValueDataField]: realValue
+                    extraValuesForQuery: {
+                        [chartLabelDataField]: String(label),
+                        [chartValueDataField]: String(realValue)
+                    }
                 });
             }
         },
