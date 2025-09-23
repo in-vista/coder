@@ -286,8 +286,8 @@
                     realValue = value[gridOptions.valueProperty];
                 
                 // Retrieve optional overwrites for the provided chart data values.
-                const chartLabelDataField = gridOptions.data?.label ?? 'chartLabel';
-                const chartValueDataField = gridOptions.data?.label ?? 'chartValue';
+                const chartLabelDataField = gridOptions.data?.label ?? 'chart_label';
+                const chartValueDataField = gridOptions.data?.label ?? 'chart_value';
                 
                 // Refresh the grid with the provided chart data.
                 grid.dataSource.read({
