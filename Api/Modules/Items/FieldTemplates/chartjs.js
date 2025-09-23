@@ -256,10 +256,18 @@
                 const elements = chart.getElementsAtEventForMode(event, 'nearest', {
                     intersect: true
                 }, true);
+
+                // Retrieve the Kendo grid.
+                const gridPropertyId = gridOptions.propertyId;
+                const gridElement = $(`#overviewGrid${gridPropertyId}`);
+                const grid = gridElement.data("kendoGrid");
                 
                 // Validate whether there were any elements clicked.
-                if(!elements || elements.length === 0)
+                // If no elements were clicked, deselect the grid and reload the results.
+                if(!elements || elements.length === 0) {
+                    grid.dataSource.read();
                     return;
+                }
                 
                 // Retrieve the firstly clicked element and its properties.
                 const element = elements[0];
@@ -276,13 +284,6 @@
                 let realValue = value;
                 if(typeof(value) === 'object' && gridOptions.valueProperty)
                     realValue = value[gridOptions.valueProperty];
-                
-                // Retrieve the connected grid property ID.
-                const gridPropertyId = gridOptions.propertyId;
-                
-                // Retrieve the Kendo grid.
-                const gridElement = $(`#overviewGrid${gridPropertyId}`);
-                const grid = gridElement.data("kendoGrid");
                 
                 // Retrieve optional overwrites for the provided chart data values.
                 const chartLabelDataField = gridOptions.data?.label ?? 'chartLabel';
