@@ -284,10 +284,14 @@
                 const gridElement = $(`#overviewGrid${gridPropertyId}`);
                 const grid = gridElement.data("kendoGrid");
                 
+                // Retrieve optional overwrites for the provided chart data values.
+                const chartLabelDataField = gridOptions.data?.label ?? 'chartLabel';
+                const chartValueDataField = gridOptions.data?.label ?? 'chartValue';
+                
                 // Refresh the grid with the provided chart data.
                 grid.dataSource.read({
-                    chartLabel: label,
-                    chartValue: realValue
+                    [chartLabelDataField]: label,
+                    [chartValueDataField]: realValue
                 });
             }
         },
