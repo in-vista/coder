@@ -245,10 +245,10 @@ const moduleSettings = {
                 window.processing.addProcess(process);
                 const newItemResult = await this.createItem(this.settings.entityType, this.settings.parentId || this.settings.zeroEncrypted, "", 1, this.settings.newItemData || [], false, this.settings.moduleId);
                 this.settings.initialItemId = newItemResult.itemId;
-                await this.loadItem(newItemResult.itemId, 0, newItemResult.entityType);
+                await this.loadItem(newItemResult.itemId, true, 0, newItemResult.entityType);
                 window.processing.removeProcess(process);
             } else if (this.settings.initialItemId) {
-                await this.loadItem(this.settings.initialItemId, 0, this.settings.entityType);
+                await this.loadItem(this.settings.initialItemId, false, 0, this.settings.entityType);
             }
 
             if (this.settings.iframeMode && this.settings.hideHeader) {
@@ -394,7 +394,7 @@ const moduleSettings = {
                 if (!this.settings.initialItemId) {
                     $("#alert-first").removeClass("hidden");
                 } else {
-                    await this.loadItem(this.settings.initialItemId, 0, this.settings.entityType);
+                    await this.loadItem(this.settings.initialItemId, false, 0, this.settings.entityType);
                 }
             });
 
@@ -488,7 +488,9 @@ const moduleSettings = {
 
             $("#mainEditMenu .reloadItem").click(async (event) => {
                 const previouslySelectedTab = this.mainTabStrip.select().index();
-                await this.loadItem(this.selectedItem && this.selectedItem.plainItemId ? this.selectedItem.id : this.settings.initialItemId, previouslySelectedTab, this.selectedItem && this.selectedItem.plainItemId ? this.selectedItem.entityType : this.settings.entityType);
+                const itemWindow = $(event.target).closest('.k-window-content');
+                const isNew = itemWindow.data('isNewItem');
+                await this.loadItem(this.selectedItem && this.selectedItem.plainItemId ? this.selectedItem.id : this.settings.initialItemId, isNew, previouslySelectedTab, this.selectedItem && this.selectedItem.plainItemId ? this.selectedItem.entityType : this.settings.entityType);
             });
 
             $("#mainEditMenu .deleteItem").click(async (event) => {
@@ -1014,7 +1016,9 @@ const moduleSettings = {
                 }
                 if (this.selectedItem || (this.settings.iframeMode && this.settings.initialItemId)) {
                     const previouslySelectedTab = this.mainTabStrip.select().index();
-                    this.loadItem(this.settings.iframeMode ? this.settings.initialItemId : this.selectedItem.id, previouslySelectedTab, this.settings.iframeMode ? this.settings.entityType : this.selectedItem.entityType);
+                    const itemWindow = $(event.target).closest('.k-window-content');
+                    const isNew = itemWindow.data('isNewItem');
+                    this.loadItem(this.settings.iframeMode ? this.settings.initialItemId : this.selectedItem.id, isNew, previouslySelectedTab, this.settings.iframeMode ? this.settings.entityType : this.selectedItem.entityType);
                 }
             }
         }
@@ -1204,7 +1208,7 @@ const moduleSettings = {
                 $(element).toggle(dataItem.hasChildren);
             });
 
-            await this.base.loadItem(itemId, 0, dataItem.entityType || dataItem.entityType);
+            await this.base.loadItem(itemId, false, 0, dataItem.entityType || dataItem.entityType);
 
             const pathString = `/${fullPath.join("/")}/`;
             // Show / hide fields based on path regex.
@@ -1862,9 +1866,10 @@ const moduleSettings = {
         /**
          * Load a specific item in the main container / tab strip.
          * @param {any} itemId The ID of the item to load.
+         * @param {boolean} isNew Whether the item is considered new.
          * @param {number} tabToSelect Optional: The tab index to initially open after the item has been loaded. Default is 0.
          */
-        async loadItem(itemId, tabToSelect = 0, entityType = null) {
+        async loadItem(itemId, isNew, tabToSelect = 0, entityType = null) {
             const process = `loadItem_${Date.now()}`;
             window.processing.addProcess(process);
 
@@ -1887,7 +1892,7 @@ const moduleSettings = {
                 itemTitleFieldContainer.toggle(entityTypeSettings.showTitleField && this.base.settings.iframeMode);
 
                 // Set the HTML of the fields tab.
-                const itemHtmlResult = await this.getItemHtml(itemId, itemMetaData.entityType);
+                const itemHtmlResult = await this.getItemHtml(itemId, itemMetaData.entityType, isNew);
 
                 this.mainTabStrip.element.find("> .k-tabstrip-items-wrapper > ul > li .addedFromDatabase").each((index, element) => {
                     this.mainTabStrip.remove($(element).closest("li.k-item"));
@@ -2094,7 +2099,7 @@ const moduleSettings = {
                                     this.base.selectedItem.plainItemId = otherItem.plainId;
 
                                     // Load the selected version.
-                                    this.base.loadItem(otherItem.id, 0, otherItem.entityType);
+                                    this.base.loadItem(otherItem.id, false, 0, otherItem.entityType);
                                 } else {
                                     callerWindow.close();
                                     this.base.windows.loadItemInWindow(false, otherItem.plainItemId, otherItem.id, otherItem.entityType, otherItem.title, callerWindow.element.data("showTitleField"), null, { hideTitleColumn: false }, callerWindow.element.data("linkId"));
@@ -2296,13 +2301,14 @@ const moduleSettings = {
          * Gets the HTML for an item. This contains all fields and the javascript for those fields.
          * @param {string} itemId The (encrypted) ID of the item to get the HTML for.
          * @param {string} entityType The entity type of the item to get the HTML for.
+         * @param {boolean} isNew Whether the item is considered new.
          * @param {string} propertyIdSuffix Optional: The suffix for property IDs, this is required when opening items in a popup, so that the fields always have unique ID, even if they already exist in the main tab sheet.
          * @param {number} linkId Optional: The ID of the link between this item and another item. If you're opening this item via a specific link, you should enter the ID of that link, because it's possible to have fields/properties on a link instead of an item.
          * @param {number} linkType Optional: The type number of the link between this item and another item. If you're opening this item via a specific link, you should enter the ID of that link, because it's possible to have fields/properties on a link instead of an item.
          * @returns {Promise} A promise with the results.
          */
-        async getItemHtml(itemId, entityType, propertyIdSuffix = "", linkId = 0, linkType = 0) {
-            let url = `${this.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}?entityType=${encodeURIComponent(entityType)}&encryptedModuleId=${encodeURIComponent(this.base.settings.encryptedModuleId)}`;
+        async getItemHtml(itemId, entityType, isNew, propertyIdSuffix = "", linkId = 0, linkType = 0) {
+            let url = `${this.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}?entityType=${encodeURIComponent(entityType)}&isNew=${encodeURIComponent(isNew)}&encryptedModuleId=${encodeURIComponent(this.base.settings.encryptedModuleId)}`;
             if (propertyIdSuffix) {
                 url += `&propertyIdSuffix=${encodeURIComponent(propertyIdSuffix)}`;
             }

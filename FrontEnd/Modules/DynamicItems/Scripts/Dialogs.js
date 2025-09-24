@@ -127,7 +127,7 @@ export class Dialogs {
                 event.sender.element.data("currentItemWindow", null);
                 window.processing.removeProcess(process);
                 if (!currentItemWindow) {
-                    this.base.loadItem(result.encryptedId, 0, result.entityType);
+                    this.base.loadItem(result.encryptedId, false, 0, result.entityType);
                 } else {
                     currentItemWindow.close();
                     this.base.windows.loadItemInWindow(false, result.id, result.encryptedId, result.entityType, result.title, currentItemWindow.element.data("showTitleField"), null, { hideTitleColumn: false }, currentItemWindow.element.data("linkId"));

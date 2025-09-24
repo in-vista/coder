@@ -122,6 +122,7 @@ namespace Api.Modules.Items.Interfaces
         /// Get the HTML and javascript for single Wiser item, to show the item in Wiser.
         /// </summary>
         /// <param name="encryptedId">The encrypted ID of the item to get.</param>
+        /// <param name="isNew">Whether the requested item is considered new.</param>
         /// <param name="identity">The identity of the authenticated user.</param>
         /// <param name="propertyIdSuffix">Optional: The suffix of every field on the item. This is used to give each field a unique ID, when multiple items are opened at the same time. Default value is <see langword="null"/>.</param>
         /// <param name="itemLinkId">Optional: The id of the item link from wiser_itemlink. This should be used when opening an item via a sub-entities-grid, to show link fields. Default value is 0.</param>
@@ -129,7 +130,7 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="linkType">Optional: The type number of the link, if this item also contains fields on a link.</param>
         /// <param name="propertyId">Optional: The ID of the property from which the HTML must me returned.</param>
         /// <returns>A <see cref="ItemHtmlAndScriptModel"/> with the HTML and javascript needed to load this item in Wiser. This is needed when the link is saved in a different table than wiser_itemlink. We can only look up the name of that table if we know the link type beforehand.</returns>
-        Task<ServiceResult<ItemHtmlAndScriptModel>> GetItemHtmlAsync(string encryptedId, ClaimsIdentity identity, string propertyIdSuffix = null, ulong itemLinkId = 0, string entityType = null, int linkType = 0, int propertyId = 0);
+        Task<ServiceResult<ItemHtmlAndScriptModel>> GetItemHtmlAsync(string encryptedId, bool isNew, ClaimsIdentity identity, string propertyIdSuffix = null, ulong itemLinkId = 0, string entityType = null, int linkType = 0, int propertyId = 0);
 
         /// <summary>
         /// Gets a single item by its encrypted item ID.

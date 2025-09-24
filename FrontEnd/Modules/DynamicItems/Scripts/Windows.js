@@ -353,7 +353,7 @@ export class Windows {
                     // Get the information that we need about the opened item.
                     const promises = [
                         this.base.getEntityType(entityType),
-                        this.base.getItemHtml(encryptedItemId, entityType, windowId, linkId, linkType)
+                        this.base.getItemHtml(encryptedItemId, entityType, isNewItem, windowId, linkId, linkType)
                     ];
 
                     if (!isNewItem) {
