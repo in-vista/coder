@@ -635,7 +635,9 @@ const moduleSettings = {
 
             // Main tree view.
             this.mainTreeView = $("#treeview").kendoTreeView({
-                dragAndDrop: true,
+                dragAndDrop: {
+                    reorderable: true
+                },
                 dataSource: {
                     transport: {
                         read: (options) => {
@@ -1275,20 +1277,20 @@ const moduleSettings = {
                 leftPane.scrollTop(leftPane.scrollTop() - $(event.dropTarget).height() - 50);
             }
 
-            if (event.statusClass === "i-cancel") {
+            if (event.statusClass === "k-i-cancel") {
                 // Tree view already denies this operation
                 return;
             }
 
             const dropTarget = $(event.dropTarget);
-            let destinationNode = dropTarget.closest("li.k-item");
+            let destinationNode = dropTarget.closest("li.k-treeview-item");
             if (dropTarget.hasClass("k-mid")) {
-                // If the dropTarget is an element with class k-mid we need to go higher, because those elements are located inside an li.k-item instead of after/before them.
-                destinationNode = destinationNode.parentsUntil("li.k-item");
+                // If the dropTarget is an element with class k-mid we need to go higher, because those elements are located inside an li.k-treeview-item instead of after/before them.
+                destinationNode = destinationNode.parentsUntil("li.k-treeview-item");
             }
-            if (event.statusClass === "i-insert-down" || (event.statusClass === "i-insert-middle" && (dropTarget.hasClass("k-bot") || dropTarget.hasClass("k-in")))) {
-                // If the statusClass is i-insert-down, it means we are adding the item below the destination, so we need to check it's parent.
-                destinationNode = destinationNode.parentsUntil("li.k-item");
+            if (event.statusClass === "insert-down" || (event.statusClass === "insert-middle" && (dropTarget.hasClass("k-bot") || dropTarget.hasClass("k-in")))) {
+                // If the statusClass is insert-down, it means we are adding the item below the destination, so we need to check it's parent.
+                destinationNode = destinationNode.parentsUntil("li.k-treeview-item");
             }
 
             const sourceDataItem = event.sender.dataItem(event.sourceNode) || {};
@@ -1296,7 +1298,7 @@ const moduleSettings = {
 
             if ((destinationDataItem.acceptedChildTypes || "").toLowerCase().split(",").indexOf(sourceDataItem.entityType.toLowerCase()) === -1) {
                 // Tell the kendo tree view to deny the drag to this item, if the current item is of a type that is not allowed to be linked to the destination.
-                event.setStatusClass("k-i-cancel");
+                event.setStatusClass("cancel");
             }
         }
 
