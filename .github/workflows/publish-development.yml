@@ -151,7 +151,7 @@ jobs:
       working-directory: 'coder/FrontEnd'
 
     - name: Compile scripts and styles with webpack
-      run: node_modules\.bin\webpack --mode=development
+      run: node_modules\.bin\webpack --mode=production
       working-directory: 'coder/FrontEnd'
       
   clear-backup:
