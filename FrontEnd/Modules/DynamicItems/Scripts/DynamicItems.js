@@ -1284,7 +1284,7 @@ const moduleSettings = {
 
             const dropTarget = $(event.dropTarget);
             let destinationNode = dropTarget.closest("li.k-treeview-item");
-            if (dropTarget.hasClass("k-mid")) {
+            if (dropTarget.hasClass("k-treeview-mid")) {
                 // If the dropTarget is an element with class k-mid we need to go higher, because those elements are located inside an li.k-treeview-item instead of after/before them.
                 destinationNode = destinationNode.parentsUntil("li.k-treeview-item");
             }
