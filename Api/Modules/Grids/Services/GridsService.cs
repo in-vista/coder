@@ -1582,12 +1582,11 @@ namespace Api.Modules.Grids.Services
                             foreach (var (propertyName, propertyValue) in fieldsList)
                             {
                                 var name = propertyName?.ToLowerInvariant().MakeJsonPropertyName();
+                                
+                                // Check whether the current selection contains the property as aggregation.
+                                // If so, skip the overwriting process, as aggregated columns should always get priority.
                                 if (String.IsNullOrWhiteSpace(name) || rowData.ContainsKey(name))
-                                {
-                                    //continue;
-                                    //We want to remove the existing data, because fields always overrule existing (aggregated) values
-                                    rowData.Remove(name);
-                                }
+                                    continue;
 
                                 var field = results.SchemaModel.Fields.FirstOrDefault(f => f.Key == name).Value;
                                 if (field == null)
