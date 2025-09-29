@@ -146,8 +146,8 @@
                     const groupIndex = findOrCreateGroup(groupName, current, groupLabel);
                     
                     current[groupIndex].data.push({
-                        x: dataEntry[options.labelsColumn],
-                        y: dataEntry[value]
+                        [dynamicGroup.options?.xAxisID ?? 'x']: dataEntry[options.labelsColumn],
+                        [dynamicGroup.options?.yAxisId ?? 'y']: dataEntry[value]
                     });
                     
                     // Overwrite static colors with dynamic values from the query's results.
