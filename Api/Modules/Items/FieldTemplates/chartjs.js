@@ -150,6 +150,14 @@
                         y: dataEntry[value]
                     });
                     
+                    // Overwrite static colors with dynamic values from the query's results.
+                    const borderColor = dynamicGroup.options?.borderColor;
+                    const backgroundColor = dynamicGroup.options?.backgroundColor;
+                    if(borderColor && !borderColor.startsWith('#'))
+                        dynamicGroup.options.borderColor = dataEntry[borderColor];
+                    if(backgroundColor && !backgroundColor.startsWith('#'))
+                        dynamicGroup.options.backgroundColor = dataEntry[backgroundColor];
+                    
                     current[groupIndex] = {
                         ...current[groupIndex],
                         ...dynamicGroup.options
