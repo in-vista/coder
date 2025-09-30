@@ -74,9 +74,10 @@
     function findOrCreateGroup(groupName, groups, groupLabel = null) {
         groupLabel ??= groupName;
         
-        let groupIndex = groups.findIndex(set => set.label === groupLabel);
+        let groupIndex = groups.findIndex(set => set.name === groupName);
         if(groupIndex === -1) {
             const newGroup = {
+                name: groupName,
                 label: groupLabel,
                 data: []
             };
