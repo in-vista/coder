@@ -46,7 +46,6 @@ namespace Api.Modules.Templates.Helpers
             }
 
             var versionList = new List<int>(versionsAndPublished.Keys);
-            versionList = versionList.OrderBy(v => v).ToList();
 
             return new PublishedEnvironmentModel
             {
