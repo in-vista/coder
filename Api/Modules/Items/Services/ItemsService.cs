@@ -864,6 +864,10 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
 
             try
             {
+                clientDatabaseConnection.ClearParameters();
+                clientDatabaseConnection.AddParameter("username", username);
+                await clientDatabaseConnection.ExecuteAsync("SET @_username = ?username");
+
                 await wiserItemsService.DeleteAsync(itemId, undelete, username, userId, entityType: entityType);
             }
             catch (InvalidAccessPermissionsException exception)
