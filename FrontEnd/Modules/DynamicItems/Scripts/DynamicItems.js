@@ -1949,6 +1949,31 @@ const moduleSettings = {
                         };
                     }
                 }
+                
+                // Build tab strips for inner groups.
+                entityContainer.find('.item-group.tab-strip').each(function() {
+                    const tabStrip = $(this);
+                    const propertyName = tabStrip.attr('data-tab-strip-property-name');
+                    
+                    const itemWidth = tabStrip.find('.item:first').css('width');
+                    tabStrip.css('width', itemWidth);
+                    tabStrip.find('.item').css('width', '100%');
+                    
+                    const tabNames = tabStrip.find('.item').map(function() {
+                        return $(this).attr(propertyName);
+                    });
+                    
+                    const tabStripTabs = $('<ul></ul>').prependTo(tabStrip);
+                    
+                    for(let i = tabNames.length - 1; i >= 0; i--) {
+                        const tabName = tabNames[i];
+                        tabStripTabs.prepend(`<li>${tabName}</li>`);
+                    }
+                    
+                    const tabToActivate = tabStripTabs.children(':first');
+                    const kendoTabStrip = tabStrip.kendoTabStrip().data('kendoTabStrip');
+                    kendoTabStrip.activateTab(tabToActivate);
+                });
 
                 const translateButton = entityContainer.find(".editMenu .translateItem").closest("li");
                 translateButton.toggle(this.allLanguages.length > 1 && entityContainer.find(".item[data-language-code]:not([data-language-code=''])").length > 0);

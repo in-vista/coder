@@ -1225,7 +1225,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 SELECT e.tab_name, e.group_name, e.inputtype AS field_type, t.html_template, e.display_name, e.property_name, e.options, e.module_id,
     	                            e.explanation, d.long_value, d.`value`, e.default_value, e.id, e.width, e.height, e.css, e.extended_explanation, e.label_style, e.label_width, e.access_key,
     	                            e.depends_on_field, e.depends_on_operator, e.depends_on_value, IFNULL(e.depends_on_action, 'toggle-visibility') AS depends_on_action, e.ordering, t.script_template,
-    	                            e.save_on_change, files.JSON AS filesJSON, 0 AS itemLinkId, e.regex_validation, e.mandatory, e.language_code,
+    	                            e.save_on_change, files.JSON AS filesJSON, 0 AS itemLinkId, e.regex_validation, e.mandatory, e.language_code, e.combine_group,
     	                            # A user can have multiple roles. So we need to check if they have at least one role that has update rights. If it doesn't, then the field should be readonly.
     	                            IF(e.readonly > 0 OR i.readonly > 0 OR SUM(IF(permission.permissions IS NULL OR (permission.permissions & 4) > 0, 1, 0)) = 0, TRUE, FALSE) AS readonly,
     	                            e.custom_script, permission.permissions, i.readonly AS itemIsReadOnly, e.visibility_path_regex, e.enable_aggregation
@@ -1260,7 +1260,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 SELECT 'Velden vanuit koppeling' AS tab_name, e.group_name, e.inputtype AS field_type, t.html_template, e.display_name, e.property_name, e.options, e.module_id,
     	                            e.explanation, d.long_value, d.`value`, e.default_value, e.id, e.width, e.height, e.css, e.extended_explanation, e.label_style, e.label_width, e.access_key,
     	                            e.depends_on_field, e.depends_on_operator, e.depends_on_value, IFNULL(e.depends_on_action, 'toggle-visibility') AS depends_on_action, e.ordering, t.script_template,
-    	                            e.save_on_change, files.JSON AS filesJSON, il.id AS itemLinkId, e.regex_validation, e.mandatory, e.language_code,
+    	                            e.save_on_change, files.JSON AS filesJSON, il.id AS itemLinkId, e.regex_validation, e.mandatory, e.language_code, e.combine_group,
     	                            # A user can have multiple roles. So we need to check if they have at least one role that has update rights. If it doesn't, then the field should be readonly.
     	                            IF(e.readonly > 0 OR SUM(IF(permission.permissions IS NULL OR (permission.permissions & 4) > 0, 1, 0)) = 0, TRUE, FALSE) AS readonly, 
     	                            e.custom_script, permission.permissions, i.readonly AS itemIsReadOnly, e.visibility_path_regex, e.enable_aggregation
@@ -1348,6 +1348,10 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             var fieldTemplates = new Dictionary<string, string>();
             foreach (DataRow dataRow in dataRows)
             {
+                // Retrieve general information of this entity property.
+                string propertyName = dataRow.Field<string>("property_name");
+                string displayName = dataRow.Field<string>("display_name");
+                
                 // Get or create the object for the current tab.
                 var tabName = dataRow.Field<string>("tab_name");
                 var tab = results.Tabs.FirstOrDefault(r => r.Name.Equals(tabName, StringComparison.OrdinalIgnoreCase));
@@ -1363,6 +1367,28 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 {
                     group = new ItemTabOrGroupModel { Name = groupName };
                     tab.Groups.Add(group);
+                }
+                
+                // Determine inner-group based on conflicting property names and whether to combine the group into an inner group.
+                bool combineGroup = Convert.ToBoolean(dataRow["combine_group"]);
+                if (combineGroup)
+                {
+                    ItemTabOrGroupModel innerGroup =
+                        group.Groups.FirstOrDefault(g => g is ItemInnerGroupModel ig && ig.PropertyName.Equals(propertyName, StringComparison.OrdinalIgnoreCase));
+
+                    if (innerGroup == null)
+                    {
+                        innerGroup = new ItemInnerGroupModel
+                        {
+                            Name = displayName,
+                            TabPropertyName = "data-language-code",
+                            PropertyName = propertyName
+                        };
+                        
+                        group.Groups.Add(innerGroup);
+                    }
+                    
+                    group = innerGroup;
                 }
 
                 // Get values from data row that we'll need later.
@@ -1471,9 +1497,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
 
                     scriptTemplate = fieldTemplates[name];
                 }
-
-                var displayName = dataRow.Field<string>("display_name");
-                var propertyName = dataRow.Field<string>("property_name");
+                
                 var longValue = dataRow.Field<string>("long_value");
                 var value = dataRow.Field<string>("value");
                 var defaultValue = dataRow.Field<string>("default_value") ?? "";
@@ -1481,8 +1505,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 var width = dataRow.Field<short>("width");
                 var height = dataRow.Field<short>("height");
                 var regExValidation = dataRow.Field<string>("regex_validation");
-                var filesJson = dataRow.Field<string>("filesJSON");
                 var languageCode = dataRow.Field<string>("language_code") ?? "";
+                var filesJson = dataRow.Field<string>("filesJSON");
                 var explanation = dataRow.Field<string>("explanation") ?? "";
                 var hasExtendedExplanation = !String.IsNullOrWhiteSpace(explanation) && Convert.ToBoolean(dataRow["extended_explanation"]);
                 var labelStyle = dataRow.Field<string>("label_style") ?? "";
@@ -1871,7 +1895,39 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 group.HtmlTemplateBuilder.Append(htmlTemplate ?? "");
                 group.ScriptTemplateBuilder.Append(scriptTemplate ?? "");
             }
+            
+            // Local function to build HTML based on the group's structure.
+            void BuildGroupHtml(ItemTabOrGroupModel group, StringBuilder html, StringBuilder script)
+            {
+                // Build the item group div element.
+                List<string> groupDivClasses = new List<string>() { "item-group" };
+                Dictionary<string, string> groupDivProperties = new Dictionary<string, string>();
+                if (group is ItemInnerGroupModel innerGroup && !string.IsNullOrEmpty(innerGroup.TabPropertyName))
+                {
+                    groupDivClasses.Add("tab-strip");
+                    groupDivProperties.Add("data-tab-strip-property-name", innerGroup.TabPropertyName);
+                }
+                string groupDiv = $"<div class=\"{string.Join(" ", groupDivClasses)}\" {string.Join(" ", groupDivProperties.Select(kvp => $"{kvp.Key}=\"{kvp.Value}\""))}>";
 
+                // Build the group wrapper HTML for this group.
+                if (string.IsNullOrEmpty(group.Name) || group is ItemInnerGroupModel)
+                    html.Append(groupDiv);
+                else
+                    html.Append($"{groupDiv}<h3>{group.Name.HtmlEncode()}</h3>");
+
+                // Add the content of this group to the HTML and script properties.
+                html.Append(group.HtmlTemplateBuilder);
+                script.Append(group.ScriptTemplateBuilder);
+
+                // Recursively build any inner groups of the given group.
+                if (group.Groups != null && group.Groups.Any())
+                    foreach (ItemTabOrGroupModel subGroup in group.Groups)
+                        BuildGroupHtml(subGroup, html, script);
+
+                // Close the wrapper for this group.
+                html.Append("</div>");
+            }
+            
             // Combine all groups into each tab.
             foreach (var tab in results.Tabs)
             {
@@ -1883,20 +1939,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 else
                 {
                     foreach (var group in tab.Groups)
-                    {
-                        if (String.IsNullOrEmpty(group.Name))
-                        {
-                            tab.HtmlTemplateBuilder.Append($"<div class=\"item-group\">");
-                        }
-                        else
-                        {
-                            tab.HtmlTemplateBuilder.Append($"<div class=\"item-group\"><h3>{group.Name.HtmlEncode()}</h3>");
-                        }
-
-                        tab.HtmlTemplateBuilder.Append(group.HtmlTemplateBuilder);
-                        tab.HtmlTemplateBuilder.Append("</div>");
-                        tab.ScriptTemplateBuilder.Append(group.ScriptTemplateBuilder);
-                    }
+                        BuildGroupHtml(group, tab.HtmlTemplateBuilder, tab.ScriptTemplateBuilder);
                 }
             }
 

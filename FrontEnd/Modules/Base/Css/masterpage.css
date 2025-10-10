@@ -249,10 +249,16 @@ dd {
 }
 .item-group {
 	width: 100%;
+    height: 100%;
 	display: flex;
 	flex-wrap: wrap;
 	padding: 20px 0;
 	border-bottom: 2px solid var(--white-color);
+}
+
+.item-group.tab-strip {
+    padding: 0 20px;
+    border-bottom: none;
 }
 
 .item-group h3 {
