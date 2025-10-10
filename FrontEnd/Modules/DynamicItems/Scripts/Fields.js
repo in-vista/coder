@@ -1512,11 +1512,22 @@ export class Fields {
 
                             // Trigger the OK button click when the user presses enter in the dialog.
                             dialog.element.keyup((event) => {
-                                if (!event.key || event.key.toLowerCase() !== "enter" || $(event.target).closest(".k-grid-header").length || event.target.tagName === "TEXTAREA") {
+                                if (!event.key || event.key.toLowerCase() !== "enter")
+                                    return;
+
+                                // alleen Enter afvangen als de target binnen deze dialog zit
+                                if (!$.contains(dialog.element[0], event.target))
+                                    return;
+                                
+                                if ($(event.target).closest(".k-grid-header").length ||
+                                    event.target.tagName === "TEXTAREA") {
                                     return;
                                 }
 
-                                $(event.currentTarget).next().find(".k-primary, .k-button-solid-primary").trigger("click");
+                                $(event.currentTarget)
+                                    .next()
+                                    .find(".k-primary, .k-button-solid-primary")
+                                    .trigger("click");
                             });
 
                             // Build the options object for the kendo component.

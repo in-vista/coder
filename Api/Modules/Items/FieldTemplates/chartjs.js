@@ -175,10 +175,131 @@
         }
     });
     
-    // Make a distinct array of labels.
-    const labels = data
-        .map(row => row[options.labelsColumn])
-        .filter((label, index, array) => array.indexOf(label) === index);
+    // Build the labels for the chart.
+    let labels = [];
+    const labelsColumn = options.labelsColumn;
+    if(labelsColumn) {
+        // Retrieve the type of the labels column option.
+        const labelsColumnType = typeof labelsColumn;
+        
+        // Check whether the labels column option was set to be a string or object.
+        switch(labelsColumnType) {
+            // Map the given column name of the results to be used as labels.
+            case 'string':
+                // Make a distinct array of labels.
+                labels = data
+                    .map(row => row[labelsColumn])
+                    .filter((label, index, array) => array.indexOf(label) === index);
+                break;
+            // Build a set of labels by a predefined type.
+            case 'object':
+                // Retrieve the options for the labels column.
+                let labelsOptions = { ...labelsColumn };
+                
+                // If set, retrieve options from a query.
+                if(labelsOptions.optionsQueryId) {
+                    // Request the options from query results.
+                    const labelsOptionsQueryResults = await Wiser.api({
+                        method: 'POST',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(labelsOptions.optionsQueryId || dynamicItems.settings.zeroEncrypted)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
+                        data: JSON.stringify({})
+                    });
+                    
+                    // Append the labels options with the received options from the query.
+                    labelsOptions = {
+                        ...labelsOptions,
+                        ...labelsOptionsQueryResults.otherData?.[0]
+                    }
+                }
+                
+                // Retrieve the type of the labels.
+                const labelsType = labelsOptions.type;
+                
+                // Check the predefined labels type.
+                switch(labelsType) {
+                    // Build a set of dates of a given period and interval.
+                    case 'date':
+                        // Retrieve the current date.
+                        const now = new Date();
+                        let startDate, endDate;
+                        
+                        // Retrieve the period, interval and custom start and end date.
+                        const period = labelsOptions.period;
+                        const interval = labelsOptions.interval;
+                        const customStart = labelsOptions.custom_start_date;
+                        const customEnd = labelsOptions.custom_end_date;
+                        
+                        // Validate the existence of period and interval.
+                        if([ period, interval ].includes(undefined))
+                            break;
+
+                        const firstDayOfMonth = date => new Date(date.getFullYear(), date.getMonth(), 1);
+                        const lastDayOfMonth = date => new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+                        switch (period) {
+                            case "this_month":
+                                startDate = firstDayOfMonth(now);
+                                endDate = lastDayOfMonth(now);
+                                break;
+                            case "last_month":
+                                startDate = firstDayOfMonth(new Date(now.getFullYear(), now.getMonth() - 1));
+                                endDate = lastDayOfMonth(startDate);
+                                break;
+                            case "this_year":
+                                startDate = new Date(now.getFullYear(), 0, 1);
+                                endDate = new Date(now.getFullYear(), 11, 31);
+                                break;
+                            case "last_year":
+                                startDate = new Date(now.getFullYear() - 1, 0, 1);
+                                endDate = new Date(now.getFullYear() - 1, 11, 31);
+                                break;
+                            case "custom":
+                                startDate = new Date(customStart);
+                                endDate = new Date(customEnd);
+                                break;
+                        }
+                        
+                        startDate.setHours(0, 0, 0, 0);
+                        endDate.setHours(0, 0, 0, 0);
+
+                        const formatLocalDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                        
+                        const current = new Date(startDate);
+
+                        while (current <= endDate) {
+                            if (interval === "d")
+                                labels.push(formatLocalDate(current));
+                            else if (interval === "w") {
+                                const monday = new Date(current);
+                                monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+                                const yearStart = new Date(monday.getFullYear(), 0, 1);
+                                const weekNumber = Math.ceil((((monday - yearStart) / 86400000) + 1) / 7);
+                                labels.push(`${monday.getFullYear()}-W${String(weekNumber).padStart(2, "0")}`);
+                            }
+                            else if (interval === "m")
+                                labels.push(`${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}`);
+                            else if (interval === "y")
+                                labels.push(String(current.getFullYear()));
+
+                            if (interval === "d")
+                                current.setDate(current.getDate() + 1);
+                            else if (interval === "w")
+                                current.setDate(current.getDate() + 7);
+                            else if (interval === "m")
+                                current.setMonth(current.getMonth() + 1);
+                            else if (interval === "y")
+                                current.setFullYear(current.getFullYear() + 1);
+                        }
+
+                        labels = [...new Set(labels)]
+                        break;
+                }
+                
+                break;
+        }
+    }
     
     // Initialize ChartJS plugins.
     const plugins = [
