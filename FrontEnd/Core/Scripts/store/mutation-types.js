@@ -24,6 +24,7 @@ export const MODULES_LOADED = "modulesLoaded";
 export const OPEN_MODULE = "openModule";
 export const CLOSE_MODULE = "closeModule";
 export const CLOSE_ALL_MODULES = "closeAllModules";
+export const CLEAR_ALL_MODULES = "clearAllModules";
 export const ACTIVATE_MODULE = "activateModule";
 export const TOGGLE_PIN_MODULE = "togglePinModule";
 
@@ -50,6 +51,7 @@ export const GENERATE_TOTP_BACKUP_CODES_ERROR = "generateTotpBackupCodesError";
 export const CLEAR_LOCAL_TOTP_BACKUP_CODES = "clearLocalTotpBackupCodes";
 
 // Branches module.
+export const BRANCH_CHANGE_COMPLETED = "branchChangeCompleted";
 export const CREATE_BRANCH = "createBranch";
 export const CREATE_BRANCH_SUCCESS = "createBranchSuccess";
 export const CREATE_BRANCH_ERROR = "createBranchError";

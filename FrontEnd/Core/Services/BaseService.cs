@@ -83,7 +83,7 @@ namespace FrontEnd.Core.Services
                 return $"http://{subDomain}.wiser.nl.juicedev.nl/";
             }
 
-            return $"https://{subDomain}.wiser.nl/";
+            return $"https://{subDomain}.coder.nl/";
         }
 
         /// <inheritdoc />
@@ -97,7 +97,7 @@ namespace FrontEnd.Core.Services
             viewModel.Wiser1BaseUrl = GetWiser1Url();
             viewModel.ApiAuthenticationUrl = $"{frontEndSettings.ApiBaseUrl}connect/token";
             viewModel.ApiRoot = $"{frontEndSettings.ApiBaseUrl}api/v3/";
-            viewModel.IsWiserFrontEndLogin = "true".EncryptWithAesWithSalt(gclSettings.DefaultEncryptionKey, true, true);
+            viewModel.IsWiserFrontEndLogin = "true".EncryptWithAesWithSalt(gclSettings.DefaultEncryptionKey, false, true);
 
             if (httpContextAccessor.HttpContext != null)
             {

@@ -20,8 +20,8 @@ require("@progress/kendo-ui/js/kendo.grid.js");
 require("@progress/kendo-ui/js/kendo.notification.js");
 require("@progress/kendo-ui/js/kendo.datepicker.js");
 require("@progress/kendo-ui/js/kendo.daterangepicker.js");
-require("@progress/kendo-ui/js/dataviz/chart/chart.js");
-require("@progress/kendo-ui/js/dataviz/chart/kendo-chart.js");
+require("@progress/kendo-ui/js/kendo.dataviz.chart.js");
+// require("@progress/kendo-ui/js/dataviz/chart/kendo-chart.js");
 require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
 require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
 
@@ -61,6 +61,7 @@ const moduleSettings = {
             this.linkedTemplates = null;
             this.templateHistory = null;
             this.treeViewContextMenu = null;
+            this.lastTreeViewNode = null;
             this.mainHtmlEditor = null;
             this.dynamicContentGrid = null;
             this.newContentId = 0;
@@ -112,6 +113,11 @@ const moduleSettings = {
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Add logged in user access token to default authorization headers for all jQuery ajax requests.
             $.ajaxSetup({
                 headers: { "Authorization": `Bearer ${localStorage.getItem("accessToken")}` }
@@ -153,7 +159,7 @@ const moduleSettings = {
             const user = JSON.parse(localStorage.getItem("userData"));
             this.settings.oldStyleUserId = user.oldStyleUserId;
             this.settings.username = user.adminAccountName ? `${user.adminAccountName} (Admin)` : user.name;
-            this.settings.adminAccountLoggedIn = !!user.adminAccountName;
+            this.settings.adminAccountLoggedIn = !!user.adminlogin;
 
             const userData = await Wiser.getLoggedInUserData(this.settings.wiserApiRoot);
             this.settings.userId = userData.encryptedId;
@@ -285,7 +291,7 @@ const moduleSettings = {
                     { text: "Verwijderen", attr: { action: "delete" } }
                 ],
                 target: ".tabstrip-treeview",
-                filter: ".k-item",
+                filter: ".k-treeview-leaf-text",
                 open: this.onContextMenuOpen.bind(this),
                 select: this.onContextMenuSelect.bind(this)
             }).data("kendoContextMenu");
@@ -372,7 +378,7 @@ const moduleSettings = {
                     {text: "Verwijderen", attr: {action: "delete"}}
                 ],
                 target: ".tabstrip-treeview",
-                filter: ".k-item",
+                filter: '.k-treeview-leaf',
                 open: this.onContextMenuOpen.bind(this),
                 select: this.onContextMenuSelect.bind(this)
             }).data("kendoContextMenu");
@@ -660,6 +666,8 @@ const moduleSettings = {
          * @param {any} event The open event of a kendoContextMenu.
          */
         onContextMenuOpen(event) {
+            this.lastTreeViewNode = event.target;
+            
             if (event.target.closest("#search-results-treeview")) {
                 event.preventDefault();
                 return;
@@ -693,13 +701,13 @@ const moduleSettings = {
          */
         onContextMenuSelect(event) {
             const selectedOption = $(event.item);
-            const node = $(event.target);
+            const node = $(this.lastTreeViewNode);
             const treeView = this.mainTreeView[this.treeViewTabStrip.select().index()];
 
             let isFromRootItem;
             let selectedItem;
-            if (!event.target.closest(".k-treeview")) {
-                selectedItem = this.treeViewTabs[$(event.target).index()];
+            if (!this.lastTreeViewNode.closest(".k-treeview")) {
+                selectedItem = this.treeViewTabs[$(this.lastTreeViewNode).index()];
                 isFromRootItem = true;
             } else {
                 selectedItem = treeView.dataItem(node);
@@ -765,6 +773,8 @@ const moduleSettings = {
                     kendo.alert(`Onbekende actie '${action}'. Probeer het a.u.b. opnieuw op neem contact op.`);
                     break;
             }
+
+            this.treeViewContextMenu.close();
         }
 
         /**
@@ -929,23 +939,33 @@ const moduleSettings = {
                 }
 
                 this.mainTabStrip.enable(dynamicContentTab);
-
+                
                 // Dynamic content
                 const dynamicGridDiv = $("#dynamic-grid");
+                this.dynamicContentGrid?.setDataSource([]);
+                this.dynamicContentGrid?.destroy();
                 this.dynamicContentGrid = dynamicGridDiv.kendoGrid({
                     dataSource: {
                         transport: {
-                            read: (readOptions) => {
+                            read: async (readOptions) => {
+                                const process = `loadDynamicContent_${Date.now()}`;
+                                window.processing.addProcess(process);
+
                                 Wiser.api({
                                     url: `${this.settings.wiserApiRoot}templates/${id}/linked-dynamic-content`,
                                     dataType: "json",
                                     method: "GET"
-                                }).then((response) => {
-                                    readOptions.success(response);
-                                    this.initDynamicContentDisplayFields(response);
-                                }).catch((error) => {
-                                    readOptions.error(error);
-                                });
+                                })
+                                    .then(response => {
+                                        readOptions.success(response);
+                                        this.initDynamicContentDisplayFields(response);
+                                    })
+                                    .catch(exception => {
+                                        readOptions.error(exception);
+                                    })
+                                    .finally(() => {
+                                        window.processing.removeProcess(process);
+                                    });
                             }
                         },
                         pageSize: 20
@@ -1019,19 +1039,19 @@ const moduleSettings = {
                                 {
                                     name: "Open",
                                     text: "",
-                                    iconClass: "k-icon k-i-edit",
+                                    iconClass: "k-font-icon k-i-edit",
                                     click: this.onDynamicContentOpenClick.bind(this)
                                 },
                                 {
                                     name: "Duplicate",
                                     text: "",
-                                    iconClass: "k-icon k-i-copy",
+                                    iconClass: "k-font-icon k-i-copy",
                                     click: this.onDynamicContentDuplicateClick.bind(this, id)
                                 },
                                 {
                                     name: "Delete",
                                     text: "",
-                                    iconClass: "k-icon k-i-trash",
+                                    iconClass: "k-font-icon k-i-trash",
                                     click: this.onDynamicContentDeleteClick.bind(this)
                                 },
                             ],
@@ -1044,17 +1064,17 @@ const moduleSettings = {
                         {
                             name: "add",
                             text: "Nieuw",
-                            template: `<a class='k-button k-button-icontext' href='\\#' onclick='return window.Templates.openDynamicContentWindow(0, "Nieuw dynamische content toevoegen")'><span class='k-icon k-i-file-add'></span>Nieuw item toevoegen</a>`
+                            template: `<a class='k-button k-button-icontext' onclick='return window.Templates.openDynamicContentWindow(0, "Nieuw dynamische content toevoegen")'><span class='k-font-icon k-i-file-add'></span>Nieuw item toevoegen</a>`
                         },
                         {
                             name: "linkExisting",
                             text: "Component van andere template koppelen",
-                            template: `<a class='k-button k-button-icontext' href='\\#' onclick='return window.Templates.openLinkableComponentsDialog(${id})'><span class='k-icon k-i-hyperlink-insert'></span>Component van andere template koppelen</a>`
+                            template: `<a class='k-button k-button-icontext' onclick='return window.Templates.openLinkableComponentsDialog(${id})'><span class='k-font-icon k-i-hyperlink-insert'></span>Component van andere template koppelen</a>`
                         },
                         {
                             name: "publishToEnvironments",
                             text: "Deploy",
-                            template: `<a class='k-button k-button-icontext deploy-button hidden' href='\\#' onclick='return window.Templates.openDeployDynamicContentWindow()'><span class='k-icon k-i-cloud'></span>&nbsp;Deploy</a>`
+                            template: `<a class='k-button k-button-icontext deploy-button hidden' onclick='return window.Templates.openDeployDynamicContentWindow()'><span class='k-font-icon k-i-cloud'></span>&nbsp;Deploy</a>`
                         }
                     ],
                     change: this.onDynamicContentGridChange.bind(this),
@@ -1065,7 +1085,7 @@ const moduleSettings = {
                 dynamicGridDiv.kendoTooltip({ filter: ".k-grid-Delete", content: "Verwijderen" });
 
                 // Open dynamic content by double clicking on a row.
-                dynamicGridDiv.on("dblclick", "tr.k-state-selected", this.onDynamicContentOpenClick.bind(this));
+                dynamicGridDiv.on("dblclick", "tr.k-selected", this.onDynamicContentOpenClick.bind(this));
             } catch (exception) {
                 console.error(exception);
                 kendo.alert(`Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.<br>${exception.responseText || exception}`);
@@ -1199,11 +1219,17 @@ const moduleSettings = {
                 // HTML editor
                 const insertDynamicContentTool = {
                     name: "wiserDynamicContent",
+                    ui: {
+                        icon: 'wiser-dynamic-content',
+                    },
                     tooltip: "Dynamische inhoud toevoegen",
                     exec: this.onHtmlEditorDynamicContentExec.bind(this)
                 };
                 const htmlSourceTool = {
                     name: "wiserHtmlSource",
+                    ui: {
+                        icon: 'wiser-html-source',
+                    },
                     tooltip: "HTML bekijken/aanpassen",
                     exec: this.onHtmlEditorHtmlSourceExec.bind(this)
                 };
@@ -1214,18 +1240,27 @@ const moduleSettings = {
 
                 const translationsTool = {
                     name: "wiserTranslation",
+                    ui: {
+                        icon: 'wiser-translation'
+                    },
                     tooltip: "Vertaling invoegen",
                     exec: function(e) { Wiser.onHtmlEditorTranslationExec.call(Wiser, e, $(this).data("kendoEditor"), wiserApiRoot); }
                 };
 
                 const imageTool = {
                     name: "wiserImage",
+                    ui: {
+                        icon: 'wiser-image'
+                    },
                     tooltip: "Afbeelding toevoegen",
                     exec: function(e){ Wiser.onHtmlEditorImageExec.call(Wiser, e, $(this).data("kendoEditor"), "templates", imagesRootId); }
                 };
 
                 const fileTool = {
                     name: "wiserFile",
+                    ui: {
+                        icon: 'wiser-file'
+                    },
                     tooltip: "Link naar bestand toevoegen",
                     exec: function(e) { Wiser.onHtmlEditorFileExec.call(Wiser, e, $(this).data("kendoEditor"), "templates", filesRootId); }
                 };
@@ -1377,7 +1412,7 @@ const moduleSettings = {
                     toolbar: ["create"],
                     columns: [
                         { field: "uri" },
-                        { command: { name: "destroy", text: "", iconClass: "k-icon k-i-delete" }, width: 140 }
+                        { command: { name: "destroy", text: "", iconClass: "k-font-icon k-i-delete" }, width: 140 }
                     ],
                     dataSource: dataSource,
                     edit: (event) => {
@@ -1532,6 +1567,9 @@ const moduleSettings = {
                     }
                 }
             }).data("kendoMultiSelect");
+
+            // Set the selected login roles if the dropdown exists.
+            this.userRolesDropDown?.value(this.templateSettings.loginRoles);
 
             // Save the current settings so that we can keep track of any changes and warn the user if they're about to leave without saving.
             this.initialTemplateSettings = this.getCurrentTemplateSettings();
@@ -2012,7 +2050,6 @@ const moduleSettings = {
             $(".window-content #left-pane div.k-content").on("drop", this.onDropFile.bind(this));
 
             document.addEventListener("TemplateConnectedUsers:UsersUpdate", (event) => {
-                console.log("TemplateConnectedUsers:UsersUpdate", event.detail)
                 document.querySelectorAll("div.connected-users").forEach(div => {
                     const list = div.querySelector("div.connected-users-list");
                     list.innerHTML = event.detail.join(", ");
@@ -3074,7 +3111,7 @@ const moduleSettings = {
          * Imports the templates from the Wiser 1 templates modules into the Wiser 3 templates module.
          */
         async importLegacyTemplates() {
-            await kendo.confirm("Weet u zeker dat u de templatemodule van Wiser 1 wilt importeren? Dit heeft het meeste nut wanneer de klant al Wiser 2/3 databasestructuur gebruikt. Als de klant nog Wiser 1 gebruikt, dan moeten alle query's toch opnieuw geschreven worden en is het misschien efficiënter om handmatig de templatemodule te vullen.<br><br>De tabellen 'wiser_template' en 'wiser_dynamic_content' moeten leeg zijn voordat u dit doet.");
+            await kendo.confirm("Weet u zeker dat u de templatemodule van Coder 1 wilt importeren? Dit heeft het meeste nut wanneer de klant al Coder 2/3 databasestructuur gebruikt. Als de klant nog Coder 1 gebruikt, dan moeten alle query's toch opnieuw geschreven worden en is het misschien efficiënter om handmatig de templatemodule te vullen.<br><br>De tabellen 'wiser_template' en 'wiser_dynamic_content' moeten leeg zijn voordat u dit doet.");
 
             const process = `importLegacyTemplates_${Date.now()}`;
             window.processing.addProcess(process);
@@ -3089,7 +3126,7 @@ const moduleSettings = {
 
                 await this.loadTabsAndTreeViews();
 
-                window.popupNotification.show(`Templates van Wiser 1 zijn succesvol geïmporteerd.`, "info");
+                window.popupNotification.show(`Templates van Coder 1 zijn succesvol geïmporteerd.`, "info");
             } catch (exception) {
                 console.error(exception);
                 kendo.alert("Er is iets fout gegaan, probeer het a.u.b. opnieuw of neem contact op.");

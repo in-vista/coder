@@ -4,9 +4,21 @@
 //// MIXINS
 @import 'mixin/mixin';
 
+// Overwrite location for web icons font.
+@font-face {
+    font-family: "WebComponentsIcons";
+    font-style: normal;
+    font-weight: normal;
+    src: url("../Fonts/kendo-font-icons.ttf") format("truetype");
+}
+
 /**
  *  Kendo custom styling
  **/
+.k-font-icon {
+    text-indent: 0;
+}
+
 .k-window {
     @include drop-shadow($black-color, 10px, 0.2);
     border-radius: 6px;
@@ -103,7 +115,7 @@
         opacity: 1;
     }
 
-    .k-window-actions {
+    .k-window-actions, .k-window-titlebar-actions {
         height: 43px;
         line-height: 43px;
         right: 16px;
@@ -212,7 +224,7 @@
         float: right;
     }
 
-    .k-icon {
+    .k-font-icon, .k-icon {
         color: inherit;
         display: inline-block;
         font-family: 'icomoon' !important;
@@ -387,7 +399,7 @@
  *  Kendo icon styling
  **/
 .k-button-icon {
-    .k-icon {
+    .k-font-icon {
         @include icon-font;
         color: $text-color;
         font-size: 24px;
@@ -405,7 +417,7 @@
             content: "\e9b9";
         }
 
-        &.k-i-close:before {
+        &.k-i-x:before {
             content: "\e98d";
         }
 

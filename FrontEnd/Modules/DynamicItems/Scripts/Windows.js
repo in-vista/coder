@@ -111,8 +111,9 @@ export class Windows {
      * @param {string} windowTitle Optional: The title of the window. If empty, it will use the item title.
      * @param {any} kendoComponent Optional: If this item is being created via a field with a kendo component (such as a grid or dropdown), add the instance of it here, so we can refresh the data source after.
      * @param {int} linkType Optional: If the item was opened via a specific link, enter the type number of that link here.
+     * @param {function} callback Optional: a callback function called when the window is closed. The callback will have a parameter holding the item of this window. If the item was discarded or deleted, the item is given as 'null'.
      */
-    async loadItemInWindow(isNewItem, itemId, encryptedItemId, entityType, title, showTitleField, senderGrid, fieldOptions, linkId, windowTitle = null, kendoComponent = null, linkType = 0) {
+    async loadItemInWindow(isNewItem, itemId, encryptedItemId, entityType, title, showTitleField, senderGrid, fieldOptions, linkId, windowTitle = null, kendoComponent = null, linkType = 0, callback = null) {
         let currentItemWindow;
         try {
             // Clone the window template and initialize a new window from that clone, then open it.
@@ -179,6 +180,8 @@ export class Windows {
                     }
 
                     closeFunction();
+                    
+                    callback?.(null);
                 }
             }).data("kendoWindow");
 
@@ -216,7 +219,14 @@ export class Windows {
                 validateOnBlur: false,
                 rules: {
                     required: (input) => {
+                        // Check if the input is a required property.
                         if (input.prop("required") && !input.closest(".item").hasClass("dependency-hidden")) {
+                            // Skip validation on fields that were not loaded and are not new.
+                            // Since they weren't loaded in the first place, we know they haven't been changed.
+                            if(!input.closest('.k-tabstrip-content')?.data('loaded') && !isNewItem)
+                                return true;
+                            
+                            // Validate the value.
                             return $.trim(input.val()) !== "";
                         }
 
@@ -266,16 +276,32 @@ export class Windows {
             });
 
             const afterSave = async () => {
-                if (!kendoComponent || !kendoComponent.dataSource) return;
+                isNewItem = false;
+                if(kendoComponent) {
+                    if (!kendoComponent.dataSource) {
+                        if (kendoComponent.find(".tabStripPopup")?.data("kendoTabStrip") === undefined) return;
 
-                await kendoComponent.dataSource.read();
+                        const previouslySelectedTab = kendoComponent.find(".tabStripPopup").data("kendoTabStrip").select().index();
+                        const reloadFunction = kendoComponent.data("reloadFunction");
+                        await reloadFunction(previouslySelectedTab);
+                    }
+                    else {
+                        await kendoComponent.dataSource.read();
 
-                if (!kendoComponent.element) return;
+                        if (!kendoComponent.element) return;
 
-                const role = kendoComponent.element.data("role");
-                if (role === "dropdownlist" || role === "combobox") {
-                    kendoComponent.value(itemId);
-                    validator.validateInput(kendoComponent.element);
+                        const role = kendoComponent.element.data("role");
+                        if (role === "dropdownlist" || role === "combobox") {
+                            kendoComponent.value(itemId);
+                            validator.validateInput(kendoComponent.element);
+                        }
+                    }
+                }
+                
+                // If there is a callback given, only then retrieve the item's updated information and invoke the callback.
+                if(callback) {
+                    const itemDetails = await this.base.getItemDetails(encryptedItemId, entityType);
+                    callback?.(itemDetails);
                 }
             };
 
@@ -284,7 +310,18 @@ export class Windows {
                 icon: "save",
                 click: async (event) => {
                     await this.onSaveItemPopupClick(event, false, !senderGrid);
-                    afterSave();
+                    
+                    // Store the previous state of the item.
+                    const wasNewItem = isNewItem;
+                    
+                    await afterSave();
+                    
+                    // If the item was new but is now no longer new, refresh the overview so all components can react
+                    // to the item no longer being considered 'new'.
+                    if(wasNewItem) {
+                        const previouslySelectedTab = currentItemTabStrip.select().index();
+                        await loadPopupContents(previouslySelectedTab);
+                    }
                 }
             });
             currentItemWindow.element.find(".saveAndCloseBottomPopup").kendoButton({
@@ -328,7 +365,7 @@ export class Windows {
                     // Get the information that we need about the opened item.
                     const promises = [
                         this.base.getEntityType(entityType),
-                        this.base.getItemHtml(encryptedItemId, entityType, windowId, linkId, linkType)
+                        this.base.getItemHtml(encryptedItemId, entityType, isNewItem, windowId, linkId, linkType)
                     ];
 
                     if (!isNewItem) {
@@ -407,6 +444,9 @@ export class Windows {
                     }
 
                     currentItemTabStrip.select(tabIndex || (showGenericTab ? 0 : 1));
+                    
+                    // Pro6PP initialization.
+                    this.base.fields.initializePro6PPBindings(currentItemWindow.wrapper);
                 } catch (exception) {
                     console.error(exception);
                     kendo.alert("Er is iets fout gegaan tijdens het (her)laden van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
@@ -453,17 +493,20 @@ export class Windows {
     async onDeleteItemPopupClick(event, kendoComponent) {
         event.preventDefault();
 
-        await Wiser.showConfirmDialog("Weet u zeker dat u dit item wilt verwijderen?");
-
         const popupWindowContainer = $(event.currentTarget).closest(".k-window").find(".popup-container");
+        let title = popupWindowContainer.data("kendoWindow").element.data().title;
+        let entityType = popupWindowContainer.data("entityTypeDetails").entityType;
+        let displayName = popupWindowContainer.data("entityTypeDetails").displayName;
+        if (displayName === "") {displayName = entityType; }
+        if (title === "") {title = "dit item"; }
+
+        await Wiser.showConfirmDialog(`Weet je zeker dat je ${title} (${displayName}) wilt verwijderen?`);
 
         try {
             popupWindowContainer.find(".popup-loader").addClass("loading");
             popupWindowContainer.data("saving", true);
 
             const kendoWindow = popupWindowContainer.data("kendoWindow");
-            let entityType = popupWindowContainer.data("entityTypeDetails").entityType;
-
             const data = kendoWindow.element.data();
             const encryptedItemId = data.itemId;
 
@@ -488,7 +531,7 @@ export class Windows {
                 const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
                 kendo.alert(message);
             } else {
-                kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het nogmaals.");
             }
         }
     }
@@ -498,11 +541,14 @@ export class Windows {
      * @param {any} args The arguments of the click event.
      * @param {boolean} alsoCloseWindow Indicates whether or not to close the window/popup after saving.
      * @param {boolean} addToTreeView Indicates whether or not to add the new item to the main tree view.
+     * @param {element} popupWindowContainer Given container if save is triggered from function instead of click on button.
      */
-    async onSaveItemPopupClick(args, alsoCloseWindow = true, addToTreeView = true) {
-        args.event.preventDefault();
-        const popupWindowContainer = $(args.event.currentTarget).closest(".popup-container");
-
+    async onSaveItemPopupClick(args, alsoCloseWindow = true, addToTreeView = true, popupWindowContainer = undefined) {
+        if (popupWindowContainer === undefined) {
+            args.event.preventDefault();
+            popupWindowContainer = $(args.event.currentTarget).closest(".popup-container");    
+        }
+        
         try {
             popupWindowContainer.find(".popup-loader").addClass("loading");
             popupWindowContainer.data("saving", true);
@@ -648,7 +694,7 @@ export class Windows {
             for (let element of allItemsOnCurrentPage) {
                 const row = $(element);
                 const dataItem = grid.dataItem(row);
-                const isChecked = row.find("td > input[type=checkbox]").prop("checked");
+                const isChecked = row.find("td > .k-checkbox-wrap > input[type=checkbox]").prop("checked");
 
                 if (isChecked) {
                     if (alreadyLinkedItems.filter((item) => (item.id || item[`ID_${this.searchItemsWindowSettings.entityType}`]) === dataItem.id).length === 0) {

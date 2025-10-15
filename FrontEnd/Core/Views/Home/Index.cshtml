@@ -6,7 +6,7 @@
         display: none;
     }
 </style>
-<!-- Current Wiser version: @Model.WiserVersion?.ToString() -->
+<!-- Current Coder version: @Model.WiserVersion?.ToString() -->
 <div id="app" v-cloak>
     <div :class="{ 'loading': mainLoader }">
         <header v-if="user.loggedIn && !requirePasswordChange">
@@ -58,18 +58,9 @@
 
                 <ul class="sub-menu">
                     <li><a href="#" @@click="openMarkerIoScreen"><ins class="icon-line-bug"></ins><span>Bug melden! (CTRL+B)</span></a></li>
-                    <li><a href="#" @@click="openConfigurationModule"><ins class="icon-config"></ins><span>Wiser configuratie</span></a></li>
+                    <li><a href="#" @@click="openConfigurationModule"><ins class="icon-config"></ins><span>Coder configuratie</span></a></li>
                     <li><a href="#" @@click="logout"><ins class="icon-line-log-out"></ins><span>Uitloggen</span></a></li>
                 </ul>
-            </li>
-            <li class="logo">
-                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 0 512 266"
-                     style="enable-background:new 0 0 512 266;" xml:space="preserve">
-                <circle class="logo1" cx="183.1" cy="97.1" r="24.3" />
-                <circle class="logo1" cx="328.9" cy="97.1" r="24.3" />
-                <path class="logo1" d="M256,179.6c-9.6,10.8-21.5,19.5-35,25.2l35,60.8l35-60.8C277.5,199.1,265.6,190.4,256,179.6z" />
-                <path class="logo2" d="M352.1,54.5c15.1,8.3,25.3,24.3,25.3,42.7c0,26.8-21.8,48.6-48.6,48.6c-26.8,0-48.6-21.7-48.6-48.4 c0-26.8,21.8-48.3,48.6-48.3L511,1H328.9c-29,0-55.1,12.6-72.9,32.6C238.2,13.6,212.2,1,183.1,1H1l182.1,48.1 c26.8,0,48.6,21.5,48.6,48.3c0,26.8-21.8,48.4-48.6,48.4c-26.8,0-48.6-21.9-48.6-48.6c0-18.4,10.2-34.4,25.3-42.7l-55.1-14.7 C93,55.9,86,75.7,86,97.1c0,53.7,43.5,97.1,97.1,97.1c29,0,55.1-12.6,72.9-32.6c17.8,20,43.8,32.6,72.9,32.6 c53.7,0,97.1-43.5,97.1-97.1c0-21.4-7-41.3-18.7-57.3L352.1,54.5z" />
-                </svg>
             </li>
         </ul>
         </header>
@@ -112,7 +103,7 @@
                         <h2>Branch maken</h2>
                         <p>
                             Hier kan een nieuwe branch gemaakt worden. Een branch is een (deel-)kopie van uw database.
-                            Dit kan gebruikt worden om wijzigingen in Wiser op een veilige manier door te voeren en te testen in een aparte omgeving.
+                            Dit kan gebruikt worden om wijzigingen in Coder op een veilige manier door te voeren en te testen in een aparte omgeving.
                             Nadat u klaar bent met testen, kunt u de wijzigingen in een branch weer terugzetten naar de productie-omgeving.
                         </p>
 
@@ -151,7 +142,7 @@
                         </p>
                         <p>
                             <strong>Let op:</strong> Tijdens het terugzetten van een branch wordt de database geblokkeerd zodat er geen andere wijziging tussendoor gedaan kunnen worden.
-                            Dit betekent dat Wiser en eventuele andere producten (zoals een website) die gekoppeld zijn aan dezelfde database, ook niet bereikbaar zullen zijn.
+                            Dit betekent dat Coder en eventuele andere producten (zoals een website) die gekoppeld zijn aan dezelfde database, ook niet bereikbaar zullen zijn.
                             Zorg daarom dat u het samenvoegen start op een moment waarbij dit het minste impact heeft (zoals 's nachts).
                         </p>
 
@@ -331,7 +322,7 @@
                     </section>
 
                     <div v-if="!isMainBranch || (branchMergeSettings.selectedBranch && branchMergeSettings.selectedBranch.id)">
-                        <div v-if="!branchChangesLoaded">
+                        <div v-if="!branchChangesLoaded && branchChangeCompleted">
 						    <div class="col col-12 form-row no-bottom-margin">
 							    <label>Alle mogelijke entiteiten</label>
 						    </div>
@@ -351,12 +342,12 @@
 						    </div>
 
                             <div class="col col-12 form-row no-bottom-margin">
-                                <label>Wiser Links:</label>
+                                <label>Coder Links:</label>
                             </div>
 
                             <div class="col col-12 table-row no-top-margin">
                                 <div v-if="!linkTypesForBranches || !linkTypesForBranches.length">
-                                    <p>Geen wiser links gevonden. Neem a.u.b. contact op met ons.</p>
+                                    <p>Geen Coder links gevonden. Neem a.u.b. contact op met ons.</p>
                                 </div>
                                 <div class="row" v-else>
                                     <div class="col col-4" v-for="link in linkTypesForBranches" :key="link.id">
@@ -371,11 +362,11 @@
                             </div>
 
 						    <div class="col col-12 form-row no-bottom-margin">
-							    <label>Alle mogelijke Wiser inrichting</label>
+							    <label>Alle mogelijke Coder inrichting</label>
 						    </div>
 						    <div class="col col-12 table-row no-top-margin">
 							    <div v-if="!settingsForBranches || !settingsForBranches.length">
-								    <p>Geen wiser inrichting gevonden. Neem a.u.b. contact op met ons.</p>
+								    <p>Geen Coder inrichting gevonden. Neem a.u.b. contact op met ons.</p>
 							    </div>
 							    <div class="row" v-else>
 								    <div class="col col-4" v-for="setting in settingsForBranches" :key="setting.type">
@@ -392,7 +383,7 @@
 							    <p>Let op, dit kan lang (een kwartier of meer) duren bij branches met veel wijzigingen.</p>
 						    </div>
 						</div>
-						<div v-else>
+                        <div v-else-if="branchChangesLoaded">
 							<div class="col col-12 form-row no-bottom-margin">
 								<label>Selecteer te synchroniseren items</label>
 							</div>
@@ -410,7 +401,7 @@
 										</thead>
 										<tbody v-if="!branchChanges || !branchChanges.entities || !branchChanges.entities.length">
 											<tr>
-												<td colspan="5">Er zijn geen wijzigingen aan Wiser items om te synchroniseren.</td>
+												<td colspan="5">Er zijn geen wijzigingen aan Coder items om te synchroniseren.</td>
 											</tr>
 										</tbody>
 										<tbody v-else>
@@ -554,7 +545,7 @@
                             </div>
 
                             <div class="col col-12 form-row no-bottom-margin">
-                                <label>Selecteer te synchroniseren Wiser inrichting</label>
+                                <label>Selecteer te synchroniseren Coder inrichting</label>
                             </div>
 							<div class="col col-12 table-row no-top-margin">
 								<div class="fixed-table">
@@ -570,7 +561,7 @@
 										</thead>
 										<tbody v-if="!branchChanges || !branchChanges.settings || !branchChanges.settings.length">
 											<tr>
-												<td colspan="5">Er zijn geen wijzigingen aan Wiser inrichting om te synchroniseren.</td>
+												<td colspan="5">Er zijn geen wijzigingen aan Coder inrichting om te synchroniseren.</td>
 											</tr>
 										</tbody>
 										<tbody v-else>
@@ -805,7 +796,7 @@
                                 <span>Templates</span>
                                 break;
                             case CacheAreas.WiserItems:
-                                <span>Wiser items</span>
+                                <span>Coder items</span>
                                 break;
                             case CacheAreas.ShoppingBaskets:
                                 <span>Winkelmandjes</span>
@@ -856,7 +847,7 @@
 <script type="text/html" id="login-template">
     <section>
         <form id="loginForm" class="login-screen" method="post" @@submit="login">
-            <div class="logo"><img src="/img/logo-wiser-login.png" alt=""></div>
+            <div class="logo"><img src="/img/logo-wiser-login.png" alt="" style="display: none;"></div>
             <section class="full-error" v-if="message">
                 <ins class="icon-line-alert"></ins>
                 <span>{{ message }}</span>
@@ -960,11 +951,11 @@
 
 <script type="text/html" id="tenant-management-template">
     <div :class="{ loading: loading, 'form-inline': true, 'new-tenant-form': true }">
-        <h1>Nieuwe Wiser account toevoegen...</h1>
+        <h1>Nieuwe Coder account toevoegen...</h1>
         <p class="success" v-if="currentStep === 'end'">
             De klant is successvol aangemaakt en heeft als ID '<em>{{ createTenantResult.data.id }}</em>' gekregen.<br />
-            De URL voor Wiser Live is geworden: <a :href="'https://' + newTenantData.subDomain + '.wiser3.nl/'" target="_blank">{{newTenantData.subDomain}}.wiser3.nl</a>.<br />
-            De URL voor Wiser dev is geworden: <a :href="'http://' + newTenantData.subDomain + '.wiser3.juicedev.nl/'" target="_blank">{{newTenantData.subDomain}}.wiser3.juicedev.nl</a>.
+            De URL voor Coder Live is geworden: <a :href="'https://' + newTenantData.subDomain + '.coder.nl/'" target="_blank">{{newTenantData.subDomain}}.coder.nl</a>.<br />
+            De URL voor Coder dev is geworden: <a :href="'http://' + newTenantData.subDomain + '.wiser3.juicedev.nl/'" target="_blank">{{newTenantData.subDomain}}.wiser3.juicedev.nl</a>.
         </p>
         <p v-if="newTenantData.createNewDatabase">Verder zijn nog de volgende databasegebruikers aangemaakt:</p>
         <p v-else>Je hebt de volgende databasegebruiker ingevuld:</p>
@@ -987,9 +978,9 @@
                 </div>
 
                 <div class="form-row">
-                    <label for="subDomain">Wat is het subdomein dat gebruikt moet worden voor Wiser?</label>
-                    <input type="text" id="subDomain" autocomplete="off" autofocus="autofocus" autocapitalize="none" v-model="newTenantData.subDomain" required :class="{ error: errors.indexOf('SubDomainNotAvailable') > -1, small: true }" placeholder="happygeeks"><span class="hint">.wiser.nl</span>
-                    <p class="hint">Het subdomein van Wiser wat gebruikt moet gaan worden om in te loggen voor deze klant. Voer hier alleen het subdomein in, met kleine letters, bijvoorbeeld "happygeeks". Deze klant kan dan beheerd worden via happygeeks.wiser3.nl.</p>
+                    <label for="subDomain">Wat is het subdomein dat gebruikt moet worden voor Coder?</label>
+                    <input type="text" id="subDomain" autocomplete="off" autofocus="autofocus" autocapitalize="none" v-model="newTenantData.subDomain" required :class="{ error: errors.indexOf('SubDomainNotAvailable') > -1, small: true }" placeholder="invista"><span class="hint">.coder.nl</span>
+                    <p class="hint">Het subdomein van Coder wat gebruikt moet gaan worden om in te loggen voor deze klant. Voer hier alleen het subdomein in, met kleine letters, bijvoorbeeld "invista". Deze klant kan dan beheerd worden via invista.coder.nl.</p>
                 </div>
                 <div class="form-row error-row" v-if="errors.indexOf('SubDomainNotAvailable') > -1">
                     <ins class="icon-line-alert"></ins>
@@ -1149,13 +1140,5 @@
 
 <webpack-script file-name="runtime.js"></webpack-script>
 <webpack-script file-name="vendors.js"></webpack-script>
-<webpack-script file-name="kendo-intl.js"></webpack-script>
-<webpack-script file-name="kendo-vue-common.js"></webpack-script>
-<webpack-script file-name="kendo-popup-common.js"></webpack-script>
-<webpack-script file-name="kendo-vue-buttons.js"></webpack-script>
-<webpack-script file-name="kendo-vue-dropdowns.js"></webpack-script>
-<webpack-script file-name="kendo-vue-intl.js"></webpack-script>
-<webpack-script file-name="kendo-vue-animation.js"></webpack-script>
-<webpack-script file-name="kendo-vue-popup.js"></webpack-script>
-<webpack-script file-name="kendo-svg-icons.js"></webpack-script>
+<webpack-script file-name="Utils.js"></webpack-script>
 <webpack-script file-name="main.js"></webpack-script>

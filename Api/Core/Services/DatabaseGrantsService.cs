@@ -88,6 +88,9 @@ namespace Api.Core.Services
         {
             await databaseHelpersService.CheckAndUpdateTablesAsync(new List<string> { WiserTableNames.WiserGrantStore });
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            
+            // Overwrite the expiration time for the refresh token.
+            grant.Expiration = DateTime.UtcNow.AddDays(7);
 
             clientDatabaseConnection.ClearParameters();
             clientDatabaseConnection.AddParameter("key", grant.Key);

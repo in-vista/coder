@@ -112,14 +112,16 @@ namespace Api.Modules.Items.Services
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<PagedResults<FlatItemModel>>> GetItemsAsync(ClaimsIdentity identity, PagedRequest pagedRequest = null, bool useFriendlyPropertyNames = true, WiserItemModel filters = null)
+        public async Task<ServiceResult<PagedResults<FlatItemModel>>> GetItemsAsync(ClaimsIdentity identity, GetItemsInputModel input)
         {
-            pagedRequest ??= new PagedRequest();
+            input ??= new GetItemsInputModel();
 
-            if (pagedRequest.PageSize > 500)
+            input.PageSize = input.PageSize switch
             {
-                pagedRequest.PageSize = 500;
-            }
+                > 500 => 500,
+                <= 0 => 100,
+                _ => input.PageSize
+            };
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
 
@@ -129,50 +131,39 @@ namespace Api.Modules.Items.Services
 
             var whereClause = new List<string>();
             var extraJoins = new StringBuilder();
-            if (filters != null)
+            if (!String.IsNullOrWhiteSpace(input.Title))
             {
-                if (!String.IsNullOrWhiteSpace(filters.Title))
-                {
-                    whereClause.Add("item.title = ?title");
-                    clientDatabaseConnection.AddParameter("title", filters.Title);
-                }
+                whereClause.Add("item.title = ?title");
+                clientDatabaseConnection.AddParameter("title", input.Title);
+            }
 
-                if (!String.IsNullOrWhiteSpace(filters.EntityType))
+            if (input.Details != null && input.Details.Any())
+            {
+                for (var index = 0; index < input.Details.Count; index++)
                 {
-                    whereClause.Add("item.entity_type = ?entityType");
-                    clientDatabaseConnection.AddParameter("entityType", filters.EntityType);
-                }
-
-                if (filters.Details != null && filters.Details.Any())
-                {
-                    for (var index = 0; index < filters.Details.Count; index++)
+                    var detail = input.Details[index];
+                    if (String.IsNullOrWhiteSpace(detail?.Key))
+                        continue;
+                    
+                    clientDatabaseConnection.AddParameter($"key{index}", detail.Key);
+                    extraJoins.Append($"JOIN {WiserTableNames.WiserItemDetail} AS d{index} ON d{index}.item_id = item.id AND d{index}.`key` = ?key{index}");
+                    if (!String.IsNullOrWhiteSpace(detail.LanguageCode))
                     {
-                        var detail = filters.Details[index];
-                        if (String.IsNullOrWhiteSpace(detail?.Key))
-                        {
-                            continue;
-                        }
-
-                        clientDatabaseConnection.AddParameter($"key{index}", detail.Key);
-                        extraJoins.Append($"JOIN {WiserTableNames.WiserItemDetail} AS d{index} ON d{index}.item_id = item.id AND d{index}.`key` = ?key{index}");
-                        if (!String.IsNullOrWhiteSpace(detail.LanguageCode))
-                        {
-                            clientDatabaseConnection.AddParameter($"languageCode{index}", detail.LanguageCode);
-                            extraJoins.Append($" AND d{index}.language_code = ?languageCode{index}");
-                        }
-                        if (!String.IsNullOrWhiteSpace(detail.Value?.ToString()))
-                        {
-                            clientDatabaseConnection.AddParameter($"value{index}", detail.Value);
-                            extraJoins.Append($" AND (d{index}.value = ?value{index} OR d{index}.long_value = ?value{index})");
-                        }
-                        if (!String.IsNullOrWhiteSpace(detail.GroupName))
-                        {
-                            clientDatabaseConnection.AddParameter($"groupName{index}", detail.GroupName);
-                            extraJoins.Append($" AND d{index}.groupName = ?groupName{index}");
-                        }
-
-                        extraJoins.AppendLine();
+                        clientDatabaseConnection.AddParameter($"languageCode{index}", detail.LanguageCode);
+                        extraJoins.Append($" AND d{index}.language_code = ?languageCode{index}");
                     }
+                    if (!String.IsNullOrWhiteSpace(detail.Value))
+                    {
+                        clientDatabaseConnection.AddParameter($"value{index}", detail.Value);
+                        extraJoins.Append($" AND (d{index}.value = ?value{index} OR d{index}.long_value = ?value{index})");
+                    }
+                    if (!String.IsNullOrWhiteSpace(detail.GroupName))
+                    {
+                        clientDatabaseConnection.AddParameter($"groupName{index}", detail.GroupName);
+                        extraJoins.Append($" AND d{index}.groupName = ?groupName{index}");
+                    }
+
+                    extraJoins.AppendLine();
                 }
             }
 
@@ -198,20 +189,24 @@ namespace Api.Modules.Items.Services
                                 {(!whereClause.Any() ? "" : $"AND {String.Join(" AND ", whereClause)}")}";
 
             var dataTable = await clientDatabaseConnection.GetAsync(countQuery);
-            pagedResult.TotalNumberOfRecords = Convert.ToInt32(dataTable.Rows[0]["totalResults"]);
-            pagedResult.TotalNumberOfPages = Convert.ToInt32(Math.Ceiling((decimal)pagedResult.TotalNumberOfRecords / pagedRequest.PageSize));
-            pagedResult.PageNumber = pagedRequest.Page;
-            pagedResult.PageSize = pagedRequest.PageSize;
-
-            // TODO: Improve adding of query parameters.
-            var currentUrl = HttpContextHelpers.GetOriginalRequestUri(httpContextAccessor.HttpContext);
-            if (pagedResult.TotalNumberOfPages > pagedRequest.Page)
+            pagedResult.TotalNumberOfPages = Convert.ToInt32(Math.Ceiling((decimal)pagedResult.TotalNumberOfRecords / input.PageSize));
+            pagedResult.PageNumber = input.Page;
+            pagedResult.PageSize = input.PageSize;
+            
+            // Build the next and previous page URLs.
+            var uriBuilder = HttpContextHelpers.GetOriginalRequestUriBuilder(httpContextAccessor.HttpContext);
+            var queryBuilder = HttpUtility.ParseQueryString(uriBuilder.Query);
+            if (pagedResult.TotalNumberOfPages > input.Page)
             {
-                pagedResult.NextPageUrl = $"{currentUrl.Scheme}://{currentUrl.Authority}/api/v3/items?page={pagedRequest.Page + 1}&pageSize={pagedRequest.PageSize}&useFriendlyPropertyNames={useFriendlyPropertyNames}{(String.IsNullOrWhiteSpace(filters?.Title) ? "" : $"&title={filters.Title}")}{(String.IsNullOrWhiteSpace(filters?.EntityType) ? "" : $"&entityType={filters.EntityType}")}";
+                queryBuilder["page"] = (input.Page + 1).ToString();
+                uriBuilder.Query = queryBuilder.ToString() ?? String.Empty;
+                pagedResult.NextPageUrl = uriBuilder.Uri.ToString();
             }
-            if (pagedRequest.Page > 1)
+            if (input.Page > 1)
             {
-                pagedResult.PreviousPageUrl = $"{currentUrl.Scheme}://{currentUrl.Authority}/api/v3/items?page={pagedRequest.Page - 1}&pageSize={pagedRequest.PageSize}&useFriendlyPropertyNames={useFriendlyPropertyNames}{(String.IsNullOrWhiteSpace(filters?.Title) ? "" : $"&title={filters.Title}")}{(String.IsNullOrWhiteSpace(filters?.EntityType) ? "" : $"&entityType={filters.EntityType}")}";
+                queryBuilder["page"] = (input.Page - 1).ToString();
+                uriBuilder.Query = queryBuilder.ToString() ?? String.Empty;
+                pagedResult.PreviousPageUrl = uriBuilder.Uri.ToString();
             }
 
             var query = $@"
@@ -258,7 +253,7 @@ namespace Api.Modules.Items.Services
 
                     GROUP BY item.id
 					ORDER BY IFNULL(item.changed_on, item.added_on) DESC
-                    LIMIT {(pagedRequest.Page - 1) * pagedRequest.PageSize}, {pagedRequest.PageSize}
+                    LIMIT {(input.Page - 1) * input.PageSize}, {input.PageSize}
                 ) AS x
                 LEFT JOIN {WiserTableNames.WiserEntityProperty} AS property ON property.entity_name = x.entity_type AND property.inputtype NOT IN ('file-upload', 'querybuilder', 'grid', 'button', 'image-upload', 'sub-entities-grid', 'item-linker', 'linked-item', 'action-button', 'data-selector', 'chart', 'scheduler', 'timeline', 'empty', 'qr')
                 LEFT JOIN {WiserTableNames.WiserItemDetail} AS field ON field.item_id = x.id AND field.`key` = IFNULL(property.property_name, property.display_name) AND field.language_code = property.language_code
@@ -303,7 +298,7 @@ namespace Api.Modules.Items.Services
                     }
                 
                     var name = field.DisplayName;
-                    if (String.IsNullOrWhiteSpace(name) || !useFriendlyPropertyNames)
+                    if (String.IsNullOrWhiteSpace(name) || !input.UseFriendlyPropertyNames)
                     {
                         name = field.Key;
                     }
@@ -750,7 +745,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         await clientDatabaseConnection.ExecuteAsync("UNLOCK TABLES");
                     }
                     
-                    // Set the environment on the branch. This will add an entry to the history to activate the item on production after a merge has been performed.
+                    // Set the environment on the branch. This will add an entry to the history to activate the item on production after a merge has been performed. 
                     newItem.PublishedEnvironment = Environments.Development | Environments.Test | Environments.Acceptance | Environments.Live;
                     await wiserItemsService.UpdateAsync(newItem.Id, newItem, userId: userId, username: username, encryptionKey: encryptionKey, createNewTransaction: false, skipPermissionsCheck: true);
                     
@@ -1070,7 +1065,15 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 value = decimalValue.ToString(new CultureInfo("en-US"));
                                 break;
                             case JArray jArrayValue:
-                                value = String.Join(",", jArrayValue.Values<string>());
+                                try
+                                {
+                                    value = String.Join(",", jArrayValue.Values<string>());
+                                }
+                                catch
+                                {
+                                    value = jArrayValue.ToString();
+                                }
+                                
                                 break;
                             default:
                                 value = parameter.Value.ToString().ToMySqlSafeValue(false);
@@ -1081,6 +1084,9 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                     actionQuery = actionQuery.Replace($"{{{parameter.Key.ToMySqlSafeValue(false)}}}", value.ToMySqlSafeValue(false), StringComparison.OrdinalIgnoreCase);
                 }
             }
+            
+            // Perform replacement for extra parameters.
+            actionQuery = stringReplacementsService.DoReplacements(actionQuery, extraParameters, forQuery: true);
 
             // Do replacements on the data query with the details of the current item.
             if (dataTable.Rows.Count > 0)
@@ -1167,7 +1173,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<ItemHtmlAndScriptModel>> GetItemHtmlAsync(string encryptedId, ClaimsIdentity identity, string propertyIdSuffix = null, ulong itemLinkId = 0, string entityType = null, int linkType = 0)
+        public async Task<ServiceResult<ItemHtmlAndScriptModel>> GetItemHtmlAsync(string encryptedId, bool isNew, ClaimsIdentity identity, string propertyIdSuffix = null, ulong itemLinkId = 0, string entityType = null, int linkType = 0, int propertyId = 0)
         {
             var results = new ItemHtmlAndScriptModel();
             var userId = IdentityHelpers.GetWiserUserId(identity);
@@ -1222,7 +1228,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
     	                            e.save_on_change, files.JSON AS filesJSON, 0 AS itemLinkId, e.regex_validation, e.mandatory, e.language_code,
     	                            # A user can have multiple roles. So we need to check if they have at least one role that has update rights. If it doesn't, then the field should be readonly.
     	                            IF(e.readonly > 0 OR i.readonly > 0 OR SUM(IF(permission.permissions IS NULL OR (permission.permissions & 4) > 0, 1, 0)) = 0, TRUE, FALSE) AS readonly,
-    	                            e.custom_script, permission.permissions, i.readonly AS itemIsReadOnly, e.visibility_path_regex
+    	                            e.custom_script, permission.permissions, i.readonly AS itemIsReadOnly, e.visibility_path_regex, e.enable_aggregation
                                 FROM {WiserTableNames.WiserEntityProperty} e
                                 JOIN {tablePrefix}{WiserTableNames.WiserItem}{{0}} i ON i.id = ?itemId AND i.entity_type = e.entity_name
                                 LEFT JOIN {WiserTableNames.WiserFieldTemplates} t ON t.field_type = e.inputtype
@@ -1244,7 +1250,9 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                     WHERE userRole.user_id = ?userId
                                 ) permission ON permission.entity_property_id = e.id OR permission.entity_property_id IS NULL
 
-                                WHERE permission.permissions IS NULL OR permission.permissions > 0
+                                WHERE (permission.permissions IS NULL OR permission.permissions > 0)
+                                {(propertyId > 0 ? $"AND e.id={propertyId.ToString()}" : "")}
+
                                 GROUP BY id
                                 
                                 UNION ALL
@@ -1255,7 +1263,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
     	                            e.save_on_change, files.JSON AS filesJSON, il.id AS itemLinkId, e.regex_validation, e.mandatory, e.language_code,
     	                            # A user can have multiple roles. So we need to check if they have at least one role that has update rights. If it doesn't, then the field should be readonly.
     	                            IF(e.readonly > 0 OR SUM(IF(permission.permissions IS NULL OR (permission.permissions & 4) > 0, 1, 0)) = 0, TRUE, FALSE) AS readonly, 
-    	                            e.custom_script, permission.permissions, i.readonly AS itemIsReadOnly, e.visibility_path_regex
+    	                            e.custom_script, permission.permissions, i.readonly AS itemIsReadOnly, e.visibility_path_regex, e.enable_aggregation
                                 FROM {WiserTableNames.WiserEntityProperty} e
                                 JOIN {tablePrefix}{WiserTableNames.WiserItem}{{0}} i ON i.id = ?itemId
                                 JOIN {linkTablePrefix}{WiserTableNames.WiserItemLink}{{0}} il ON il.id = ?itemLinkId AND il.type = e.link_type
@@ -1279,6 +1287,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 ) permission ON permission.entity_property_id = e.id OR permission.entity_property_id IS NULL
 
                                 WHERE e.link_type > 0 AND (permission.permissions IS NULL OR permission.permissions > 0)
+                                {(propertyId > 0 ? $"AND e.id={propertyId.ToString()}" : "")}
+
                                 GROUP BY id
                                 
                                 ORDER BY ordering";
@@ -1310,6 +1320,30 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             var tenant = await wiserTenantsService.GetSingleAsync(identity);
             var encryptionKey = tenant.ModelObject.EncryptionKey;
 
+            // New aggregation method, check if any of the fields are aggregated, if so fill the values from the item table
+            if (dataTable.AsEnumerable().Any(row => Convert.ToInt32(row["enable_aggregation"]) == 2))
+            {
+                //TODO:get only the selection of fields in this query
+                clientDatabaseConnection.ClearParameters();
+                clientDatabaseConnection.AddParameter("itemId", itemId);
+                var itemQuery = $@"SET SESSION group_concat_max_len = 1000000;
+                                SELECT *
+                                FROM {tablePrefix}{WiserTableNames.WiserItem}{{0}} i
+                                WHERE i.id = ?itemId";
+                var aggregatedFieldsTable = await clientDatabaseConnection.GetAsync(String.Format(itemQuery, (itemIsFromArchive ? WiserTableNames.ArchiveSuffix : "")), skipCache:true);
+                
+                //Neem velden over
+                var rowsToUpdate = dataTable.AsEnumerable()
+                    .Where(row => Convert.ToInt32(row["enable_aggregation"]) == 2)
+                    .Where(row => aggregatedFieldsTable.Columns.Contains(row.Field<string>("property_name")));
+                
+                foreach (var row in rowsToUpdate)
+                {
+                    var fieldName = row.Field<string>("property_name");
+                    row["value"] = aggregatedFieldsTable.Rows[0][fieldName]; //TODO:check gaat dit goed bij grote velden > 1000 tekens?
+                }
+            }
+            
             var dataRows = dataTable.Rows;
             var fieldTemplates = new Dictionary<string, string>();
             foreach (DataRow dataRow in dataRows)
@@ -1443,7 +1477,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 var longValue = dataRow.Field<string>("long_value");
                 var value = dataRow.Field<string>("value");
                 var defaultValue = dataRow.Field<string>("default_value") ?? "";
-                var propertyId = dataRow.Field<int>("id");
+                propertyId = dataRow.Field<int>("id");
                 var width = dataRow.Field<short>("width");
                 var height = dataRow.Field<short>("height");
                 var regExValidation = dataRow.Field<string>("regex_validation");
@@ -1469,6 +1503,9 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 var extraAttributes = "";
                 var containerCss = dataRow.Field<string>("css") ?? "";
                 var elementCss = "";
+                var fieldContainerCss = "";
+                var fieldErrorContainerCss = "";
+                var fieldErrorMessage = "";
                 var inputType = GclCoreConstants.DefaultInputType;
 
                 // Setup any extra attributes.
@@ -1610,14 +1647,9 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
 
                 // Setup any extra CSS for the field.
                 if (width > 0)
-                {
-                    containerCss = $"width: {width}%;";
-                }
-
+                    containerCss = $"width: {width}%;{containerCss}";
                 if (height > 0)
-                {
                     elementCss = $"height: {height}px;";
-                }
 
                 // Certain fields can be setup so that their value will be saved in wiser_itemlink, instead of wiser_itemdetail. we need to check for that here.
                 if (optionsObject.ContainsKey("saveValueAsItemLink") && optionsObject.Value<bool>("saveValueAsItemLink"))
@@ -1626,20 +1658,58 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                     var linkTypeNumber = optionsObject.Value<int>("linkTypeNumber");
                     var limit = fieldType.Equals("combobox") ? "LIMIT 1" : "";
                     var linkTablePrefixForSaving = await wiserItemsService.GetTablePrefixForLinkAsync(linkTypeNumber);
+                    var linkSettings = linkTypeNumber > 0 ? await wiserItemsService.GetLinkTypeSettingsAsync(linkTypeNumber) : new LinkSettingsModel();
 
-                    var linkValueQuery = $@"SELECT {(currentItemIsDestinationId ? "item_id" : "destination_item_id")} AS result
-                                            FROM {linkTablePrefixForSaving}{WiserTableNames.WiserItemLink} 
-                                            WHERE {(currentItemIsDestinationId ? "destination_item_id" : "item_id")} = ?itemId 
-                                            AND type = ?linkTypeNumber
-                                            {limit}";
+                    if (fieldType.Equals("multiselect", StringComparison.OrdinalIgnoreCase) && currentItemIsDestinationId && linkSettings.UseItemParentId)
+                    {
+                        // Impossible combination.
+                        fieldContainerCss = "display: none;";
+                        fieldErrorMessage = "Het is niet mogelijk om een multiselect veld te gebruiken met de huidige instellingen.";
+                    }
+                    else
+                    {
+                        fieldErrorContainerCss = "display: none;";
+                        fieldErrorMessage = "";
+                    }
+
+                    string linkValueQuery;
+
+                    if (linkSettings.UseItemParentId)
+                    {
+                        linkValueQuery = $"""
+                                          SELECT {(currentItemIsDestinationId ? "id" : "parent_item_id")} AS result
+                                          FROM {linkTablePrefixForSaving}{WiserTableNames.WiserItem}
+                                          WHERE {(currentItemIsDestinationId ? "parent_item_id" : "id")} = ?itemId AND entity_type = ?entityType
+                                          {limit}
+                                          """;
+                    }
+                    else
+                    {
+                        linkValueQuery = $"""
+                                          SELECT {(currentItemIsDestinationId ? "item_id" : "destination_item_id")} AS result
+                                          FROM {linkTablePrefixForSaving}{WiserTableNames.WiserItemLink} 
+                                          WHERE {(currentItemIsDestinationId ? "destination_item_id" : "item_id")} = ?itemId 
+                                          AND type = ?linkTypeNumber
+                                          {limit}
+                                          """;
+                    }
 
                     clientDatabaseConnection.ClearParameters();
                     clientDatabaseConnection.AddParameter("itemId", itemId);
                     clientDatabaseConnection.AddParameter("linkTypeNumber", linkTypeNumber);
+                    clientDatabaseConnection.AddParameter("entityType", currentItemIsDestinationId ? linkSettings.SourceEntityType : linkSettings.DestinationEntityType);
                     dataTable = await clientDatabaseConnection.GetAsync(linkValueQuery);
                     if (dataTable.Rows.Count > 0)
                     {
-                        var values = dataTable.Rows.Cast<DataRow>().Select(linkedItemDataRow => linkedItemDataRow.Field<long>("result").ToString()).ToList();
+                        var rawValues = dataTable.Rows.Cast<DataRow>().Select(linkedItemDataRow => linkedItemDataRow["result"].ToString()).ToList();
+                        var values = new List<ulong>();
+                        foreach (var rawValue in rawValues)
+                        {
+                            if (UInt64.TryParse(rawValue, out var parsedValue))
+                            {
+                                values.Add(parsedValue);
+                            }
+                        }
 
                         defaultValue = String.Join(",", values);
                     }
@@ -1666,6 +1736,9 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 // Encrypt certain values in options JSON.
                 jsonService.EncryptValuesInJson(optionsObject, encryptionKey);
                 options = optionsObject.ToString(Formatting.None);
+                
+                // Retrieve the "Pro6PP" field value.
+                string pro6PPField = optionsObject.ContainsKey("Pro6PPField") ? optionsObject["Pro6PPField"].ToString() : null;
 
                 defaultValue = defaultValue.Replace("{itemId}", itemId.ToString()).Replace("{userId}", userId.ToString());
 
@@ -1704,8 +1777,13 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                             String.IsNullOrWhiteSpace(propertyName) ? displayName ?? "" : propertyName.Trim())
                         .Replace("{extraAttribute}", extraAttributes)
                         .Replace("{itemId}", itemId.ToString())
+                        .Replace("{isNew}", isNew.ToString().ToLower())
+                        .Replace("{style}", containerCss)
+                        .Replace("{fieldContainerStyle}", fieldContainerCss)
+                        .Replace("{fieldErrorContainerStyle}", fieldErrorContainerCss)
                         .Replace("{style}", containerCss)
                         .Replace("{elementStyle}", elementCss)
+                        .Replace("{fieldErrorMessage}", fieldErrorMessage)
                         .Replace("{itemIdEncrypted}", encryptedId.Replace(" ", "+"))
                         .Replace("{dependsOnField}", dataRow.Field<string>("depends_on_field") ?? "")
                         .Replace("{dependsOnOperator}", dataRow.Field<string>("depends_on_operator") ?? "")
@@ -1736,7 +1814,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         .Replace("{entityType}", entityType)
                         .Replace("{default_value}", valueToReplace)
                         .Replace("{subDomain}", subDomain)
-                        .Replace("{baseUrl}", requestBaseUrl);
+                        .Replace("{baseUrl}", requestBaseUrl)
+                        .Replace("{pro6pp}", pro6PPField);
                 }
 
                 // Replace values in javascript template.
@@ -1757,6 +1836,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         .Replace("{propertyIdWithSuffix}", propertyId + (propertyIdSuffix ?? ""))
                         .Replace("{propertyIdSuffix}", propertyIdSuffix ?? "")
                         .Replace("{itemId}", itemId.ToString())
+                        .Replace("{isNew}", isNew.ToString().ToLower())
                         .Replace("{itemIdEncrypted}", encryptedId.Replace(" ", "+"))
                         .Replace("{moduleId}", (dataRow.Field<short?>("module_id") ?? 0).ToString())
                         .Replace("{options}", String.IsNullOrWhiteSpace(options) ? "{}" : options)
@@ -2210,7 +2290,7 @@ SELECT entity_type FROM {tableName}_archive WHERE id = ?itemId";
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<List<TreeViewItemModel>>> GetItemsForTreeViewAsync(int moduleId, ClaimsIdentity identity, string entityType = null, string encryptedParentId = null, string orderBy = null, string encryptedCheckId = null, int linkType = 0)
+        public async Task<ServiceResult<List<TreeViewItemModel>>> GetItemsForTreeViewAsync(int moduleId, ClaimsIdentity identity, string parentEntityType = null, string encryptedParentId = null, string orderBy = null, string encryptedCheckId = null, int linkType = 0, string childEntityTypes = null)
         {
             if (moduleId <= 0)
             {
@@ -2228,7 +2308,19 @@ SELECT entity_type FROM {tableName}_archive WHERE id = ?itemId";
             var userId = IdentityHelpers.GetWiserUserId(identity);
             var results = new List<TreeViewItemModel>();
             var checkId = String.IsNullOrWhiteSpace(encryptedCheckId) ? 0 : wiserTenantsService.DecryptValue<ulong>(encryptedCheckId, tenant);
+            
+            var parentEntitySettings = await wiserItemsService.GetEntityTypeSettingsAsync(parentEntityType ?? String.Empty, moduleId);
+            var parentTablePrefix = wiserItemsService.GetTablePrefixForEntity(parentEntitySettings);
+            
+            var firstChild = parentEntitySettings.AcceptedChildTypes.FirstOrDefault();
+            if (firstChild is null)
+            {
+                return new ServiceResult<List<TreeViewItemModel>>();
+            }
 
+            var childEntitySettings = await wiserItemsService.GetEntityTypeSettingsAsync(firstChild, moduleId);
+            var tablePrefix = wiserItemsService.GetTablePrefixForEntity(childEntitySettings);
+            
             var allLinkTypeSettings = await wiserItemsService.GetAllLinkTypeSettingsAsync();
             var linkTypesToHideFromTreeView = allLinkTypeSettings.Where(x => !x.ShowInTreeView).Select(x => x.Type).ToList();
             if (!linkTypesToHideFromTreeView.Any())
@@ -2238,42 +2330,27 @@ SELECT entity_type FROM {tableName}_archive WHERE id = ?itemId";
             }
 
             var linkTypesToHideFromTreeViewList = String.Join(",", linkTypesToHideFromTreeView);
+            
+            // Figure out which items have children, so the tree view knows where to show arrows for expanding items.
+            // We used to do this in the original queries above, but with the new option of linking items via parent_item_id from wiser_item, instead of via wiser_itemlink,
+            // this got a lot more complicated and the original queries got too slow when adding all that to them.
+            // So now we have a separate query just to check which items have children.
+            
+            var firstSubChild = childEntitySettings.AcceptedChildTypes.FirstOrDefault();
 
-            // Inline function to convert a DataRow to a TreeViewItemModel and add it to the results list.
-            void AddItem(DataRow dataRow)
+            if (firstSubChild is null)
             {
-                var itemId = dataRow.Field<ulong>("id");
-                var originalItemId = dataRow.Field<ulong>("original_item_id");
-
-                if (results.Any(item => item.PlainItemId == itemId))
-                {
-                    return;
-                }
-
-                results.Add(new TreeViewItemModel
-                {
-                    EntityType = dataRow.Field<string>("entity_type"),
-                    Title = dataRow.Field<string>("name"),
-                    AcceptedChildTypes = dataRow.Field<string>("accepted_childtypes"),
-                    CollapsedSpriteCssClass = dataRow.Field<string>("icon"),
-                    EncryptedItemId = wiserTenantsService.EncryptValue(itemId, tenant),
-                    EncryptedOriginalItemId = wiserTenantsService.EncryptValue(originalItemId, tenant),
-                    ExpandedSpriteCssClass = dataRow.Field<string>("icon_expanded"),
-                    NodeCssClass = dataRow.Field<string>("nodeCssClass"),
-                    PlainItemId = itemId,
-                    PlainOriginalItemId = originalItemId,
-                    OriginalParentId = parentId,
-                    DestinationItemId = wiserTenantsService.EncryptValue(parentId, tenant),
-                    Checked = Convert.ToInt32(dataRow["checked"]) > 0
-                });
+                return new ServiceResult<List<TreeViewItemModel>>(results);
             }
 
+            var childPrefix = await wiserItemsService.GetTablePrefixForEntityAsync(firstSubChild);
+            
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
             clientDatabaseConnection.ClearParameters();
             clientDatabaseConnection.AddParameter("moduleId", moduleId);
             clientDatabaseConnection.AddParameter("userId", userId);
             clientDatabaseConnection.AddParameter("parentId", parentId);
-            clientDatabaseConnection.AddParameter("entityType", entityType ?? "");
+            clientDatabaseConnection.AddParameter("childEntityTypes", childEntityTypes ?? "");
             clientDatabaseConnection.AddParameter("checkId", checkId);
 
             var orderByClause = "IF(item.title IS NULL OR item.title = '', item.id, item.title) ASC";
@@ -2311,7 +2388,7 @@ LEFT JOIN {WiserTableNames.WiserItemLink} AS checked ON checked.item_id = item.i
     {(checkId > 0 ? "IF(checked.id IS NULL, 0, 1)" : "0")} AS checked
 
 # Get the items linked to the parent.
-FROM {WiserTableNames.WiserItem} AS item
+FROM {tablePrefix}{WiserTableNames.WiserItem} AS item
 JOIN {WiserTableNames.WiserEntity} AS entity ON entity.name = item.entity_type AND entity.show_in_tree_view = 1
 LEFT JOIN {WiserTableNames.WiserEntity} AS entityModule ON entityModule.name = item.entity_type AND entityModule.show_in_tree_view = 1 AND entityModule.module_id = item.moduleid
 JOIN {WiserTableNames.WiserItemLink} AS link_parent ON link_parent.item_id = item.id AND link_parent.destination_item_id = ?parentId AND link_parent.type NOT IN ({linkTypesToHideFromTreeViewList})
@@ -2321,12 +2398,12 @@ LEFT JOIN {WiserTableNames.WiserUserRoles} AS user_role ON user_role.user_id = ?
 LEFT JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = user_role.role_id AND permission.item_id = item.id
 
 # Only get items that should actually be shown, based on accepted_childtypes from wiser_entity.
-LEFT JOIN {WiserTableNames.WiserItem} parent_item ON parent_item.id = link_parent.destination_item_id
+LEFT JOIN {parentTablePrefix}{WiserTableNames.WiserItem} parent_item ON parent_item.id = link_parent.destination_item_id
 JOIN {WiserTableNames.WiserEntity} AS parent_entity ON ((link_parent.destination_item_id = 0 AND parent_entity.`name` = '') OR parent_entity.`name` = parent_item.entity_type) AND (parent_entity.accepted_childtypes = '' OR FIND_IN_SET(item.entity_type, parent_entity.accepted_childtypes))
 
 {checkIdJoin}
 
-WHERE {(String.IsNullOrWhiteSpace(entityType) ? "TRUE" : $"item.entity_type IN({String.Join(",", entityType.Split(',').Select(x => x.ToMySqlSafeValue(true)))})")}
+WHERE TRUE
 AND item.moduleid = ?moduleId
 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
 GROUP BY IF(item.original_item_id > 0, item.original_item_id, item.id)
@@ -2346,7 +2423,7 @@ ORDER BY {orderByClause}";
             if (parentId > 0)
             {
                 query = $@"SELECT COUNT(*) AS total
-                        FROM {WiserTableNames.WiserItem} AS item
+                        FROM {parentTablePrefix}{WiserTableNames.WiserItem} AS item
                         JOIN {WiserTableNames.WiserLink} AS link ON link.destination_entity_type = item.entity_type AND link.use_item_parent_id = 1
                         WHERE item.id = ?parentId";
             }
@@ -2385,7 +2462,7 @@ ORDER BY {orderByClause}";
     IF(item.parent_item_id > 0 AND item.parent_item_id = ?checkId, 1, 0) AS checked
 
 # Get the items linked to the parent.
-FROM {WiserTableNames.WiserItem} AS item
+FROM {tablePrefix}{WiserTableNames.WiserItem} AS item
 JOIN {WiserTableNames.WiserEntity} AS entity ON entity.name = item.entity_type AND entity.show_in_tree_view = 1
 LEFT JOIN {WiserTableNames.WiserEntity} AS entityModule ON entityModule.name = item.entity_type AND entityModule.show_in_tree_view = 1 AND entityModule.module_id = item.moduleid
 
@@ -2394,14 +2471,14 @@ LEFT JOIN {WiserTableNames.WiserUserRoles} AS user_role ON user_role.user_id = ?
 LEFT JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = user_role.role_id AND permission.item_id = item.id
 
 # Only get items that should actually be shown, based on accepted_childtypes from wiser_entity.
-LEFT JOIN {WiserTableNames.WiserItem} parent_item ON parent_item.id = item.parent_item_id
+LEFT JOIN {parentTablePrefix}{WiserTableNames.WiserItem} parent_item ON parent_item.id = item.parent_item_id
 JOIN {WiserTableNames.WiserEntity} AS parent_entity ON {(parentId == 0 ? "parent_entity.module_id = ?moduleId AND parent_entity.`name` = ''" : "parent_entity.`name` = parent_item.entity_type")} AND (parent_entity.accepted_childtypes = '' OR FIND_IN_SET(item.entity_type, parent_entity.accepted_childtypes))
 
 # Link settings to check if these links should be shown.
 LEFT JOIN {WiserTableNames.WiserLink} AS link_settings ON link_settings.destination_entity_type = parent_item.entity_type AND link_settings.connected_entity_type = item.entity_type
 
 WHERE item.parent_item_id = ?parentId
-AND (?entityType = '' OR FIND_IN_SET(item.entity_type, ?entityType))
+AND (?childEntityTypes = '' OR FIND_IN_SET(item.entity_type, ?childEntityTypes))
 AND item.moduleid = ?moduleId
 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
 AND IFNULL(link_settings.show_in_tree_view, 1) = 1
@@ -2424,22 +2501,18 @@ ORDER BY {orderByClause}";
             {
                 return new ServiceResult<List<TreeViewItemModel>>(results);
             }
-
-            // Figure out which items have children, so the tree view knows where to show arrows for expanding items.
-            // We used to do this in the original queries above, but with the new option of linking items via parent_item_id from wiser_item, instead of via wiser_itemlink,
-            // this got a lot more complicated and the original queries got too slow when adding all that to them.
-            // So now we have a separate query just to check which items have children.
+            
             query = $@"SELECT 
 	                    item.id,
 	                    item.original_item_id,
 	                    IF(COUNT(child.id) > 0 AND COUNT(child_entity.id) > 0 AND SUM(IF(child_entity.id IS NOT NULL, 1, 0)) > 0, 1, 0) AS has_children
 
                     # Get the items linked to the parent.
-                    FROM {WiserTableNames.WiserItem} AS item
+                    FROM {tablePrefix}{WiserTableNames.WiserItem} AS item
                     JOIN {WiserTableNames.WiserEntity} AS entity ON entity.name = item.entity_type AND entity.show_in_tree_view = 1
 
                     JOIN {WiserTableNames.WiserItemLink} link_child ON link_child.destination_item_id = item.id AND link_child.type NOT IN ({linkTypesToHideFromTreeViewList})
-                    JOIN {WiserTableNames.WiserItem} AS child ON child.id = link_child.item_id AND child.moduleid = ?moduleId AND (?entityType = '' OR FIND_IN_SET(child.entity_type, ?entityType))
+                    JOIN {childPrefix}{WiserTableNames.WiserItem} AS child ON child.id = link_child.item_id AND child.moduleid = ?moduleId AND (?childEntityTypes = '' OR FIND_IN_SET(child.entity_type, ?childEntityTypes))
                     JOIN {WiserTableNames.WiserEntity} AS child_entity ON child_entity.name = child.entity_type AND child_entity.show_in_tree_view = 1 AND (entity.accepted_childtypes = '' OR FIND_IN_SET(child.entity_type, entity.accepted_childtypes))
 
                     # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
@@ -2459,11 +2532,11 @@ ORDER BY {orderByClause}";
 	                    IF(COUNT(child.id) > 0 AND COUNT(child_entity.id) > 0 AND SUM(IF(child_entity.id IS NOT NULL AND child_link_settings.show_in_tree_view IS NULL, 1, IFNULL(child_link_settings.show_in_tree_view, 0))) > 0, 1, 0) AS has_children
 
                     # Get the items linked to the parent.
-                    FROM {WiserTableNames.WiserItem} AS item
+                    FROM {tablePrefix}{WiserTableNames.WiserItem} AS item
                     JOIN {WiserTableNames.WiserEntity} AS entity ON entity.name = item.entity_type AND entity.show_in_tree_view = 1
 
                     # Note: The entity_type <> '' is to force the use of the correct index, otherwise the query will be a lot slower.
-                    JOIN {WiserTableNames.WiserItem} AS child ON child.parent_item_id = item.id AND child.entity_type <> '' AND child.moduleid = ?moduleId AND (?entityType = '' OR FIND_IN_SET(child.entity_type, ?entityType))
+                    JOIN {childPrefix}{WiserTableNames.WiserItem} AS child ON child.parent_item_id = item.id AND child.entity_type <> '' AND child.moduleid = ?moduleId AND (?childEntityTypes = '' OR FIND_IN_SET(child.entity_type, ?childEntityTypes))
                     JOIN {WiserTableNames.WiserEntity} AS child_entity ON child_entity.name = child.entity_type AND child_entity.show_in_tree_view = 1 AND (entity.accepted_childtypes = '' OR FIND_IN_SET(child.entity_type, entity.accepted_childtypes))
                     # Link settings to check if these links should be shown.
                     LEFT JOIN {WiserTableNames.WiserLink} AS child_link_settings ON child_link_settings.destination_entity_type = item.entity_type AND child_link_settings.connected_entity_type = child.entity_type
@@ -2504,6 +2577,35 @@ ORDER BY {orderByClause}";
             }
 
             return new ServiceResult<List<TreeViewItemModel>>(results);
+            
+            // Inline function to convert a DataRow to a TreeViewItemModel and add it to the results list.
+            void AddItem(DataRow dataRow)
+            {
+                var itemId = dataRow.Field<ulong>("id");
+                var originalItemId = dataRow.Field<ulong>("original_item_id");
+
+                if (results.Any(item => item.PlainItemId == itemId))
+                {
+                    return;
+                }
+
+                results.Add(new TreeViewItemModel
+                {
+                    EntityType = dataRow.Field<string>("entity_type"),
+                    Title = dataRow.Field<string>("name"),
+                    AcceptedChildTypes = dataRow.Field<string>("accepted_childtypes"),
+                    CollapsedSpriteCssClass = dataRow.Field<string>("icon"),
+                    EncryptedItemId = wiserTenantsService.EncryptValue(itemId, tenant),
+                    EncryptedOriginalItemId = wiserTenantsService.EncryptValue(originalItemId, tenant),
+                    ExpandedSpriteCssClass = dataRow.Field<string>("icon_expanded"),
+                    NodeCssClass = dataRow.Field<string>("nodeCssClass"),
+                    PlainItemId = itemId,
+                    PlainOriginalItemId = originalItemId,
+                    OriginalParentId = parentId,
+                    DestinationItemId = wiserTenantsService.EncryptValue(parentId, tenant),
+                    Checked = Convert.ToInt32(dataRow["checked"]) > 0
+                });
+            }
         }
 
         /// <inheritdoc />
@@ -3061,6 +3163,103 @@ ORDER BY link.ordering ASC, item.title ASC";
             }
 
             return new ServiceResult<List<SearchResponseModel>>(result);
+        }
+        
+        /// <inheritdocs />
+        public async Task<ServiceResult<List<ContextMenuItem>>> GetContextMenuAsync(ClaimsIdentity identity, int moduleId, string encryptedItemId, string entityType)
+        {
+            var item = (await GetItemDetailsAsync(encryptedItemId, identity, entityType)).ModelObject;
+            var userId = IdentityHelpers.GetWiserUserId(identity);
+            var permissions = await wiserItemsService.GetUserItemPermissionsAsync(item.Id, userId, entityType);
+            var settings = await wiserItemsService.GetEntityTypeSettingsAsync(entityType, moduleId);
+
+            var menuItems = new List<ContextMenuItem>();
+
+            if (item.ReadOnly ?? false)
+            {
+                return new ServiceResult<List<ContextMenuItem>>(menuItems);
+            }
+
+            if ((permissions & AccessRights.Update) > 0)
+            {
+                menuItems.Add(new ContextMenuItem
+                {
+                    Text = $"'{item.Title}' hernoemen (F2)",
+                    SpriteCssClass = "icon-rename",
+                    Action = "RENAME_ITEM",
+                    EntityType = item.EntityType
+                });
+            }
+
+            if ((permissions & AccessRights.Create) > 0)
+            {
+                if (settings.AcceptedChildTypes.Count == 1)
+                {
+                    var childEntity = settings.AcceptedChildTypes.First();
+                    var childSettings = await wiserItemsService.GetEntityTypeSettingsAsync(childEntity);
+
+                    menuItems.Add(new ContextMenuItem
+                    {
+                        Text = $"Nieuw(e) '{childEntity}' aanmaken (SHIFT+N)",
+                        SpriteCssClass = childSettings.IconAdd,
+                        Action = "CREATE_ITEM",
+                        EntityType = item.EntityType
+                    });
+                }
+
+                menuItems.Add(new ContextMenuItem
+                {
+                    Text = $"'{item.Title}' dupliceren (SHIFT+D)",
+                    SpriteCssClass = "icon-document-duplicate",
+                    Action = "DUPLICATE_ITEM",
+                    EntityType = item.EntityType
+                });
+            }
+
+            if ((permissions & AccessRights.Update) > 0)
+            {
+                menuItems.Add(new ContextMenuItem
+                {
+                    Text = "Publiceer naar live",
+                    SpriteCssClass = "icon-globe",
+                    Action = "PUBLISH_LIVE",
+                    EntityType = item.EntityType
+                });
+
+                if (item.PublishedEnvironment == 0)
+                {
+                    menuItems.Add(new ContextMenuItem
+                    {
+                        Text = $"{item.Title} tonen",
+                        SpriteCssClass = "item-light-on",
+                        Action = "PUBLISH_ITEM",
+                        EntityType = item.EntityType
+                    });
+                }
+                else
+                {
+                    menuItems.Add(new ContextMenuItem
+                    {
+                        Text = $"{item.Title} verbergen",
+                        SpriteCssClass = "item-light-off",
+                        Action = "HIDE_ITEM",
+                        EntityType = item.EntityType
+                    });
+                }
+            }
+
+            if ((permissions & AccessRights.Delete) > 0)
+            {
+                menuItems.Add(new ContextMenuItem
+                {
+                    Text = $"{item.Title} verwijderen (DEL)",
+                    SpriteCssClass = "icon-delete",
+                    Action = "REMOVE_ITEM",
+                    EntityType = item.EntityType
+                });
+            }
+
+            return new ServiceResult<List<ContextMenuItem>>(menuItems);
         }
 
         /// <summary>

@@ -5,11 +5,11 @@
 <html>
 <head runat="server">
     <meta charset="utf-8" />
-    <title>Wiser 3 - Dashboard</title>
+    <title>Coder 3 - Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="//kendo.cdn.telerik.com/2022.2.621/styles/kendo.common-material.min.css" rel="stylesheet" />
-    <link href="//kendo.cdn.telerik.com/2022.2.621/styles/kendo.material.min.css" rel="stylesheet" />
+    <link href="https://unpkg.com/@@progress/kendo-theme-material@11.1.0/dist/material-main.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-font-icons/dist/index.css" />
 
     <script>
         window.wiserVersion = "@Model.WiserVersion";
@@ -130,7 +130,7 @@
 
                     <!-- container text templates -->
                     <script id="update-log" type="text/x-kendo-template">
-                        <a class="k-button k-button-flat-base k-button-flat k-button-md k-rounded-md k-icon-button k-close-button"><span class="k-button-icon k-icon k-i-close"></span></a>
+                        <a class="k-button k-button-flat-base k-button-flat k-button-md k-rounded-md k-font-icon-button k-close-button"><span class="k-button-icon k-icon k-i-close"></span></a>
                         <div class="tile-content" data-tile="updateLog">
                             <div class="log-item">
                                 <h4>Versie 3.4.28 - 19 augustus 2024</h4>
@@ -152,7 +152,7 @@
 									<li><ins class="icon-check"></ins><span>Branches: verbetering id mapping .</span></li>
 									<li><ins class="icon-check"></ins><span>Branches: items kunnen nu ook main aangemaakt worden vanaf branch .</span></li>
 									<li><ins class="icon-check"></ins><span>Branches: items kunnen nu ook main aangemaakt worden vanaf branch .</span></li>
-									<li><ins class="icon-check"></ins><span>Branches: locking toegeveogd voor wiser tabellen .</span></li>
+									<li><ins class="icon-check"></ins><span>Branches: locking toegeveogd voor Coder tabellen .</span></li>
 									<li><ins class="icon-check"></ins><span>Algemeen: logging voor request en response bodies uitegezet ivm groote logs.</span></li>
 									<li><ins class="icon-check"></ins><span>Algemeen: tif en tiff ondersteuning.</span></li>
 									<li><ins class="icon-check"></ins><span>Algemeen: tif en tiff ondersteuning.</span></li>
@@ -177,7 +177,7 @@
                             <div class="log-item">
                                 <h4>Versie 3.4.24 - 8 juli 2024</h4>
                                 <ul>
-                                    <li><ins class="icon-check"></ins><span>Algemeen: Voortaan worden alle verzoeken naar de Wiser API gelogd in de database.</span></li>
+                                    <li><ins class="icon-check"></ins><span>Algemeen: Voortaan worden alle verzoeken naar de Coder API gelogd in de database.</span></li>
                                     <li><ins class="icon-check"></ins><span>Templatemodule: Probleem opgelost dat dropdowns van sommige opties in componenten niet goed meer werkten.</span></li>
                                     <li><ins class="icon-check"></ins><span>Branches: Wat algemene verbeteringen aan branches gedaan.</span></li>
                                 </ul>
@@ -255,7 +255,7 @@
                                     <li><ins class="icon-check"></ins><span>Probleem opgelost met template model loading.</span></li>
                                     <li><ins class="icon-check"></ins><span>CreateTablesConfigurator script fouten opgelost.</span></li>
                                     <li><ins class="icon-check"></ins><span>Probleem opgelost waar de isadmin waarde overschreven werd met false als een token was verlopen.</span></li>
-                                    <li><ins class="icon-check"></ins><span>Extra info toegevoegd aan het wiser1/2 export window.</span></li>
+                                    <li><ins class="icon-check"></ins><span>Extra info toegevoegd aan het Coder 1/2 export window.</span></li>
                                     <li><ins class="icon-check"></ins><span>Verbeteringen aan de version control module.</span></li>
                                     <li><ins class="icon-check"></ins><span>MySQL command timeouts verlengd.</span></li>
                                     <li><ins class="icon-check"></ins><span>Probleem met shortcuts in HTML-editors opgelost.</span></li>
@@ -268,10 +268,10 @@
                                 <ul>
                                     <li><ins class="icon-check"></ins><span>Algemeen: Probleem opgelost dat downloaden of versturen van PDF's fout ging wanneer de bestandsnaam een cijfer bevat.</span></li>
                                     <li><ins class="icon-check"></ins><span>Import/Export: Probleem opgelost dat bij het importeren er altijd vanuit werd gegaan dat een destination en source item altijd bestond in de tabel.</span></li>
-									<li><ins class="icon-check"></ins><span>Templatesmodule: Mogelijkheid toegevoegd voor het importeren van Wiser 1 templates naar Wiser 3.</span></li>
+									<li><ins class="icon-check"></ins><span>Templatesmodule: Mogelijkheid toegevoegd voor het importeren van Coder 1 templates naar Coder 3.</span></li>
 									<li><ins class="icon-check"></ins><span>Algemeen: Het is voortaan mogelijk om bij HTML-editors specifiek aan te geven welke tools/knoppen zichtbaar moeten zijn, naast de voorgedefiniëerde sets van tools.</span></li>
 									<li><ins class="icon-check"></ins><span>Templatesmodule: Templates kunnen nu per gebruiker worden gecached.</span></li>
-                                    <li><ins class="icon-check"></ins><span>Templatesmodule: Preview functionaliteit verwijderd uit Wiser om wat meer ruimte te maken in de gebruikersinterface. Deze functionaliteit werd nooit gebruikt en nam veel ruimte in beslag.</span></li>
+                                    <li><ins class="icon-check"></ins><span>Templatesmodule: Preview functionaliteit verwijderd uit Coder om wat meer ruimte te maken in de gebruikersinterface. Deze functionaliteit werd nooit gebruikt en nam veel ruimte in beslag.</span></li>
 									<li><ins class="icon-check"></ins><span>Diverse algemene verbeteringen en bugfixes.</span></li>
                                 </ul>
                             </div>
@@ -279,8 +279,8 @@
                                 <h4>Versie 3.4.13 - 8 januari 2024</h4>
                                 <ul>
                                     <li><ins class="icon-check"></ins><span>Validatie van velden verbeterd, zodat er duidelijkere fouten worden getoond en deze er netter uitzien.</span></li>
-                                    <li><ins class="icon-check"></ins><span>Verschillende kleine verbeteringen aan de gebruikersinterface van Wiser.</span></li>
-                                    <li><ins class="icon-check"></ins><span>Bij het versturen van mail vanuit Wiser, kunnen voortaan meerdere e-mailadressen tegelijk ingevuld worden (gescheiden met puntkomma).</span></li>
+                                    <li><ins class="icon-check"></ins><span>Verschillende kleine verbeteringen aan de gebruikersinterface van Coder.</span></li>
+                                    <li><ins class="icon-check"></ins><span>Bij het versturen van mail vanuit Coder, kunnen voortaan meerdere e-mailadressen tegelijk ingevuld worden (gescheiden met puntkomma).</span></li>
                                     <li><ins class="icon-check"></ins><span>Verbeteringen gedaan aan het maken en mergen van branches, zodat dit sneller en efficiënter gaat.</span></li>
                                 </ul>
                             </div>
@@ -297,7 +297,7 @@
                                 <ul>
                                     <li><ins class="icon-check"></ins><span>Mogelijkheid voor laden van plugins toegevoegd. Dit kunnen bijvoorbeeld custom componenten of modules zijn.</span></li>
                                     <li><ins class="icon-check"></ins><span>Wat fouten/bugs opgelost in branch functionaliteit.</span></li>
-                                    <li><ins class="icon-check"></ins><span>Verschillende fouten/bugs opgelost in Wiser beheermodule.</span></li>
+                                    <li><ins class="icon-check"></ins><span>Verschillende fouten/bugs opgelost in Coder beheermodule.</span></li>
                                 </ul>
                             </div>
                             <div class="log-item">
@@ -311,17 +311,17 @@
                                 <h4>Versie 3.4.9 - 9 augustus 2023</h4>
                                 <ul>
                                     <li><ins class="icon-check"></ins><span>Exportmodule uitgebreid zodat er ook geëxporteerd kan worden naar CSV.</span></li>
-                                    <li><ins class="icon-check"></ins><span>Mogelijkheid toegevoegd om dynamische bestandsnamen te genereren bij genereren van bestanden in Wiser.</span></li>
+                                    <li><ins class="icon-check"></ins><span>Mogelijkheid toegevoegd om dynamische bestandsnamen te genereren bij genereren van bestanden in Coder.</span></li>
                                     <li><ins class="icon-check"></ins><span>Verschillende andere kleine bugs en fouten opgelost.</span></li>
                                 </ul>
                             </div>
                             <div class="log-item">
                                 <h4>Versie 3.4.8 - 18 juli 2023</h4>
                                 <ul>
-                                    <li><ins class="icon-check"></ins><span>Nieuwe functionaliteit toegevoegd waarmee we query's kunnen maken die externen kunnen aanroepen via de API van Wiser om zo data te kunnen ophalen uit Wiser. Hierbij kunnen we dan ook dynamisch instellen in welke structuur de JSON wordt getoond als resultaat.</span></li>
+                                    <li><ins class="icon-check"></ins><span>Nieuwe functionaliteit toegevoegd waarmee we query's kunnen maken die externen kunnen aanroepen via de API van Coder om zo data te kunnen ophalen uit Coder. Hierbij kunnen we dan ook dynamisch instellen in welke structuur de JSON wordt getoond als resultaat.</span></li>
                                     <li><ins class="icon-check"></ins><span>Mogelijkheid toegevoegd voor het verwijderen van branches.</span></li>
                                     <li><ins class="icon-check"></ins><span>Bij aanmaken/terugzetten/verwijderen van een branch wordt voortaan een melding gegeven wanneer die klaar is.</span></li>
-                                    <li><ins class="icon-check"></ins><span>Functionaliteit toegevoegd voor het uploaden van bijlagen bij het versturen van e-mails vanuit Wiser.</span></li>
+                                    <li><ins class="icon-check"></ins><span>Functionaliteit toegevoegd voor het uploaden van bijlagen bij het versturen van e-mails vanuit Coder.</span></li>
                                     <li><ins class="icon-check"></ins><span>Templatemodule aangepast zodat er niet meer zoveel versies worden gemaakt. Vanaf nu worden er pas nieuwe versies gemaakt bij committen, i.p.v. voor elke wijziging.</span></li>
                                     <li><ins class="icon-check"></ins><span>Verschillende andere kleine bugs en fouten opgelost.</span></li>
                                 </ul>
@@ -445,7 +445,7 @@
                         <a class="k-button k-button-flat-base k-button-flat k-button-md k-rounded-md k-icon-button k-close-button"><span class="k-button-icon k-icon k-i-close"></span></a>
                         <div class="tile-content" data-tile="subscription">
                             <div class="tile-row">
-                                <label>Huidige abonnement: Wiser Large.</label>
+                                <label>Huidige abonnement: Coder Large.</label>
                                 <span>Prijs per maand: &euro; 75,-</span>
                                 <a href="">abonnement stopzetten?</a>
                             </div>

@@ -26,6 +26,8 @@ using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Communication.Interfaces;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using Google.Authenticator;
+using IdentityServer4.Models;
+using IdentityServer4.Stores;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -41,6 +43,7 @@ namespace Api.Modules.Tenants.Services
     public class UsersService : IUsersService, IScopedService
     {
         private readonly IWiserTenantsService wiserTenantsService;
+        private readonly IDatabaseGrantsService databaseGrantsService;
         private readonly ILogger<UsersService> logger;
         private readonly ApiSettings apiSettings;
 
@@ -82,6 +85,7 @@ namespace Api.Modules.Tenants.Services
         /// </summary>
         public UsersService(
             IWiserTenantsService wiserTenantsService,
+            IDatabaseGrantsService databaseGrantsService,
             IOptions<ApiSettings> apiSettings,
             IDatabaseConnection clientDatabaseConnection,
             ILogger<UsersService> logger,
@@ -95,6 +99,7 @@ namespace Api.Modules.Tenants.Services
             IServiceProvider serviceProvider)
         {
             this.wiserTenantsService = wiserTenantsService;
+            this.databaseGrantsService = databaseGrantsService;
             this.logger = logger;
             this.clientDatabaseConnection = clientDatabaseConnection;
             this.apiSettings = apiSettings.Value;
@@ -114,7 +119,7 @@ namespace Api.Modules.Tenants.Services
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<List<FlatItemModel>>> GetAsync(bool includeAdminUsers = false)
+        public async Task<ServiceResult<List<FlatItemModel>>> GetAsync(bool includeAdminUsers = false, bool includeParent = false)
         {
             var result = new List<FlatItemModel>();
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
@@ -122,12 +127,13 @@ namespace Api.Modules.Tenants.Services
 
             string query = $@"SELECT 
     user.id, 
-	IFNULL(NULLIF(user.title, ''), username.value) AS name, 
-    username.`value` AS username
+    {(includeParent ? "CONCAT_WS(' - ', parent.title, IFNULL(NULLIF(user.title, ''), username.value)) AS name," : "IFNULL(NULLIF(user.title, ''), username.value) AS name,")}
+    {(includeParent ? "CONCAT_WS('~',parent.id,username.`value`) AS username" : "username.`value` AS username")}    
 FROM {WiserTableNames.WiserItem} AS user
 JOIN {WiserTableNames.WiserItemDetail} AS username ON username.item_id = user.id AND username.`key` = '{UserUsernameKey}'
-WHERE user.entity_type = '{WiserUserEntityType}'
-ORDER BY username.`value` ASC";
+{(includeParent ? $"LEFT JOIN {WiserTableNames.WiserItem} parent ON parent.id=user.parent_item_id" : "")}
+WHERE user.entity_type = '{WiserUserEntityType}' AND user.published_environment>0
+ORDER BY name ASC";
 
             DataTable dataTable;
             if (includeAdminUsers)
@@ -304,16 +310,25 @@ ORDER BY username.`value` ASC";
         /// <inheritdoc />
         public async Task<ServiceResult<UserModel>> LoginTenantAsync(string username, string password, string encryptedAdminAccountId = null, string subDomain = null, bool generateAuthenticationTokenForCookie = false, string ipAddress = null, ClaimsIdentity identity = null, string totpPin = null, string totpBackupCode = null)
         {
+            var userNameWithoutParent = username.ToLower();
+            var parentId = 0UL;
+
+            if (username.Contains('~'))
+            {
+                parentId = Convert.ToUInt64(username.Split('~')[0]);
+                userNameWithoutParent = username.Split('~')[1];
+            }
+            
             if (await UsernameIsBlockedAsync(username, clientDatabaseConnection, apiSettings.MaximumLoginAttemptsForUsers))
             {
                 return new ServiceResult<UserModel>
                 {
-                    ErrorMessage = "Username is blocked due to too many failed login attempts",
+                    ErrorMessage = "User is blocked due to too many failed login attempts",
                     StatusCode = HttpStatusCode.Unauthorized
                 };
             }
 
-            if (String.IsNullOrWhiteSpace(username) || (String.IsNullOrWhiteSpace(password) && String.IsNullOrWhiteSpace(encryptedAdminAccountId)))
+            if (String.IsNullOrWhiteSpace(userNameWithoutParent) || (String.IsNullOrWhiteSpace(password) && String.IsNullOrWhiteSpace(encryptedAdminAccountId)))
             {
                 await AddFailedLoginAttemptAsync(ipAddress, username);
                 return new ServiceResult<UserModel>
@@ -328,8 +343,9 @@ ORDER BY username.`value` ASC";
 
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
             clientDatabaseConnection.ClearParameters();
-            clientDatabaseConnection.AddParameter("username", username);
+            clientDatabaseConnection.AddParameter("username", userNameWithoutParent);
             clientDatabaseConnection.AddParameter("now", DateTime.Now);
+            clientDatabaseConnection.AddParameter("parentid", parentId);
 
             var query = $@"SELECT 
                             user.id, 
@@ -357,6 +373,7 @@ ORDER BY username.`value` ASC";
                         LEFT JOIN {WiserTableNames.WiserItemDetail} totpSecret on totpSecret.item_id = user.id and totpSecret.`key` = '{TotpSecretKey}'
                         LEFT JOIN {WiserTableNames.WiserItemDetail} totpRequiresSetup on totpRequiresSetup.item_id = user.id and totpRequiresSetup.`key` = '{TotpRequiresSetupKey}'
                         WHERE user.entity_type = '{WiserUserEntityType}'
+                        {(parentId != 0 ? "AND user.parent_item_id=?parentid" : "")}
                         AND user.published_environment > 0";
 
             var dataTable = await clientDatabaseConnection.GetAsync(query);
@@ -618,9 +635,11 @@ ORDER BY username.`value` ASC";
                 };
             }
 
+            ulong userId = IdentityHelpers.GetWiserUserId(identity);
+
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
             clientDatabaseConnection.ClearParameters();
-            clientDatabaseConnection.AddParameter("userId", IdentityHelpers.GetWiserUserId(identity));
+            clientDatabaseConnection.AddParameter("userId", userId);
 
             var query = $@"SELECT password.`value` AS password
                         FROM {WiserTableNames.WiserItem} user
@@ -654,7 +673,10 @@ ORDER BY username.`value` ASC";
             query = $@"UPDATE {WiserTableNames.WiserItemDetail} SET value = ?password WHERE item_id = ?userId AND `key` = '{UserPasswordKey}';
                     UPDATE {WiserTableNames.WiserItemDetail} SET value = '0' WHERE item_id = ?userId AND `key` = '{UserRequirePasswordChangeKey}'";
             await clientDatabaseConnection.ExecuteAsync(query);
-
+            
+            // Remove all active sessions for this user.
+            await databaseGrantsService.DeleteAllAsync(new PersistedGrantFilter { SubjectId = userId.ToString() });
+            
             return new ServiceResult<UserModel>
             {
                 StatusCode = HttpStatusCode.NoContent
@@ -1243,7 +1265,7 @@ ORDER BY username.`value` ASC";
             clientDatabaseConnection.AddParameter("selector", selector);
             clientDatabaseConnection.AddParameter("hashed_validator", validator.ToSha512Simple());
             clientDatabaseConnection.AddParameter("user_id", userId);
-            clientDatabaseConnection.AddParameter("expires", DateTime.Now.AddYears(1));
+            clientDatabaseConnection.AddParameter("expires", DateTime.Now.AddMinutes(1));
             await clientDatabaseConnection.InsertOrUpdateRecordBasedOnParametersAsync(WiserTableNames.WiserUsersAuthenticationTokens, 0);
 
             return $"{selector}:{validator}";
@@ -1418,7 +1440,7 @@ ORDER BY username.`value` ASC";
         public string SetUpTotpAuthentication(string account, string key)
         {
             var twoFactorAuthenticator = new TwoFactorAuthenticator();
-            var setupInfo = twoFactorAuthenticator.GenerateSetupCode("Wiser", account, key, false);
+            var setupInfo = twoFactorAuthenticator.GenerateSetupCode("Coder", account, key, false);
             return setupInfo.QrCodeSetupImageUrl;
         }
 

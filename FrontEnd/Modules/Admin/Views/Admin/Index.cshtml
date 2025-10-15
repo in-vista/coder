@@ -5,10 +5,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
     <meta charset="utf-8" />
-    <title>Wiser 3 - Admin</title>
+    <title>Coder 3 - Admin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="//kendo.cdn.telerik.com/2022.2.621/styles/kendo.common-material.min.css" rel="stylesheet" />
-    <link href="//kendo.cdn.telerik.com/2022.2.621/styles/kendo.material.min.css" rel="stylesheet" />
+    <link href="https://unpkg.com/@@progress/kendo-theme-material@11.1.0/dist/material-main.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-font-icons/dist/index.css" />
     <script>
         window.wiserVersion = "@Model.WiserVersion?.ToString()";
     </script>
@@ -40,7 +40,7 @@
                 <!-- TABS -->
                 <div class="tabstrip k-tabstrip-wrapper" id="MainTabStrip">
                     <ul>
-                        <li class="k-state-active" data-class="moduleTab">Modules</li>
+                        <li class="k-active" data-class="moduleTab">Modules</li>
                         <li data-class="entityTab">Entiteiten</li>
                         <li data-class="roleTab">Rollen</li>
                         <li data-class="wiserQueryTab">Query's</li>
@@ -187,7 +187,7 @@
                                 <div class="item">
                                     <div class="tabstrip k-tabstrip-wrapper" id="EntityTabStrip">
                                         <ul>
-                                            <li class="k-state-active" data-name="entity">Eigenschappen</li>
+                                            <li class="k-active" data-name="entity">Eigenschappen</li>
                                             <li data-name="entityProperty">Velden</li>
                                         </ul>
                                         <div>
@@ -1288,6 +1288,9 @@
                                                                         <li data-visible="generateFile">
                                                                             Genereer bestand
                                                                         </li>
+                                                                        <li data-visible="apiCall">
+                                                                            API call
+                                                                        </li>
                                                                         <li data-visible="actionConfirmDialog">
                                                                             Bevestigingsvenster
                                                                         </li>
@@ -1411,6 +1414,22 @@
                                                                                 <span class="info" data-type="action-button-pdf-filename"><ins class="icon-info-full"></ins></span>
                                                                             </h4>
                                                                             <input type="text" id="pdfFilename" class="textField k-input" maxlength="255" autocomplete="off" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div>
+                                                                        <div class="item">
+                                                                            <h4>
+                                                                                <label>API connectie</label>
+                                                                                <span class="info" data-type="action-button-api-call-connection"><ins class="icon-info-full"></ins></span>
+                                                                            </h4>
+                                                                            <select id="actionButtonApiCallConnection">
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="item">
+                                                                            <label class="checkbox">
+                                                                                <input id="actionButtonApiCallIterative" type="checkbox" />
+                                                                                <span>API call iteratief uitvoeren</span>
+                                                                            </label>
                                                                         </div>
                                                                     </div>
                                                                     <div>
@@ -1629,7 +1648,7 @@
                             <div class="pane-content">
                                 <div class="tabstrip k-tabstrip-wrapper" id="RolesTabStrip">
                                     <ul>
-                                        <li class="k-state-active">Velden</li>
+                                        <li class="k-active">Velden</li>
                                         <li>Modules</li>
                                         <li>Query's</li>
                                         <li>Endpoints</li>
@@ -1722,7 +1741,7 @@
                             <div class="formview full">
                                 <div class="item flex-container" id="wiserLinksView">
                                     <h4>
-                                        <label>Wiser link aanpassen of toevoegen</label>
+                                        <label>Coder link aanpassen of toevoegen</label>
                                     </h4>
                                     <div class="flex-container">
                                         <select id="wiserLinks"></select>

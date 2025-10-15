@@ -231,22 +231,20 @@ export default class UsersService extends BaseService {
     getEncryptedLoginLogId() {
         // Retrieve the user data from the local storage.
         const savedUserData = localStorage.getItem("userData");
-        if (!savedUserData) {
+        if (!savedUserData)
             return null;
-        }
 
         // Try to parse the data, and see if a key "encryptedLoginLogId" exists and if it has a value.
         const userData = JSON.parse(savedUserData);
-        if (!userData.hasOwnProperty("encryptedLoginLogId") || !userData.encryptedLoginLogId) {
+        if (!userData.hasOwnProperty("encryptedLoginLogId") || !userData.encryptedLoginLogId)
             return null;
-        }
 
         return userData.encryptedLoginLogId;
     }
 
-    async updateActiveTime(encryptedLoginLogId) {
+    async updateActiveTime() {
         try {
-            encryptedLoginLogId = encryptedLoginLogId || this.getEncryptedLoginLogId();
+            const encryptedLoginLogId = this.getEncryptedLoginLogId();
             if (!encryptedLoginLogId) {
                 console.warn("Couldn't update the active time. There's no login log ID.");
                 return;
@@ -266,12 +264,12 @@ export default class UsersService extends BaseService {
                 console.warn("Couldn't start the 'time active' timer. There's no login log ID.");
                 return;
             }
-
+            
             await this.base.api.put(`/api/v3/users/reset-time-active-changed?encryptedLoginLogId=${encodeURIComponent(encryptedLoginLogId)}`);
 
             // Timer runs every 5 minutes. (300000ms).
             return setInterval(async () => {
-                await this.updateActiveTime(encryptedLoginLogId);
+                await this.updateActiveTime();
             }, 300000);
         } catch (exception) {
             console.error("Error in startUpdateTimeActiveTimer", exception);

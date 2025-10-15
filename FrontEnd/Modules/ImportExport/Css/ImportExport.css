@@ -1,6 +1,6 @@
 ﻿@import "../../Base/Scss/base.scss";
 
-#wiser, #tabstrip.k-widget {
+#wiser, #tabstrip {
     display: block;
 }
 
@@ -80,14 +80,14 @@
     width: 100%;
 }
 
-.import-module .k-tabstrip .k-content.k-state-active {
+.import-module .k-tabstrip .k-content.k-active {
     box-sizing: border-box;
     display: flex !important;
     height: 100%;
     width: 100%;
 }
 
-.import-module .k-tabstrip .k-content.k-state-active > div {
+.import-module .k-tabstrip .k-content.k-active > div {
     width: 100%;
 }
 

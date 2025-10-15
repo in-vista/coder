@@ -335,7 +335,7 @@ namespace Api.Modules.Grids.Services
                     results.Columns.Add(new GridColumn {Field = "duedate", Title = "Due-date", Format = "{0:dd MMMM yyyy}"});
                     results.Columns.Add(new GridColumn {Field = "sender", Title = "Verzonden door"});
                     results.Columns.Add(new GridColumn {Field = "receiver", Title = "Verzonden aan"});
-                    results.Columns.Add(new GridColumn {Field = "content", Title = "Tekst", Width = "600px"});
+                    results.Columns.Add(new GridColumn {Field = "content", Title = "Tekst", Width = "600px", Template = "#= content #"});
                     results.Columns.Add(new GridColumn {Field = "checkeddate", Title = "Afgevinkt op", Format = "{0:dd MMMM yyyy - HH:mm:ss}"});
 
                     countQuery = $@"SELECT COUNT(*)
@@ -356,7 +356,7 @@ namespace Api.Modules.Grids.Services
 	                                    STR_TO_DATE(checkedDate.`value`, '%Y-%m-%d %H:%i:%s') AS checkedDate,
 	                                    IFNULL(sender.`value`, '') AS sender,
 	                                    receiver.`value` AS receiver,
-	                                    content.`value` AS content
+	                                    REPLACE(content.`value`,'\r\n','<br />') AS content
                                     FROM {WiserTableNames.WiserItem} i
 
                                     JOIN {WiserTableNames.WiserItemDetail} dueDate ON dueDate.item_id = i.id AND dueDate.`key` = 'agendering_date' [if({{dueDate}}!)]AND dueDate.`value` <> ''AND DATE(dueDate.`value`) {{dueDate_filter}}[endif] 
@@ -364,8 +364,9 @@ namespace Api.Modules.Grids.Services
                                     [if({{sender}}=)]LEFT [endif]JOIN {WiserTableNames.WiserItemDetail} sender ON sender.item_id = i.id AND sender.`key` = 'placed_by_id' [if({{sender}}!)]AND sender.`value` {{sender_filter}}[endif] 
                                     JOIN {WiserTableNames.WiserItemDetail} receiver ON receiver.item_id = i.id AND receiver.`key` = 'userid' [if({{receiver}}!)]AND receiver.`value` {{receiver_filter}}[endif] 
                                     JOIN {WiserTableNames.WiserItemDetail} content ON content.item_id = i.id AND content.`key` = 'content' [if({{content}}!)]AND content.`value` {{content_filter}}[endif] 
-
-                                    WHERE i.entity_type = 'agendering'
+                                    JOIN wiser_item usr ON usr.id={userId}
+                                                                                                                     
+                                    WHERE i.entity_type = 'agendering' AND i.parent_item_id=usr.parent_item_id
                                     {{sort}}
                                     {{limit}}";
 
@@ -723,7 +724,7 @@ namespace Api.Modules.Grids.Services
                                                 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
                                                 GROUP BY i.id";
 
-                            selectQuery = $@"
+                            selectQuery += $@"
                                             UNION
 
                                             SELECT 
@@ -1167,16 +1168,14 @@ namespace Api.Modules.Grids.Services
                                             ) AS x";
 
                             selectQuery = $@"SELECT
-	                                            GROUP_CONCAT(CONCAT(id.`key`, '=', IFNULL(idt.`value`, id.`value`), '') SEPARATOR '~~~') AS `fields`,
-                                                i.*
+                                                i.*,
+	                                            GROUP_CONCAT(CONCAT(id.`key`, '=', IFNULL(idt.`value`, id.`value`), '') SEPARATOR '~~~') AS `fields`
                                             FROM (
                                                 # Sub query so that we can first limit the items, then get all fields of those remaining items and group by item.
                                                 # If we don't do this, MySQL will first get all items to group them, then it will add the limit, which is a lot slower.
-                                                SELECT 
-	                                                i.id,
+                                                SELECT	                                                
 	                                                i.id AS encryptedId_encrypt_withdate,
                                                     i.original_item_id AS originalItemId,
-	                                                i.title,
                                                     CASE i.published_environment
     	                                                WHEN 0 THEN 'onzichtbaar'
                                                         WHEN 1 THEN 'dev'
@@ -1189,7 +1188,8 @@ namespace Api.Modules.Grids.Services
                                                     i.added_by AS addedBy,
                                                     i.changed_on AS changedOn,
                                                     i.changed_by AS changedBy,
-                                                    i.parent_item_id AS parentItemId
+                                                    i.parent_item_id AS parentItemId,
+                                                    i.*
                                                 FROM {tablePrefix}{WiserTableNames.WiserItem} i
 
                                                 {{filters}}
@@ -1248,8 +1248,7 @@ namespace Api.Modules.Grids.Services
                                                 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
                                                 [if({{hasWhere}}=1)]AND ({{where}})[endif]";
 
-                                selectQuery = $@"SELECT
-	                                                i.id,
+                                selectQuery = $@"SELECT	                                                
 	                                                i.id AS encryptedId_encrypt_withdate,
                                                     i.unique_uuid AS uniqueUuid,
                                                     CASE i.published_environment
@@ -1259,16 +1258,16 @@ namespace Api.Modules.Grids.Services
                                                         WHEN 3 THEN 'acceptatie'
                                                         WHEN 4 THEN 'live'
                                                     END AS publishedEnvironment,
-                                                    i.title,
                                                     i.entity_type AS entityType,
-	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields,
                                                     ?linkTypeNumber AS linkTypeNumber,
                                                     0 AS linkId,
                                                     i.added_on AS addedOn,
                                                     i.added_by AS addedBy,
                                                     i.changed_on AS changedOn,
                                                     i.changed_by AS changedBy,
-                                                    i.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`
+                                                    i.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`,
+                                                    i.*,
+	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields
                                                 FROM {tablePrefix}{WiserTableNames.WiserItem} i
 
                                                 {{filters}}
@@ -1312,8 +1311,7 @@ namespace Api.Modules.Grids.Services
                                                 {(linkTypeNumber <= 0 ? "" : "AND il.type = ?linkTypeNumber")}
                                                 [if({{hasWhere}}=1)]AND ({{where}})[endif]";
 
-                                selectQuery = $@"SELECT
-	                                                i.id,
+                                selectQuery = $@"SELECT	                                                
 	                                                i.id AS encryptedId_encrypt_withdate,
                                                     i.unique_uuid AS uniqueUuid,
                                                     CASE i.published_environment
@@ -1323,16 +1321,16 @@ namespace Api.Modules.Grids.Services
                                                         WHEN 3 THEN 'acceptatie'
                                                         WHEN 4 THEN 'live'
                                                     END AS publishedEnvironment,
-                                                    i.title,
                                                     i.entity_type AS entityType,
-	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields,
                                                     il.type AS linkTypeNumber,
                                                     il.id AS linkId,
                                                     i.added_on AS addedOn,
                                                     i.added_by AS addedBy,
                                                     i.changed_on AS changedOn,
                                                     i.changed_by AS changedBy,
-                                                    il.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`
+                                                    il.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`,
+                                                    i.*,
+	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields
                                                 FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} il
                                                 JOIN {tablePrefix}{WiserTableNames.WiserItem} i ON i.id = il.{(currentItemIsSourceId ? "destination_item_id" : "item_id")} {(String.IsNullOrEmpty(entityType) ? "" : "AND FIND_IN_SET(i.entity_type, ?entityType)")} {(moduleId <= 0 ? "" : "AND i.moduleid = ?moduleId")}
 
@@ -1357,8 +1355,7 @@ namespace Api.Modules.Grids.Services
 
                                                 UNION
 
-                                                SELECT
-	                                                i.id,
+                                                SELECT	                                                
 	                                                i.id AS encryptedId_encrypt_withdate,
                                                     i.unique_uuid AS uniqueUuid,
                                                     CASE i.published_environment
@@ -1368,16 +1365,16 @@ namespace Api.Modules.Grids.Services
                                                         WHEN 3 THEN 'acceptatie'
                                                         WHEN 4 THEN 'live'
                                                     END AS publishedEnvironment,
-                                                    i.title,
                                                     i.entity_type AS entityType,
-	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields,
                                                     il.type AS linkTypeNumber,
                                                     il.id AS linkId,
                                                     i.added_on AS addedOn,
                                                     i.added_by AS addedBy,
                                                     i.changed_on AS changedOn,
                                                     i.changed_by AS changedBy,
-                                                    il.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`
+                                                    il.ordering AS `{GclCoreConstants.LinkOrderingFieldName}`,
+                                                    i.*,
+	                                                GROUP_CONCAT(CONCAT(id.`key`, '=', id.`value`, '') SEPARATOR '~~~') AS fields
                                                 FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} il
                                                 JOIN {tablePrefix}{WiserTableNames.WiserItem} i ON i.id = il.{(currentItemIsSourceId ? "destination_item_id" : "item_id")} {(String.IsNullOrEmpty(entityType) ? "" : "AND FIND_IN_SET(i.entity_type, ?entityType)")} {(moduleId <= 0 ? "" : "AND i.moduleid = ?moduleId")}
 
@@ -1585,10 +1582,11 @@ namespace Api.Modules.Grids.Services
                             foreach (var (propertyName, propertyValue) in fieldsList)
                             {
                                 var name = propertyName?.ToLowerInvariant().MakeJsonPropertyName();
+                                
+                                // Check whether the current selection contains the property as aggregation.
+                                // If so, skip the overwriting process, as aggregated columns should always get priority.
                                 if (String.IsNullOrWhiteSpace(name) || rowData.ContainsKey(name))
-                                {
                                     continue;
-                                }
 
                                 var field = results.SchemaModel.Fields.FirstOrDefault(f => f.Key == name).Value;
                                 if (field == null)

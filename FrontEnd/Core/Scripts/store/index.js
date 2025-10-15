@@ -8,6 +8,7 @@ import {
     AUTH_SUCCESS,
     AUTH_TOTP_PIN,
     AUTH_TOTP_SETUP,
+    BRANCH_CHANGE_COMPLETED,
     CHANGE_PASSWORD,
     CHANGE_PASSWORD_ERROR,
     CHANGE_PASSWORD_LOGIN,
@@ -19,6 +20,7 @@ import {
     CLEAR_LOCAL_TOTP_BACKUP_CODES,
     CLOSE_ALL_MODULES,
     CLOSE_MODULE,
+    CLEAR_ALL_MODULES,
     CREATE_BRANCH,
     CREATE_BRANCH_ERROR,
     CREATE_BRANCH_SUCCESS,
@@ -302,6 +304,12 @@ const loginModule = {
             if (!rootState.users.updateTimeActiveTimerWorking && user.hasOwnProperty("encryptedLoginLogId")) {
                 await this.dispatch(START_UPDATE_TIME_ACTIVE_TIMER);
             }
+            
+            // Reload the modules after a succesful login.
+            await this.dispatch(MODULES_REQUEST);
+            
+            // Load system styling.
+            await Misc.injectSystemStyling();
         },
 
         [AUTH_LOGOUT]({ commit }) {
@@ -486,6 +494,10 @@ const modulesModule = {
             state.activeModule = null;
             state.openedModules = [];
         },
+        [CLEAR_ALL_MODULES]: (state) => {
+            state.allModules = [];
+            state.moduleGroups = [];
+        },
         [TOGGLE_PIN_MODULE]: (state, moduleId) => {
             const module = state.allModules.filter(m => m.moduleId === moduleId)[0];
 
@@ -606,6 +618,10 @@ const modulesModule = {
 
         [CLOSE_ALL_MODULES]({ commit }) {
             commit(CLOSE_ALL_MODULES);
+        },
+
+        [CLEAR_ALL_MODULES]({ commit }) {
+            commit(CLEAR_ALL_MODULES);
         },
 
         async [TOGGLE_PIN_MODULE]({ commit, state }, moduleId) {
@@ -739,7 +755,7 @@ const tenantsModule = {
                 return;
             }
 
-            document.title = `${title} - Wiser 3.0`;
+            document.title = `${title} - Coder 3.0`;
         },
 
         [VALID_SUB_DOMAIN](state, valid) {
@@ -785,6 +801,7 @@ const itemsModule = {
 
 const branchesModule = {
     state: () => ({
+        branchChangeCompleted: false,
         createBranchError: null,
         createBranchResult: null,
         branches: [],
@@ -802,7 +819,7 @@ const branchesModule = {
             { type: "query", displayName: "Query's" },
             { type: "role", displayName: "Rollen" },
             { type: "userRole", displayName: "Koppelingen tussen gebruikers en rollen" },
-            { type: "styledOutput", displayName: "Styled output (Wiser API query output configuraties)" },
+            { type: "styledOutput", displayName: "Styled output (Coder API query output configuraties)" },
             { type: "easyObjects", displayName: "Objecten (easy_objects)" }
         ],
         isMainBranch: false,
@@ -819,6 +836,10 @@ const branchesModule = {
     }),
 
     mutations: {
+        [BRANCH_CHANGE_COMPLETED](state, result) {
+            state.branchChangeCompleted = result;
+        },
+        
         [CREATE_BRANCH_SUCCESS](state, result) {
             state.createBranchResult = result;
             state.createBranchError = null;
@@ -997,6 +1018,10 @@ const branchesModule = {
     },
 
     actions: {
+        async [BRANCH_CHANGE_COMPLETED]({ commit }, result) {
+            commit(BRANCH_CHANGE_COMPLETED, result);
+        },
+        
         async [CREATE_BRANCH]({ commit }, data) {
             commit(START_REQUEST);
             const result = await main.branchesService.create(data);

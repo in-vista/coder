@@ -59,7 +59,7 @@ namespace Api
         {
             // First set the base settings for the application.
             var builder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", false, true)
+                .AddJsonFile("appsettings.json", false, false)
                 .AddJsonFile($"appsettings.{webHostEnvironment.EnvironmentName}.json", true, true);
 
             // We need to build here already, so that we can read the base directory for secrets.
@@ -114,7 +114,7 @@ namespace Api
                     {
                         Title = "Wiser.WebAPI",
                         Version = "3",
-                        Description = "Web API for Wiser"
+                        Description = "Web API for Coder"
                     });
 
                 // Make sure the API's own assembly is used to avoid the GCL's controllers and schemas from showing up in Swagger.
@@ -331,6 +331,8 @@ namespace Api
             app.UseSwaggerUI(config => { config.SwaggerEndpoint("/swagger/v3/swagger.json", "Wiser.WebApi V3"); });
 
             app.UseHttpsRedirection();
+            
+            app.UseStaticFiles();
 
             app.UseRouting();
 

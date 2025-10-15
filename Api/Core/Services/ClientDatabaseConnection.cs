@@ -16,6 +16,7 @@ using GeeksCoreLibrary.Core.Exceptions;
 using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Core.Helpers;
 using GeeksCoreLibrary.Core.Models;
+using GeeksCoreLibrary.Modules.Databases.Helpers;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using GeeksCoreLibrary.Modules.Databases.Services;
 using Microsoft.AspNetCore.Hosting;
@@ -170,7 +171,7 @@ namespace Api.Core.Services
         {
             await EnsureOpenConnectionForReadingAsync();
             await using var command = new MySqlCommand(query, ConnectionForReading);
-            SetupMySqlCommand(command);
+            await SetupMySqlCommand(command);
             dataReader = await command.ExecuteReaderAsync();
 
             return dataReader;
@@ -190,7 +191,7 @@ namespace Api.Core.Services
                 await EnsureOpenConnectionForReadingAsync();
                 commandToUse = new MySqlCommand(query, ConnectionForReading);
 
-                SetupMySqlCommand(commandToUse);
+                await SetupMySqlCommand(commandToUse);
 
                 var result = new DataTable();
                 commandToUse.CommandText = query;
@@ -209,7 +210,7 @@ namespace Api.Core.Services
                     throw new GclQueryException("Error trying to run query", query, invalidOperationException);
                 }
 
-                Thread.Sleep(gclSettings.TimeToWaitBeforeRetryingQueryInMilliseconds);
+                await Task.Delay(gclSettings.TimeToWaitBeforeRetryingQueryInMilliseconds);
                 return await GetAsync(query, retryCount + 1, cleanUp, useWritingConnectionIfAvailable);
             }
             catch (MySqlException mySqlException)
@@ -217,22 +218,15 @@ namespace Api.Core.Services
                 // Never retry single queries if we're in a transaction, because transactions will get rolled back when a deadlock occurs,
                 // so retrying a single query in a transaction is not very useful on most/all cases.
                 // Also, if we've reached the maximum number of retries, don't retry anymore.
-                if (HasActiveTransaction() || retryCount >= gclSettings.MaximumRetryCountForQueries)
+                if (HasActiveTransaction() || retryCount >= gclSettings.MaximumRetryCountForQueries || MySqlHelpers.IsErrorToRetry(mySqlException))
                 {
                     logger.LogError(mySqlException, "Error trying to run this query: {query}", query);
                     throw new GclQueryException("Error trying to run query", query, mySqlException);
                 }
-
+                
                 // If we're not in a transaction, retry the query if it's a deadlock.
-                if (MySqlDatabaseConnection.MySqlErrorCodesToRetry.Contains(mySqlException.Number))
-                {
-                    Thread.Sleep(gclSettings.TimeToWaitBeforeRetryingQueryInMilliseconds);
-                    return await GetAsync(query, retryCount + 1, cleanUp, useWritingConnectionIfAvailable);
-                }
-
-                // For any other errors, just throw the exception.
-                logger.LogError(mySqlException, "Error trying to run this query: {query}", query);
-                throw new GclQueryException("Error trying to run query", query, mySqlException);
+                await Task.Delay(gclSettings.TimeToWaitBeforeRetryingQueryInMilliseconds);
+                return await GetAsync(query, retryCount + 1, cleanUp, useWritingConnectionIfAvailable);
             }
             finally
             {
@@ -277,7 +271,7 @@ namespace Api.Core.Services
                 await EnsureOpenConnectionForReadingAsync();
                 commandToUse = new MySqlCommand(query, ConnectionForReading);
 
-                SetupMySqlCommand(commandToUse);
+                await SetupMySqlCommand(commandToUse);
 
                 commandToUse.CommandText = query;
                 logger.LogDebug("Query: {query}", query);
@@ -299,22 +293,15 @@ namespace Api.Core.Services
                 // Never retry single queries if we're in a transaction, because transactions will get rolled back when a deadlock occurs,
                 // so retrying a single query in a transaction is not very useful on most/all cases.
                 // Also, if we've reached the maximum number of retries, don't retry anymore.
-                if (HasActiveTransaction() || retryCount >= gclSettings.MaximumRetryCountForQueries)
+                if (HasActiveTransaction() || retryCount >= gclSettings.MaximumRetryCountForQueries || MySqlHelpers.IsErrorToRetry(mySqlException))
                 {
                     logger.LogError(mySqlException, "Error trying to run this query: {query}", query);
                     throw new GclQueryException("Error trying to run query", query, mySqlException);
                 }
-
+                
                 // If we're not in a transaction, retry the query if it's a deadlock.
-                if (MySqlDatabaseConnection.MySqlErrorCodesToRetry.Contains(mySqlException.Number))
-                {
-                    Thread.Sleep(gclSettings.TimeToWaitBeforeRetryingQueryInMilliseconds);
-                    return await ExecuteAsync(query, retryCount + 1, useWritingConnectionIfAvailable, cleanUp);
-                }
-
-                // For any other errors, just throw the exception.
-                logger.LogError(mySqlException, "Error trying to run this query: {query}", query);
-                throw new GclQueryException("Error trying to run query", query, mySqlException);
+                await Task.Delay(gclSettings.TimeToWaitBeforeRetryingQueryInMilliseconds);
+                return await ExecuteAsync(query, retryCount + 1, useWritingConnectionIfAvailable, cleanUp);
             }
             finally
             {
@@ -399,7 +386,7 @@ namespace Api.Core.Services
                 await EnsureOpenConnectionForReadingAsync();
                 commandToUse = new MySqlCommand(finalQuery.ToString(), ConnectionForReading);
 
-                SetupMySqlCommand(commandToUse);
+                await SetupMySqlCommand(commandToUse);
 
                 await using var reader = await commandToUse.ExecuteReaderAsync();
                 if (!await reader.ReadAsync())
@@ -425,22 +412,15 @@ namespace Api.Core.Services
                 // Never retry single queries if we're in a transaction, because transactions will get rolled back when a deadlock occurs,
                 // so retrying a single query in a transaction is not very useful on most/all cases.
                 // Also, if we've reached the maximum number of retries, don't retry anymore.
-                if (HasActiveTransaction() || retryCount >= gclSettings.MaximumRetryCountForQueries)
+                if (HasActiveTransaction() || retryCount >= gclSettings.MaximumRetryCountForQueries || MySqlHelpers.IsErrorToRetry(mySqlException))
                 {
                     logger.LogError(mySqlException, "Error trying to run this query: {query}", query);
                     throw new GclQueryException("Error trying to run query", query, mySqlException);
                 }
 
                 // If we're not in a transaction, retry the query if it's a deadlock.
-                if (MySqlDatabaseConnection.MySqlErrorCodesToRetry.Contains(mySqlException.Number))
-                {
-                    Thread.Sleep(gclSettings.TimeToWaitBeforeRetryingQueryInMilliseconds);
-                    return await InsertRecordAsync(query, retryCount + 1, useWritingConnectionIfAvailable);
-                }
-
-                // For any other errors, just throw the exception.
-                logger.LogError(mySqlException, "Error trying to run this query: {query}", query);
-                throw new GclQueryException("Error trying to run query", query, mySqlException);
+                await Task.Delay(gclSettings.TimeToWaitBeforeRetryingQueryInMilliseconds);
+                return await InsertRecordAsync(query, retryCount + 1, useWritingConnectionIfAvailable);
             }
             finally
             {
@@ -956,7 +936,7 @@ SELECT LAST_INSERT_ID();";
         /// - Wait until the connection is no longer in the state "Connecting".
         /// </summary>
         /// <param name="command">The <see cref="MySqlCommand"/> to copy the parameters to.</param>
-        private void SetupMySqlCommand(MySqlCommand command)
+        private async Task SetupMySqlCommand(MySqlCommand command)
         {
             // Copy all current parameters to the given command.
             foreach (var parameter in parameters)
@@ -985,7 +965,7 @@ SELECT LAST_INSERT_ID();";
             var counter = 0;
             while (command.Connection?.State == ConnectionState.Connecting && counter < 100)
             {
-                Thread.Sleep(10);
+                await Task.Delay(10);
                 counter++;
             }
         }

@@ -6,6 +6,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Api.Core.Helpers;
+using Api.Core.Interfaces;
 using Api.Core.Services;
 using Api.Modules.Branches.Interfaces;
 using Api.Modules.Items.Models;
@@ -37,11 +38,19 @@ namespace Api.Modules.Queries.Services
         private readonly IServiceProvider serviceProvider;
         private readonly IBranchesService branchesService;
         private readonly IDatabaseHelpersService databaseHelpersService;
+        private readonly IApiReplacementsService apiReplacementsService;
 
         /// <summary>
         /// Creates a new instance of <see cref="QueriesService"/>.
         /// </summary>
-        public QueriesService(IWiserTenantsService wiserTenantsService, IDatabaseConnection clientDatabaseConnection, IWiserItemsService wiserItemsService, IServiceProvider serviceProvider, IBranchesService branchesService, IDatabaseHelpersService databaseHelpersService)
+        public QueriesService(
+            IWiserTenantsService wiserTenantsService,
+            IDatabaseConnection clientDatabaseConnection,
+            IWiserItemsService wiserItemsService,
+            IServiceProvider serviceProvider,
+            IBranchesService branchesService,
+            IDatabaseHelpersService databaseHelpersService,
+            IApiReplacementsService apiReplacementsService)
         {
             this.wiserTenantsService = wiserTenantsService;
             this.clientDatabaseConnection = clientDatabaseConnection;
@@ -49,6 +58,7 @@ namespace Api.Modules.Queries.Services
             this.serviceProvider = serviceProvider;
             this.branchesService = branchesService;
             this.databaseHelpersService = databaseHelpersService;
+            this.apiReplacementsService = apiReplacementsService;
         }
 
         /// <inheritdoc />
@@ -128,7 +138,7 @@ WHERE query.id = ?id";
                 return new ServiceResult<QueryModel>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Wiser query with ID '{id}' does not exist."
+                    ErrorMessage = $"Coder query with ID '{id}' does not exist."
                 };
             }
 
@@ -400,7 +410,7 @@ DELETE FROM {WiserTableNames.WiserPermission} WHERE query_id = ?id AND query_id 
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<JToken>> GetQueryResultAsJsonAsync(ClaimsIdentity identity, int id, bool asKeyValuePair, List<KeyValuePair<string, object>> parameters)
+        public async Task<ServiceResult<JToken>> GetQueryResultAsJsonAsync(ClaimsIdentity identity, int id, bool asKeyValuePair, List<KeyValuePair<string, object>> parameters, bool checkPermissions)
         {
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
             clientDatabaseConnection.ClearParameters();
@@ -412,16 +422,20 @@ DELETE FROM {WiserTableNames.WiserPermission} WHERE query_id = ?id AND query_id 
                 return new ServiceResult<JToken>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Wiser query with ID '{id}' does not exist."
+                    ErrorMessage = $"Coder query with ID '{id}' does not exist."
                 };
             }
+            
+            bool hasPermissions =
+                !checkPermissions ||
+                (await wiserItemsService.GetUserQueryPermissionsAsync(id, IdentityHelpers.GetWiserUserId(identity)) & AccessRights.Read) != AccessRights.Nothing;
 
-            if ((await wiserItemsService.GetUserQueryPermissionsAsync(id, IdentityHelpers.GetWiserUserId(identity)) & AccessRights.Read) == AccessRights.Nothing)
+            if (!hasPermissions)
             {
                 return new ServiceResult<JToken>
                 {
                     StatusCode = HttpStatusCode.Unauthorized,
-                    ErrorMessage = $"Wiser user '{IdentityHelpers.GetUserName(identity)}' has no permission to execute this query."
+                    ErrorMessage = $"Coder user '{IdentityHelpers.GetUserName(identity)}' has no permission to execute this query."
                 };
             }
 
@@ -435,6 +449,8 @@ DELETE FROM {WiserTableNames.WiserPermission} WHERE query_id = ?id AND query_id 
                     clientDatabaseConnection.AddParameter(DatabaseHelpers.CreateValidParameterName(parameter.Key), parameter.Value);
                 }
             }
+            
+            query = apiReplacementsService.DoIdentityReplacements(query, identity, true);
 
             dataTable = await clientDatabaseConnection.GetAsync(query);
             var result = dataTable.Rows.Count == 0 ? new JArray() : dataTable.ToJsonArray(skipNullValues: true);
@@ -461,6 +477,15 @@ DELETE FROM {WiserTableNames.WiserPermission} WHERE query_id = ?id AND query_id 
             }
 
             return new ServiceResult<JToken>(combinedResult);
+        }
+        
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public async Task<ServiceResult<JToken>> GetSecureQueryResultAsJsonAsync(ClaimsIdentity identity, string id, bool asKeyValuePair, List<KeyValuePair<string, object>> parameters)
+        {
+            int unencryptedQueryId = await wiserTenantsService.DecryptValue<int>(id, identity);
+            return await GetQueryResultAsJsonAsync(identity, unencryptedQueryId, asKeyValuePair, parameters, false);
         }
         
         /// <summary>

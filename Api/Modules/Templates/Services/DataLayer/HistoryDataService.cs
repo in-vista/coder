@@ -143,6 +143,8 @@ WHERE content_id = ?id");
     template.is_partial,
     template.widget_content,
     template.widget_location,
+    template.robots_no_index,
+    template.robots_no_follow,
     template.allow_call_without_anti_forgery_token
 FROM {WiserTableNames.WiserTemplate} AS template 
 LEFT JOIN {WiserTableNames.WiserTemplateExternalFiles} AS externalFiles ON externalFiles.template_id = template.id

@@ -55,6 +55,7 @@ const moduleSettings = {
             this.mainSplitter = null;
             this.mainTreeView = null;
             this.mainTreeViewContextMenu = null;
+            this.lastTreeViewNode = null;
             this.mainTabStrip = null;
             this.mainTabStripSortable = null;
             this.mainValidator = null;
@@ -69,6 +70,11 @@ const moduleSettings = {
 
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
+
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
 
             // Flags to use in wiser_field_templates, so that we can add code there that depends on code in this file, without having to deploy this to live right away.
             this.fieldTemplateFlags = {
@@ -175,7 +181,7 @@ const moduleSettings = {
             const user = JSON.parse(localStorage.getItem("userData"));
             this.settings.oldStyleUserId = user.oldStyleUserId;
             this.settings.username = user.adminAccountName ? `${user.adminAccountName} (Admin)` : user.name;
-            this.settings.adminAccountLoggedIn = !!user.adminAccountName;
+            this.settings.adminAccountLoggedIn = !!user.adminlogin;
 
             if (!this.settings.wiserApiRoot.endsWith("/")) {
                 this.settings.wiserApiRoot += "/";
@@ -239,10 +245,10 @@ const moduleSettings = {
                 window.processing.addProcess(process);
                 const newItemResult = await this.createItem(this.settings.entityType, this.settings.parentId || this.settings.zeroEncrypted, "", 1, this.settings.newItemData || [], false, this.settings.moduleId);
                 this.settings.initialItemId = newItemResult.itemId;
-                await this.loadItem(newItemResult.itemId, 0, newItemResult.entityType);
+                await this.loadItem(newItemResult.itemId, true, 0, newItemResult.entityType);
                 window.processing.removeProcess(process);
             } else if (this.settings.initialItemId) {
-                await this.loadItem(this.settings.initialItemId, 0, this.settings.entityType);
+                await this.loadItem(this.settings.initialItemId, false, 0, this.settings.entityType);
             }
 
             if (this.settings.iframeMode && this.settings.hideHeader) {
@@ -388,7 +394,7 @@ const moduleSettings = {
                 if (!this.settings.initialItemId) {
                     $("#alert-first").removeClass("hidden");
                 } else {
-                    await this.loadItem(this.settings.initialItemId, 0, this.settings.entityType);
+                    await this.loadItem(this.settings.initialItemId, false, 0, this.settings.entityType);
                 }
             });
 
@@ -402,9 +408,19 @@ const moduleSettings = {
             // Close panel
             $(".close-panel").click((event) => {
                 var target = $(event.target);
-
-                target.closest(".k-window").find(".entity-container").removeClass("info-active");
-                target.closest(".k-window").find("#right-pane").removeClass("info-active");
+                
+                // Find the closest k-window instance.
+                const kWindow = target.closest('.k-window');
+                
+                // Check if the context of this button lives in a k-window instance.
+                if(kWindow.length > 0) {
+                    kWindow.find(".entity-container").removeClass("info-active");
+                    kWindow.find("#right-pane").removeClass("info-active");
+                } else {
+                    // If the context of this button does not live in a k-window, we want to look for a different context.
+                    const window = target.closest('#window');
+                    window.find('#right-pane').removeClass('info-active');
+                }
             });
 
             $("body").on("click", ".imgZoom", (event) => {
@@ -415,12 +431,52 @@ const moduleSettings = {
                     dialog = dialogElement.kendoDialog({
                         title: "Afbeelding",
                         closable: true,
-                        modal: false,
+                        modal: true,
                         resizable: true
                     }).data("kendoDialog");
                 }
+                
+                // Make a clone of the image element for the popup window.
+                const imageClone = image.clone();
+                
+                // Create a zoom container element.
+                const imageZoomContainer = $('<div class="image-zoom-container"></div>');
+                imageZoomContainer.append(imageClone);
+                
+                // Keep a state of the zoom.
+                let imageZoomed = false;
+                
+                // Add a click event on the image clone to zoom in/out on the image.
+                imageZoomContainer.click(() => {
+                    imageZoomed = !imageZoomed;
+                    
+                    imageZoomContainer.toggleClass('zoomed');
+                    
+                    if(!imageZoomed) {
+                        imageClone.css({
+                            transform: 'scale(1)',
+                            'transform-origin': 'center center'
+                        });
+                    }
+                });
+                
+                // Add a mouse over event for handling the offset of the zoomed image.
+                imageZoomContainer.on('mousemove', function(event) {
+                    if(!imageZoomed)
+                        return;
 
-                dialog.content(image.clone());
+                    const offset = imageZoomContainer.offset();
+                    const x = ((event.pageX - offset.left) / imageZoomContainer.width()) * 100;
+                    const y = ((event.pageY - offset.top) / imageZoomContainer.height()) * 100;
+
+                    imageClone.css({
+                        transform: 'scale(2)',
+                        'transform-origin': `${x}% ${y}%`,
+                    });
+                });
+                
+                // Set the content of the dialog and open it.
+                dialog.content(imageZoomContainer.get());
                 dialog.open();
             });
 
@@ -432,7 +488,9 @@ const moduleSettings = {
 
             $("#mainEditMenu .reloadItem").click(async (event) => {
                 const previouslySelectedTab = this.mainTabStrip.select().index();
-                await this.loadItem(this.selectedItem && this.selectedItem.plainItemId ? this.selectedItem.id : this.settings.initialItemId, previouslySelectedTab, this.selectedItem && this.selectedItem.plainItemId ? this.selectedItem.entityType : this.settings.entityType);
+                const itemWindow = $(event.target).closest('.k-window-content');
+                const isNew = itemWindow.data('isNewItem');
+                await this.loadItem(this.selectedItem && this.selectedItem.plainItemId ? this.selectedItem.id : this.settings.initialItemId, isNew, previouslySelectedTab, this.selectedItem && this.selectedItem.plainItemId ? this.selectedItem.entityType : this.settings.entityType);
             });
 
             $("#mainEditMenu .deleteItem").click(async (event) => {
@@ -513,7 +571,7 @@ const moduleSettings = {
                 axis: "x",
                 container: "ul.k-tabstrip-items",
                 hint: (element) => {
-                    return $(`<div id='hint' class='k-widget k-header k-tabstrip'><ul class='k-tabstrip-items k-reset'><li class='k-item k-state-active k-tab-on-top'>${element.html()}</li></ul></div>`);
+                    return $(`<div id='hint' class='k-widget k-header k-tabstrip'><ul class='k-tabstrip-items k-reset'><li class='k-item k-active k-tab-on-top'>${element.html()}</li></ul></div>`);
                 },
                 start: (event) => {
                     this.mainTabStrip.activateTab(event.item);
@@ -577,12 +635,24 @@ const moduleSettings = {
 
             // Main tree view.
             this.mainTreeView = $("#treeview").kendoTreeView({
-                dragAndDrop: true,
+                dragAndDrop: {
+                    reorderable: true
+                },
                 dataSource: {
                     transport: {
                         read: (options) => {
+                            let urlPart = '';
+                            if (options.data.encryptedItemId) {
+                                let item = this.mainTreeView.dataSource.get(options.data.encryptedItemId)
+                                let entityType = item.entityType;
+
+                                if (entityType) {
+                                    urlPart = `&parentEntityType=${entityType}`;
+                                }
+                            }
+                            
                             Wiser.api({
-                                url: `${this.base.settings.wiserApiRoot}items/tree-view?moduleId=${this.base.settings.moduleId}`,
+                                url: `${this.base.settings.wiserApiRoot}items/tree-view?moduleId=${this.base.settings.moduleId}${urlPart}`,
                                 dataType: "json",
                                 method: "GET",
                                 data: options.data
@@ -606,16 +676,16 @@ const moduleSettings = {
                 expand: this.onTreeViewExpandItem.bind(this),
                 drop: this.onTreeViewDropItem.bind(this),
                 drag: this.onTreeViewDragItem.bind(this),
-                dataValueField: "encryptedItemId",
                 dataTextField: "title",
                 dataSpriteCssClassField: "spriteCssClass"
             }).data("kendoTreeView");
 
             this.mainTreeViewContextMenu = $("#menu").kendoContextMenu({
                 target: "#treeview",
-                filter: ".k-in",
+                filter: ".k-treeview-leaf",
                 open: this.onContextMenuOpen.bind(this),
-                select: this.onContextMenuClick.bind(this)
+                select: this.onContextMenuClick.bind(this),
+                close: this.onContextMenuClose.bind(this)
             }).data("kendoContextMenu");
         }
 
@@ -635,7 +705,7 @@ const moduleSettings = {
                 await require("@progress/kendo-ui/js/kendo.timepicker.js");
             }
             if (scriptTemplate.indexOf("kendoChart") > -1) {
-                await require("@progress/kendo-ui/js/dataviz/chart/chart.js");
+                await require("@progress/kendo-ui/js/kendo.dataviz.chart.js");
             }
             if (scriptTemplate.indexOf("kendoColorPicker") > -1) {
                 await require("@progress/kendo-ui/js/kendo.colorpicker.js");
@@ -674,6 +744,24 @@ const moduleSettings = {
             if(scriptTemplate.indexOf('TopolPlugin') > -1)
                 await require('/topol/topol.js');
             
+            if(scriptTemplate.indexOf("new Chart") > -1) {
+                await Misc.loadExternalScript('https://cdn.jsdelivr.net/npm/chart.js');
+                await Misc.loadExternalScript('https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js');
+                await Misc.loadExternalScript('https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors');
+            }
+            if (scriptTemplate.indexOf("bryntum.calendar.Calendar") > -1) {
+                // These scripts have to be loaded as script tags due to how the library works.
+                await Misc.loadExternalScript('/customscripts/bryntum/calendar/locales/calendar.locale.Nl.js', {
+                    'type': 'module'
+                });
+                
+                await Misc.loadExternalScript('/customscripts/bryntum/calendar/calendar.umd.js', {
+                    'data-default-locale': 'Nl'
+                });
+                
+                await Misc.loadCss('/css/bryntum/calendar/calendar.material.css');
+            }
+
             await require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
         }
 
@@ -732,18 +820,49 @@ const moduleSettings = {
          * @param {any} event The context open event.
          */
         async onContextMenuOpen(event) {
+            this.lastTreeViewNode = event.target;
+
+            this.mainTreeViewContextMenu.setOptions({
+                dataSource: [
+                    {
+                        text: "Laden..."
+                    }
+                ]
+            });
+            
             try {
-                const nodeId = this.mainTreeView.dataItem(event.target).id;
-                let contextMenu = await Wiser.api({ url: `${this.base.settings.serviceRoot}/GET_CONTEXT_MENU?moduleId=${encodeURIComponent(this.base.settings.moduleId)}&itemId=${encodeURIComponent(nodeId)}` });
-                //TODO: DIT MOET ANDERS MAAR KOMT ZO VERKEERD UIT WISER
-                contextMenu = JSON.parse(JSON.stringify(contextMenu).replace(/"attr":\[/g, '"attr":').replace(/\}\]\},/g, "}},").replace("}]}]", "}}]"));
+                const dataItem = this.mainTreeView.dataItem(event.target);
+                const nodeId = dataItem.id;
+                const entityType = this.mainTreeView.dataItem(event.target).entityType;
+                let contextMenu = await Wiser.api({ url: `${this.base.settings.wiserApiRoot}items/context-menu?moduleId=${encodeURIComponent(this.base.settings.moduleId)}&encryptedItemId=${encodeURIComponent(nodeId)}&entityType=${encodeURIComponent(entityType)}` });
+                contextMenu = contextMenu.map(item => {
+                    // Create or ensure the `attr` object exists
+                    item.attr = item.attr || {};
+
+                    // Move the `action` property into the `attr` object
+                    if ('action' in item) {
+                        item.attr.action = item.action;
+                        delete item.action; // Remove `action` from the top level
+                    }
+
+                    return item;
+                });
+                
                 this.mainTreeViewContextMenu.setOptions({
                     dataSource: contextMenu
                 });
             } catch (exception) {
                 console.error(exception);
                 kendo.alert("Er is iets fout gegaan tijdens het ophalen van het rechtermuismenu van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+
+                this.mainTreeViewContextMenu.setOptions({
+                    dataSource: []
+                });
             }
+            
+            $(this.mainTreeViewContextMenu.popup.element[0]).closest('.k-child-animation-container').css({
+                'width': '100%'
+            });
         }
 
         /**
@@ -753,7 +872,19 @@ const moduleSettings = {
         async onContextMenuClick(event) {
             const button = $(event.item);
             const action = button.attr("action");
-            await this.handleContextMenuAction($(event.target), action);
+            await this.handleContextMenuAction($(this.lastTreeViewNode), action);
+        }
+
+        /**
+         * This event gets fired when the context menu gets closes
+         * @param {any} event The click event.
+         */
+        async onContextMenuClose(event) {
+            // Empty context menu on close to prevent old menu from 
+            // showing momentarily when getting the menu for a different item
+            this.mainTreeViewContextMenu.setOptions({
+                dataSource: []
+            });
         }
 
         async handleContextMenuAction(selectedNode, action) {
@@ -890,7 +1021,9 @@ const moduleSettings = {
                 }
                 if (this.selectedItem || (this.settings.iframeMode && this.settings.initialItemId)) {
                     const previouslySelectedTab = this.mainTabStrip.select().index();
-                    this.loadItem(this.settings.iframeMode ? this.settings.initialItemId : this.selectedItem.id, previouslySelectedTab, this.settings.iframeMode ? this.settings.entityType : this.selectedItem.entityType);
+                    const itemWindow = $(event.target).closest('.k-window-content');
+                    const isNew = itemWindow.data('isNewItem');
+                    this.loadItem(this.settings.iframeMode ? this.settings.initialItemId : this.selectedItem.id, isNew, previouslySelectedTab, this.settings.iframeMode ? this.settings.entityType : this.selectedItem.entityType);
                 }
             }
         }
@@ -1080,7 +1213,7 @@ const moduleSettings = {
                 $(element).toggle(dataItem.hasChildren);
             });
 
-            await this.base.loadItem(itemId, 0, dataItem.entityType || dataItem.entityType);
+            await this.base.loadItem(itemId, false, 0, dataItem.entityType || dataItem.entityType);
 
             const pathString = `/${fullPath.join("/")}/`;
             // Show / hide fields based on path regex.
@@ -1104,7 +1237,7 @@ const moduleSettings = {
             });
 
             // Get available entity types, for creating new sub items.
-            await this.base.dialogs.loadAvailableEntityTypesInDropDown(itemId);
+            await this.base.dialogs.loadAvailableEntityTypesInDropDown(itemId, dataItem.entityType);
         }
 
         /**
@@ -1147,20 +1280,20 @@ const moduleSettings = {
                 leftPane.scrollTop(leftPane.scrollTop() - $(event.dropTarget).height() - 50);
             }
 
-            if (event.statusClass === "i-cancel") {
+            if (event.statusClass === "k-i-cancel") {
                 // Tree view already denies this operation
                 return;
             }
 
             const dropTarget = $(event.dropTarget);
-            let destinationNode = dropTarget.closest("li.k-item");
-            if (dropTarget.hasClass("k-mid")) {
-                // If the dropTarget is an element with class k-mid we need to go higher, because those elements are located inside an li.k-item instead of after/before them.
-                destinationNode = destinationNode.parentsUntil("li.k-item");
+            let destinationNode = dropTarget.closest("li.k-treeview-item");
+            if (dropTarget.hasClass("k-treeview-mid")) {
+                // If the dropTarget is an element with class k-mid we need to go higher, because those elements are located inside an li.k-treeview-item instead of after/before them.
+                destinationNode = destinationNode.parentsUntil("li.k-treeview-item");
             }
-            if (event.statusClass === "i-insert-down" || (event.statusClass === "i-insert-middle" && (dropTarget.hasClass("k-bot") || dropTarget.hasClass("k-in")))) {
-                // If the statusClass is i-insert-down, it means we are adding the item below the destination, so we need to check it's parent.
-                destinationNode = destinationNode.parentsUntil("li.k-item");
+            if (event.statusClass === "insert-down" || (event.statusClass === "insert-middle" && (dropTarget.hasClass("k-bot") || dropTarget.hasClass("k-in")))) {
+                // If the statusClass is insert-down, it means we are adding the item below the destination, so we need to check it's parent.
+                destinationNode = destinationNode.parentsUntil("li.k-treeview-item");
             }
 
             const sourceDataItem = event.sender.dataItem(event.sourceNode) || {};
@@ -1168,7 +1301,7 @@ const moduleSettings = {
 
             if ((destinationDataItem.acceptedChildTypes || "").toLowerCase().split(",").indexOf(sourceDataItem.entityType.toLowerCase()) === -1) {
                 // Tell the kendo tree view to deny the drag to this item, if the current item is of a type that is not allowed to be linked to the destination.
-                event.setStatusClass("k-i-cancel");
+                event.setStatusClass("cancel");
             }
         }
 
@@ -1453,7 +1586,7 @@ const moduleSettings = {
                     width: 80,
                     command: [{
                         name: "openDetails",
-                        iconClass: "k-icon k-i-hyperlink-open",
+                        iconClass: "k-font-icon k-i-hyperlink-open",
                         text: "",
                         click: (event) => { this.base.grids.onShowDetailsClick(event, grid, {}); }
                     }]
@@ -1738,9 +1871,10 @@ const moduleSettings = {
         /**
          * Load a specific item in the main container / tab strip.
          * @param {any} itemId The ID of the item to load.
+         * @param {boolean} isNew Whether the item is considered new.
          * @param {number} tabToSelect Optional: The tab index to initially open after the item has been loaded. Default is 0.
          */
-        async loadItem(itemId, tabToSelect = 0, entityType = null) {
+        async loadItem(itemId, isNew, tabToSelect = 0, entityType = null) {
             const process = `loadItem_${Date.now()}`;
             window.processing.addProcess(process);
 
@@ -1763,7 +1897,7 @@ const moduleSettings = {
                 itemTitleFieldContainer.toggle(entityTypeSettings.showTitleField && this.base.settings.iframeMode);
 
                 // Set the HTML of the fields tab.
-                const itemHtmlResult = await this.getItemHtml(itemId, itemMetaData.entityType);
+                const itemHtmlResult = await this.getItemHtml(itemId, itemMetaData.entityType, isNew);
 
                 this.mainTabStrip.element.find("> .k-tabstrip-items-wrapper > ul > li .addedFromDatabase").each((index, element) => {
                     this.mainTabStrip.remove($(element).closest("li.k-item"));
@@ -1970,7 +2104,7 @@ const moduleSettings = {
                                     this.base.selectedItem.plainItemId = otherItem.plainId;
 
                                     // Load the selected version.
-                                    this.base.loadItem(otherItem.id, 0, otherItem.entityType);
+                                    this.base.loadItem(otherItem.id, false, 0, otherItem.entityType);
                                 } else {
                                     callerWindow.close();
                                     this.base.windows.loadItemInWindow(false, otherItem.plainItemId, otherItem.id, otherItem.entityType, otherItem.title, callerWindow.element.data("showTitleField"), null, { hideTitleColumn: false }, callerWindow.element.data("linkId"));
@@ -2172,13 +2306,14 @@ const moduleSettings = {
          * Gets the HTML for an item. This contains all fields and the javascript for those fields.
          * @param {string} itemId The (encrypted) ID of the item to get the HTML for.
          * @param {string} entityType The entity type of the item to get the HTML for.
+         * @param {boolean} isNew Whether the item is considered new.
          * @param {string} propertyIdSuffix Optional: The suffix for property IDs, this is required when opening items in a popup, so that the fields always have unique ID, even if they already exist in the main tab sheet.
          * @param {number} linkId Optional: The ID of the link between this item and another item. If you're opening this item via a specific link, you should enter the ID of that link, because it's possible to have fields/properties on a link instead of an item.
          * @param {number} linkType Optional: The type number of the link between this item and another item. If you're opening this item via a specific link, you should enter the ID of that link, because it's possible to have fields/properties on a link instead of an item.
          * @returns {Promise} A promise with the results.
          */
-        async getItemHtml(itemId, entityType, propertyIdSuffix = "", linkId = 0, linkType = 0) {
-            let url = `${this.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}?entityType=${encodeURIComponent(entityType)}&encryptedModuleId=${encodeURIComponent(this.base.settings.encryptedModuleId)}`;
+        async getItemHtml(itemId, entityType, isNew, propertyIdSuffix = "", linkId = 0, linkType = 0) {
+            let url = `${this.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}?entityType=${encodeURIComponent(entityType)}&isNew=${encodeURIComponent(isNew)}&encryptedModuleId=${encodeURIComponent(this.base.settings.encryptedModuleId)}`;
             if (propertyIdSuffix) {
                 url += `&propertyIdSuffix=${encodeURIComponent(propertyIdSuffix)}`;
             }
@@ -2245,10 +2380,11 @@ const moduleSettings = {
         /**
          * Gets all available entity types that can be added as a child to the given parent.
          * @param {string} parentId The (encrypted) ID of the parent to get the available entity types of.
+         * @param {string} parentEntityType The entityType of the parent to get the available entity types of.
          * @return {any} An array with all the available entity types.
          */
-        async getAvailableEntityTypes(parentId) {
-            return await Wiser.api({ url: `${this.base.settings.wiserApiRoot}entity-types/${encodeURIComponent(this.settings.moduleId)}?parentId=${encodeURIComponent(parentId)}` });
+        async getAvailableEntityTypes(parentId, parentEntityType) {
+            return await Wiser.api({url: `${this.base.settings.wiserApiRoot}entity-types/${encodeURIComponent(this.settings.moduleId)}?parentId=${encodeURIComponent(parentId)}&parentEntityType=${encodeURIComponent(parentEntityType)}`});
         }
 
         /**

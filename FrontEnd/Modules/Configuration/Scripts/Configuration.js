@@ -25,6 +25,11 @@ const moduleSettings = {
             // Set the Kendo culture to Dutch. TODO: Base this on the language in Wiser.
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Default settings
             this.settings = {
                 tenantId: 0,
@@ -65,7 +70,7 @@ const moduleSettings = {
             
             const user = JSON.parse(localStorage.getItem("userData"));
             this.settings.oldStyleUserId = user.oldStyleUserId;
-            this.settings.adminAccountLoggedIn = !!user.adminAccountName;
+            this.settings.adminAccountLoggedIn = !!user.adminlogin;
             
             this.settings.serviceRoot = `${this.settings.wiserApiRoot}templates/get-and-execute-query`;
             
@@ -142,7 +147,7 @@ const moduleSettings = {
                     event.preventDefault();
                     
                     if (!this.isLoadedInIframe) {
-                        kendo.alert("Kan module niet openen omdat Wiser parent frame niet gevonden is. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
+                        kendo.alert("Kan module niet openen omdat Coder parent frame niet gevonden is. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
                         return;
                     }
                     
@@ -170,7 +175,7 @@ const moduleSettings = {
                     event.preventDefault();
 
                     if (!this.isLoadedInIframe) {
-                        kendo.alert("Kan module niet openen omdat Wiser parent frame niet gevonden is. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
+                        kendo.alert("Kan module niet openen omdat Coder parent frame niet gevonden is. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
                         return;
                     }
 
@@ -190,7 +195,7 @@ const moduleSettings = {
                 event.preventDefault();
                 
                 if (!this.isLoadedInIframe) {
-                    kendo.alert("Kan module niet openen omdat Wiser parent frame niet gevonden is. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
+                    kendo.alert("Kan module niet openen omdat Coder parent frame niet gevonden is. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
                     return;
                 }
 

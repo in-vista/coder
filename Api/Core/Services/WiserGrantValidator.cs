@@ -9,6 +9,7 @@ using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Tenants.Models;
 using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Core.Models;
+using GeeksCoreLibrary.Modules.GclReplacements.Interfaces;
 using IdentityModel;
 using IdentityServer4.Models;
 using IdentityServer4.Validation;
@@ -28,16 +29,18 @@ namespace Api.Core.Services
         private readonly IUsersService usersService;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly GclSettings gclSettings;
+        private readonly ApiSettings apiSettings;
 
         /// <summary>
         /// Creates a new instance of <see cref="WiserGrantValidator"/>.
         /// </summary>
-        public WiserGrantValidator(ILogger<WiserGrantValidator> logger, IUsersService usersService, IHttpContextAccessor httpContextAccessor, IOptions<GclSettings> gclSettings)
+        public WiserGrantValidator(ILogger<WiserGrantValidator> logger, IUsersService usersService, IHttpContextAccessor httpContextAccessor, IOptions<GclSettings> gclSettings, IOptions<ApiSettings> apiSettings)
         {
             this.logger = logger;
             this.usersService = usersService;
             this.httpContextAccessor = httpContextAccessor;
             this.gclSettings = gclSettings.Value;
+            this.apiSettings = apiSettings.Value;
         }
 
         /// <inheritdoc />
@@ -71,7 +74,7 @@ namespace Api.Core.Services
             if (!String.IsNullOrWhiteSpace(isWiserFrontEndLoginEncrypted))
             {
                 isWiserFrontEndLoginEncrypted = WebUtility.HtmlDecode(isWiserFrontEndLoginEncrypted);
-                isWiserFrontEndLogin = isWiserFrontEndLoginEncrypted.DecryptWithAesWithSalt(gclSettings.DefaultEncryptionKey, true, 10, true).Equals("true", StringComparison.OrdinalIgnoreCase);
+                isWiserFrontEndLogin = isWiserFrontEndLoginEncrypted.DecryptWithAesWithSalt(gclSettings.DefaultEncryptionKey, false, 0, true).Equals("true", StringComparison.OrdinalIgnoreCase);
             }
 
             // First try to login as a regular user.
@@ -79,7 +82,8 @@ namespace Api.Core.Services
 
             // If the regular user login failed, try to login as an admin account.
             var totpSuccessAdmin = false;
-            if (loginResult.StatusCode != HttpStatusCode.OK)
+            
+            if ((loginResult.StatusCode != HttpStatusCode.OK) || (loginResult.ModelObject.Id == 1 && apiSettings.AdminSubDomains.Contains(subDomain)))
             {
                 var adminAccountLoginResult = await usersService.LoginAdminAccountAsync(context.UserName, context.Password, totpPin: totpPin);
                 if (adminAccountLoginResult.StatusCode != HttpStatusCode.OK)
@@ -113,7 +117,7 @@ namespace Api.Core.Services
                 if (String.IsNullOrWhiteSpace(selectedUser))
                 {
                     // Admin account has not selected a user, so return a list of users.
-                    var usersList = await usersService.GetAsync();
+                    var usersList = await usersService.GetAsync(includeParent:true);
                     if (usersList.ModelObject.Count == 1)
                     {
                         // If there is only one user, immediately login as that user.

@@ -3,7 +3,7 @@ import "./Processing.js";
 import * as Diff2Html from "diff2html/lib/diff2html"
 import "diff2html/bundles/css/diff2html.min.css"
 
-window.$ = require("jquery");
+window.$ = window.jQuery = require("jquery");
 
 /**
  * This function overrides the default ":contains" psuedo from jQuery, so that it's no longer case sensitive.
@@ -129,7 +129,13 @@ export class Dates {
     static parseDate(value) {
         value = value || "";
 
-        return typeof(value) === "string" ? DateTime.fromSQL(value.trim(), { locale: "nl-NL" }) : DateTime.fromJSDate(value, { locale: "nl-NL" });
+        //return typeof(value) === "string" ? DateTime.fromSQL(value.trim(), { locale: "nl-NL" }) : DateTime.fromJSDate(value, { locale: "nl-NL" });
+
+        let d = typeof(value) === "string" ? DateTime.fromSQL(value.trim(), { locale: "nl-NL" }) : DateTime.fromJSDate(value, { locale: "nl-NL" });
+        if (!d.isValid && DateTime.fromFormat(value, 'd-M-yyyy HH:mm:ss').isValid)
+            d = DateTime.fromFormat(value, 'd-M-yyyy HH:mm:ss');
+        
+        return d;
     }
 
     /**
@@ -371,9 +377,7 @@ export class Wiser {
                 console.error("Refresh token failed!");
 
                 // If we got a 401 while using the refresh token, it means the refresh token is no longer valid, so logout the user.
-                if (window.parent && window.parent.main && window.parent.main.vueApp) {
-                    window.parent.main.vueApp.logout();
-                }
+                wiserMainWindow?.vueApp.logout();
             }
         });
     }
@@ -694,7 +698,7 @@ export class Wiser {
                     // If a query ID is set, execute that query first, so that the results can be used in the call to the API.
                     if (action.preRequestQueryId && itemDetails) {
                         const queryResult = await Wiser.api({
-                            method: action.method,
+                            method: "POST",
                             url: `${settings.wiserApiRoot}items/${encodeURIComponent(itemDetails.encryptedId || itemDetails.encrypted_id || itemDetails.encryptedid)}/action-button/0?queryId=${encodeURIComponent(action.preRequestQueryId)}&itemLinkId=${encodeURIComponent(itemDetails.linkId || itemDetails.link_id || 0)}`,
                             data: !extraData ? null : JSON.stringify(extraData),
                             contentType: "application/json"
@@ -720,7 +724,8 @@ export class Wiser {
 
                     // Setup the headers for the request.
                     const headers = {
-                        "X-Api-Url": `${apiOptions.baseUrl}${action.function}`
+                        "X-Api-Url": `${apiOptions.baseUrl}${action.function}`,
+                        "X-Http-Method": `${action.method}`
                     };
 
                     if (action.extraHeaders) {
@@ -853,7 +858,9 @@ export class Wiser {
                 const authenticationRequest = {
                     method: "POST",
                     url: "/ExternalApis/Proxy",
-                    headers: { "X-Api-Url": `${apiOptions.baseUrl}${apiOptions.authentication.accessTokenUrl}` },
+                    headers: { 
+                        "X-Api-Url": `${apiOptions.baseUrl}${apiOptions.authentication.accessTokenUrl}`                        
+                    },
                     data: {}
                 };
 
@@ -1080,7 +1087,7 @@ export class Wiser {
 
             // Call updateItem with only the title, to make sure the SEO value of the title gets saved if needed.
             let newItemDetails = [];
-            if (!skipUpdate) newItemDetails = await Wiser.updateItem(moduleSettings, createItemResult.newItemId, data || [], false, name, false, entityType);
+            if (!skipUpdate) newItemDetails = await Wiser.updateItem(moduleSettings, createItemResult.newItemId, data || [], true, name, false, entityType);
 
             const workflowResult = await Wiser.api({
                 url: `${moduleSettings.wiserApiRoot}items/${encodeURIComponent(createItemResult.newItemId)}/workflow?isNewItem=true`,
@@ -1194,7 +1201,7 @@ export class Wiser {
             }
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan tijdens het uitvoeren (of opzoeken) van de actie 'api_before_delete'. Hierdoor is het betreffende item ook niet uit Wiser verwijderd. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het uitvoeren (of opzoeken) van de actie 'api_before_delete'. Hierdoor is het betreffende item ook niet uit Coder verwijderd. Probeer het a.u.b. nogmaals of neem contact op met ons.");
             return new Promise((resolve, reject) => {
                 reject(exception);
             });
@@ -1327,7 +1334,7 @@ export class Wiser {
                 let html = "";
 
                 if (!fileManagerIframe || !fileManagerIframe.contentWindow || !fileManagerIframe.contentWindow.document) {
-                    kendo.alert("Het iframe voor bestandsbeheer kon niet gevonden worden of is leeg. Ververs a.u.b. de tab waar Wiser in draait en probeer het opnieuw, of neem contact op met ons.");
+                    kendo.alert("Het iframe voor bestandsbeheer kon niet gevonden worden of is leeg. Ververs a.u.b. de tab waar Coder in draait en probeer het opnieuw, of neem contact op met ons.");
                     return;
                 }
 
@@ -1504,10 +1511,15 @@ export class Wiser {
  * Miscellaneous utils.
  */
 export class Misc {
-    static loadExternalScript(url) {
+    static loadExternalScript(url, attributes = {}) {
         return new Promise((resolve) => {
             const scriptEl = document.createElement("script");
             scriptEl.src = url;
+
+            // Set all given attributes on the script element.
+            for(const [ attributeKey, attributeValue ] of Object.entries(attributes))
+                scriptEl.setAttribute(attributeKey, attributeValue);
+            
             if (scriptEl.readyState) {  //IE
                 scriptEl.onreadystatechange = () => {
                     if (scriptEl.readyState === "loaded" ||
@@ -1733,6 +1745,127 @@ export class Misc {
         const div = document.createElement('div');
         div.innerHTML = input;
         return div.textContent;
+    }
+    
+    static async loadCss(url) {
+        return new Promise((resolve, reject) => {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = url;
+            
+            link.onload = () => resolve();
+            link.onerror = () => reject(`Failed to dynamically load stylesheet for '${url}'`);
+            
+            document.head.appendChild(link);
+        });
+    }
+
+    /**
+     * Converts a given ID into a unique hex color that represents the ID.
+     * @param id - The ID to generate a hex color for.
+     * @param saturation - (Optional) the saturation level to apply to the generated hex color.
+     * @param lightness - (Optional) the lightness level to apply to the generated hex color.
+     * @return {string} A hex color consistently generated based on the given ID.
+     */
+    static idToHexColor(id, saturation = 70, lightness = 50) {
+        const hue = (id * 137) % 360;
+
+        // HSL to RGB conversion.
+        const h = hue / 360;
+        const sNorm = saturation / 100;
+        const lNorm = lightness / 100;
+
+        const chroma = (1 - Math.abs(2 * lNorm - 1)) * sNorm;
+        const x = chroma * (1 - Math.abs((h * 6) % 2 - 1));
+        const m = lNorm - chroma / 2;
+
+        let r = 0, g = 0, b = 0;
+
+        if (h < 1/6)      [r, g, b] = [chroma, x, 0];
+        else if (h < 2/6) [r, g, b] = [x, chroma, 0];
+        else if (h < 3/6) [r, g, b] = [0, chroma, x];
+        else if (h < 4/6) [r, g, b] = [0, x, chroma];
+        else if (h < 5/6) [r, g, b] = [x, 0, chroma];
+        else              [r, g, b] = [chroma, 0, x];
+
+        const toHex = val => {
+            const hex = Math.round((val + m) * 255).toString(16);
+            return hex.padStart(2, '0');
+        };
+
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    /**
+     * Load CSS based on a plain system object string or query ID referencing a query that loads a CSS string.
+     */
+    static async injectSystemStyling() {
+        // Retrieve and validate the existence of a user. If none exists, skip injecting the system styling.
+        const user = JSON.parse(localStorage.getItem("userData"));
+        if(!user)
+            return;
+        
+        try {
+            // Request the CSS styling string.
+            const cssString = await Wiser.api({
+                url: `${window.main.appSettings.apiBase}api/v3/styling/system-styling`,
+                dataType: 'json',
+                method: 'GET'
+            });
+
+            // Delete any previous system styling upon successfully retrieving it.
+            this.removeSystemStyling();
+
+            // Inject the system-based CSS into the document.
+            if(cssString) {
+                const style = document.createElement('style');
+                style.id = 'systemStyling';
+                style.innerText = cssString;
+                document.head.appendChild(style);
+            }
+        } catch(exception) {
+            console.error('Error loading system styling.', exception);
+        }
+    }
+
+    /**
+     * Delete any previous system styling upon successfully retrieving it.
+     */
+    static removeSystemStyling() {
+        const previousSystemStyling = document.getElementById('systemStyling');
+        previousSystemStyling?.remove();
+    }
+
+    /**
+     * Replaces new line characters in a HTML string with <br/> elements.
+     * @param htmlString - The HTML string to replace new lines in.
+     * @return {string} - The mutated HTML string with <br/> elements for new lines.
+     */
+    static replaceNewlinesInTextNodes(htmlString) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = htmlString;
+
+        const walker = document.createTreeWalker(wrapper, NodeFilter.SHOW_TEXT);
+
+        let node;
+        while ((node = walker.nextNode())) {
+            const value = node.nodeValue;
+            if (value.includes('\n') && value.trim().length > 0) {
+                const parts = value.split('\n');
+                const fragment = document.createDocumentFragment();
+
+                parts.forEach((part, index) => {
+                    fragment.appendChild(document.createTextNode(part));
+                    if (index < parts.length - 1) {
+                        fragment.appendChild(document.createElement('br'));
+                    }
+                });
+
+                node.parentNode.replaceChild(fragment, node);
+            }
+        }
+
+        return wrapper.innerHTML;
     }
 }
 

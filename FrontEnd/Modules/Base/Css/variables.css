@@ -30,9 +30,6 @@
 	--sec-color: 		#E6E6E6;
 	--sec-hover: 		#D2D2D2;
 	--active-tab: 		#EFF1F2;
-
-    --unchecked-color:	#DFDFDF;
-    --checked-color:	#F3BF33;
 	
 	--color-1: 			#01AEF0;
 	--color-2: 			#F55523;
@@ -58,6 +55,9 @@
 	--link-color: 		var(--action-color);
 	--btn-color: 		var(--action-color);
 
+	--unchecked-color:	#DFDFDF;
+	--checked-color:	var(--primary-color);
+
 	--drop-shadow:		0 4px 4px 0 var(--shadow-color);
 	
 	--notify-error:		#BA2049;
@@ -65,11 +65,25 @@
 	--notify-success:	#5FB662;
 	--notify-info:		#333333;
 
-	--padding-large:	5px .6em;
+	--padding-large:	4px .4em;
 	--small-radius:     3px;
 	--medium-radius:    5px;
 	--large-radius:     7px;
 	
 	--row-selected-background-color: #CCFFCC;
 	--row-selected-hover-background-color: #B3E6B3;
-	}
+
+	--kendo-font-size: 14px;
+	--kendo-spacing-3: 0.5rem;
+	
+	--kendo-color-base: #fff;
+	--kendo-color-base-hover: #e1e1e1;
+	--kendo-color-base-active: #d7d7d7;
+	--kendo-color-base-subtle: #e1e1e1;
+	--kendo-color-base-subtle-hover: #d7d7d7;
+	--kendo-color-subtle: #e1e1e1;
+	--kendo-color-subtle-hover: #d7d7d7;
+	--kendo-color-surface: #fff;
+	--kendo-color-primary-on-surface: #000;
+	--kendo-color-primary: #1EAA8FFF;
+}

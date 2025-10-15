@@ -5,11 +5,11 @@
 <html>
 
 <head runat="server">
-    <title>Wiser 3 - Import/Export</title>
+    <title>Coder 3 - Import/Export</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="//kendo.cdn.telerik.com/2022.2.621/styles/kendo.common-material.min.css" rel="stylesheet" />
-    <link href="//kendo.cdn.telerik.com/2022.2.621/styles/kendo.material.min.css" rel="stylesheet" />
+    <link href="https://unpkg.com/@@progress/kendo-theme-material@11.1.0/dist/material-main.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-font-icons/dist/index.css" />
 
     <script>
         window.wiserVersion = "@Model.WiserVersion?.ToString()";
@@ -42,7 +42,7 @@
                 <!-- TABS -->
                 <div id="tabstrip">
                     <ul>
-                        <li class="k-state-active">Import</li>
+                        <li class="k-active">Import</li>
                         <li>Export</li>
                         <li>Verwijderen items</li>
                         <li>Verwijderen koppelingen</li>
@@ -62,7 +62,7 @@
                                             <ins class="icon-info-full"></ins>
                                             <span class="info-tooltip">
                                                 <span>
-                                                    Verwijder gemakkelijk meerdere items binnen Wiser.
+                                                    Verwijder gemakkelijk meerdere items binnen Coder.
                                                 </span>
                                             </span>
                                         </span>
@@ -169,7 +169,7 @@
                                             <ins class="icon-info-full"></ins>
                                             <span class="info-tooltip">
                                                 <span>
-                                                    Verwijder gemakkelijk meerdere koppelingen tussen items binnen Wiser.
+                                                    Verwijder gemakkelijk meerdere koppelingen tussen items binnen Coder.
                                                 </span>
                                             </span>
                                         </span>

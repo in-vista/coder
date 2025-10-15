@@ -27,11 +27,13 @@ import {
     AUTH_LOGOUT,
     AUTH_REQUEST,
     CHANGE_PASSWORD,
+    BRANCH_CHANGE_COMPLETED,
     CLEAR_CACHE,
     CLEAR_CACHE_ERROR,
     CLEAR_LOCAL_TOTP_BACKUP_CODES,
     CLOSE_ALL_MODULES,
     CLOSE_MODULE,
+    CLEAR_ALL_MODULES,
     CREATE_BRANCH,
     CREATE_BRANCH_ERROR,
     DELETE_BRANCH,
@@ -368,7 +370,7 @@ class Main {
                         conflicts: []
                     },
                     branchActions: [
-                        { id: "wiser", name:  "Openen in Wiser" },
+                        { id: "coder", name:  "Openen in Coder" },
                         { id: "website", name: "Openen op mijn website" },
                         { id: "delete", name: "Verwijderen" }
                     ],
@@ -391,6 +393,12 @@ class Main {
             async created() {
                 this.$store.dispatch(GET_TENANT_TITLE, this.appSettings.subDomain);
                 document.addEventListener("keydown", this.onAppKeyDown.bind(this));
+                
+                // Add an event for when the DOM is loaded.
+                document.addEventListener('DOMContentLoaded', async function() {
+                    // Load system styling.
+                    await Misc.injectSystemStyling();
+                });
             },
             computed: {
                 loginStatus() {
@@ -449,6 +457,9 @@ class Main {
                 },
                 tenantManagementIsOpened() {
                     return this.$store.state.modules.openedModules.filter(m => m.moduleId === "tenantManagement").length > 0;
+                },
+                branchChangeCompleted() {
+                    return this.$store.state.branches.branchChangeCompleted;
                 },
                 createBranchError() {
                     return this.$store.state.branches.createBranchError;
@@ -591,7 +602,7 @@ class Main {
                             url = `${url.substring(0, url.indexOf("/", 8))}/branches/${encodeURIComponent(this.branchActionSettings.selectedBranch.database.databaseName)}`;
 
                             break;
-                        case "wiser":
+                        case "coder":
                             url = `https://${this.branchActionSettings.selectedBranch.subDomain}.${this.appSettings.currentDomain}`;
 
                             break;
@@ -701,7 +712,11 @@ class Main {
                     // Update the user's active time one last time.
                     await this.$store.dispatch(UPDATE_ACTIVE_TIME);
                     this.$store.dispatch(CLOSE_ALL_MODULES);
+                    this.$store.dispatch(CLEAR_ALL_MODULES);
                     await this.$store.dispatch(AUTH_LOGOUT);
+                    
+                    // Remove the system styling.
+                    Misc.removeSystemStyling();
                 },
 
                 openModule(module) {
@@ -839,7 +854,7 @@ class Main {
                     if (!this.listOfEntityTypes || !this.listOfEntityTypes.length) {
                         this.openModule({
                             moduleId: `wiserItem_${this.wiserIdPromptValue}`,
-                            name: `Wiser item #${this.wiserIdPromptValue}`,
+                            name: `Coder item #${this.wiserIdPromptValue}`,
                             type: "dynamicItems",
                             iframe: true,
                             itemId: encryptedId,
@@ -852,7 +867,7 @@ class Main {
                     } else if (this.listOfEntityTypes.length === 1) {
                         this.openModule({
                             moduleId: `wiserItem_${this.wiserIdPromptValue}_${this.listOfEntityTypes[0].id}`,
-                            name: `Wiser item #${this.wiserIdPromptValue} (${this.listOfEntityTypes[0].displayName})`,
+                            name: `Coder item #${this.wiserIdPromptValue} (${this.listOfEntityTypes[0].displayName})`,
                             type: "dynamicItems",
                             iframe: true,
                             itemId: encryptedId,
@@ -867,7 +882,7 @@ class Main {
                     } else {
                         this.openModule({
                             moduleId: `wiserItem_${this.wiserIdPromptValue}_${this.wiserEntityTypePromptValue.id}`,
-                            name: `Wiser item #${this.wiserIdPromptValue} (${this.wiserEntityTypePromptValue.displayName})`,
+                            name: `Coder item #${this.wiserIdPromptValue} (${this.wiserEntityTypePromptValue.displayName})`,
                             type: "dynamicItems",
                             iframe: true,
                             itemId: encryptedId,
@@ -954,7 +969,7 @@ class Main {
                     event.preventDefault();
 
                     if (!this.branchActionSettings || !this.branchActionSettings.selectedAction || !this.branchActionSettings.selectedAction.id) {
-                        this.showGeneralMessagePrompt("Kies a.u.b. of u de branch in Wiser wilt openen of op uw website.");
+                        this.showGeneralMessagePrompt("Kies a.u.b. of u de branch in Coder wilt openen of op uw website.");
                         return false;
                     }
 
@@ -1242,6 +1257,8 @@ class Main {
                 },
 
                 async onSelectedBranchChange(event) {
+                    await this.$store.dispatch(BRANCH_CHANGE_COMPLETED, false);
+                    
                     let selectedBranchId = event;
                     if (!selectedBranchId) {
                         selectedBranchId = 0;
@@ -1270,6 +1287,8 @@ class Main {
                     this.branchMergeSettings.linkTypes.all.everything = false;
                     this.updateBranchChangeList(false, "entities", "all", "everything");
                     this.updateBranchChangeList(false, "linkTypes", "all", "everything");
+
+                    await this.$store.dispatch(BRANCH_CHANGE_COMPLETED, true);
                 },
 
                 async countBranchChanges() {

@@ -20,11 +20,9 @@ namespace Api.Modules.Items.Interfaces
         /// The results will be returned in multiple pages, with a max of 500 items per page.
         /// </summary>
         /// <param name="identity">The identity of the authenticated user.</param>
-        /// <param name="pagedRequest">Optional: Which page to get and how many items per page to get.</param>
-        /// <param name="useFriendlyPropertyNames">Optional: Whether to use friendly property names or not. Default is <see langword="true"/>.</param>
-        /// <param name="filters">Optional: Add filters if you only want specific results.</param>
+        /// <param name="input">The filters and paging settings to specify the items you're looking for.</param>
         /// <returns>A PagedResults with information about the total amount of items, page number etc. The results property contains the actual results, of type FlatItemModel.</returns>
-        Task<ServiceResult<PagedResults<FlatItemModel>>> GetItemsAsync(ClaimsIdentity identity, PagedRequest pagedRequest = null, bool useFriendlyPropertyNames = true, WiserItemModel filters = null);
+        Task<ServiceResult<PagedResults<FlatItemModel>>> GetItemsAsync(ClaimsIdentity identity, GetItemsInputModel input);
 
         /// <summary>
         /// Creates a duplicate copy of an existing item.
@@ -124,13 +122,15 @@ namespace Api.Modules.Items.Interfaces
         /// Get the HTML and javascript for single Wiser item, to show the item in Wiser.
         /// </summary>
         /// <param name="encryptedId">The encrypted ID of the item to get.</param>
+        /// <param name="isNew">Whether the requested item is considered new.</param>
         /// <param name="identity">The identity of the authenticated user.</param>
         /// <param name="propertyIdSuffix">Optional: The suffix of every field on the item. This is used to give each field a unique ID, when multiple items are opened at the same time. Default value is <see langword="null"/>.</param>
         /// <param name="itemLinkId">Optional: The id of the item link from wiser_itemlink. This should be used when opening an item via a sub-entities-grid, to show link fields. Default value is 0.</param>
         /// <param name="entityType">Optional: The entity type of the item. This is needed when the item is saved in a different table than wiser_item. We can only look up the name of that table if we know the entity type beforehand.</param>
         /// <param name="linkType">Optional: The type number of the link, if this item also contains fields on a link.</param>
+        /// <param name="propertyId">Optional: The ID of the property from which the HTML must me returned.</param>
         /// <returns>A <see cref="ItemHtmlAndScriptModel"/> with the HTML and javascript needed to load this item in Wiser. This is needed when the link is saved in a different table than wiser_itemlink. We can only look up the name of that table if we know the link type beforehand.</returns>
-        Task<ServiceResult<ItemHtmlAndScriptModel>> GetItemHtmlAsync(string encryptedId, ClaimsIdentity identity, string propertyIdSuffix = null, ulong itemLinkId = 0, string entityType = null, int linkType = 0);
+        Task<ServiceResult<ItemHtmlAndScriptModel>> GetItemHtmlAsync(string encryptedId, bool isNew, ClaimsIdentity identity, string propertyIdSuffix = null, ulong itemLinkId = 0, string entityType = null, int linkType = 0, int propertyId = 0);
 
         /// <summary>
         /// Gets a single item by its encrypted item ID.
@@ -216,14 +216,15 @@ namespace Api.Modules.Items.Interfaces
         /// </summary>
         /// <param name="moduleId">The ID of the module.</param>
         /// <param name="identity">The identity of the authenticated user.</param>
-        /// <param name="entityType">Optional: The entity type of the item to duplicate. This is needed when the item is saved in a different table than wiser_item. We can only look up the name of that table if we know the entity type beforehand.</param>
+        /// <param name="parentEntityType">Optional: Restricts the returned items to items of the given entity types. This is a string of comma separated values.</param>
         /// <param name="encryptedParentId">Optional: The encrypted ID of the parent to fix the ordering for. If no value has been given, the root will be used as parent.</param>
         /// <param name="orderBy">Optional: Enter the value "item_title" to order by title, or nothing to order by order number.</param>
         /// <param name="encryptedCheckId">Optional: This is meant for item-linker fields. This is the encrypted ID for the item that should currently be checked.</param>
         /// <param name="linkType">Optional: The type number of the link. This is used in combination with "checkId"; So that items will only be marked as checked if they have the given link ID.</param>
+        /// <param name="childEntityTypes">Optional: Restricts the returned items to items of the given entity types. This is a string of comma separated values.</param>
         /// <returns>A list of <see cref="TreeViewItemModel"/>.</returns>
-        Task<ServiceResult<List<TreeViewItemModel>>> GetItemsForTreeViewAsync(int moduleId, ClaimsIdentity identity, string entityType = null, string encryptedParentId = null, string orderBy = null, string encryptedCheckId = null, int linkType = 0);
-
+        Task<ServiceResult<List<TreeViewItemModel>>> GetItemsForTreeViewAsync(int moduleId, ClaimsIdentity identity, string parentEntityType = null, string encryptedParentId = null, string orderBy = null, string encryptedCheckId = null, int linkType = 0, string childEntityTypes = null);
+        
         /// <summary>
         /// Move an item to a different position in the tree view.
         /// </summary>
@@ -277,5 +278,15 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="data">The data for the search, such as the search value, entity type of items to search for etc.</param>
         /// <returns></returns>
         Task<ServiceResult<List<SearchResponseModel>>> SearchAsync(ClaimsIdentity identity, ulong parentId, SearchRequestModel data);
+        
+        /// <summary>
+        /// Get the contact menu items for the given item dependant on what the user is allowed to do.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <param name="moduleId">The id of the module the item is in.</param>
+        /// <param name="encryptedItemId">The encrypted ID of the item to get the menu items for.</param>
+        /// <param name="entityType">The entity type of item to get menu items for.</param>
+        /// <returns></returns>
+        Task<ServiceResult<List<ContextMenuItem>>> GetContextMenuAsync(ClaimsIdentity identity, int moduleId, string encryptedItemId, string entityType);
     }
 }

@@ -82,7 +82,7 @@
 		console.log(notice("Stored procedures created."));
 
         console.log(notice("Inserting data..."));
-        await connection.query(`INSERT INTO easy_customers (id, customerid, name, subdomain, wiser_title) VALUES (1, 1, 'Main', 'main', 'Wiser')`);
+        await connection.query(`INSERT INTO easy_customers (id, customerid, name, subdomain, wiser_title) VALUES (1, 1, 'Main', 'main', 'Coder')`);
         const insertInitialDataQuery = fs.readFileSync(path.join(__dirname, "..", "/Core/Queries/WiserInstallation/InsertInitialData.sql"), "utf8");
         await connection.query(insertInitialDataQuery.replace("?newCustomerId", "1"));
         console.log(notice("Data inserted."));

@@ -16,6 +16,11 @@ const moduleSettings = {
         constructor(settings) {
             kendo.culture("nl-NL");
 
+            // Initial Kendo settings.
+            // TODO: Font icons are deprecated since 2023 and will be unsupported soon.
+            // TODO: Upgrade Coder for migration to SVG icons.
+            kendo.setDefaults('iconType', 'font');
+
             // Base settings.
             this.settings = {};
             Object.assign(this.settings, settings);
@@ -92,7 +97,7 @@ const moduleSettings = {
             const user = JSON.parse(localStorage.getItem("userData"));
             this.settings.oldStyleUserId = user.oldStyleUserId;
             this.settings.username = user.adminAccountName ? `${user.adminAccountName} (Admin)` : user.name;
-            this.settings.adminAccountLoggedIn = !!user.adminAccountName;
+            this.settings.adminAccountLoggedIn = !!user.adminlogin;
 
             const userData = await Wiser.getLoggedInUserData(this.settings.wiserApiRoot);
             this.settings.userId = userData.encryptedId;
@@ -346,7 +351,7 @@ const moduleSettings = {
             const orderByWidget = orderBy.getKendoMultiSelect();
             orderByWidget.wrapper.on("click", "li.k-button", (e) => {
                 const clickedElement = $(e.target);
-                if (clickedElement.has(".k-i-close").length > 0 || clickedElement.closest(".k-i-close").length > 0) {
+                if (clickedElement.has(".k-i-x").length > 0 || clickedElement.closest(".k-i-x").length > 0) {
                     return;
                 }
 
@@ -1208,7 +1213,7 @@ const moduleSettings = {
                     columns: [
                         { field: "k", title: "Naam" },
                         { field: "v", title: "Waarde" },
-                        { command: { name: "destroy", text: "", iconClass: "k-icon k-i-delete" }, width: 150 }
+                        { command: { name: "destroy", text: "", iconClass: "k-font-icon k-i-delete" }, width: 150 }
                     ],
                     editable: {
                         mode: "incell",

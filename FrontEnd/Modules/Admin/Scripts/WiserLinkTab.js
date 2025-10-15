@@ -311,7 +311,7 @@ export class WiserLinkTab {
             if (exception.responseText.indexOf("Duplicate entry")) {
                 this.base.showNotification("notification", `Er bestaat al een link met type '${linkSettingsModel.type}' met entiteit van '${linkSettingsModel.destinationEntityType}' naar '${linkSettingsModel.sourceEntityType}'`, "error");
             } else {
-                this.base.showNotification("notification", "Wiser link is niet succesvol aangemaakt, probeer het opnieuw", "error");
+                this.base.showNotification("notification", "Coder link is niet succesvol aangemaakt, probeer het opnieuw", "error");
             }
         }
     }
@@ -344,14 +344,14 @@ export class WiserLinkTab {
                 method: "PUT"
             });
             await this.reloadWiserLinkList();
-            this.base.showNotification("notification", "Wiser Link succesvol aangepast", "success");
+            this.base.showNotification("notification", "Coder Link succesvol aangepast", "success");
         }
         catch (exception) {
             console.error(exception);
             if (exception.responseText.indexOf("Duplicate entry")) {
                 this.base.showNotification("notification", `Er bestaat al een link met type '${linkSettingsModel.type}' met entiteit van '${linkSettingsModel.destinationEntityType}' naar '${linkSettingsModel.sourceEntityType}'`, "error");
             } else {
-                this.base.showNotification("notification", "Wiser link is niet succesvol aangepast, probeer het opnieuw", "error");
+                this.base.showNotification("notification", "Coder link is niet succesvol aangepast, probeer het opnieuw", "error");
             }
         }
     }
@@ -370,7 +370,7 @@ export class WiserLinkTab {
         }
         catch (exception) {
             console.error(exception);
-            this.base.showNotification("notification", "Wiser link is niet succesvol verwijderd, probeer het opnieuw", "error");
+            this.base.showNotification("notification", "Coder link is niet succesvol verwijderd, probeer het opnieuw", "error");
         }
     }
 }

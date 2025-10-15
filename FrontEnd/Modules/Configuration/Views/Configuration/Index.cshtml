@@ -5,11 +5,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
     <meta charset="utf-8" />
-    <title>Wiser 3 - Configuratie</title>
+    <title>Coder 3 - Configuratie</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="//kendo.cdn.telerik.com/2022.2.621/styles/kendo.common-material.min.css" rel="stylesheet" />
-    <link href="//kendo.cdn.telerik.com/2022.2.621/styles/kendo.material.min.css" rel="stylesheet" />
+    <link href="https://unpkg.com/@@progress/kendo-theme-material@11.1.0/dist/material-main.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-font-icons/dist/index.css" />
     <script>
         window.wiserVersion = "@Model.WiserVersion?.ToString()";
     </script>
@@ -70,11 +70,11 @@
             </div>
             <div class="group-wrapper">
                 <div class="group-wrapper-title">
-                    Inrichting van Wiser
+                    Inrichting van Coder
                 </div>
                 <a class="group-item hidden" data-module-type="Admin">
                     <ins class="icon-config"></ins>
-                    <span>Wiser beheer</span>
+                    <span>Coder beheer</span>
                     @* <button class="pin-item"><ins class="icon-line-pin-empty"></ins></button> *@
                 </a>
                 <a class="group-item hidden" data-module-type="Users">

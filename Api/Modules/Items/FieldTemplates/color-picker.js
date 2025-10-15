@@ -1,7 +1,7 @@
 ﻿(() => {
     const kendoComponent = $("#field_{propertyIdWithSuffix}").kendoColorPicker($.extend({
         buttons: false,
-        change: window.dynamicItems.fields.onFieldValueChange.bind(window.dynamicItems.fields),
+        change: function(event) { window.dynamicItems.fields.onFieldValueChange(event, options); },
     }, {options})).data("kendoColorPicker");
     
     const readonly = {readonly};

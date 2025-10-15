@@ -1,4 +1,4 @@
-﻿(function() {
+﻿(() => {
 const container = $("#container_{propertyIdWithSuffix}");
 const field = $("#field_{propertyIdWithSuffix}");
 const fieldOptions = {options};
@@ -6,7 +6,7 @@ const options = $.extend({
     autoClose: false,
     dataTextField: "name",
     dataValueField: "id",
-    change: window.dynamicItems.fields.onFieldValueChange.bind(window.dynamicItems.fields),
+    change: function(event) { window.dynamicItems.fields.onFieldValueChange(event, fieldOptions); },
     dataSource: {
         transport: {
             read: async (kendoReadOptions) => {
