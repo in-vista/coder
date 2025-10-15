@@ -74,7 +74,7 @@ namespace Api.Core.Services
             if (!String.IsNullOrWhiteSpace(isWiserFrontEndLoginEncrypted))
             {
                 isWiserFrontEndLoginEncrypted = WebUtility.HtmlDecode(isWiserFrontEndLoginEncrypted);
-                isWiserFrontEndLogin = isWiserFrontEndLoginEncrypted.DecryptWithAesWithSalt(gclSettings.DefaultEncryptionKey, true, 10, true).Equals("true", StringComparison.OrdinalIgnoreCase);
+                isWiserFrontEndLogin = isWiserFrontEndLoginEncrypted.DecryptWithAesWithSalt(gclSettings.DefaultEncryptionKey, false, 0, true).Equals("true", StringComparison.OrdinalIgnoreCase);
             }
 
             // First try to login as a regular user.
