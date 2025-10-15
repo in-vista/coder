@@ -78,9 +78,9 @@ namespace Api.Modules.Items.Controllers
         [Route("{encryptedId}")]
         [ProducesResponseType(typeof(ItemHtmlAndScriptModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetItemAsync(string encryptedId, [FromQuery]string propertyIdSuffix = null, [FromQuery]ulong itemLinkId = 0, [FromQuery]string entityType = null, [FromQuery]int linkType = 0, [FromQuery]int propertyId = 0)
+        public async Task<IActionResult> GetItemAsync(string encryptedId, [FromQuery] bool isNew, [FromQuery]string propertyIdSuffix = null, [FromQuery]ulong itemLinkId = 0, [FromQuery]string entityType = null, [FromQuery]int linkType = 0, [FromQuery]int propertyId = 0)
         {
-            return (await itemsService.GetItemHtmlAsync(encryptedId, (ClaimsIdentity)User.Identity, propertyIdSuffix, itemLinkId, entityType, linkType, propertyId)).GetHttpResponseMessage();
+            return (await itemsService.GetItemHtmlAsync(encryptedId, isNew, (ClaimsIdentity)User.Identity, propertyIdSuffix, itemLinkId, entityType, linkType, propertyId)).GetHttpResponseMessage();
         }
 
         /// <summary>

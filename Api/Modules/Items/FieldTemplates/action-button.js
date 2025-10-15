@@ -5,6 +5,7 @@
     const entityType = '{entityType}';
     const propertyId = {propertyId};
     const readOnly = {readonly};
+    const isNew = {isNew};
     let options = {options};
     
     options = $.extend({
@@ -31,9 +32,12 @@
     
     // Hide the action button if the item is set to be read-only and the "show-on-read-only" is false.
     const showOnReadOnly = options.showOnReadOnly !== undefined ? options.showOnReadOnly : true;
-
-    // Hide the item if it should not be visible if it is read-only.
-    if(!showOnReadOnly && readOnly)
+    
+    // Hide the item based on certain properties.
+    if(
+        (!showOnReadOnly && readOnly) ||
+        (options.hideWhenNew && isNew)
+    )
         field.closest('.item').hide();
     
     {customScript}

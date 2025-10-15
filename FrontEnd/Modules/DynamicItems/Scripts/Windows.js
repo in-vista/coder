@@ -276,6 +276,7 @@ export class Windows {
             });
 
             const afterSave = async () => {
+                isNewItem = false;
                 if(kendoComponent) {
                     if (!kendoComponent.dataSource) {
                         if (kendoComponent.find(".tabStripPopup")?.data("kendoTabStrip") === undefined) return;
@@ -309,7 +310,18 @@ export class Windows {
                 icon: "save",
                 click: async (event) => {
                     await this.onSaveItemPopupClick(event, false, !senderGrid);
-                    afterSave();
+                    
+                    // Store the previous state of the item.
+                    const wasNewItem = isNewItem;
+                    
+                    await afterSave();
+                    
+                    // If the item was new but is now no longer new, refresh the overview so all components can react
+                    // to the item no longer being considered 'new'.
+                    if(wasNewItem) {
+                        const previouslySelectedTab = currentItemTabStrip.select().index();
+                        await loadPopupContents(previouslySelectedTab);
+                    }
                 }
             });
             currentItemWindow.element.find(".saveAndCloseBottomPopup").kendoButton({
@@ -353,7 +365,7 @@ export class Windows {
                     // Get the information that we need about the opened item.
                     const promises = [
                         this.base.getEntityType(entityType),
-                        this.base.getItemHtml(encryptedItemId, entityType, windowId, linkId, linkType)
+                        this.base.getItemHtml(encryptedItemId, entityType, isNewItem, windowId, linkId, linkType)
                     ];
 
                     if (!isNewItem) {

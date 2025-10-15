@@ -2433,7 +2433,8 @@ export class Fields {
                         if (kendoWindow.length === 0) {
                             // The opened item is in the main window.
                             const previouslySelectedTab = this.base.mainTabStrip.select().index();
-                            await this.base.loadItem(this.base.settings.initialItemId ? this.base.settings.initialItemId : this.base.selectedItem.id, previouslySelectedTab, entityType);
+                            const isNew = kendoWindow.data('isNewItem');
+                            await this.base.loadItem(this.base.settings.initialItemId ? this.base.settings.initialItemId : this.base.selectedItem.id, isNew, previouslySelectedTab, entityType);
                         } else {
                             // The opened item is in a window.
                             const previouslySelectedTab = kendoWindow.find(".tabStripPopup").data("kendoTabStrip").select().index();
@@ -3865,8 +3866,10 @@ export class Fields {
         // Refresh the current item after this input changes
         if (options.refreshOnChange ?? false) {
             const previouslySelectedTab = window.dynamicItems.mainTabStrip.select().index();
+            const isNew = itemContainer.data('isNewItem');
             await window.dynamicItems.loadItem(
                 window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId,
+                isNew,
                 previouslySelectedTab,
                 window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.entityType : window.dynamicItems.settings.entityType);
         }

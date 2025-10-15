@@ -1173,7 +1173,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<ItemHtmlAndScriptModel>> GetItemHtmlAsync(string encryptedId, ClaimsIdentity identity, string propertyIdSuffix = null, ulong itemLinkId = 0, string entityType = null, int linkType = 0, int propertyId = 0)
+        public async Task<ServiceResult<ItemHtmlAndScriptModel>> GetItemHtmlAsync(string encryptedId, bool isNew, ClaimsIdentity identity, string propertyIdSuffix = null, ulong itemLinkId = 0, string entityType = null, int linkType = 0, int propertyId = 0)
         {
             var results = new ItemHtmlAndScriptModel();
             var userId = IdentityHelpers.GetWiserUserId(identity);
@@ -1777,6 +1777,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                             String.IsNullOrWhiteSpace(propertyName) ? displayName ?? "" : propertyName.Trim())
                         .Replace("{extraAttribute}", extraAttributes)
                         .Replace("{itemId}", itemId.ToString())
+                        .Replace("{isNew}", isNew.ToString().ToLower())
                         .Replace("{style}", containerCss)
                         .Replace("{fieldContainerStyle}", fieldContainerCss)
                         .Replace("{fieldErrorContainerStyle}", fieldErrorContainerCss)
@@ -1835,6 +1836,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         .Replace("{propertyIdWithSuffix}", propertyId + (propertyIdSuffix ?? ""))
                         .Replace("{propertyIdSuffix}", propertyIdSuffix ?? "")
                         .Replace("{itemId}", itemId.ToString())
+                        .Replace("{isNew}", isNew.ToString().ToLower())
                         .Replace("{itemIdEncrypted}", encryptedId.Replace(" ", "+"))
                         .Replace("{moduleId}", (dataRow.Field<short?>("module_id") ?? 0).ToString())
                         .Replace("{options}", String.IsNullOrWhiteSpace(options) ? "{}" : options)

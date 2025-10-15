@@ -107,6 +107,24 @@ jobs:
         New-Item -Path ([IO.Path]::Combine($apiPath, "App_Offline.htm")) -ItemType File -Force
         New-Item -Path ([IO.Path]::Combine($frontendPath, "App_Offline.htm")) -ItemType File -Force
 
+    - name: Install NPM modules
+      run: npm install
+      working-directory: 'coder/FrontEnd'
+
+    - name: Write Kendo UI license to file
+      run: |
+        [System.IO.File]::WriteAllText("telerik-license.txt", "${{ secrets.KENDO_UI_LICENSE }}", [System.Text.Encoding]::UTF8)
+      shell: powershell
+      working-directory: coder/FrontEnd
+
+    - name: Activate Kendo UI License
+      run: npx kendo-ui-license activate
+      working-directory: 'coder/FrontEnd'
+
+    - name: Compile scripts and styles with webpack
+      run: node_modules\.bin\webpack --mode=development
+      working-directory: 'coder/FrontEnd'
+
     - name: dotnet publish API to temp folder
       run: |
         $tempApi = "${{ github.workspace }}\publish\API"
@@ -135,24 +153,6 @@ jobs:
       run: |
         Remove-Item ([IO.Path]::Combine("${{ secrets.PUBLISH_LOCATION_API }}", "App_Offline.htm"))
         Remove-Item ([IO.Path]::Combine("${{ secrets.PUBLISH_LOCATION_FRONT_END }}", "App_Offline.htm"))
-
-    - name: Install NPM modules
-      run: npm install
-      working-directory: 'coder/FrontEnd'
-
-    - name: Write Kendo UI license to file
-      run: |
-        [System.IO.File]::WriteAllText("telerik-license.txt", "${{ secrets.KENDO_UI_LICENSE }}", [System.Text.Encoding]::UTF8)
-      shell: powershell
-      working-directory: coder/FrontEnd
-
-    - name: Activate Kendo UI License
-      run: npx kendo-ui-license activate
-      working-directory: 'coder/FrontEnd'
-
-    - name: Compile scripts and styles with webpack
-      run: node_modules\.bin\webpack --mode=development
-      working-directory: 'coder/FrontEnd'
       
   clear-backup:
     runs-on: cluster1_transip

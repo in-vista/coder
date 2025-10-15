@@ -1087,7 +1087,7 @@ export class Wiser {
 
             // Call updateItem with only the title, to make sure the SEO value of the title gets saved if needed.
             let newItemDetails = [];
-            if (!skipUpdate) newItemDetails = await Wiser.updateItem(moduleSettings, createItemResult.newItemId, data || [], false, name, false, entityType);
+            if (!skipUpdate) newItemDetails = await Wiser.updateItem(moduleSettings, createItemResult.newItemId, data || [], true, name, false, entityType);
 
             const workflowResult = await Wiser.api({
                 url: `${moduleSettings.wiserApiRoot}items/${encodeURIComponent(createItemResult.newItemId)}/workflow?isNewItem=true`,
