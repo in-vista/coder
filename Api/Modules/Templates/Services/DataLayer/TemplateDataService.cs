@@ -194,7 +194,7 @@ LIMIT 1");
         /// <inheritdoc />
         public async Task<Dictionary<int, int>> GetPublishedEnvironmentsAsync(int templateId, TenantModel branch = null)
         {
-            var query = $"SELECT version, published_environment FROM {WiserTableNames.WiserTemplate} WHERE template_id = ?templateId";
+            var query = $"SELECT version, published_environment FROM {WiserTableNames.WiserTemplate} WHERE template_id = ?templateId ORDER BY version DESC";
             DataTable dataTable;
             if (branch != null)
             {
