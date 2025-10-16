@@ -233,7 +233,7 @@ export class Grids {
                         name: "openDetails",
                         iconClass: "k-font-icon k-i-hyperlink-open",
                         text: "",
-                        click: (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }, false); }
+                        click: (event) => this.base.grids.executeToolbarActionButton(event, () => this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }, false))
                     });
 
                     if (gridViewSettings.allowOpeningOfItemsInNewTab) {
@@ -243,7 +243,7 @@ export class Grids {
                             name: "openDetailsInNewTab",
                             iconClass: "k-font-icon k-i-window",
                             text: "",
-                            click: (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }, true); }
+                            click: (event) => this.base.grids.executeToolbarActionButton(event, () => this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }, true))
                         });
                     }
                 }
@@ -274,7 +274,7 @@ export class Grids {
                         name: "remove",
                         iconClass: "k-font-icon k-i-delete",
                         text: "",
-                        click: onDeleteClick.bind(this)
+                        click: this.base.grids.executeToolbarActionButton(event, () => onDeleteClick.bind(this))
                     });
                 }
                 else if (gridViewSettings.showDeleteButton === true) {
@@ -284,7 +284,7 @@ export class Grids {
                         name: "remove",
                         text: "",
                         iconClass: "k-font-icon k-i-delete",
-                        click: (event) => { this.base.grids.onDeleteItemClick(event, this.mainGrid, "deleteItem", gridViewSettings); }
+                        click: (event) => this.base.grids.executeToolbarActionButton(event, () => this.base.grids.onDeleteItemClick(event, this.mainGrid, "deleteItem", gridViewSettings))
                     });
                 }
 
@@ -312,7 +312,7 @@ export class Grids {
                 toolbar.push({
                     name: "clearAllFilters",
                     text: "",
-                    template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>`
+                    template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='window.dynamicItems.grids.executeToolbarActionButton(event, () => window.dynamicItems.grids.onClearAllFiltersClick(event))'><span class='k-font-icon k-i-filter-clear'></span></a>`
                 });
             }
 
@@ -346,7 +346,7 @@ export class Grids {
                 toolbar.push({
                     name: "add",
                     text: "Nieuw",
-                    template: `<a class='k-button k-button-icontext' onclick='return window.dynamicItems.dialogs.openCreateItemDialog(null, null, null, ${gridViewSettings.skipNameForNewItems})'><span class='k-font-icon k-i-${createButtonIcon}'></span>${createButtonText}</a>`
+                    template: `<a class='k-button k-button-icontext' onclick='window.dynamicItems.grids.executeToolbarActionButton(event, () => window.dynamicItems.dialogs.openCreateItemDialog(null, null, null, ${gridViewSettings.skipNameForNewItems}))'><span class='k-font-icon k-i-${createButtonIcon}'></span>${createButtonText}</a>`
                 });
             }
 
@@ -1308,12 +1308,12 @@ export class Grids {
                     groups.push(group);
                 }
 
-                group.actions.push(`<a class='k-button k-button-icontext ${className}' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span>${customAction.text}</span></a>`);
+                group.actions.push(`<a class='k-button k-button-icontext ${className}' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='window.dynamicItems.grids.executeToolbarActionButton(event, async () => await window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}"))' style='${(kendo.htmlEncode(customAction.style || ""))}'><span>${customAction.text}</span></a>`);
             } else {
                 actionsWithoutGroups.push({
                     name: `customAction${i.toString()}`,
                     text: customAction.text,
-                    template: `<a class='k-button k-button-icontext ${className}' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='return window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}")' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-font-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
+                    template: `<a class='k-button k-button-icontext ${className}' data-id='${Misc.encodeHtml(encryptedItemId)}' data-entity-type='${Misc.encodeHtml(entityType)}' ${defaultAttributes} onclick='window.dynamicItems.grids.executeToolbarActionButton(event, async () => await window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick("${selector}", "${encryptedItemId}", "${propertyId}", ${JSON.stringify(customActionData)}, event, "${entityType}"))' style='${(kendo.htmlEncode(customAction.style || ""))}'><span class='k-font-icon k-i-${customAction.icon}'></span>${customAction.text}</a>`
                 });
             }
         }
@@ -1858,6 +1858,25 @@ export class Grids {
             const buttonGroupElement = $(buttonGroup);
             const totalAmountOfButtons = buttonGroupElement.find("a.k-button:not(.hidden)").length;
             buttonGroupElement.toggleClass("hidden", totalAmountOfButtons === 0);
+        }
+    }
+
+    /**
+     * Wraps the given function in a handler to only allow execution of the function once the function is done.
+     * @param event - The event of the onclick.
+     * @param callback - The callback called if the button is currently not busy.
+     */
+    async executeToolbarActionButton(event, callback) {
+        const button = $(event.currentTarget);
+        
+        if(button.hasClass('loading'))
+            return;
+        
+        button.addClass('loading');
+        try {
+            await callback();
+        } finally {
+            button.removeClass('loading');
         }
     }
 
