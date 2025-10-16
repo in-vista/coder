@@ -1704,23 +1704,28 @@ const moduleSettings = {
          * The click event for the undelete button.
          * @param {any} event The click event.
          * @param {string} encryptedItemId The encrypted ID of the item to undelete.
+         * @param {object} popupWindowContainer Optional popup container element containing item meta data.
          */
-        async onUndeleteItemClick(event, encryptedItemId) {
+        async onUndeleteItemClick(event, encryptedItemId, popupWindowContainer = undefined) {
             event.preventDefault();
 
-            const title = $("#tabstrip .itemNameFieldContainer .itemNameField").val();
+            const title = popupWindowContainer.data('title');
+            
             await Wiser.showConfirmDialog(`Weet u zeker dat u het verwijderen ongedaan wilt maken voor '${title}'?`, "Verwijderen ongedaan maken", "Annuleren", "Terugzetten");
 
             const process = `undeleteItem_${Date.now()}`;
             window.processing.addProcess(process);
 
-            const popupWindowContainer = $(event.currentTarget).closest(".popup-container");
+            popupWindowContainer ??= $(event.currentTarget).closest(".popup-container");
 
             try {
                 popupWindowContainer.find(".popup-loader").addClass("loading");
                 popupWindowContainer.data("saving", true);
 
                 let entityType = popupWindowContainer.data("entityTypeDetails") || this.settings.entityType;
+                
+                if(entityType instanceof Object)
+                    entityType = entityType.entityType;
 
                 if (Wiser.validateArray(entityType)) {
                     entityType = entityType[0];
@@ -1735,8 +1740,9 @@ const moduleSettings = {
                         data.senderGrid.dataSource.read();
                     }
                 }
-
-                $(event.currentTarget).closest(".entity-container").find(".k-i-verversen").click();
+                
+                popupWindowContainer.closest('.k-window')?.find('.k-i-verversen')?.click();
+                $(event.currentTarget).closest(".entity-container")?.find(".k-i-verversen")?.click();
             } catch (exception) {
                 console.error(exception);
                 popupWindowContainer.find(".popup-loader").removeClass("loading");
@@ -2112,9 +2118,11 @@ const moduleSettings = {
                 }
 
                 editMenu.find(".copyToEnvironment").closest("li").toggle(itemMetaData.enableMultipleEnvironments > 0);
-
-                const canDelete = itemMetaData.canDelete && !itemMetaData.removed && itemMetaData.deleteAction !== 'disallow' && itemMetaData.readOnly === 'Nee';
-                const canUndelete = itemMetaData.canDelete && !!itemMetaData.removed && itemMetaData.readOnly === 'Nee';
+                
+                // If the item can be deleted, the item is not removed, the published environment is anything else than "hidden", the delete action is not to disallow and the item is not read-only.
+                const canDelete = itemMetaData.canDelete && !itemMetaData.removed && itemMetaData.publishedEnvironment > 0 && itemMetaData.deleteAction !== 'disallow' && itemMetaData.readOnly === 'Nee';
+                // If the item can be deleted, the item is removed (or hidden publishedEnvironment = 0) and the item is not read-only.
+                const canUndelete = itemMetaData.canDelete && (!!itemMetaData.removed || itemMetaData.publishedEnvironment === 0) && itemMetaData.readOnly === 'Nee';
                 deleteButtons.toggle(canDelete);
                 undeleteButtons.toggle(canUndelete);
 
