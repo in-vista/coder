@@ -295,17 +295,15 @@ const loginModule = {
 
             commit(AUTH_SUCCESS, loginResult.data);
 
-            if (!rootState.modules.allModules || !rootState.modules.allModules.length) {
+            if (!rootState.modules.allModules || !rootState.modules.allModules.length)
                 await this.dispatch(DO_TENANT_MIGRATIONS);
-                await this.dispatch(MODULES_REQUEST);
-            }
 
             // If a login log ID is also set in the user data, use it to start the "time active" timer.
             if (!rootState.users.updateTimeActiveTimerWorking && user.hasOwnProperty("encryptedLoginLogId")) {
                 await this.dispatch(START_UPDATE_TIME_ACTIVE_TIMER);
             }
             
-            // Reload the modules after a succesful login.
+            // Reload the modules after a successful login.
             await this.dispatch(MODULES_REQUEST);
             
             // Load system styling.
