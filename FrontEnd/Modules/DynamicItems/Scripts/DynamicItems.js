@@ -489,7 +489,7 @@ const moduleSettings = {
             $("#mainEditMenu .reloadItem").click(async (event) => {
                 const previouslySelectedTab = this.mainTabStrip.select().index();
                 const itemWindow = $(event.target).closest('.k-window-content');
-                const isNew = itemWindow.data('isNewItem');
+                const isNew = itemWindow?.data('isNewItem') ?? false;
                 await this.loadItem(this.selectedItem && this.selectedItem.plainItemId ? this.selectedItem.id : this.settings.initialItemId, isNew, previouslySelectedTab, this.selectedItem && this.selectedItem.plainItemId ? this.selectedItem.entityType : this.settings.entityType);
             });
 
