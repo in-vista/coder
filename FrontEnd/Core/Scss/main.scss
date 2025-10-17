@@ -1,29 +1,29 @@
 ﻿//// VARIABLES
-@import 'variables';
+@use 'variables' as *;
 
 //// GRID
-@import 'core/grid';
+@use 'core/grid' as *;
 
 //// MIXINS
-@import 'mixin/mixin';
+@use 'mixin/mixin' as *;
 
 //// FORMS
-@import 'forms';
+@use 'forms' as *;
 
 //// MASTERPAGE
-@import 'masterpage';
+@use 'masterpage' as *;
 
 //// FONTS
-@import 'fonts';
+@use 'fonts' as *;
 
 //// ICONS
-@import 'icons';
+@use 'icons' as *;
 
 //// KENDO
-@import 'kendo-custom';
+@use 'kendo-custom' as *;
 
 //// DIALOG
-@import 'dialog';
+@use 'dialog' as *;
 
 //// BRANCHES
-@import 'branches';
+@use 'branches' as *;

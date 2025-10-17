@@ -1,11 +1,11 @@
 ﻿//// VARIABLES
-@import '../../../Core/Scss/variables';
+@use '../../../Core/Scss/variables' as *;
 
 //// MIXINS
-@import '../../../Core/Scss/mixin/mixin';
+@use '../../../Core/Scss/mixin/mixin' as *;
 
 //// BASE
-@import "../../Base/Scss/base.scss";
+@use "../../Base/Scss/base.scss" as *;
 
 /**
  *  Common styles

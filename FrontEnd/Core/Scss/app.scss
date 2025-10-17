@@ -1,8 +1,8 @@
 //// VARIABLES
-@import 'variables';
+@use 'variables' as *;
 
 //// GRID 
-@import 'core/grid';
+@use 'core/grid' as *;
 
 //// MIXINS 
-@import 'mixin/mixin';
+@use 'mixin/mixin' as *;

@@ -1,11 +1,11 @@
-// GOOGLE FONT
-@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;700&family=Roboto:wght@300;400;500;700;900&display=swap');
-
 // VARIABLES
-@import 'variables';
+@use 'variables' as *;
 
 //// MIXINS 
-@import 'mixin/mixin';
+@use 'mixin/mixin' as *;
+
+// GOOGLE FONT
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;700&family=Roboto:wght@300;400;500;700;900&display=swap');
 
 body {
     font: 400 16px/30px $font-body;

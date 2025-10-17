@@ -1,7 +1,7 @@
-﻿@import "../../Base/Css/kendo.custom.css";
-@import "../../Base/Css/kendo.wiser.css";
-@import "../../Base/Css/fonts.css";
-@import "../../Base/Css/icons.css";
-@import "../../Base/Css/variables.css";
-@import "../../Base/Css/masterpage.css";
-@import "../../Base/Css/diff2html.custom.css";
+﻿@use "../../Base/Css/kendo.custom.css" as *;
+@use "../../Base/Css/kendo.wiser.css" as *;
+@use "../../Base/Css/fonts.css" as *;
+@use "../../Base/Css/icons.css" as *;
+@use "../../Base/Css/variables.css" as *;
+@use "../../Base/Css/masterpage.css" as *;
+@use "../../Base/Css/diff2html.custom.css" as *;

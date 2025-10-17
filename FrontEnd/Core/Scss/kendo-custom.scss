@@ -1,8 +1,8 @@
 // Variables
-@import 'variables';
+@use 'variables' as *;
 
 //// MIXINS
-@import 'mixin/mixin';
+@use 'mixin/mixin' as *;
 
 // Overwrite location for web icons font.
 @font-face {
