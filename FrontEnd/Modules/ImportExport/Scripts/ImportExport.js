@@ -2,9 +2,9 @@
 import { RemoveItems } from "./RemoveItems.js";
 import { RemoveConnections } from "./RemoveConnections.js";
 
-require("@progress/kendo-ui/js/kendo.all.js");
-require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
-require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+import "@progress/kendo-ui/esm/kendo.all";
+import "@progress/kendo-ui/esm/cultures/kendo.culture.nl-NL";
+import "@progress/kendo-ui/esm/messages/kendo.messages.nl-NL";
 
 import "../Css/ImportExport.css";
 

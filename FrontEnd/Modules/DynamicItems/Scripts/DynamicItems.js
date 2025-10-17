@@ -11,19 +11,19 @@ import "../Css/DynamicItems.css";
 
 window.JSZip = require("jszip");
 
-require("@progress/kendo-ui/js/kendo.notification.js");
-require("@progress/kendo-ui/js/kendo.tooltip.js");
-require("@progress/kendo-ui/js/kendo.button.js");
-require("@progress/kendo-ui/js/kendo.dialog.js");
-require("@progress/kendo-ui/js/kendo.grid.js");
-require("@progress/kendo-ui/js/kendo.tabstrip.js");
-require("@progress/kendo-ui/js/kendo.sortable.js");
-require("@progress/kendo-ui/js/kendo.validator.js");
-require("@progress/kendo-ui/js/kendo.splitter.js");
-require("@progress/kendo-ui/js/kendo.treeview.js");
-require("@progress/kendo-ui/js/kendo.notification.js");
-require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
-require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+import "@progress/kendo-ui/esm/kendo.notification";
+import "@progress/kendo-ui/esm/kendo.tooltip";
+import "@progress/kendo-ui/esm/kendo.button";
+import "@progress/kendo-ui/esm/kendo.dialog";
+import "@progress/kendo-ui/esm/kendo.grid";
+import "@progress/kendo-ui/esm/kendo.tabstrip";
+import "@progress/kendo-ui/esm/kendo.sortable";
+import "@progress/kendo-ui/esm/kendo.validator";
+import "@progress/kendo-ui/esm/kendo.splitter";
+import "@progress/kendo-ui/esm/kendo.treeview";
+import "@progress/kendo-ui/esm/kendo.notification";
+import "@progress/kendo-ui/esm/cultures/kendo.culture.nl-NL";
+import "@progress/kendo-ui/esm/messages/kendo.messages.nl-NL";
 
 // Any custom settings can be added here. They will overwrite most default settings inside the module.
 const moduleSettings = {
@@ -695,51 +695,46 @@ const moduleSettings = {
          */
         async loadKendoScripts(scriptTemplate) {
             if (scriptTemplate.indexOf("kendoDateTimePicker") > -1) {
-                await require("@progress/kendo-ui/js/kendo.datetimepicker.js");
-                await require("/kendo/messages/kendo.upload.nl-NL.js");
+                await import("@progress/kendo-ui/esm/kendo.datetimepicker");
             }
             if (scriptTemplate.indexOf("kendoDatePicker") > -1) {
-                await require("@progress/kendo-ui/js/kendo.datepicker.js");
+                await import("@progress/kendo-ui/esm/kendo.datepicker");
             }
             if (scriptTemplate.indexOf("kendoTimePicker") > -1) {
-                await require("@progress/kendo-ui/js/kendo.timepicker.js");
+                await import("@progress/kendo-ui/esm/kendo.timepicker");
             }
             if (scriptTemplate.indexOf("kendoChart") > -1) {
-                await require("@progress/kendo-ui/js/kendo.dataviz.chart.js");
+                await import("@progress/kendo-ui/esm/kendo.dataviz.chart");
             }
             if (scriptTemplate.indexOf("kendoColorPicker") > -1) {
-                await require("@progress/kendo-ui/js/kendo.colorpicker.js");
+                await import("@progress/kendo-ui/esm/kendo.colorpicker");
             }
             if (scriptTemplate.indexOf("kendoDropDownList") > -1) {
-                await require("@progress/kendo-ui/js/kendo.dropdownlist.js");
+                await import("@progress/kendo-ui/esm/kendo.dropdownlist");
             }
             if (scriptTemplate.indexOf("kendoComboBox") > -1) {
-                await require("@progress/kendo-ui/js/kendo.combobox.js");
+                await import("@progress/kendo-ui/esm/kendo.combobox");
             }
             if (scriptTemplate.indexOf("kendoUpload") > -1) {
-                await require("@progress/kendo-ui/js/kendo.upload.js");
-                await require("/kendo/messages/kendo.upload.nl-NL.js");
+                await import("@progress/kendo-ui/esm/kendo.upload");
             }
             if (scriptTemplate.indexOf("kendoEditor") > -1) {
-                await require("@progress/kendo-ui/js/kendo.editor.js");
-                await require("/kendo/messages/kendo.editor.nl-NL.js");
+                await import("@progress/kendo-ui/esm/kendo.editor");
             }
             if (scriptTemplate.indexOf("kendoNumericTextBox") > -1) {
-                await require("@progress/kendo-ui/js/kendo.numerictextbox.js");
+                await import("@progress/kendo-ui/esm/kendo.numerictextbox");
             }
             if (scriptTemplate.indexOf("kendoMultiSelect") > -1) {
-                await require("@progress/kendo-ui/js/kendo.multiselect.js");
+                await import("@progress/kendo-ui/esm/kendo.multiselect");
             }
             if (scriptTemplate.indexOf("kendoScheduler") > -1) {
-                await require("@progress/kendo-ui/js/kendo.scheduler.js");
-                await require("/kendo/messages/kendo.scheduler.nl-NL.js");
+                await import("@progress/kendo-ui/esm/kendo.scheduler");
             }
             if (scriptTemplate.indexOf("kendoTimeline") > -1) {
-                await require("@progress/kendo-ui/js/kendo.timeline.js");
+                await import("@progress/kendo-ui/esm/kendo.timeline");
             }
             if (scriptTemplate.indexOf("kendoGrid") > -1) {
-                await require("@progress/kendo-ui/js/kendo.grid.js");
-                await require("/kendo/messages/kendo.grid.nl-NL.js");
+                await import("@progress/kendo-ui/esm/kendo.grid");
             }
             if(scriptTemplate.indexOf("new Chart") > -1) {
                 await Misc.loadExternalScript('https://cdn.jsdelivr.net/npm/chart.js');
@@ -759,7 +754,7 @@ const moduleSettings = {
                 await Misc.loadCss('/css/bryntum/calendar/calendar.material.css');
             }
 
-            await require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+            await import("@progress/kendo-ui/esm/messages/kendo.messages.nl-NL");
         }
 
         /**
@@ -1402,8 +1397,6 @@ const moduleSettings = {
                 let previousFilters = null;
                 let totalResults = gridDataResult.totalResults;
 
-                await require("/kendo/messages/kendo.grid.nl-NL.js");
-
                 this.windows.historyGrid = historyGridElement.kendoGrid({
                     dataSource: {
                         serverPaging: true,
@@ -1776,7 +1769,7 @@ const moduleSettings = {
                 dialogElement.data("entityType", entityType);
                 let translateItemDialog = dialogElement.data("kendoDialog");
 
-                await require("@progress/kendo-ui/js/kendo.multiselect.js");
+                await import("@progress/kendo-ui/esm/kendo.multiselect");
 
                 const sourceLanguageDropDownElement = dialogElement.find("#sourceLanguageDropDown");
                 const targetLanguagesMultiSelectElement = dialogElement.find("#targetLanguagesMultiSelect");

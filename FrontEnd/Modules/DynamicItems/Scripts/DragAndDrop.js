@@ -1,6 +1,6 @@
-﻿require("@progress/kendo-ui/js/kendo.sortable.js");
-require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
-require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+﻿import "@progress/kendo-ui/esm/kendo.sortable";
+import "@progress/kendo-ui/esm/cultures/kendo.culture.nl-NL";
+import "@progress/kendo-ui/esm/messages/kendo.messages.nl-NL";
 
 /**
  * Class for drag and drop functionality, such as resizing or moving fields around.

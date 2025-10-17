@@ -7,19 +7,19 @@ import "../Css/FileManager.css";
 
 window.JSZip = require("jszip");
 
-require("@progress/kendo-ui/js/kendo.notification.js");
-require("@progress/kendo-ui/js/kendo.button.js");
-require("@progress/kendo-ui/js/kendo.dialog.js");
-require("@progress/kendo-ui/js/kendo.splitter.js");
-require("@progress/kendo-ui/js/kendo.treeview.js");
-require("@progress/kendo-ui/js/kendo.notification.js");
-require("@progress/kendo-ui/js/kendo.window.js");
-require("@progress/kendo-ui/js/kendo.numerictextbox.js");
-require("@progress/kendo-ui/js/kendo.dropdownlist.js");
-require("@progress/kendo-ui/js/kendo.tabstrip.js");
-require("@progress/kendo-ui/js/kendo.filemanager.js");
-require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
-require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+import "@progress/kendo-ui/esm/kendo.notification";
+import "@progress/kendo-ui/esm/kendo.button";
+import "@progress/kendo-ui/esm/kendo.dialog";
+import "@progress/kendo-ui/esm/kendo.splitter";
+import "@progress/kendo-ui/esm/kendo.treeview";
+import "@progress/kendo-ui/esm/kendo.notification";
+import "@progress/kendo-ui/esm/kendo.window";
+import "@progress/kendo-ui/esm/kendo.numerictextbox";
+import "@progress/kendo-ui/esm/kendo.dropdownlist";
+import "@progress/kendo-ui/esm/kendo.tabstrip";
+import "@progress/kendo-ui/esm/kendo.filemanager";
+import "@progress/kendo-ui/esm/cultures/kendo.culture.nl-NL";
+import "@progress/kendo-ui/esm/messages/kendo.messages.nl-NL";
 
 // Any custom settings can be added here. They will overwrite most default settings inside the module.
 const moduleSettings = {

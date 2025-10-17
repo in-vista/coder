@@ -7,23 +7,23 @@ import "../Css/Measurements.css";
 // Disabled until we can complete this feature.
 //import {WtsConfiguration} from "./WtsConfiguration.js";
 
-require("@progress/kendo-ui/js/kendo.notification.js");
-require("@progress/kendo-ui/js/kendo.button.js");
-require("@progress/kendo-ui/js/kendo.combobox.js");
-require("@progress/kendo-ui/js/kendo.multiselect.js");
-require("@progress/kendo-ui/js/kendo.editor.js");
-require("@progress/kendo-ui/js/kendo.splitter.js");
-require("@progress/kendo-ui/js/kendo.tabstrip.js");
-require("@progress/kendo-ui/js/kendo.tooltip.js");
-require("@progress/kendo-ui/js/kendo.treeview.js");
-require("@progress/kendo-ui/js/kendo.grid.js");
-require("@progress/kendo-ui/js/kendo.notification.js");
-require("@progress/kendo-ui/js/kendo.datepicker.js");
-require("@progress/kendo-ui/js/kendo.daterangepicker.js");
-require("@progress/kendo-ui/js/kendo.dataviz.chart.js");
-// require("@progress/kendo-ui/js/dataviz/chart/kendo-chart.js");
-require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
-require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+import "@progress/kendo-ui/esm/kendo.notification";
+import "@progress/kendo-ui/esm/kendo.button";
+import "@progress/kendo-ui/esm/kendo.combobox";
+import "@progress/kendo-ui/esm/kendo.multiselect";
+import "@progress/kendo-ui/esm/kendo.editor";
+import "@progress/kendo-ui/esm/kendo.splitter";
+import "@progress/kendo-ui/esm/kendo.tabstrip";
+import "@progress/kendo-ui/esm/kendo.tooltip";
+import "@progress/kendo-ui/esm/kendo.treeview";
+import "@progress/kendo-ui/esm/kendo.grid";
+import "@progress/kendo-ui/esm/kendo.notification";
+import "@progress/kendo-ui/esm/kendo.datepicker";
+import "@progress/kendo-ui/esm/kendo.daterangepicker";
+import "@progress/kendo-ui/esm/kendo.dataviz.chart";
+// import "@progress/kendo-ui/esm/dataviz/chart/kendo-chart";
+import "@progress/kendo-ui/esm/cultures/kendo.culture.nl-NL";
+import "@progress/kendo-ui/esm/messages/kendo.messages.nl-NL";
 
 // Any custom settings can be added here. They will overwrite most default settings inside the module.
 const moduleSettings = {

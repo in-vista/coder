@@ -1,9 +1,9 @@
 ﻿import "../../Base/Scripts/Processing.js";
 
-require("@progress/kendo-ui/js/kendo.dialog.js");
-require("@progress/kendo-ui/js/kendo.dropdownlist.js");
-require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
-require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+import "@progress/kendo-ui/esm/kendo.dialog";
+import "@progress/kendo-ui/esm/kendo.dropdownlist";
+import "@progress/kendo-ui/esm/cultures/kendo.culture.nl-NL";
+import "@progress/kendo-ui/esm/messages/kendo.messages.nl-NL";
 
 /**
  * Class for any and all functionality for dialogs (not windows).

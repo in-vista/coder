@@ -1,12 +1,12 @@
 ﻿import {Wiser} from "../../Base/Scripts/Utils.js";
 import "../../Base/Scripts/Processing.js";
 
-require("@progress/kendo-ui/js/kendo.tooltip.js");
-require("@progress/kendo-ui/js/kendo.button.js");
-require("@progress/kendo-ui/js/kendo.dialog.js");
-require("@progress/kendo-ui/js/kendo.grid.js");
-require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
-require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+import "@progress/kendo-ui/esm/kendo.tooltip";
+import "@progress/kendo-ui/esm/kendo.button";
+import "@progress/kendo-ui/esm/kendo.dialog";
+import "@progress/kendo-ui/esm/kendo.grid";
+import "@progress/kendo-ui/esm/cultures/kendo.culture.nl-NL";
+import "@progress/kendo-ui/esm/messages/kendo.messages.nl-NL";
 
 /**
  * Class for any and all functionality for grids.
@@ -685,8 +685,6 @@ export class Grids {
 
             await this.loadGridViewColumnsState(`main_grid_columns_${this.base.settings.moduleId}`, finalGridViewSettings);
 
-            await require("/kendo/messages/kendo.grid.nl-NL.js");
-
             this.mainGrid = $("#gridView").kendoGrid(finalGridViewSettings).data("kendoGrid");
 
             if (!disableOpeningOfItems) {
@@ -1068,8 +1066,6 @@ export class Grids {
             element.data("kendoGrid").destroy();
             element.empty();
         }
-
-        await require("/kendo/messages/kendo.grid.nl-NL.js");
         
         const gridOptions = {
             dataSource: {

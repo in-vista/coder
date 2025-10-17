@@ -9,9 +9,9 @@ import { WiserLinkTab } from "../Scripts/WiserLinkTab.js";
 import { Wiser, Misc } from "../../Base/Scripts/Utils.js";
 
 
-require("@progress/kendo-ui/js/kendo.all.js");
-require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
-require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+import "@progress/kendo-ui/esm/kendo.all";
+import "@progress/kendo-ui/esm/cultures/kendo.culture.nl-NL";
+import "@progress/kendo-ui/esm/messages/kendo.messages.nl-NL";
 
 import "../Css/Admin.css";
 

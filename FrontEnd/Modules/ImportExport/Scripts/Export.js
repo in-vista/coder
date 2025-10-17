@@ -3,9 +3,9 @@ import {Misc, Wiser} from "../../Base/Scripts/Utils.js";
 import "../../Base/Scripts/Processing.js";
 import "../Css/ImportExport.css";
 
-require("@progress/kendo-ui/js/kendo.all.js");
-require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
-require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+import "@progress/kendo-ui/esm/kendo.all";
+import "@progress/kendo-ui/esm/cultures/kendo.culture.nl-NL";
+import "@progress/kendo-ui/esm/messages/kendo.messages.nl-NL";
 
 // Any custom settings can be added here. They will overwrite most default settings inside the module.
 const exportModuleSettings = {

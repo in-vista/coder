@@ -5,14 +5,14 @@ import "../Css/VersionControl.css"
 
 window.JSZip = require("jszip");
 
-require("@progress/kendo-ui/js/kendo.tabstrip.js");
-require("@progress/kendo-ui/js/kendo.tooltip.js");
-require("@progress/kendo-ui/js/kendo.button.js");
-require("@progress/kendo-ui/js/kendo.dialog.js");
-require("@progress/kendo-ui/js/kendo.grid.js");
-require("@progress/kendo-ui/js/kendo.multiselect.js");
-require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
-require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+import "@progress/kendo-ui/esm/kendo.tabstrip";
+import "@progress/kendo-ui/esm/kendo.tooltip";
+import "@progress/kendo-ui/esm/kendo.button";
+import "@progress/kendo-ui/esm/kendo.dialog";
+import "@progress/kendo-ui/esm/kendo.grid";
+import "@progress/kendo-ui/esm/kendo.multiselect";
+import "@progress/kendo-ui/esm/cultures/kendo.culture.nl-NL";
+import "@progress/kendo-ui/esm/messages/kendo.messages.nl-NL";
 
 // Any custom settings can be added here. They will overwrite most default settings inside the module.
 const moduleSettings = {

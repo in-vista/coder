@@ -2,14 +2,14 @@
 import "../../Base/Scripts/Processing.js";
 import { DateTime } from "luxon";
 
-require("@progress/kendo-ui/js/kendo.button.js");
-require("@progress/kendo-ui/js/kendo.dialog.js");
-require("@progress/kendo-ui/js/kendo.window.js");
-require("@progress/kendo-ui/js/kendo.tabstrip.js");
-require("@progress/kendo-ui/js/kendo.validator.js");
-require("@progress/kendo-ui/js/kendo.combobox.js");
-require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
-require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+import "@progress/kendo-ui/esm/kendo.button";
+import "@progress/kendo-ui/esm/kendo.dialog";
+import "@progress/kendo-ui/esm/kendo.window";
+import "@progress/kendo-ui/esm/kendo.tabstrip";
+import "@progress/kendo-ui/esm/kendo.validator";
+import "@progress/kendo-ui/esm/kendo.combobox";
+import "@progress/kendo-ui/esm/cultures/kendo.culture.nl-NL";
+import "@progress/kendo-ui/esm/messages/kendo.messages.nl-NL";
 
 /**
 * Class for any and all functionality for fields.
@@ -1637,36 +1637,36 @@ export class Fields {
                             // Initialize the correct kendo component.
                             switch ((parameter.fieldType || "").toLowerCase()) {
                                 case "datetime":
-                                    await require("@progress/kendo-ui/js/kendo.datetimepicker.js");
+                                    await import("@progress/kendo-ui/esm/kendo.datetimepicker");
                                     const dateTimePicker = dialog.element.find("input").addClass("dateTimeField").kendoDateTimePicker(options).data("kendoDateTimePicker");
                                     setTimeout(() => { dateTimePicker.open(); }, 100);
                                     break;
                                 case "date":
-                                    await require("@progress/kendo-ui/js/kendo.datepicker.js");
+                                    await import("@progress/kendo-ui/esm/kendo.datepicker");
                                     const datePicker = dialog.element.find("input").addClass("dateTimeField").kendoDatePicker(options).data("kendoDatePicker");
                                     setTimeout(() => { datePicker.open(); }, 100);
                                     break;
                                 case "time":
-                                    await require("@progress/kendo-ui/js/kendo.timepicker.js");
+                                    await import("@progress/kendo-ui/esm/kendo.timepicker");
                                     const timePicker = dialog.element.find("input").addClass("dateTimeField").kendoTimePicker(options).data("kendoTimePicker");
                                     setTimeout(() => { timePicker.open(); }, 100);
                                     break;
                                 case "number":
-                                    await require("@progress/kendo-ui/js/kendo.numerictextbox.js");
+                                    await import("@progress/kendo-ui/esm/kendo.numerictextbox");
                                     dialog.element.find("input").addClass("textField").kendoNumericTextBox(options);
                                     break;
                                 case "combobox":
-                                    await require("@progress/kendo-ui/js/kendo.combobox.js");
+                                    await import("@progress/kendo-ui/esm/kendo.combobox");
                                     options.autoWidth = true;
                                     dialog.element.find("select").kendoComboBox(options);
                                     break;
                                 case "dropdownlist":
-                                    await require("@progress/kendo-ui/js/kendo.dropdownlist.js");
+                                    await import("@progress/kendo-ui/esm/kendo.dropdownlist");
                                     options.autoWidth = true;
                                     dialog.element.find("select").kendoDropDownList(options);
                                     break;
                                 case "multiselect":
-                                    await require("@progress/kendo-ui/js/kendo.multiselect.js");
+                                    await import("@progress/kendo-ui/esm/kendo.multiselect");
                                     options.autoWidth = true;
                                     dialog.element.find("select").kendoMultiSelect(options);
                                     break;
@@ -1706,7 +1706,7 @@ export class Fields {
                                     break;
                                 case "fileupload":
                                     {
-                                        await require("@progress/kendo-ui/js/kendo.upload.js");
+                                        await import("@progress/kendo-ui/esm/kendo.upload");
                                         let itemId;
                                         let itemLinkId;
                                         if (selectedItems?.length > 0) {
@@ -2761,7 +2761,7 @@ export class Fields {
                     const kendoEditorElement = container.find(`#previewEditor${i}`);
                     let kendoEditor = kendoEditorElement.data("kendoEditor");
                     if (!kendoEditor) {
-                        await require("@progress/kendo-ui/js/kendo.editor.js");
+                        await import("@progress/kendo-ui/esm/kendo.editor");
                         kendoEditor = kendoEditorElement.kendoEditor({
                             tools: [
                                 "bold",
@@ -3202,7 +3202,7 @@ export class Fields {
                                     parent.find("table.k-editor").remove();
                                 }
 
-                                await require("@progress/kendo-ui/js/kendo.editor.js");
+                                await import("@progress/kendo-ui/esm/kendo.editor");
                                 emailBodyEditor = dialogElement.find("textarea.editor").kendoEditor({
                                     tools: [
                                         "bold",
@@ -3459,7 +3459,7 @@ export class Fields {
             }
         }
 
-        await require("@progress/kendo-ui/js/kendo.editor.js");
+        await import("@progress/kendo-ui/esm/kendo.editor");
         windowKendoEditor = textArea.kendoEditor(options).data("kendoEditor");
     }
 

@@ -1,14 +1,14 @@
 ﻿import {Utils, Wiser} from "../../Base/Scripts/Utils.js";
 
-require("@progress/kendo-ui/js/kendo.button.js");
-require("@progress/kendo-ui/js/kendo.window.js");
-require("@progress/kendo-ui/js/kendo.grid.js");
-require("@progress/kendo-ui/js/kendo.tabstrip.js");
-require("@progress/kendo-ui/js/kendo.validator.js");
-require("@progress/kendo-ui/js/kendo.splitter.js");
-require("@progress/kendo-ui/js/kendo.treeview.js");
-require("@progress/kendo-ui/js/cultures/kendo.culture.nl-NL.js");
-require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
+import '@progress/kendo-ui/esm/kendo.button';
+import '@progress/kendo-ui/esm/kendo.window';
+import '@progress/kendo-ui/esm/kendo.grid';
+import '@progress/kendo-ui/esm/kendo.tabstrip';
+import '@progress/kendo-ui/esm/kendo.validator';
+import '@progress/kendo-ui/esm/kendo.splitter';
+import '@progress/kendo-ui/esm/kendo.treeview';
+import '@progress/kendo-ui/esm/cultures/kendo.culture.nl-NL';
+import '@progress/kendo-ui/esm/messages/kendo.messages.nl-NL';
 
 /**
  * Class for any and all functionality for windows (not dialogs).
@@ -991,8 +991,7 @@ export class Windows {
                 filterMenuInit: this.base.grids.onFilterMenuInit.bind(this),
                 filterMenuOpen: this.base.grids.onFilterMenuOpen.bind(this)
             }, gridOptions.searchGridSettings.gridViewSettings);
-
-            await require("/kendo/messages/kendo.grid.nl-NL.js");
+            
             this.searchItemsGrid = searchItemsGridElement.kendoGrid(finalGridOptions).data("kendoGrid");
 
             if (this.searchGridSettings.enableSelectAllServerSide) {
