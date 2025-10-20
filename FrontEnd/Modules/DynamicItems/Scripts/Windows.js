@@ -995,7 +995,7 @@ export class Windows {
             await require("/kendo/messages/kendo.grid.nl-NL.js");
             this.searchItemsGrid = searchItemsGridElement.kendoGrid(finalGridOptions).data("kendoGrid");
             this.searchItemsGrid.tbody.off("click.rowCheckbox").on("click.rowCheckbox", "tr", (event) => {
-                if ($(e.target).closest("a, button, input, textarea, select").length) return;
+                if ($(event.target).closest("a, button, input, textarea, select").length) return;
 
                 const row = $(event.currentTarget);
                 const checkbox = row.find(".k-checkbox");
