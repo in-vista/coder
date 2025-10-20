@@ -171,6 +171,7 @@
 
 /** TREEVIEW **/
 #right-pane {
+    flex-basis: auto !important;
     width: auto;
     right: 0;
 }

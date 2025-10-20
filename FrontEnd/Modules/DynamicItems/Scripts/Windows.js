@@ -133,7 +133,7 @@ export class Windows {
                 height: "90%",
                 visible: false,
                 modal: true,
-                actions: ["Verwijderen", "Verversen", "Vertalen", "Close"],
+                actions: ["Verwijderen", "Terugzetten", "Verversen", "Vertalen", "Close"],
                 close: (closeEvent) => {
                     const closeFunction = () => {
                         try {
@@ -276,6 +276,7 @@ export class Windows {
             });
 
             const afterSave = async () => {
+                isNewItem = false;
                 if(kendoComponent) {
                     if (!kendoComponent.dataSource) {
                         if (kendoComponent.find(".tabStripPopup")?.data("kendoTabStrip") === undefined) return;
@@ -309,7 +310,18 @@ export class Windows {
                 icon: "save",
                 click: async (event) => {
                     await this.onSaveItemPopupClick(event, false, !senderGrid);
-                    afterSave();
+                    
+                    // Store the previous state of the item.
+                    const wasNewItem = isNewItem;
+                    
+                    await afterSave();
+                    
+                    // If the item was new but is now no longer new, refresh the overview so all components can react
+                    // to the item no longer being considered 'new'.
+                    if(wasNewItem) {
+                        const previouslySelectedTab = currentItemTabStrip.select().index();
+                        await loadPopupContents(previouslySelectedTab);
+                    }
                 }
             });
             currentItemWindow.element.find(".saveAndCloseBottomPopup").kendoButton({
@@ -343,11 +355,14 @@ export class Windows {
                             this.base.dialogs.copyItemToEnvironmentDialog.element.data("currentItemWindow", currentItemWindow);
                             this.base.dialogs.copyItemToEnvironmentDialog.open();
                         });
-                        
-                        const canDelete = itemMetaData.canDelete && !itemMetaData.removed && itemMetaData.deleteAction !== 'disallow' && itemMetaData.readOnly === 'Nee';
-                        const canUndelete = itemMetaData.canDelete && itemMetaData.removed && itemMetaData.readOnly === 'Nee';
+
+                        // If the item can be deleted, the item is not removed, the published environment is anything else than "hidden", the delete action is not to disallow and the item is not read-only.
+                        const canDelete = itemMetaData.canDelete && !itemMetaData.removed && itemMetaData.publishedEnvironment > 0 && itemMetaData.deleteAction !== 'disallow' && itemMetaData.readOnly === 'Nee';
+                        // If the item can be deleted, the item is removed (or hidden publishedEnvironment = 0) and the item is not read-only.
+                        const canUndelete = itemMetaData.canDelete && (!!itemMetaData.removed || itemMetaData.publishedEnvironment === 0) && itemMetaData.readOnly === 'Nee';
                         currentItemWindow.wrapper.find(".k-i-verwijderen").parent().toggleClass("hidden", !canDelete);
                         currentItemWindow.element.find(".editMenu .undeleteItem").closest("li").toggleClass("hidden", !canUndelete);
+                        currentItemWindow.wrapper.find(".k-i-terugzetten").parent().toggleClass("hidden", !canUndelete);
                     });
 
                     // Get the information that we need about the opened item.
@@ -458,7 +473,12 @@ export class Windows {
             currentItemWindow.wrapper.find(".k-i-verwijderen").parent().click(async (event) => {
                 await this.onDeleteItemPopupClick(event, kendoComponent);
             });
-
+            
+            currentItemWindow.wrapper.find(".k-i-terugzetten").parent().click(async (event) => {
+                const popupWindowContainer = currentItemWindow.wrapper.find('.popup-container');
+                await this.base.onUndeleteItemClick(event, encryptedItemId, popupWindowContainer);
+            });
+            
             currentItemWindow.element.find(".editMenu .undeleteItem").click(async (event) => {
                 await this.base.onUndeleteItemClick(event, encryptedItemId);
             });

@@ -411,6 +411,10 @@
         &.k-i-delete:before {
             content: "\e9c7";
         }
+      
+        &.k-i-terugzetten:before {
+          content: "\e95f";
+        }
 
         &.k-i-verversen:before,
         &.k-i-refresh:before {

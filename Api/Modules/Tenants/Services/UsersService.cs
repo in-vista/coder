@@ -26,6 +26,8 @@ using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Communication.Interfaces;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using Google.Authenticator;
+using IdentityServer4.Models;
+using IdentityServer4.Stores;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -41,6 +43,7 @@ namespace Api.Modules.Tenants.Services
     public class UsersService : IUsersService, IScopedService
     {
         private readonly IWiserTenantsService wiserTenantsService;
+        private readonly IDatabaseGrantsService databaseGrantsService;
         private readonly ILogger<UsersService> logger;
         private readonly ApiSettings apiSettings;
 
@@ -82,6 +85,7 @@ namespace Api.Modules.Tenants.Services
         /// </summary>
         public UsersService(
             IWiserTenantsService wiserTenantsService,
+            IDatabaseGrantsService databaseGrantsService,
             IOptions<ApiSettings> apiSettings,
             IDatabaseConnection clientDatabaseConnection,
             ILogger<UsersService> logger,
@@ -95,6 +99,7 @@ namespace Api.Modules.Tenants.Services
             IServiceProvider serviceProvider)
         {
             this.wiserTenantsService = wiserTenantsService;
+            this.databaseGrantsService = databaseGrantsService;
             this.logger = logger;
             this.clientDatabaseConnection = clientDatabaseConnection;
             this.apiSettings = apiSettings.Value;
@@ -630,9 +635,11 @@ ORDER BY name ASC";
                 };
             }
 
+            ulong userId = IdentityHelpers.GetWiserUserId(identity);
+
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
             clientDatabaseConnection.ClearParameters();
-            clientDatabaseConnection.AddParameter("userId", IdentityHelpers.GetWiserUserId(identity));
+            clientDatabaseConnection.AddParameter("userId", userId);
 
             var query = $@"SELECT password.`value` AS password
                         FROM {WiserTableNames.WiserItem} user
@@ -666,7 +673,10 @@ ORDER BY name ASC";
             query = $@"UPDATE {WiserTableNames.WiserItemDetail} SET value = ?password WHERE item_id = ?userId AND `key` = '{UserPasswordKey}';
                     UPDATE {WiserTableNames.WiserItemDetail} SET value = '0' WHERE item_id = ?userId AND `key` = '{UserRequirePasswordChangeKey}'";
             await clientDatabaseConnection.ExecuteAsync(query);
-
+            
+            // Remove all active sessions for this user.
+            await databaseGrantsService.DeleteAllAsync(new PersistedGrantFilter { SubjectId = userId.ToString() });
+            
             return new ServiceResult<UserModel>
             {
                 StatusCode = HttpStatusCode.NoContent
@@ -1255,7 +1265,7 @@ ORDER BY name ASC";
             clientDatabaseConnection.AddParameter("selector", selector);
             clientDatabaseConnection.AddParameter("hashed_validator", validator.ToSha512Simple());
             clientDatabaseConnection.AddParameter("user_id", userId);
-            clientDatabaseConnection.AddParameter("expires", DateTime.Now.AddYears(1));
+            clientDatabaseConnection.AddParameter("expires", DateTime.Now.AddMinutes(1));
             await clientDatabaseConnection.InsertOrUpdateRecordBasedOnParametersAsync(WiserTableNames.WiserUsersAuthenticationTokens, 0);
 
             return $"{selector}:{validator}";

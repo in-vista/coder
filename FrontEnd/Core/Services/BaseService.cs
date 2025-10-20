@@ -97,7 +97,7 @@ namespace FrontEnd.Core.Services
             viewModel.Wiser1BaseUrl = GetWiser1Url();
             viewModel.ApiAuthenticationUrl = $"{frontEndSettings.ApiBaseUrl}connect/token";
             viewModel.ApiRoot = $"{frontEndSettings.ApiBaseUrl}api/v3/";
-            viewModel.IsWiserFrontEndLogin = "true".EncryptWithAesWithSalt(gclSettings.DefaultEncryptionKey, true, true);
+            viewModel.IsWiserFrontEndLogin = "true".EncryptWithAesWithSalt(gclSettings.DefaultEncryptionKey, false, true);
 
             if (httpContextAccessor.HttpContext != null)
             {

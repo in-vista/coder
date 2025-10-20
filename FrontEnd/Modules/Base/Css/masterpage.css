@@ -809,7 +809,8 @@ dd {
 }
 .item[data-label-style="float"] .k-combobox .k-input-inner,
 .item[data-label-style="float"] .k-dropdown .k-input-inner,
-.item[data-label-style="float"] .k-dropdownlist .k-input-inner {
+.item[data-label-style="float"] .k-dropdownlist .k-input-inner,
+.item[data-label-style="float"] .k-multiselect .k-input-inner{
 	padding-top: 20px;
 }
 .item[data-label-style="float"] .k-combobox .k-input-inner {

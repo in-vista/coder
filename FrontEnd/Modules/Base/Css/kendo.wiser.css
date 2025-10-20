@@ -536,6 +536,9 @@
 .k-button-icon.k-font-icon.k-i-verwijderen:before {
 	content: "\e9c7";
 }
+.k-button-icon.k-font-icon.k-i-terugzetten:before {
+    content: "\e95f";
+}
 .k-button-icon .k-font-icon.k-i-verversen:before,
 .k-button-icon .k-font-icon.k-i-refresh:before,
 .k-button-icon.k-font-icon.k-i-verversen:before,
