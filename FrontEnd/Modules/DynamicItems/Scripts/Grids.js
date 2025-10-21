@@ -1172,7 +1172,19 @@ export class Grids {
                 }
             },
             filterMenuInit: this.base.grids.onFilterMenuInit.bind(this),
-            filterMenuOpen: this.base.grids.onFilterMenuOpen.bind(this)
+            filterMenuOpen: this.base.grids.onFilterMenuOpen.bind(this),
+            dataBound: function(event) {
+                const grid = event.sender;
+
+                // Preselect checkboxes based on the grid data.
+                grid.tbody.find('tr.k-table-row').each(function() {
+                    const row = $(this);
+                    const dataItem = grid.dataItem(row);
+
+                    if(dataItem.selected)
+                        grid.select(row);
+                });
+            }
         }
         
         const finalGridOptions = $.extend(gridOptions, options.gridViewSettings);
