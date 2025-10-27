@@ -66,7 +66,7 @@
         <span class="k-widget k-input k-state-default">
             <input type="number" id="cacheMinutes" class="textField k-input" name="cacheMinutes" value="@Model.CacheMinutes" autocomplete="off" pattern=".*">
         </span>
-        <div class="form-hint"><span>Hoe lang moet de cache bewaard blijven? Indien deze waarde 0 is, wordt de instelling "GCL.DefaultTemplateCacheDuration" gebruikt van de appsettings.json. Indien de waarde kleiner is dan 0, wordt caching uitgeschakeld.</span></div>
+        <div class="form-hint"><span>Hoe lang moet de cache bewaard blijven? Indien deze waarde 0 is, wordt de instelling "GCL.DefaultQueryCacheDuration" gebruikt van de appsettings.json. Indien de waarde kleiner is dan 0, wordt caching uitgeschakeld. Dit gaat over de uitvoering van de query in de template. Voor de template zelf wordt "GCL.DefaultTemplateCacheDuration" in appsettings.json aangehouden.</span></div>
     </div>
 
     <div class="item" data-label-style="float" data-label-width="0">
