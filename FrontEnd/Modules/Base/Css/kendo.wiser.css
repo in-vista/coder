@@ -1362,6 +1362,10 @@ k-filter-menu .k-autocomplete,
 	width: 100%;
 }
 
+.k-toolbar-item:has(>.hidden) {
+    display: none;
+}
+
 /* Grid in an iframe / full window */
 .gridViewMode .k-grid-content {
 	resize: none;

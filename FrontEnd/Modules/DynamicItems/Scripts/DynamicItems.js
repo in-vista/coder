@@ -1295,11 +1295,18 @@ const moduleSettings = {
 
             const sourceDataItem = event.sender.dataItem(event.sourceNode) || {};
             const destinationDataItem = event.sender.dataItem(destinationNode) || {};
+			
+			// Only check the behaviour below if we wish to drag-and-drop an item inside another.
+            if(event.statusClass === 'plus') {
+				// Retrieve a list of all accepted entity types to be a child of the target item.
+				const acceptedChildTypesConjunction = destinationDataItem.acceptedChildTypes?.toLowerCase() || '';
+				const acceptedChildTypes = acceptedChildTypesConjunction.split(',');
 
-            if ((destinationDataItem.acceptedChildTypes || "").toLowerCase().split(",").indexOf(sourceDataItem.entityType.toLowerCase()) === -1) {
-                // Tell the kendo tree view to deny the drag to this item, if the current item is of a type that is not allowed to be linked to the destination.
-                event.setStatusClass("cancel");
-            }
+				// Tell the kendo tree view to deny the drag to this item, if the current item is of a type that is not allowed to be linked to the destination.
+				if (!acceptedChildTypes.includes(sourceDataItem.entityType.toLowerCase())) {
+					event.setStatusClass("cancel");
+				}
+			}
         }
 
         /**
