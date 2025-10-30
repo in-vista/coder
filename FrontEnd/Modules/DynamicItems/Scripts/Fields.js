@@ -1511,13 +1511,29 @@ export class Fields {
                             }).data("kendoDialog");
 
                             // Trigger the OK button click when the user presses enter in the dialog.
-                            dialog.element.keyup((event) => {
-                                if (!event.key || event.key.toLowerCase() !== "enter" || $(event.target).closest(".k-grid-header").length || event.target.tagName === "TEXTAREA") {
-                                    return;
-                                }
+                            dialog.element.on("keyup", function(event) {
+                                if (!event.key || event.key.toLowerCase() !== "enter") return;
 
-                                $(event.currentTarget).next().find(".k-primary, .k-button-solid-primary").trigger("click");
+                                // array of class names to ignore
+                                const ignoreClasses = [
+                                    "k-filter-menu-container"
+                                ];
+
+                                // check if any of these elements are visible
+                                const ignoreVisible = ignoreClasses.some(cls => $(`.${cls}:visible`).length);
+                                if (ignoreVisible) return;
+
+                                // ignore textarea
+                                if (event.target.tagName === "TEXTAREA") return;
+
+                                // trigger the OK button
+                                $(event.currentTarget)
+                                    .next()
+                                    .find(".k-primary, .k-button-solid-primary")
+                                    .trigger("click");
                             });
+
+
 
                             // Build the options object for the kendo component.
                             const options = $.extend({ culture: "nl-NL" }, parameter);
