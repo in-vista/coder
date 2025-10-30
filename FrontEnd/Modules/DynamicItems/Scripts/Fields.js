@@ -1520,7 +1520,7 @@ export class Fields {
                                 ];
 
                                 // check if any of these elements are visible
-                                const ignoreVisible = ignoreClasses.some(cls => $("." + cls + ":visible").length > 0);
+                                const ignoreVisible = ignoreClasses.some(cls => $(`.${cls}:visible`).length);
                                 if (ignoreVisible) return;
 
                                 // ignore textarea
