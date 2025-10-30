@@ -178,12 +178,12 @@ namespace Api.Core.Services
         }
 
         /// <inheritdoc />
-        public Task<DataTable> GetAsync(string query, bool skipCache = false, bool cleanUp = true, bool useWritingConnectionIfAvailable = false, string cacheName = "")
+        public Task<DataTable> GetAsync(string query, bool skipCache = false, bool cleanUp = true, bool useWritingConnectionIfAvailable = false, string cacheName = "", int cachingMinutes = 0)
         {
-            return GetAsync(query, 0, cleanUp, useWritingConnectionIfAvailable, cacheName);
+            return GetAsync(query, 0, cleanUp, useWritingConnectionIfAvailable, cacheName, cachingMinutes);
         }
 
-        private async Task<DataTable> GetAsync(string query, int retryCount, bool cleanUp = true, bool useWritingConnectionIfAvailable = false, string cacheName = "")
+        private async Task<DataTable> GetAsync(string query, int retryCount, bool cleanUp = true, bool useWritingConnectionIfAvailable = false, string cacheName = "", int cachingMinutes = 0)
         {
             MySqlCommand commandToUse = null;
             try
