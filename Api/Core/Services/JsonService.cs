@@ -66,21 +66,24 @@ namespace Api.Core.Services
                                         break;
                                     }
                                 case JArray valueAsArray:
+                                {
+                                    foreach (var item in valueAsArray)
                                     {
-                                        foreach (var item in valueAsArray)
-                                        {
+                                        // Check whether the value is a primitive type and whether we have to encrypt it.
+                                        // If so, we want to directly encrypt the value in the array.
+                                        if(item is JValue value && ShouldEncryptProperty(childAsProperty.Name))
+                                            value.Value = value.ToString(CultureInfo.InvariantCulture).EncryptWithAesWithSalt(encryptionKey, true);
+                                        // Otherwise, recursively search for possibly nested properties to encrypt.
+                                        else
                                             EncryptValuesInJson(item, encryptionKey, extraPropertiesToEncrypt);
-                                        }
-
-                                        break;
                                     }
+
+                                    break;
+                                }
                                 case JValue value:
                                     {
-                                        var name = childAsProperty.Name;
-                                        if (apiSettings.JsonPropertiesToAlwaysEncrypt.Any(p => p.Equals(name, StringComparison.OrdinalIgnoreCase)) || (extraPropertiesToEncrypt != null && extraPropertiesToEncrypt.Any(p => p.Equals(name, StringComparison.OrdinalIgnoreCase))))
-                                        {
+                                        if (ShouldEncryptProperty(childAsProperty.Name, extraPropertiesToEncrypt))
                                             value.Value = value.ToString(CultureInfo.InvariantCulture).EncryptWithAesWithSalt(encryptionKey, true);
-                                        }
 
                                         break;
                                     }
@@ -95,6 +98,19 @@ namespace Api.Core.Services
                         throw new Exception($"Unsupported JSON type in 'EncryptValuesInJson': {child.GetType().Name}");
                 }
             }
+        }
+        
+        /// <summary>
+        /// Checks whether the given property name is present in the list of JSON properties to encrypt.
+        /// </summary>
+        /// <param name="propertyName">The property name to check whether to encrypt.</param>
+        /// <param name="extraPropertiesToEncrypt">Optional: If you need to encrypt any extra properties, that are not in the web.config, you can enter them here.</param>
+        /// <returns>True if the values is present in the list of JSON properties to encrypt. False otherwise.</returns>
+        private bool ShouldEncryptProperty(string propertyName, List<string> extraPropertiesToEncrypt = null)
+        {
+            return
+                apiSettings.JsonPropertiesToAlwaysEncrypt.Any(p => p.Equals(propertyName, StringComparison.OrdinalIgnoreCase)) || 
+                (extraPropertiesToEncrypt != null && extraPropertiesToEncrypt.Any(p => p.Equals(propertyName, StringComparison.OrdinalIgnoreCase)));
         }
     }
 }
