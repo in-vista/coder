@@ -37,7 +37,7 @@
         background-color: $white-color;
         border-radius: 6px 6px 0 0;
         color: $text-color;
-        height: 75px;
+        height: 59px;
         z-index: 10;
     }
 
@@ -47,7 +47,7 @@
 
     .window-content {
         overflow: auto;
-        padding: 16px;
+        padding: 8px;
         position: absolute;
         top: 0;
         left: 0;
@@ -78,7 +78,7 @@
     }
 }
 .k-window-titlebar {
-    padding: 16px;
+    padding: 8px;
 
     .k-window-title {
         font: 30px/43px $font-book;

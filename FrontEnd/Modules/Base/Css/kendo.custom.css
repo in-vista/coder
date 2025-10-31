@@ -1357,8 +1357,8 @@ div.k-filebrowser-dropzone em {
     background-color: var(--white-color);
     box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.2);
     border-radius: var(--large-radius);
-    max-height: calc(100% - 30px) !important;
-    max-width: calc(100% - 30px) !important;
+    max-height: calc(100% - 20px) !important;
+    max-width: calc(100% - 20px) !important;
     min-width: calc(50%);
 }
 
@@ -1369,10 +1369,10 @@ div.k-filebrowser-dropzone em {
 
 .k-window.k-window-maximized {
     border-radius: var(--large-radius);
-    top: 15px !important;
-    left: 15px !important;
-    bottom: 15px !important;
-    width: calc(100% - 30px) !important;
+    top: 10px !important;
+    left: 10px !important;
+    bottom: 10px !important;
+    width: calc(100% - 20px) !important;
     height: auto !important;
 }
 
@@ -1382,7 +1382,7 @@ div.k-filebrowser-dropzone em {
     background-color: var(--white-color);
     border-radius: var(--large-radius) var(--large-radius) 0 0;
     color: var(--dark-txt);
-    height: 75px;
+    height: 59px;
 	z-index: 1000;
     position: relative;
 }

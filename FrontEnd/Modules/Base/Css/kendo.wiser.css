@@ -417,7 +417,7 @@
 
 /* KENDO - WINDOW */
 .k-window-titlebar {
-	padding: 16px;
+	padding: 8px;
 }
 .k-window-titlebar .k-window-title {
 	font: 24px/43px var(--title-txt);
