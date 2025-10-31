@@ -309,10 +309,13 @@ export class Grids {
             }
 
             if (!gridViewSettings.toolbar || !gridViewSettings.toolbar.hideClearFiltersButton) {
+                const clearFilterQueryId = gridViewSettings.toolbar.clearFilterQueryId || null;
+                const clearFilterQueryIdEncoded = JSON.stringify(clearFilterQueryId);
+                
                 toolbar.push({
                     name: "clearAllFilters",
                     text: "",
-                    template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='window.dynamicItems.grids.executeToolbarActionButton(event, () => window.dynamicItems.grids.onClearAllFiltersClick(event))'><span class='k-font-icon k-i-filter-clear'></span></a>`
+                    template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='window.dynamicItems.grids.executeToolbarActionButton(event, () => window.dynamicItems.grids.onClearAllFiltersClick(event, ${clearFilterQueryIdEncoded}))'><span class='k-font-icon k-i-filter-clear'></span></a>`
                 });
             }
 
@@ -624,12 +627,6 @@ export class Grids {
                             }
                         }
                     });
-                    
-                    const totalCount = event.sender.dataSource.total();
-                    const counterContainer = event.sender.element.find(".k-grid-toolbar .counterContainer");
-                    counterContainer.find(".counter").html(kendo.toString(totalCount, "n0"));
-                    counterContainer.find(".plural").toggle(totalCount !== 1);
-                    counterContainer.find(".singular").toggle(totalCount === 1);
 
                     // To hide toolbar buttons that require a row to be selected.
                     this.onGridSelectionChange(event, false);
@@ -637,6 +634,12 @@ export class Grids {
                     if (gridViewSettings.keepFiltersState !== false && filtersChanged) {
                         await this.saveGridViewFiltersState(`main_grid_filters_${this.base.settings.moduleId}`, event.sender);
                     }
+
+                    const totalCount = event.sender.dataSource.total();
+                    const counterContainer = event.sender.element.find(".k-grid-toolbar .counterContainer");
+                    counterContainer.find(".counter").html(kendo.toString(totalCount, "n0"));
+                    counterContainer.find(".plural").toggle(totalCount !== 1);
+                    counterContainer.find(".singular").toggle(totalCount === 1);
                     
                     // Auto-collapse groups if enabled.
                     if(gridViewSettings.collapseGroups) {
@@ -1051,10 +1054,13 @@ export class Grids {
 
         const toolbar = [];
         if (!options.toolbar || !options.toolbar.hideClearFiltersButton) {
+            const clearFilterQueryId = options.toolbar.clearFilterQueryId || null;
+            const clearFilterQueryIdEncoded = JSON.stringify(clearFilterQueryId);
+            
             toolbar.push({
                 name: "clearAllFilters",
                 text: "",
-                template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>`
+                template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event, ${clearFilterQueryIdEncoded})'><span class='k-font-icon k-i-filter-clear'></span></a>`
             });
         }
         if (!options.toolbar || !options.toolbar.hideFullScreenButton) {
@@ -1738,8 +1744,9 @@ export class Grids {
     /**
      * Event handler for clicking the clear all filters button in a grid.
      * @param {any} event The click event.
+     * @param {any} queryId An encrypted query ID presented as a string or in an array, executed after clearing the filters, but before reloading the content.
      */
-    onClearAllFiltersClick(event) {
+    async onClearAllFiltersClick(event, queryId = null) {
         event.preventDefault();
 
         const grid = $(event.target).closest(".k-grid").data("kendoGrid");
@@ -1747,10 +1754,30 @@ export class Grids {
             console.error("Grid not found, cannot clear filters.", event, $(event.target).closest(".k-grid"));
             return;
         }
+        
+        if(queryId) {
+            const queryIds = Array.isArray(queryId) ? queryId : [ queryId ];
+            
+            for(const singleQueryId of queryIds) {
+                const zeroItemId = this.base.settings.zeroEncrypted;
+                await Wiser.api({
+                    method: 'POST',
+                    url: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(zeroItemId)}/action-button/0?queryId=${encodeURIComponent(singleQueryId)}`,
+                    data: null,
+                    contentType: 'application/json'
+                });
+            }
+        }
 
-        grid.dataSource.filter({});
-        // manually trigger the filter event to save the state because the above call doesn't do so
-        grid.trigger("filter", { filter: null, field: null });
+        // Clear filters.
+        grid.dataSource._filter = undefined;
+        
+        // Mark the grid to be first-load after changing filters.
+        this.mainGridFirstLoad = true;
+        
+        // Reload overview.
+        grid.dataSource.read();
+        grid.refresh();
     }
 
     /**

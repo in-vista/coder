@@ -247,10 +247,13 @@
         }
     
         if (window.dynamicItems.grids.onClearAllFiltersClick && (!options.toolbar || !options.toolbar.hideClearFiltersButton)) {
+            const clearFilterQueryId = options.toolbar.clearFilterQueryId || null;
+            const clearFilterQueryIdEncoded = JSON.stringify(clearFilterQueryId);
+            
             toolbar.push({
                 name: "clearAllFilters",
                 text: "",
-                template: "<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event)'><span class='k-font-icon k-i-filter-clear'></span></a>"
+                template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event, ${clearFilterQueryIdEncoded})'><span class='k-font-icon k-i-filter-clear'></span></a>`
             });
         }
     
