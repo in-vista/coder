@@ -148,8 +148,8 @@ const moduleSettings = {
             });
 
             // Fire event on page ready for direct actions
-            $(document).ready(() => {
-                this.onPageReady();
+            $(document).ready(async () => {
+                await this.onPageReady();
             });
         }
 
