@@ -390,7 +390,13 @@ const moduleSettings = {
 
             try {
                 const selectedUsers = this.taskUserSelect.dataItems();
-
+                
+                // Check if a user has been selected, return if not and prompt to select a user.
+                if(selectedUsers.length === 0){
+                    kendo.alert("U moet de agendering tenminste aan 1 gebruiker toewijzen.");
+                    return;
+                }
+                
                 for (let i = 0; i < selectedUsers.length; i++) {
                     const userId = selectedUsers[i].id;
                     const username = selectedUsers[i].name;
