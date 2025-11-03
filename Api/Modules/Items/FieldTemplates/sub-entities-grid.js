@@ -411,7 +411,7 @@
                         } catch (exception) {
                             console.error(exception);
                             loader.removeClass("loading");
-                            kendo.alert("Er is iets fout gegaan tijdens het laden van het veld '{title}'. Probeer het a.u.b. nogmaals door de pagina te verversen, of neem contact op met ons.");
+                            kendo.alert("Er is iets fout gegaan tijdens het laden van het veld '{title}'. Probeer het a.u.b. nogmaals door de pagina te verversen.");
                             transportOptions.error(exception);
                         }
                     },
@@ -442,7 +442,7 @@
                                     console.error("UPDATE FAIL", textStatus, errorThrown, jqXHR);
                                     loader.removeClass("loading");
                                     // notify the data source that the request failed
-                                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
+                                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals."));
                                     // notify the data source that the request failed
                                     transportOptions.error(jqXHR);
                                 });
@@ -578,13 +578,13 @@
                                 console.error("UPDATE FAIL", textStatus, errorThrown, jqXHR);
                                 loader.removeClass("loading");
                                 // notify the data source that the request failed
-                                kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
+                                kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals."));
                                 transportOptions.error(jqXHR);
                             });
                         } catch (exception) {
                             console.error(exception);
                             loader.removeClass("loading");
-                            kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'. Probeer het a.u.b. nogmaals, of neem contact op met ons.");
+                            kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'. Probeer het a.u.b. nogmaals.");
                             transportOptions.error(exception);
                         }
                     },
@@ -633,7 +633,7 @@
                                     console.error("UPDATE FAIL", textStatus, errorThrown, jqXHR);
                                     loader.removeClass("loading");
                                     // notify the data source that the request failed
-                                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
+                                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals."));
                                     transportOptions.error(jqXHR);
                                 });
                             } else if (customQueryGrid || usingQueryId) {
@@ -653,13 +653,13 @@
                                     // notify the data source that the request failed
                                     transportOptions.error(jqXHR);
                                     loader.removeClass("loading");
-                                    kendo.alert("Er is iets fout gegaan tijdens het aanmaken van een item.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
+                                    kendo.alert("Er is iets fout gegaan tijdens het aanmaken van een item.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals."));
                                 });
                             }
                         } catch (exception) {
                             console.error(exception);
                             loader.removeClass("loading");
-                            kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'. Probeer het a.u.b. nogmaals, of neem contact op met ons.");
+                            kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'. Probeer het a.u.b. nogmaals.");
                             transportOptions.error(exception);
                         }
                     },
@@ -709,7 +709,7 @@
                                     console.error("UPDATE FAIL", textStatus, errorThrown, jqXHR);
                                     loader.removeClass("loading");
                                     // notify the data source that the request failed
-                                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
+                                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals."));
                                     transportOptions.error(jqXHR);
                                 });
                             } else if (customQueryGrid || usingQueryId) {
@@ -729,13 +729,13 @@
                                     // notify the data source that the request failed
                                     transportOptions.error(jqXHR);
                                     loader.removeClass("loading");
-                                    kendo.alert("Er is iets fout gegaan tijdens het verwijderen van deze regel.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
+                                    kendo.alert("Er is iets fout gegaan tijdens het verwijderen van deze regel.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals."));
                                 });
                             }
                         } catch (exception) {
                             console.error(exception);
                             loader.removeClass("loading");
-                            kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'. Probeer het a.u.b. nogmaals, of neem contact op met ons.");
+                            kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'. Probeer het a.u.b. nogmaals.");
                             transportOptions.error(exception);
                         }
                     }

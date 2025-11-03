@@ -160,7 +160,7 @@ const communicationModuleSettings = {
                 });
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
             } finally {
                 window.processing.removeProcess(process);
             }

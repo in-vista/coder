@@ -99,7 +99,7 @@ export class Dialogs {
             $("#addButton").toggle(entityTypes && entityTypes.length > 0);
         } catch (exception) {
             console.error("Error while getting available entity types", exception);
-            kendo.alert("Er is iets fout gegaan met het ophalen van de beschikbare entiteitstypes voor deze module. Neem a.u.b. contact op met ons.");
+            kendo.alert("Er is iets fout gegaan met het ophalen van de beschikbare entiteitstypes voor deze module. Neem a.u.b.");
         }
 
         window.processing.removeProcess(process);
@@ -133,13 +133,13 @@ export class Dialogs {
                     this.base.windows.loadItemInWindow(false, result.id, result.encryptedId, result.entityType, result.title, currentItemWindow.element.data("showTitleField"), null, { hideTitleColumn: false }, currentItemWindow.element.data("linkId"));
                 }
             }).catch((error) => {
-                kendo.alert("Er is iets fout gegaan. Probeer het nogmaals of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan. Probeer het nogmaals.");
                 console.error(error);
             });
 
             return true;
         } catch (exception) {
-            kendo.alert("Er is iets fout gegaan. Probeer het nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan. Probeer het nogmaals.");
             console.error(exception);
             return false;
         }

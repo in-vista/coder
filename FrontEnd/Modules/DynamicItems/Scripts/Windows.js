@@ -158,7 +158,7 @@ export class Windows {
                             }
                         } catch (exception) {
                             console.error(exception);
-                            kendo.alert("Er is iets fout gegaan met het verwijderen van het tijdelijk aangemaakt item. Neem a.u.b. contact op met ons.");
+                            kendo.alert("Er is iets fout gegaan met het verwijderen van het tijdelijk aangemaakt item. Neem a.u.b.");
                         }
 
                         // Delete all field initializers of the current window, so they don't stay in memory. We don't need them anymore once the window is closed.
@@ -452,7 +452,7 @@ export class Windows {
                     this.base.fields.initializePro6PPBindings(currentItemWindow.wrapper);
                 } catch (exception) {
                     console.error(exception);
-                    kendo.alert("Er is iets fout gegaan tijdens het (her)laden van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                    kendo.alert("Er is iets fout gegaan tijdens het (her)laden van dit item. Probeer het a.u.b. nogmaals.");
                 }
 
                 if (!currentItemWindow) {
@@ -490,7 +490,7 @@ export class Windows {
             await loadPopupContents();
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan tijdens het laden van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het laden van dit item. Probeer het a.u.b. nogmaals.");
         }
     }
 
@@ -657,7 +657,7 @@ export class Windows {
                     break;
                 }
                 default:
-                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van dit item. Probeer het a.u.b. nogmaals.");
                     break;
             }
         }
@@ -768,7 +768,7 @@ export class Windows {
             this.searchItemsWindowSettings.senderGrid.dataSource.read();
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan tijdens het verwerken van de nieuwe koppeling(en). Probeer het a.u.b. nogmaals of neem contact op met ons");
+            kendo.alert("Er is iets fout gegaan tijdens het verwerken van de nieuwe koppeling(en). Probeer het a.u.b. nogmaals");
         }
 
         this.searchGridChangeBusy = false;
@@ -1006,7 +1006,7 @@ export class Windows {
             }
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan met het initialiseren van het overzicht. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan met het initialiseren van het overzicht. Probeer het a.u.b. nogmaals.");
         }
     }
 }

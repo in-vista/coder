@@ -445,12 +445,12 @@ const moduleSettings = {
                         fileUploader.val("");
                     }).catch((error) => {
                         console.error(error);
-                        kendo.alert("Er is iets fout gegaan. Probeer het aub opnieuw of neem contact met ons op.");
+                        kendo.alert("Er is iets fout gegaan. Probeer het aub opnieuw.");
                         loader.removeClass("loading");
                     });
                 } catch (exception) {
                     console.error(exception);
-                    kendo.alert("Er is iets fout gegaan. Probeer het aub opnieuw of neem contact met ons op.");
+                    kendo.alert("Er is iets fout gegaan. Probeer het aub opnieuw.");
                     loader.removeClass("loading");
                 }
             });
@@ -494,7 +494,7 @@ const moduleSettings = {
                                         }, (error) => {
                                             console.error(error);
                                             loader.removeClass("loading");
-                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                                         });
                                     }).catch(() => { loader.removeClass("loading"); });
                                 }
@@ -509,7 +509,7 @@ const moduleSettings = {
                                         }).catch((error) => {
                                             console.error(error);
                                             loader.removeClass("loading");
-                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                                         });
                                     } else {
                                         Wiser.api({
@@ -524,7 +524,7 @@ const moduleSettings = {
                                         }).catch((error) => {
                                             console.error(error);
                                             loader.removeClass("loading");
-                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                                         });
                                     }
                                 }).fail(() => { loader.removeClass("loading"); });
@@ -552,7 +552,7 @@ const moduleSettings = {
                     } catch (exception) {
                         console.error(exception);
                         loader.removeClass("loading");
-                        kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                        kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                     }
                 }
             }).data("kendoContextMenu");
@@ -667,12 +667,12 @@ const moduleSettings = {
                         fileUploader.val("");
                     }).catch((error) => {
                         console.error(error);
-                        kendo.alert("Er is iets fout gegaan. Probeer het aub opnieuw of neem contact met ons op.");
+                        kendo.alert("Er is iets fout gegaan. Probeer het aub opnieuw.");
                         loader.removeClass("loading");
                     });
                 } catch (exception) {
                     console.error(exception);
-                    kendo.alert("Er is iets fout gegaan. Probeer het aub opnieuw of neem contact met ons op.");
+                    kendo.alert("Er is iets fout gegaan. Probeer het aub opnieuw.");
                     loader.removeClass("loading");
                 }
             });
@@ -716,7 +716,7 @@ const moduleSettings = {
                                         }, (error) => {
                                             console.error(error);
                                             loader.removeClass("loading");
-                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                                         });
                                     }).catch(() => { loader.removeClass("loading"); });
                                 }
@@ -731,7 +731,7 @@ const moduleSettings = {
                                         }).catch((error) => {
                                             console.error(error);
                                             loader.removeClass("loading");
-                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                                         });
                                     } else {
                                         Wiser.api({
@@ -746,7 +746,7 @@ const moduleSettings = {
                                         }, (error) => {
                                             console.error(error);
                                             loader.removeClass("loading");
-                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                                         });
                                     }
                                 }).fail(() => { loader.removeClass("loading"); });
@@ -774,7 +774,7 @@ const moduleSettings = {
                     } catch (exception) {
                         console.error(exception);
                         loader.removeClass("loading");
-                        kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                        kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                     }
                 }
             }).data("kendoContextMenu");
@@ -904,12 +904,12 @@ const moduleSettings = {
                         fileUploader.val("");
                     }).catch((error) => {
                         console.error(error);
-                        kendo.alert("Er is iets fout gegaan. Probeer het aub opnieuw of neem contact met ons op.");
+                        kendo.alert("Er is iets fout gegaan. Probeer het aub opnieuw.");
                         loader.removeClass("loading");
                     });
                 } catch (exception) {
                     console.error(exception);
-                    kendo.alert("Er is iets fout gegaan. Probeer het aub opnieuw of neem contact met ons op.");
+                    kendo.alert("Er is iets fout gegaan. Probeer het aub opnieuw.");
                     loader.removeClass("loading");
                 }
             });
@@ -953,7 +953,7 @@ const moduleSettings = {
                                         }, (error) => {
                                             console.error(error);
                                             loader.removeClass("loading");
-                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                                         });
                                     }).catch(() => { loader.removeClass("loading"); });
                                 }
@@ -968,7 +968,7 @@ const moduleSettings = {
                                         }).catch((error) => {
                                             console.error(error);
                                             loader.removeClass("loading");
-                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                                         });
                                     } else {
                                         Wiser.api({
@@ -983,7 +983,7 @@ const moduleSettings = {
                                         }, (error) => {
                                             console.error(error);
                                             loader.removeClass("loading");
-                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                                            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                                         });
                                     }
                                 }).fail(() => { loader.removeClass("loading"); });
@@ -1011,7 +1011,7 @@ const moduleSettings = {
                     } catch (exception) {
                         console.error(exception);
                         loader.removeClass("loading");
-                        kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                        kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                     }
                 }
             }).data("kendoContextMenu");
@@ -1044,7 +1044,7 @@ const moduleSettings = {
                     // Using then instead of async/await, because kendo can't handle async events.
                     Wiser.createItem(this.settings, "filedirectory", parentId, name, null, [], true, null, true).then((createItemResult) => {
                         if (!createItemResult) {
-                            kendo.alert("Er iets iets fout gegaan tijdens het aanmaken van de map. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                            kendo.alert("Er iets iets fout gegaan tijdens het aanmaken van de map. Probeer het a.u.b. opnieuw.");
                         } else {
                             this.notification.show({ message: "Map succesvol aangemaakt" }, "success");
                             window.element.find(".popup-loader").addClass("loading");
@@ -1054,7 +1054,7 @@ const moduleSettings = {
                 });
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan tijdens het aanmaken van de map. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan tijdens het aanmaken van de map. Probeer het a.u.b. opnieuw.");
             }
         }
 

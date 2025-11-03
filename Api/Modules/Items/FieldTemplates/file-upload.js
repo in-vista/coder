@@ -68,7 +68,7 @@ const addFileUrl = async (event) => {
     }
     catch(error) {
         console.error("read error - {title}", error);
-        kendo.alert("Er is iets fout gegaan toevoegen van een bestands-URL voor het veld '{title}'. Probeer het a.u.b. nogmaals of neem contact op met ons.")
+        kendo.alert("Er is iets fout gegaan toevoegen van een bestands-URL voor het veld '{title}'. Probeer het a.u.b. nogmaals.")
     };
 };
 
@@ -140,7 +140,7 @@ const initialize = async () => {
                 });
             } catch (exception) {
                 console.error("Update file order error - {title}", exception);
-                kendo.alert("Er is iets fout gegaan tijdens het aanpassen van de volgorde. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan tijdens het aanpassen van de volgorde. Probeer het a.u.b. nogmaals.");
             }
         }
     });
@@ -162,7 +162,7 @@ if (!options.queryId) {
     }
     catch(error) {
         console.error("read error - {title}", error);
-        kendo.alert("Er is iets fout gegaan tijdens het laden van de bestanden voor het veld '{title}'. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+        kendo.alert("Er is iets fout gegaan tijdens het laden van de bestanden voor het veld '{title}'. Probeer het a.u.b. nogmaals.");
     }
     finally {
         files = dataResult.otherData;

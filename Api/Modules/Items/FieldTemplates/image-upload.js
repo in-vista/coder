@@ -95,7 +95,7 @@ container.find(".imagesContainer").kendoSortable({
         catch (exception)
         {
             console.error("Update file order error - {title}", exception);
-            kendo.alert("Er is iets fout gegaan tijdens het aanpassen van de volgorde. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het aanpassen van de volgorde. Probeer het a.u.b. nogmaals.");
         }
     }
 });

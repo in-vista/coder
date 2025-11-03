@@ -1131,7 +1131,7 @@ class Main {
 
                     const module = this.modules.find(module => module.type === "Configuration");
                     if (!module) {
-                        kendo.alert("Configuratiemodule niet gevonden. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
+                        kendo.alert("Configuratiemodule niet gevonden. Ververs a.u.b. de pagina en probeer het opnieuw.");
                         return;
                     }
 

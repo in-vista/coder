@@ -144,7 +144,7 @@ export class Grids {
 
             this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
         } catch (exception) {
-            kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals, of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals.");
             console.error(exception);
             window.processing.removeProcess(initialProcess);
         }
@@ -498,7 +498,7 @@ export class Grids {
                             } catch (exception) {
                                 console.error(exception);
                                 transportOptions.error(exception);
-                                kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals, of neem contact op met ons.");
+                                kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals.");
                             }
 
                             window.processing.removeProcess(process);
@@ -694,7 +694,7 @@ export class Grids {
             }
             this.mainGrid.element.find(".k-i-refresh").parent().click(this.base.onMainRefreshButtonClick.bind(this.base));
         } catch (exception) {
-            kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals, of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals.");
             console.error(exception);
             window.processing.removeProcess(initialProcess);
         }
@@ -712,7 +712,7 @@ export class Grids {
             const dataToSave = kendo.stringify(grid.getOptions().columns);
             await this.saveGridViewState(key, dataToSave);
         } catch (exception) {
-            kendo.alert("Er is iets fout gegaan tijdens het opslaan van de instellingen voor dit grid. Probeer het nogmaals, of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het opslaan van de instellingen voor dit grid. Probeer het nogmaals.");
             console.error(exception);
         }
     }
@@ -730,7 +730,7 @@ export class Grids {
             const dataToSave = !filter ? null : kendo.stringify(filter);
             await this.saveGridViewState(key, dataToSave);
         } catch (exception) {
-            kendo.alert("Er is iets fout gegaan tijdens het opslaan van de instellingen voor dit grid. Probeer het nogmaals, of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het opslaan van de instellingen voor dit grid. Probeer het nogmaals.");
             console.error(exception);
         }
     }
@@ -1026,7 +1026,7 @@ export class Grids {
 
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan met het initialiseren van het overzicht. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan met het initialiseren van het overzicht. Probeer het a.u.b. nogmaals.");
         }
     }
 
@@ -1127,7 +1127,7 @@ export class Grids {
                             if (loader) {
                                 loader.removeClass("loading");
                             }
-                            kendo.alert("Er is iets fout gegaan tijdens het laden van het veld '{title}'. Probeer het a.u.b. nogmaals door de pagina te verversen, of neem contact op met ons.");
+                            kendo.alert("Er is iets fout gegaan tijdens het laden van het veld '{title}'. Probeer het a.u.b. nogmaals door de pagina te verversen.");
                             transportOptions.error(exception);
                         }
                     }
@@ -1375,7 +1375,7 @@ export class Grids {
                 if (split.length < 2 && !entityType) {
                     if (!options.hideCommandColumn && (!this.base.settings.gridViewSettings || !this.base.settings.gridViewSettings.hideCommandColumn)) {
                         console.error(`Could not retrieve entity type from clicked column ('${column.field}')`);
-                        kendo.alert("Er is geen entiteittype gevonden voor de aangeklikte kolom. Neem a.u.b. contact op met ons.");
+                        kendo.alert("Er is geen entiteittype gevonden voor de aangeklikte kolom. Neem a.u.b.");
                     }
 
                     return;
@@ -1416,7 +1416,7 @@ export class Grids {
 
             if (!encryptedId) {
                 if (!options.hideCommandColumn && (!this.base.settings.gridViewSettings || !this.base.settings.gridViewSettings.hideCommandColumn)) {
-                    kendo.alert("Er is geen encrypted ID gevonden. Neem a.u.b. contact op met ons.");
+                    kendo.alert("Er is geen encrypted ID gevonden. Neem a.u.b.");
                 }
                 return;
             }
@@ -1424,7 +1424,7 @@ export class Grids {
             if (!title || !itemId || !entityType) {
                 const itemDetails = (await this.base.getItemDetails(encryptedId, entityType));
                 if (!itemDetails) {
-                    kendo.alert("Er is geen item gevonden met het id in de geselecteerde regel. Waarschijnlijk is dit geen geldig ID. Neem a.u.b. contact op met ons.");
+                    kendo.alert("Er is geen item gevonden met het id in de geselecteerde regel. Waarschijnlijk is dit geen geldig ID. Neem a.u.b.");
                     return;
                 }
 
@@ -1435,7 +1435,7 @@ export class Grids {
         }
 
         if (!encryptedId) {
-            kendo.alert("Er is geen encrypted ID gevonden. Neem a.u.b. contact op met ons.");
+            kendo.alert("Er is geen encrypted ID gevonden. Neem a.u.b.");
             return;
         }
 
@@ -1546,7 +1546,7 @@ export class Grids {
             } else if (exception.statusText) {
                 error = exception.statusText;
             }
-            kendo.alert(`Er is iets fout gegaan met het aanmaken van het item. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
+            kendo.alert(`Er is iets fout gegaan met het aanmaken van het item. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
         }
 
         if (senderGrid) {
@@ -1579,7 +1579,7 @@ export class Grids {
             const itemId = dataItem[`ID_${options.entityType}`] || dataItem[`id_${options.entityType}`] || dataItem[`itemId_${options.entityType}`] || dataItem[`itemid_${options.entityType}`] || dataItem[`item_id_${options.entityType}`];
 
             if (!itemId) {
-                kendo.alert(`Er is geen encrypted ID gevonden voor dit item. Neem a.u.b. contact op met ons.`);
+                kendo.alert(`Er is geen encrypted ID gevonden voor dit item. Neem a.u.b.`);
                 return;
             }
 
@@ -1621,7 +1621,7 @@ export class Grids {
                                             const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
                                             kendo.alert(message);
                                         } else {
-                                            kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                                            kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals.");
                                         }
                                     }
                                 }
@@ -1656,7 +1656,7 @@ export class Grids {
                             const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
                             kendo.alert(message);
                         } else {
-                            kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                            kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals.");
                         }
                     }
                     senderGrid.dataSource.read();

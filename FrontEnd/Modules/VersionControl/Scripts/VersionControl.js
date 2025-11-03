@@ -339,7 +339,7 @@ const moduleSettings = {
                 this.commitEnvironmentField.value("");
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het maken van de commit. Probeer het a.u.b. opnieuw of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het maken van de commit. Probeer het a.u.b. opnieuw.");
             }
 
             window.processing.removeProcess(initialProcess);
@@ -359,7 +359,7 @@ const moduleSettings = {
                 this.dynamicContentChangesGrid.dataSource.read();
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het verversen van de openstaande wijzigingen. Probeer het a.u.b. opnieuw of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het verversen van de openstaande wijzigingen. Probeer het a.u.b. opnieuw.");
             }
 
             window.processing.removeProcess(initialProcess);
@@ -378,7 +378,7 @@ const moduleSettings = {
                 this.deployGrid.dataSource.read();
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het verversen van de commits. Probeer het a.u.b. opnieuw of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het verversen van de commits. Probeer het a.u.b. opnieuw.");
             }
 
             window.processing.removeProcess(initialProcess);
@@ -397,7 +397,7 @@ const moduleSettings = {
                 this.historyGrid.dataSource.read();
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het verversen van de historie. Probeer het a.u.b. opnieuw of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het verversen van de historie. Probeer het a.u.b. opnieuw.");
             }
 
             window.processing.removeProcess(initialProcess);
@@ -416,7 +416,7 @@ const moduleSettings = {
                 this.reviewGrid.dataSource.read();
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het verversen van de reviews. Probeer het a.u.b. opnieuw of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het verversen van de reviews. Probeer het a.u.b. opnieuw.");
             }
 
             window.processing.removeProcess(initialProcess);
@@ -524,7 +524,7 @@ const moduleSettings = {
                 this.deployGrid.dataSource.read();
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het deployen van de commit. Probeer het a.u.b. opnieuw of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het deployen van de commit. Probeer het a.u.b. opnieuw.");
             } finally {
                 window.processing.removeProcess(initialProcess);
             }
@@ -563,7 +563,7 @@ const moduleSettings = {
                 kendo.alert(selectedCommits.length === 1 ? "De geselecteerde commit is succesvol naar de geselecteerde branch gezet" : "De geselecteerde commits zijn succesvol naar de geselecteerde branch gezet.");
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het deployen van de commit. Probeer het a.u.b. opnieuw of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het deployen van de commit. Probeer het a.u.b. opnieuw.");
             } finally {
                 window.processing.removeProcess(initialProcess);
             }
@@ -595,7 +595,7 @@ const moduleSettings = {
                                     transportOptions.success(templatesToCommit);
                                 } catch (exception) {
                                     console.error(exception);
-                                    kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+                                    kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
                                     transportOptions.error(exception);
                                 }
 
@@ -704,7 +704,7 @@ const moduleSettings = {
 
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
             }
         }
 
@@ -734,7 +734,7 @@ const moduleSettings = {
                                     transportOptions.success(templatesToCommit);
                                 } catch (exception) {
                                     console.error(exception);
-                                    kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+                                    kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
                                     transportOptions.error(exception);
                                 }
 
@@ -843,7 +843,7 @@ const moduleSettings = {
 
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
             }
         }
 
@@ -873,7 +873,7 @@ const moduleSettings = {
                                     transportOptions.success(templatesToCommit);
                                 } catch (exception) {
                                     console.error(exception);
-                                    kendo.alert("Er is iets fout gegaan met het laden van niet afgeronde commits. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+                                    kendo.alert("Er is iets fout gegaan met het laden van niet afgeronde commits. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
                                     transportOptions.error(exception);
                                 }
 
@@ -983,7 +983,7 @@ const moduleSettings = {
 
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het laden van de nog niet afgeronde commits. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het laden van de nog niet afgeronde commits. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
             }
         }
 
@@ -1013,7 +1013,7 @@ const moduleSettings = {
                                     transportOptions.success(templatesToCommit);
                                 } catch (exception) {
                                     console.error(exception);
-                                    kendo.alert("Er is iets fout gegaan met het laden van de commit historie. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+                                    kendo.alert("Er is iets fout gegaan met het laden van de commit historie. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
                                     transportOptions.error(exception);
                                 }
 
@@ -1107,7 +1107,7 @@ const moduleSettings = {
 
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het laden van de commit historie. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het laden van de commit historie. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
             }
         }
 
@@ -1137,7 +1137,7 @@ const moduleSettings = {
                                     transportOptions.success(templatesToCommit);
                                 } catch (exception) {
                                     console.error(exception);
-                                    kendo.alert("Er is iets fout gegaan met het laden van niet afgeronde commits. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+                                    kendo.alert("Er is iets fout gegaan met het laden van niet afgeronde commits. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
                                     transportOptions.error(exception);
                                 }
 
@@ -1238,7 +1238,7 @@ const moduleSettings = {
 
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het laden van de reviews. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het laden van de reviews. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
             }
         }
 
@@ -1437,7 +1437,7 @@ const moduleSettings = {
                 this.reloadReviewsButton.trigger("click");
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het goedkeuren van deze review/commit. Probeer het opnieuw of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het goedkeuren van deze review/commit. Probeer het opnieuw.");
             } finally {
                 window.processing.removeProcess(initialProcess);
             }
@@ -1461,7 +1461,7 @@ const moduleSettings = {
                 this.reloadReviewsButton.trigger("click");
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het goedkeuren van deze review/commit. Probeer het opnieuw of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het goedkeuren van deze review/commit. Probeer het opnieuw.");
             } finally {
                 window.processing.removeProcess(initialProcess);
             }
@@ -1487,7 +1487,7 @@ const moduleSettings = {
                 this.reloadReviewsButton.trigger("click");
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het plaatsen van de reactie. Probeer het opnieuw of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan met het plaatsen van de reactie. Probeer het opnieuw.");
             } finally {
                 window.processing.removeProcess(initialProcess);
             }
