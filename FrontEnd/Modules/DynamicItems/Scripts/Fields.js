@@ -1315,9 +1315,13 @@ export class Fields {
      * @param {Array<any>} selectedItems Optional: If the action button is part of a grid, this parameter should contain all the selected items of that grid, so that the actions will be executed for all those items.
      * @returns {boolean} Whether the actions were all successful or not.
      * @param {any} element The action button or grid.
+     * @param {any} moduleId Optional: The module ID from where the action button was executed from.
      */
     async executeActionButtonActions(actions, userParametersWithValues, mainItemDetails, propertyId, entityType, selectedItems = [], element = null) {
         userParametersWithValues = userParametersWithValues || {};
+        
+        // Retrieve the module ID from the current DOM context.
+        const moduleId = Number($('body').attr('data-module-id')) ?? null;
 
         const getSuffixFromSelectedColumn = (selectedItem) => {
             let suffixToUse = "";
@@ -1567,7 +1571,10 @@ export class Fields {
                                     const queryResult = await Wiser.api({
                                         method: "POST",
                                         url: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(mainItemDetails.encryptedId || mainItemDetails.encrypted_id || mainItemDetails.encryptedid)}/action-button/${propertyId}?queryId=${encodeURIComponent(options.defaultValueQueryId)}`,
-                                        data: JSON.stringify(extraData),
+                                        data: JSON.stringify({
+                                            ...extraData,
+                                            moduleId: moduleId
+                                        }),
                                         contentType: "application/json"
                                     });
 
@@ -1592,7 +1599,10 @@ export class Fields {
                                                     method: "POST",
                                                     url: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(mainItemDetails.encryptedId || mainItemDetails.encrypted_id || mainItemDetails.encryptedid)}/action-button/${propertyId}?queryId=${encodeURIComponent(queryId)}`,
                                                     contentType: "application/json",
-                                                    data: JSON.stringify(extraData)
+                                                    data: JSON.stringify({
+                                                        ...extraData,
+                                                        moduleId: moduleId
+                                                    })
                                                 });
 
                                                 kendoOptions.success(queryResult.otherData);
@@ -1815,7 +1825,8 @@ export class Fields {
                         url: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(mainItemDetails.encryptedId || mainItemDetails.encrypted_id || mainItemDetails.encryptedid)}/action-button/${propertyId}?queryId=${encodeURIComponent(action.queryId || this.base.settings.zeroEncrypted)}&itemLinkId=${encodeURIComponent(mainItemDetails.linkId || mainItemDetails.link_id || 0)}`,
                         data: JSON.stringify({
                             ...userParametersWithValues,
-                            ...additionalBody
+                            ...additionalBody,
+                            moduleId: moduleId
                         }),
                         contentType: "application/json"
                     });
@@ -2366,7 +2377,11 @@ export class Fields {
                             emailData = await Wiser.api({
                                 method: "POST",
                                 url: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}/action-button/${propertyId}?queryId=${encodeURIComponent(action.emailDataQueryId)}&itemLinkId=${encodeURIComponent(linkId)}`,
-                                data: JSON.stringify($.extend(extraParameters, userParametersWithValues)),
+                                data: JSON.stringify({
+                                    ...extraParameters,
+                                    ...userParametersWithValues,
+                                    moduleId: moduleId
+                                }),
                                 contentType: "application/json"
                             });
 

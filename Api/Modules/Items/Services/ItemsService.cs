@@ -994,7 +994,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<ActionButtonResultModel>> ExecuteCustomQueryAsync(string encryptedId, int propertyId, Dictionary<string, object> extraParameters, string encryptedQueryId, ClaimsIdentity identity, ulong itemLinkId = 0)
+        public async Task<ServiceResult<ActionButtonResultModel>> ExecuteCustomQueryAsync(string encryptedId, int propertyId, Dictionary<string, object> extraParameters, string encryptedQueryId, ClaimsIdentity identity, ulong itemLinkId = 0, ulong moduleId = 0)
         {
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
             clientDatabaseConnection.SetCommandTimeout(600);
@@ -1032,6 +1032,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             actionQuery = actionQuery.Replace("{username}", (username ?? "").ToMySqlSafeValue(false), StringComparison.OrdinalIgnoreCase);
             actionQuery = actionQuery.Replace("{userEmailAddress}", (userEmailAddress ?? "").ToMySqlSafeValue(false), StringComparison.OrdinalIgnoreCase);
             actionQuery = actionQuery.Replace("{itemLinkId}", itemLinkId.ToString(), StringComparison.OrdinalIgnoreCase);
+            actionQuery = actionQuery.Replace("{moduleId}", moduleId.ToString(), StringComparison.OrdinalIgnoreCase);
             actionQuery = actionQuery.Replace("{userType}", (userType ?? "").ToMySqlSafeValue(false), StringComparison.OrdinalIgnoreCase);
             actionQuery = actionQuery.Replace("{encryptedId}", encryptedId.ToMySqlSafeValue(false), StringComparison.OrdinalIgnoreCase);
             actionQuery = actionQuery.Replace("'{itemId}'", "?itemId", StringComparison.OrdinalIgnoreCase).Replace("{itemId}", "?itemId", StringComparison.OrdinalIgnoreCase);
