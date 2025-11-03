@@ -115,8 +115,9 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="encryptedQueryId">The encrypted ID of the query from wiser_query. Encrypt the value "0" if you want to use a property ID.</param>
         /// <param name="identity">The identity of the authenticated user.</param>
         /// <param name="itemLinkId">Optional: If the item is linked to something else and you need to know that in the query, enter the ID of that link from wiser_itemlink here.</param>
+        /// <param name="moduleId">Optional: The module ID from where the action button was executed from.</param>
         /// <returns>The results of the query.</returns>
-        Task<ServiceResult<ActionButtonResultModel>> ExecuteCustomQueryAsync(string encryptedId, int propertyId, Dictionary<string, object> extraParameters, string encryptedQueryId, ClaimsIdentity identity, ulong itemLinkId = 0);
+        Task<ServiceResult<ActionButtonResultModel>> ExecuteCustomQueryAsync(string encryptedId, int propertyId, Dictionary<string, object> extraParameters, string encryptedQueryId, ClaimsIdentity identity, ulong itemLinkId = 0, ulong moduleId = 0);
 
         /// <summary>
         /// Get the HTML and javascript for single Wiser item, to show the item in Wiser.

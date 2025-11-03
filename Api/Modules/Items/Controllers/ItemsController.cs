@@ -273,6 +273,7 @@ namespace Api.Modules.Items.Controllers
         /// <param name="extraParameters">Any extra parameters to use in the query.</param>
         /// <param name="queryId">The encrypted ID of the query from wiser_query. Encrypt the value "0" if you want to use a property ID.</param>
         /// <param name="itemLinkId">Optional: If the item is linked to something else and you need to know that in the query, enter the ID of that link from wiser_itemlink here.</param>
+        /// <param name="moduleId">Optional: The module ID from where the action button was executed from.</param>
         /// <returns>The results of the query.</returns>
         [HttpPost]
         [Route("{encryptedId}/action-button/{propertyId:int}")]
@@ -280,9 +281,9 @@ namespace Api.Modules.Items.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> ActionButton(string encryptedId, int propertyId, [FromBody] Dictionary<string, object> extraParameters, [FromQuery] string queryId = null, [FromQuery] ulong itemLinkId = 0)
+        public async Task<IActionResult> ActionButton(string encryptedId, int propertyId, [FromBody] Dictionary<string, object> extraParameters, [FromQuery] string queryId = null, [FromQuery] ulong itemLinkId = 0, [FromQuery] ulong moduleId = 0)
         {
-            return (await itemsService.ExecuteCustomQueryAsync(encryptedId, propertyId, extraParameters, queryId, (ClaimsIdentity)User.Identity, itemLinkId)).GetHttpResponseMessage();
+            return (await itemsService.ExecuteCustomQueryAsync(encryptedId, propertyId, extraParameters, queryId, (ClaimsIdentity)User.Identity, itemLinkId, moduleId)).GetHttpResponseMessage();
         }
 
         /// <summary>
