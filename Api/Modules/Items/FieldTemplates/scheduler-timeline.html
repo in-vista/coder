@@ -1,10 +1,422 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.21.12/dist/css/uikit.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<style>
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    #spinner {
+        position:fixed;
+        top:67px;
+        left:0;
+        right:0;
+        bottom:0;
+        background: rgba(255,255,255,0.7);
+        z-index: 9999;
+        display:none;
+        justify-content:center;
+        align-items:center;
+    }
+
+    #spinner div {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+    }
+
+    /* Container in which the component must be loaded (full size of container) */
+    #timelineScheduler {
+        display: block;
+        /*margin: 20px;
+        width: calc(100% - 40px);      
+        height: calc(100vh - 80px);*/
+        width: 100%;
+        height: calc(100vh - 42px);
+    }
+
+    .scheduler {
+        display: flex;
+        flex-direction: column;
+        overflow-x: auto;
+        background: #dfe6e9;
+        height: 100%;
+    }
+    .scheduler-header {
+        display: flex;
+        position: sticky;
+        top: 0;
+        background: #f0f0f0;
+        z-index: 16;
+        border: 1px solid #ccc;
+        min-width: 2520px; /* TODO: DIT MOET NOG DYNAMISCH WORDEN OP BASIS VAN GETOOND AANTAL UUR */
+    }
+
+    .scheduler-header .hour {
+        min-width: 80px;
+        max-width: 80px;
+        text-align: center;
+        padding: 1px 0;
+        border-right: 2px solid #999;
+        box-sizing: border-box;
+        font-weight: bold;
+        background: #f7f7f7;
+    }
+
+    .timeline {
+        position: relative;
+        display: flex;
+        flex-grow: 1;
+        background: white;
+        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+    }
+    #header-timeline, #header-sum-persons {
+        border: none;
+    }
+
+    .quarter-cell {
+        min-width: 30px;
+        height: 24px;
+        border-right: 1px solid #e0e0e0;
+        box-sizing: border-box;
+        position: relative;
+        background: white;
+    }
+
+    .quarter-cell:last-child {
+        border-right: none;
+    }
+
+    .quarter-cell:hover {
+        background: #f8f8f8;
+    }
+
+    .quarter-cell.minute15 {
+        border-right-color: #c0c0c0;
+    }
+
+    .quarter-cell.minute45 {
+        border-right-color: #c0c0c0;
+        border-right-width: 2px;
+    }
+
+    /* Sticky div binnen group-header */
+    .group-header .group-label {
+        position: sticky;
+        left: 0;
+        z-index: 5;        /* boven timeline-cellen, maar onder scheduler-header */
+        background: #dfe6e9;
+        min-width: 80px;
+        padding-left: 8px;
+        font-weight: bold;
+        text-align: left;
+        box-sizing: border-box;
+    }
+
+    .group-header {
+        background: #dfe6e9;
+        padding: 4px 0;
+        cursor: pointer;
+        user-select: none;
+        border-bottom: 1px solid #bbb;
+        display: flex;
+        min-width: 2520px; /* TODO: DIT MOET NOG DYNAMISCH WORDEN OP BASIS VAN GETOOND AANTAL UUR */
+    }
+
+    .table-row {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #ccc;
+        position: relative;
+        height: 24px;
+    }
+    .table-row:nth-child(even) .quarter-cell:not(.outside-work) {
+        background-color: rgba(0,0,0,0.1);
+    }
+    .table-row:nth-child(odd) .quarter-cell:not(.outside-work) {
+        background-color: rgba(0,0,0,0.05);
+    }
+    .table-row:nth-child(even) .quarter-cell.outside-work {
+        background-color: rgba(0,0,0,0.2);
+    }
+    .table-row:nth-child(odd) .quarter-cell.outside-work {
+        background-color: rgba(0,0,0,0.15);
+    }
+
+    .table-label {
+        min-width: 120px;
+        max-width: 120px;
+        background: #fafafa;
+        text-align: left;
+        padding-right: 8px;
+        font-weight: bold;
+        border-right: 1px solid #ccc;
+        box-sizing: border-box;
+        padding-top: 4px;
+        padding-left: 10px;
+        height: 24px;
+
+        /* Sticky maken */
+        position: sticky;
+        left: 0;
+        z-index: 15; /* groter dan timeline-cellen, kleiner dan header */
+    }
+    .label-sum-persons{
+        background:#f7f7f7;
+        height:auto;
+        font-weight: normal;
+        font-size: smaller;
+    }
+
+    #header-sum-persons .hour {
+        font-weight: normal;
+        font-size: smaller;
+        padding-top: 3px;
+    }
+
+    .table-capacity {
+        float: right;
+        font-weight: normal;
+        font-size: 10px;
+        margin-top: 2px;
+    }
+
+    .table-online-state {
+        float: right;
+        font-weight: normal;
+        font-size: 10px;
+        color: lightgreen;
+        margin-top: 1px;
+        margin-left: 4px;
+    }
+    .table-online-state::before {
+        content: '●';
+    }
+
+    .reservation {
+        position: absolute;
+        align-self: center;
+        height: 100%;
+        background: #6ab04c;
+        color: white;
+        border-radius: 4px;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        box-sizing: border-box;
+        /*z-index: 10;*/
+        font-size: 13px;
+        overflow: hidden;
+    }
+    .reservation .resize-handle {
+        width: 10px;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.2);
+        cursor: ew-resize;
+        margin-left: auto;
+        flex-shrink: 0;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+    }
+    .reservation .numberOfPersons{
+        font-size: 16px;
+        margin-right: 8px;
+    }
+    .icons {
+        display: flex;
+        margin-left: auto;
+        margin-right: 10px;
+    }
+    .paid-icon::after {
+        content: '💰';
+    }
+    .notes-icon::after {
+        content: '🗒️';
+    }
+    .star-icon::after {
+        content: '⭐';
+    }
+    .warning-icon::after {
+        content: '⚠️';
+    }
+    .arrangement {
+        background: rgba(0,0,0,0.5);
+        padding: 2px 7px;
+        font-size: smaller;
+        font-weight: bold;
+        border-radius: 4px;
+    }
+
+    .hover {
+        position: absolute;
+        background-color: #ffffff;
+        height: 225px;
+        width: 400px;
+        top: 35px;
+        z-index: 150;
+        border-radius: 8px;
+        padding: 10px;
+        display: none;
+    }
+
+    .hover-customer-name {
+        font-size: larger;
+        font-weight: bold;
+    }
+    .hover-customer-phonenumber {
+        font-size: smaller;
+    }
+    .hover-number-of-visits {
+        float: right;
+        margin-top: 3px;
+        font-size: smaller;
+    }
+    .hover-horizontal-line {
+        margin: 5px;
+    }
+    .hover-arrangement {
+        font-weight: bold;
+    }
+    .hover-paid-amount {
+        font-weight: bold;
+        float: right;
+    }
+    .hover-edit-area {
+        margin-top: 5px;
+    }
+    .hover-edit-area textarea {
+        width: 100%;
+        min-height: 50px;
+        resize: vertical;
+    }
+    .hover-edit-actions {
+        margin-top: -4px;
+        display: flex;
+        gap: 5px;
+    }
+    .hover-edit-actions button {
+        cursor: pointer;
+        border: none;
+        padding: 4px 6px;
+        border-radius: 4px;
+    }
+    .hover-save {
+        background: #27ae60;
+        color: white;
+    }
+    .hover-cancel {
+        background: #c0392b;
+        color: white;
+    }
+    .hover-icons {
+        position: absolute;
+        bottom: 5px;
+        font-size: 24px;
+        width: 400px;
+    }
+    .hover-icons a {
+        display: inline-flex; /* zorgt dat het rondje om de inhoud staat */
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%; /* maakt het rond */
+        transition: background-color 0.2s ease, transform 0.2s ease;
+        padding: 6px;
+    }
+    .hover-icons a:hover{
+        text-decoration: none;
+        background-color: lightgray;
+    }
+    .hover-icons a:last-child {
+        float: right;
+    }
+
+    .current-time-line {
+        position: absolute;
+        top: 0;
+        width: 2px;
+        background: red;
+        z-index: 100; /* above sticky headers and labels */
+        height: 100%;
+        pointer-events: none; /* so it doesn't block dragging */
+    }
+    .scheduler-timeline-container {
+        position: relative; /* container for the line */
+    }
+
+    /* Calendar above timeline component */
+    .date-selector {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        background: #f0f0f0;
+        font-family: sans-serif;
+    }
+    .date-selector button {
+        margin: 0 10px;
+        padding: 4px 8px;
+        cursor: pointer;
+    }
+    #current-date {
+        font-weight: bold;
+    }
+    #calendar {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none; /* zodat het niet per ongeluk aanklikbaar is */
+    }
+
+    .single-line {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .connected:before {
+        content: '🔗';
+        margin-right: 8px;
+    }
+
+    .reservation:hover {
+        filter: brightness(85%); /* 100% = origineel, lager = donkerder */
+    }
+
+    .reservation.hovered {
+        filter: brightness(85%);
+    }
+</style>
+
+<div id="spinner">
+    <div></div>
+</div>
+
+<div id="timelineScheduler">
+    <div class="date-selector">
+        <button id="prev-day">&lt;</button>
+        <span id="current-date" style="cursor:pointer;">Kies datum</span>
+        <button id="next-day">&gt;</button>
+        <button id="refresh-button">Verversen</button>
+    </div>
+    <div class="scheduler">
+        <div class="scheduler-header">
+            <div class="table-label" style="background:#f7f7f7;height:auto;"></div>
+            <div class="timeline" id="header-timeline"></div>
+        </div>
+        <div class="scheduler-header" style="top:27px;">
+            <div class="table-label label-sum-persons">Zittend</div>
+            <div class="timeline" id="header-sum-persons"></div>
+        </div>
+        <div class="scheduler-timeline-container">
+            <div id="rows"></div>
+            <div id="current-time-line" class="current-time-line"></div>
+        </div>
+    </div>
+</div>

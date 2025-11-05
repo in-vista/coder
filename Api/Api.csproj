@@ -164,6 +164,10 @@
     <EmbeddedResource Include="Modules\Items\FieldTemplates\bryntum-calendar.html" />
     <None Remove="Modules\Items\FieldTemplates\bryntum-calendar.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\bryntum-calendar.js" />
+    <None Remove="Modules\Items\FieldTemplates\scheduler-timeline.html" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\scheduler-timeline.html" />
+    <None Remove="Modules\Items\FieldTemplates\scheduler-timeline.js" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\scheduler-timeline.js" />
   </ItemGroup>
 
   <ItemGroup>
