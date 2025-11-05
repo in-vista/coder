@@ -1105,7 +1105,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             }
             
             // Perform replacements for server filtering for comboboxes.
-            if (extraParameters.TryGetValue("_filter", out object comboboxFiltersObject) && comboboxFiltersObject is JArray comboboxFiltersJson)
+            if (extraParameters != null && extraParameters.TryGetValue("_filter", out object comboboxFiltersObject) && comboboxFiltersObject is JArray comboboxFiltersJson)
             {
                 ComboboxFilterModel[] comboboxFilters = JsonConvert.DeserializeObject<ComboboxFilterModel[]>(comboboxFiltersJson.ToString());
 
