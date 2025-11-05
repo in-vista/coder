@@ -44,7 +44,7 @@
         totalQuarters = (this.endTime > this.startTime ? (this.endTime - this.startTime) : (24 - this.startTime + this.endTime)) * this.quartersPerHour;
         currentDate = new Date();
         hoverTimers = {};
-        domain = "";
+        domain = "https://koks.reservery.dev";
     
         constructor() {
             this.init();
@@ -495,7 +495,7 @@
         //};
         async getTables() {
             try {
-                const tablesResponse = await axios.get(`${this.domain}/template.gcl?templateName=getTablesForTimeline`);
+                const tablesResponse = await axios.get(`${this.domain}/template.gcl?templateName=getTablesForTimeline&userId=${dynamicItems.base.settings.userId}`);
                 this.tableGroups = tablesResponse.data.reduce((groups, item) => {
                     if (!groups[item.room]) {
                         groups[item.room] = [];
@@ -560,7 +560,7 @@
     
                     // Sla nieuwe instelling op bij gebruiker
                     let activeGroups = Array.from(document.querySelectorAll(".group-header.active")).map(el => el.innerText.trim()).join(",");
-                    axios.post(`${this.domain}/template.gcl?templateName=saveGroupSettingsFromTimeline`, {"activeGroups": activeGroups}, {headers: {'Content-Type': 'multipart/form-data'}});
+                    axios.post(`${this.domain}/template.gcl?templateName=saveGroupSettingsFromTimeline&userId=${dynamicItems.base.settings.userId}`, {"activeGroups": activeGroups}, {headers: {'Content-Type': 'multipart/form-data'}});
                 });
     
                 this.container.appendChild(groupHeader);
@@ -916,7 +916,7 @@
                         //self.renderReservations();
     
                         // create reservation in database and open new reservation
-                        const response  = await axios.post(`${this.domain}/template.gcl?templateName=insertReservationFromTimeline`, newReservation, {headers: {'Content-Type': 'multipart/form-data'}});
+                        const response  = await axios.post(`${timelineScheduler.domain}/template.gcl?templateName=insertReservationFromTimeline&userName=${dynamicItems.base.settings.username}`, newReservation, {headers: {'Content-Type': 'multipart/form-data'}});
     
                         if (response.data.id) {
                             // open the created reservation
@@ -960,7 +960,7 @@
                         //self.renderReservations();
     
                         // create reservation in database and open new reservation
-                        const response  = await axios.post(`${this.domain}/template.gcl?templateName=insertReservationFromTimeline`, newReservation, {headers: {'Content-Type': 'multipart/form-data'}});
+                        const response  = await axios.post(`${this.domain}/template.gcl?templateName=insertReservationFromTimeline&userName=${dynamicItems.base.settings.username}`, newReservation, {headers: {'Content-Type': 'multipart/form-data'}});
     
                         if (response.data.id) {
                             // open the created reservation
@@ -1051,7 +1051,9 @@
                 alert(`Open reservation in Coder: ${reservation.name} (${reservation.reservationIdEncrypted})`);
             }
             else {
-                let target = window.location.href.includes('reservery.dev') || window.location.href.includes('localhost') ? 'https://maindev.coder.nl' : 'https://' + new URL(window.location.href).hostname.split('.')[0] + '.coder.nl';
+                dynamicItems.windows.loadItemInWindow(false, reservation.reservationId, reservation.reservationIdEncrypted, 'reservation', '', false, dynamicItems.grids.mainGrid, { hideTitleColumn: true }, 0, null, null);
+
+                /*let target = window.location.href.includes('reservery.dev') || window.location.href.includes('localhost') ? 'https://maindev.coder.nl' : 'https://' + new URL(window.location.href).hostname.split('.')[0] + '.coder.nl';
                 window.top.postMessage({
                     action: "OpenItem",
                     actionData: {
@@ -1062,7 +1064,8 @@
                         entityType: "Reservation",
                         queryString: `?itemId=${decodeURIComponent(reservation.reservationIdEncrypted)}&moduleId=602&iframe=true&entityType=Reservation`
                     }
-                }, target);
+                }, target);*/
+                
             }
         }
     
