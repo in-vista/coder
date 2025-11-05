@@ -23,6 +23,7 @@ using Api.Modules.Files.Interfaces;
 using Api.Modules.Google.Interfaces;
 using Api.Modules.Items.Interfaces;
 using Api.Modules.Items.Models;
+using Api.Modules.Kendo.Models;
 using Api.Modules.Templates.Interfaces;
 using Api.Modules.Tenants.Interfaces;
 using CM.Text.BusinessMessaging.Model;
@@ -1088,7 +1089,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             
             // Perform replacement for extra parameters.
             actionQuery = stringReplacementsService.DoReplacements(actionQuery, extraParameters, forQuery: true);
-
+            
             // Do replacements on the data query with the details of the current item.
             if (dataTable.Rows.Count > 0)
             {
@@ -1100,6 +1101,59 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 foreach (DataRow dataRow in dataTable.Rows)
                 {
                     actionQuery = actionQuery.Replace($"{{{dataRow.Field<string>("property_name").ToMySqlSafeValue(false)}}}", dataRow.Field<string>("property_value").ToMySqlSafeValue(false), StringComparison.OrdinalIgnoreCase);
+                }
+            }
+            
+            // Perform replacements for server filtering for comboboxes.
+            if (extraParameters != null && extraParameters.TryGetValue("_filter", out object comboboxFiltersObject) && comboboxFiltersObject is JArray comboboxFiltersJson)
+            {
+                ComboboxFilterModel[] comboboxFilters = JsonConvert.DeserializeObject<ComboboxFilterModel[]>(comboboxFiltersJson.ToString());
+
+                List<string> whereClauses = new List<string>();
+
+                foreach (ComboboxFilterModel comboboxFilter in comboboxFilters)
+                {
+                    string expression = null;
+
+                    string parameterName = $"{comboboxFilter.Field}_filter";
+
+                    object sqlRawValue = comboboxFilter.Value;
+                    string sqlValueInExpression = $"?{parameterName}";
+                    if (DateTime.TryParse(comboboxFilter.Value, out DateTime sqlDateTimeValue))
+                    {
+                        sqlRawValue = $"{sqlDateTimeValue:yyyy-MM-dd HH:mm:ss}";
+                        sqlValueInExpression = $"DATE(?{parameterName})";
+                    }
+
+                    expression = comboboxFilter.Operator switch
+                    {
+                        "eq" => $"t.`{comboboxFilter.Field}` = {sqlValueInExpression}",
+                        "neq" => $"t.`{comboboxFilter.Field}` != {sqlValueInExpression}",
+                        "isnull" => $"t.`{comboboxFilter.Field}` IS NULL",
+                        "isnotnull" => $"t.`{comboboxFilter.Field}` IS NOT NULL",
+                        "lt" => $"`t.{comboboxFilter.Field}` < {sqlValueInExpression}",
+                        "lte" => $"t.`{comboboxFilter.Field}` <= {sqlValueInExpression}",
+                        "gt" => $"t.`{comboboxFilter.Field}` > {sqlValueInExpression}",
+                        "gte" => $"t.`{comboboxFilter.Field}` >= {sqlValueInExpression}",
+                        "startswith" => $"t.`{comboboxFilter.Field}` LIKE CONCAT({sqlValueInExpression}, '%')",
+                        "doesnotstartwith" => $"t.`{comboboxFilter.Field}` NOT LIKE CONCAT({sqlValueInExpression}, '%')",
+                        "endswith" => $"t.`{comboboxFilter.Field}` LIKE CONCAT('%', {sqlValueInExpression})",
+                        "doesnotendwith" => $"t.`{comboboxFilter.Field}` NOT LIKE CONCAT('%', {sqlValueInExpression})",
+                        "contains" => $"t.`{comboboxFilter.Field}` LIKE CONCAT('%', {sqlValueInExpression}, '%')",
+                        "doesnotcontain" => $"t.`{comboboxFilter.Field}` NOT LIKE CONCAT('%', {sqlValueInExpression}, '%')",
+                        _ => expression
+                    };
+                    
+                    clientDatabaseConnection.AddParameter(parameterName, sqlRawValue);
+
+                    if(!string.IsNullOrEmpty(expression))
+                        whereClauses.Add(expression);
+                }
+
+                if (whereClauses.Count > 0)
+                {
+                    string joinedWhereClause = string.Join(" AND ", whereClauses);
+                    actionQuery = $"SELECT * FROM ({actionQuery}) t WHERE {joinedWhereClause}";
                 }
             }
 

@@ -23,6 +23,8 @@ export class Windows {
         this.base = base;
 
         this.mainWindow = null;
+        
+        this.openWindows = [];
 
         this.searchItemsWindow = null;
         this.searchItemsWindowSettings = {
@@ -269,11 +271,39 @@ export class Windows {
                 text: `<button type='button' class='btn btn-cancel'><ins class='icon-line-exit'></ins><span>Annuleren</span></button>${windowTitle}`,
                 encoded: false
             });
+			
+			// Flag the window to have just been opened.
+			currentItemWindow.justOpened = true;
+			setTimeout(() => { currentItemWindow.justOpened = false; });
 
             // Initialize the cancel button on the top left of the window.
             currentItemWindow.wrapper.find(".btn-cancel").click((event) => {
                 currentItemWindow.close();
             });
+            
+            // Add the window to the opened windows if it wasn't already.
+			const openWindows = this.openWindows;
+			if (!openWindows.includes(currentItemWindow)) {
+				openWindows.push(currentItemWindow);
+			}
+
+			// Attach a listener to the window that removes the window from the opened windows as soon as it closes.
+			currentItemWindow.bind('close', () => {
+				const idx = openWindows.indexOf(currentItemWindow);
+				if (idx !== -1) openWindows.splice(idx, 1);
+			});
+            
+            // Attach a listener to the document to close this window when clicked outside.
+			if (!$(document).data('windowOpenListenerAdded')) {
+				$(document).on('click', event => {
+					openWindows.forEach(windowInstance => {
+						if (!windowInstance.justOpened && !$(event.target).closest(windowInstance.wrapper).length) {
+							windowInstance.close();
+						}
+					});
+				});
+				$(document).data('windowOpenListenerAdded', true);
+			}
 
             const afterSave = async () => {
                 isNewItem = false;
@@ -409,18 +439,30 @@ export class Windows {
                         } else {
                             currentItemTabStrip.insertAfter({
                                 text: tabData.name,
+                                encoded: false,
                                 content: "<div class='dynamicTabContent'>" + tabData.htmlTemplate + "</div>",
                                 spriteCssClass: "addedFromDatabase"
                             }, currentItemTabStrip.tabGroup.children().eq(0));
-
+                            
                             if (!this.base.fields.fieldInitializers[windowId]) {
                                 this.base.fields.fieldInitializers[windowId] = {};
                             }
 
-                            this.base.fields.fieldInitializers[windowId][tabData.name] = {
+                            const tabName = currentItemTabStrip.tabGroup.children().eq(1).text();
+
+                            // Shift all elements one position further.
+                            const fields = this.base.fields.fieldInitializers[windowId];
+                            for (let i = Object.keys(fields).length; i > 0; i--) {
+                                fields[i] = fields[i - 1];
+                                htmlData.tabs[i].index = (htmlData.tabs[i].index ?? 0) + 1;
+                            }
+
+                            // Store the tab in the first position in the tab collection.
+                            fields[0] = {
                                 executed: false,
                                 script: tabData.scriptTemplate,
-                                entityType: entityType
+                                entityType: entityType,
+                                name: tabName
                             };
                         }
                     }
@@ -431,7 +473,7 @@ export class Windows {
                     for (let i = htmlData.tabs.length - 1; i >= 0; i--) {
                         const tabData = htmlData.tabs[i];
                         const container = currentItemTabStrip.contentHolder(i);
-                        this.base.fields.setupDependencies(container, entityType, tabData.name || "Gegevens");
+                        this.base.fields.setupDependencies(container, entityType, tabData.name || 0);
                     }
 
                     // Handle dependencies for the first tab, to make sure all the correct fields are hidden/shown on the first tab. The other tabs will be done once they are opened.

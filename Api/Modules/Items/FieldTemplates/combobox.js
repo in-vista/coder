@@ -2,26 +2,37 @@
 const container = $("#container_{propertyIdWithSuffix}");
 const field = $("#field_{propertyIdWithSuffix}");
 const fieldOptions = {options};
+const itemId = '{itemIdEncrypted}';
+const entityType = '{entityType}' || null;
+const propertyId = {propertyId};
 const options = $.extend({
     optionLabel: "Kies een waarde...",
     autoClose: false,
     dataTextField: "name",
     dataValueField: "id",
     minLength: 0,
-    change: (event) => { window.dynamicItems.fields.onDropDownChange(event, options); },
+    filter: 'contains',
+    delay: fieldOptions.serverFiltering ? 400 : 200,
+    change: async (event) => {
+        await window.dynamicItems.fields.onDropDownChange(event, options, itemId, entityType, propertyId);
+    },
     dataSource: {
+        serverFiltering: fieldOptions.serverFiltering ?? false,
         transport: {
             read: async(kendoOptions) => {
                 try {
-                let inputData = window.dynamicItems.fields.getInputData(field.closest(".popup-container, .pane-content")) || [];
-                inputData = inputData.reduce((obj, item) => { obj[item.key] = item.value; return obj; });
-
+                    let inputData = window.dynamicItems.fields.getInputData(field.closest(".popup-container, .pane-content")) || [];
+                    inputData = inputData.reduce((obj, item) => { obj[item.key] = item.value; return obj; });
+                    
                     const dataResult = await Wiser.api({
                         method: "POST",
                         contentType: "application/json",
                         dataType: "json",
                         url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(fieldOptions.queryId || dynamicItems.settings.zeroEncrypted)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
-                        data: JSON.stringify(inputData)
+                        data: JSON.stringify({
+                            ...inputData,
+                            _filter: kendoOptions.data.filter?.filters
+                        })
                     });
 
                     kendoOptions.success(dataResult.otherData);
@@ -126,6 +137,10 @@ if (options.cascadeFrom && typeof options.cascadeFrom === "string") {
 const kendoComponent = options.useDropDownList || options.mode === "dropDownList" ? field.kendoDropDownList(options).data("kendoDropDownList") : field.kendoComboBox(options).data("kendoComboBox");
 const readonly = {readonly};
 kendoComponent.readonly(readonly);
+
+// Hide the caret if set.
+if(fieldOptions.hideCaret)
+    kendoComponent.element.siblings('button[aria-label="expand combobox"]').hide();
 
 if (options.newItems && options.newItems.allow && (options.newItems.entityType || options.entityType)) {
     container.find(".newItemButton").removeClass("hidden").kendoButton({
