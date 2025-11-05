@@ -18,7 +18,7 @@ const options = $.extend({
                 try {
                     let inputData = window.dynamicItems.fields.getInputData(field.closest(".popup-container, .pane-content")) || [];
                     inputData = inputData.reduce((obj, item) => { obj[item.key] = item.value; return obj; });
-
+                    
                     const dataResult = await Wiser.api({
                         method: "POST",
                         contentType: "application/json",
@@ -132,6 +132,10 @@ if (options.cascadeFrom && typeof options.cascadeFrom === "string") {
 const kendoComponent = options.useDropDownList || options.mode === "dropDownList" ? field.kendoDropDownList(options).data("kendoDropDownList") : field.kendoComboBox(options).data("kendoComboBox");
 const readonly = {readonly};
 kendoComponent.readonly(readonly);
+
+// Hide the caret if set.
+if(fieldOptions.hideCaret)
+    kendoComponent.element.siblings('button[aria-label="expand combobox"]').hide();
 
 if (options.newItems && options.newItems.allow && (options.newItems.entityType || options.entityType)) {
     container.find(".newItemButton").removeClass("hidden").kendoButton({
