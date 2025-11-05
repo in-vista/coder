@@ -23,6 +23,8 @@ export class Windows {
         this.base = base;
 
         this.mainWindow = null;
+        
+        this.openWindows = [];
 
         this.searchItemsWindow = null;
         this.searchItemsWindowSettings = {
@@ -274,6 +276,38 @@ export class Windows {
             currentItemWindow.wrapper.find(".btn-cancel").click((event) => {
                 currentItemWindow.close();
             });
+            
+            // Retrieve a list of the currently opened windows.
+            const openWindows = this.openWindows;
+            
+            // Attach a listener to the window to stop Javascript's propagation event bubbling.
+            if (!currentItemWindow.wrapper.data('stopPropagationAdded')) {
+                currentItemWindow.wrapper.on('click', e => e.stopPropagation());
+                currentItemWindow.wrapper.data('stopPropagationAdded', true);
+            }
+            
+            // Attach a listener to the window that removes the window from the opened windows as soon as it closes.
+            currentItemWindow.bind('close', event => {
+                openWindows.splice(openWindows.indexOf(currentItemWindow), 1);
+            });
+            
+            // Add the window to the opened windows if it wasn't already.
+            if (!openWindows.includes(currentItemWindow))
+                openWindows.push(currentItemWindow);
+            
+            // Attach a listener to the document to close this window when clicked outside.
+            if (!$(document).data('windowOpenListenerAdded')) {
+                $(document).on('click', function(event) {
+                    const windowsToCheck = [ ...openWindows ];
+
+                    windowsToCheck.forEach(windowInstance => {
+                        if (!$(event.target).closest(windowInstance).length)
+                            windowInstance.close();
+                    });
+                });
+
+                $(document).data('windowOpenListenerAdded', true);
+            }
 
             const afterSave = async () => {
                 isNewItem = false;
