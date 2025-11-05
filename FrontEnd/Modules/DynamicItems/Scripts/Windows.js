@@ -271,43 +271,39 @@ export class Windows {
                 text: `<button type='button' class='btn btn-cancel'><ins class='icon-line-exit'></ins><span>Annuleren</span></button>${windowTitle}`,
                 encoded: false
             });
+			
+			// Flag the window to have just been opened.
+			currentItemWindow.justOpened = true;
+			setTimeout(() => { currentItemWindow.justOpened = false; });
 
             // Initialize the cancel button on the top left of the window.
             currentItemWindow.wrapper.find(".btn-cancel").click((event) => {
                 currentItemWindow.close();
             });
             
-            // Retrieve a list of the currently opened windows.
-            const openWindows = this.openWindows;
-            
-            // Attach a listener to the window to stop Javascript's propagation event bubbling.
-            if (!currentItemWindow.wrapper.data('stopPropagationAdded')) {
-                currentItemWindow.wrapper.on('click', e => e.stopPropagation());
-                currentItemWindow.wrapper.data('stopPropagationAdded', true);
-            }
-            
-            // Attach a listener to the window that removes the window from the opened windows as soon as it closes.
-            currentItemWindow.bind('close', event => {
-                openWindows.splice(openWindows.indexOf(currentItemWindow), 1);
-            });
-            
             // Add the window to the opened windows if it wasn't already.
-            if (!openWindows.includes(currentItemWindow))
-                openWindows.push(currentItemWindow);
+			const openWindows = this.openWindows;
+			if (!openWindows.includes(currentItemWindow)) {
+				openWindows.push(currentItemWindow);
+			}
+
+			// Attach a listener to the window that removes the window from the opened windows as soon as it closes.
+			currentItemWindow.bind('close', () => {
+				const idx = openWindows.indexOf(currentItemWindow);
+				if (idx !== -1) openWindows.splice(idx, 1);
+			});
             
             // Attach a listener to the document to close this window when clicked outside.
-            if (!$(document).data('windowOpenListenerAdded')) {
-                $(document).on('click', function(event) {
-                    const windowsToCheck = [ ...openWindows ];
-
-                    windowsToCheck.forEach(windowInstance => {
-                        if (!$(event.target).closest(windowInstance).length)
-                            windowInstance.close();
-                    });
-                });
-
-                $(document).data('windowOpenListenerAdded', true);
-            }
+			if (!$(document).data('windowOpenListenerAdded')) {
+				$(document).on('click', event => {
+					openWindows.forEach(windowInstance => {
+						if (!windowInstance.justOpened && !$(event.target).closest(windowInstance.wrapper).length) {
+							windowInstance.close();
+						}
+					});
+				});
+				$(document).data('windowOpenListenerAdded', true);
+			}
 
             const afterSave = async () => {
                 isNewItem = false;
