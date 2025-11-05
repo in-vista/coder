@@ -566,7 +566,7 @@ export class Fields {
      * This function should be called every time the user opens a different tab.
      * This function can safely be called multiple times, it will keep track of which tabs have already been initialized before and won't do it a second time.
      * @param {string} windowId The ID of the window that contains the tabs and fields. If this is for the default/main screen/window, enter "mainScreen" in this parameter.
-     * @param {string} tabIndex The index of the tab that the user opened.
+     * @param {number} tabIndex The index of the tab that the user opened.
      * @param {any} tabContentContainer The container that contains the contents of the selected tab.
      */
     async initializeDynamicFields(windowId, tabIndex, tabContentContainer) {
@@ -580,7 +580,7 @@ export class Fields {
         const tabName = tabFields?.name;
         
         if (!tabFields) {
-            if (tabName !== "Overzicht" && tabName !== "Gegevens" && tabName !== "Historie") {
+            if (tabName !== "Overzicht" && tabName !== "Gegevens" && tabName !== "Historie" && tabIndex !== 0) {
                 console.warn(`initializeDynamicFields called with non-existing tab. Window: '${windowId}', tab: ${tabName}`);
             }
             return;
