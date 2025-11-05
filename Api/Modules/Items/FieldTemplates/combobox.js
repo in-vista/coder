@@ -2,6 +2,9 @@
 const container = $("#container_{propertyIdWithSuffix}");
 const field = $("#field_{propertyIdWithSuffix}");
 const fieldOptions = {options};
+const itemId = '{itemIdEncrypted}';
+const entityType = '{entityType}' || null;
+const propertyId = {propertyId};
 const options = $.extend({
     optionLabel: "Kies een waarde...",
     autoClose: false,
@@ -10,7 +13,9 @@ const options = $.extend({
     minLength: 0,
     filter: 'contains',
     delay: fieldOptions.serverFiltering ? 400 : 200,
-    change: (event) => { window.dynamicItems.fields.onDropDownChange(event, options); },
+    change: async (event) => {
+        await window.dynamicItems.fields.onDropDownChange(event, options, itemId, entityType, propertyId);
+    },
     dataSource: {
         serverFiltering: fieldOptions.serverFiltering ?? false,
         transport: {

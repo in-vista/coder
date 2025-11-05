@@ -725,44 +725,65 @@ export class Fields {
      * Event that gets fired when the users changes the value of a kendoDropdown.
      * @param {any} event The change event of the kendoDropdown.
      * @param {any} options The field options.
+     * @param {any} itemId The item ID of the item the combobox was changed for.
+     * @param {any} entityType The entity type of the item the combobox is present in.
+     * @param {any} propertyId The ID of the property of the combobox.
      */
-    onDropDownChange(event, options) {
-        this.onFieldValueChange(event, options);
+    async onDropDownChange(event, options, itemId, entityType, propertyId) {
+        await this.onFieldValueChange(event, options);
 
         if (options.allowOpeningOfSelectedItem) {
             event.sender.element.closest(".item").find(".openItemButton").toggleClass("hidden", !event.sender.value());
         }
 
-        if (!options.linkedFields || !options.linkedFields.length) {
-            return;
-        }
-
-        const fieldsContainer = event.sender.element.closest(".k-content");
         const selectedItem = event.sender.dataItem();
-        options.linkedFields.forEach((fieldName) => {
-            if (!selectedItem[fieldName]) {
-                return;
-            }
 
-            const value = selectedItem[fieldName];
-            const fieldContainer = fieldsContainer.find(`[data-property-name='${fieldName}']`);
-            const field = fieldContainer.find(`[name='${fieldName}']`);
-            const kendoControlName = field.data("kendoControl");
-
-            if (kendoControlName) {
-                const kendoControl = field.data(kendoControlName);
-                if (kendoControl) {
-                    if (options.overwriteExistingValues || !kendoControl.value()) {
-                        kendoControl.value(value);
-                    }
+        if (options.linkedFields && options.linkedFields.length) {
+            const fieldsContainer = event.sender.element.closest(".k-content");
+            options.linkedFields.forEach((fieldName) => {
+                if (!selectedItem[fieldName]) {
                     return;
                 }
-            }
 
-            if (options.overwriteExistingValues || !field.val()) {
-                field.val(value);
-            }
-        });
+                const value = selectedItem[fieldName];
+                const fieldContainer = fieldsContainer.find(`[data-property-name='${fieldName}']`);
+                const field = fieldContainer.find(`[name='${fieldName}']`);
+                const kendoControlName = field.data("kendoControl");
+
+                if (kendoControlName) {
+                    const kendoControl = field.data(kendoControlName);
+                    if (kendoControl) {
+                        if (options.overwriteExistingValues || !kendoControl.value()) {
+                            kendoControl.value(value);
+                        }
+                        return;
+                    }
+                }
+
+                if (options.overwriteExistingValues || !field.val()) {
+                    field.val(value);
+                }
+            });
+        }
+        
+        // Execute actions if any are given.
+        if(options.actions) {
+            // Collect extra values for the action execution.
+            const value = event.sender.value();
+            const text = event.sender.text();
+            const extraValues = {
+                value, text
+            };
+            
+            // Retrieve the item details based on the item ID.
+            const itemDetails = await this.base.getItemDetails(itemId, entityType);
+            
+            // Prepare a list of selected items with the selected item from the combobox.
+            const selectedItems = [ selectedItem ];
+            
+            // Execute the actions with the given information of the combobox.
+            this.executeActionButtonActions(options.actions, extraValues, itemDetails, propertyId, entityType, selectedItems);
+        }
     }
 
     /**
