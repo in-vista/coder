@@ -8,20 +8,26 @@ const options = $.extend({
     dataTextField: "name",
     dataValueField: "id",
     minLength: 0,
+    filter: 'contains',
+    delay: fieldOptions.serverFiltering ? 400 : 200,
     change: (event) => { window.dynamicItems.fields.onDropDownChange(event, options); },
     dataSource: {
+        serverFiltering: fieldOptions.serverFiltering ?? false,
         transport: {
             read: async(kendoOptions) => {
                 try {
-                let inputData = window.dynamicItems.fields.getInputData(field.closest(".popup-container, .pane-content")) || [];
-                inputData = inputData.reduce((obj, item) => { obj[item.key] = item.value; return obj; });
+                    let inputData = window.dynamicItems.fields.getInputData(field.closest(".popup-container, .pane-content")) || [];
+                    inputData = inputData.reduce((obj, item) => { obj[item.key] = item.value; return obj; });
 
                     const dataResult = await Wiser.api({
                         method: "POST",
                         contentType: "application/json",
                         dataType: "json",
                         url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(fieldOptions.queryId || dynamicItems.settings.zeroEncrypted)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
-                        data: JSON.stringify(inputData)
+                        data: JSON.stringify({
+                            ...inputData,
+                            _filter: kendoOptions.data.filter?.filters
+                        })
                     });
 
                     kendoOptions.success(dataResult.otherData);
