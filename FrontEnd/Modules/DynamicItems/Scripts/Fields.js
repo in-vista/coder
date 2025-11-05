@@ -187,12 +187,12 @@ export class Fields {
      * @param {any} tabName The name of the tab to setup the dependencies for.
      * @returns {any} An object with all dependencies.
      */
-    setupDependencies(container, entityType, tabName) {
+    setupDependencies(container, entityType, tabIndex) {
         // Reset dependencies of entity type, so that we're always using the latest ones.
         if (!this.dependencies[entityType]) {
             this.dependencies[entityType] = {};
         }
-        this.dependencies[entityType][tabName] = {};
+        this.dependencies[entityType][tabIndex] = {};
 
         const allControls = container.find(".item");
 
@@ -204,24 +204,24 @@ export class Fields {
                 return;
             }
 
-            if (!this.dependencies[entityType][tabName][data.dependsOnField]) {
-                this.dependencies[entityType][tabName][data.dependsOnField] = [];
+            if (!this.dependencies[entityType][tabIndex][data.dependsOnField]) {
+                this.dependencies[entityType][tabIndex][data.dependsOnField] = [];
             }
 
-            this.dependencies[entityType][tabName][data.dependsOnField].push(data);
+            this.dependencies[entityType][tabIndex][data.dependsOnField].push(data);
         });
 
-        return this.dependencies[entityType][tabName];
+        return this.dependencies[entityType][tabIndex];
     }
 
     /**
      * Handles the dependencies for all fields within a certain container.
      * @param {any} container The container.
      * @param {any} entityType The entity type of the current item.
-     * @param {any} tabName The name of the tab to setup the dependencies for.
+     * @param {any} tabIndex The index of the tab to setup the dependencies for.
      * @param {string} windowId The ID of the window that contains the tabs and fields. If this is for the default/main screen/window, enter "mainScreen" in this parameter.
      */
-    handleAllDependenciesOfContainer(container, entityType, tabName, windowId) {
+    handleAllDependenciesOfContainer(container, entityType, tabIndex, windowId) {
         this.originalItemValues[windowId] = {};
         this.unsavedItemValues[windowId] = {};
 
@@ -243,7 +243,7 @@ export class Fields {
                         this.originalItemValues[windowId][propertyName] = kendoControl.value();
                     }
 
-                    this.handleDependencies({ sender: kendoControl }, tabName);
+                    this.handleDependencies({ sender: kendoControl }, tabIndex);
                     return;
                 }
             }
@@ -266,7 +266,7 @@ export class Fields {
                 return;
             }
 
-            this.handleDependencies({ currentTarget: element }, tabName);
+            this.handleDependencies({ currentTarget: element }, tabIndex);
         });
     }
 
@@ -275,15 +275,16 @@ export class Fields {
      * They should be made invisible if the dependent fields don't have the required values.
      * This method should be called every time a value of a field has been changed.
      * @param {any} event The change event of the field where the value was changed.
-     * @param {string} selectedTab The name of the selected tab.
+     * @param {string} tabIndex The index of the selected tab.
      */
-     handleDependencies(event, selectedTab) {
-        let valueOfElement;
-        let currentDependencies = [];
-        let container;
-        let entityType;
-        let tabStrip;
-
+     handleDependencies(event, tabIndex) {
+         let selectedTab;
+         let valueOfElement;
+         let currentDependencies = [];
+         let container;
+         let entityType;
+         let tabStrip;
+        
         if (event.sender) {
             if (typeof event.sender.value !== "function") {
                 console.warn("Kendo control found, but it doesn't have a value function.", event.sender);
@@ -293,7 +294,10 @@ export class Fields {
             container = event.sender.element.closest(".item");
             tabStrip = container.closest(".k-tabstrip").data("kendoTabStrip");
 
-            if (!selectedTab) {
+            const tabElement = tabStrip.tabGroup.children().eq(tabIndex);
+            selectedTab = tabElement?.text();
+            
+            if (tabIndex === undefined) {
                 if (!tabStrip) {
                     console.error("Could not find kendoTabStrip and therefor cannot handle dependencies!", event.sender);
                     return;
@@ -311,6 +315,9 @@ export class Fields {
             entityType = container.closest(".entity-container").data("entityType");
             tabStrip = container.closest(".k-tabstrip").data("kendoTabStrip");
 
+            const tabElement = tabStrip.tabGroup.children().eq(tabIndex);
+            selectedTab = tabElement?.text();
+            
             if (!selectedTab) {
                 if (!tabStrip) {
                     console.error("Could not find kendoTabStrip and therefor cannot handle dependencies!", event.currentTarget);
@@ -559,17 +566,19 @@ export class Fields {
      * This function should be called every time the user opens a different tab.
      * This function can safely be called multiple times, it will keep track of which tabs have already been initialized before and won't do it a second time.
      * @param {string} windowId The ID of the window that contains the tabs and fields. If this is for the default/main screen/window, enter "mainScreen" in this parameter.
-     * @param {string} tabName The name of the tab that the user opened.
+     * @param {string} tabIndex The index of the tab that the user opened.
      * @param {any} tabContentContainer The container that contains the contents of the selected tab.
      */
-    async initializeDynamicFields(windowId, tabName, tabContentContainer) {
+    async initializeDynamicFields(windowId, tabIndex, tabContentContainer) {
         const windowFields = this.fieldInitializers[windowId];
         if (!windowFields) {
             console.warn(`initializeDynamicFields called with non-existing windowId: ${windowId}`);
             return;
         }
 
-        const tabFields = windowFields[tabName];
+        const tabFields = windowFields[tabIndex - 1];
+        const tabName = tabFields?.name;
+        
         if (!tabFields) {
             if (tabName !== "Overzicht" && tabName !== "Gegevens" && tabName !== "Historie") {
                 console.warn(`initializeDynamicFields called with non-existing tab. Window: '${windowId}', tab: ${tabName}`);
@@ -578,7 +587,7 @@ export class Fields {
         }
 
         if (!tabFields.script) {
-            console.log(`initializeDynamicFields called, but script is empty. Window: '${windowId}', tab: ${tabName}`);
+            console.log(`initializeDynamicFields called, but script is empty. Window: '${windowId}', tab index: ${tabIndex}`);
             return;
         }
 
@@ -597,7 +606,7 @@ export class Fields {
             // Mark the tab to be loaded.
             tabContentContainer.data('loaded', true);
 
-            this.base.fields.handleAllDependenciesOfContainer(tabContentContainer, tabFields.entityType, tabName, windowId);
+            this.base.fields.handleAllDependenciesOfContainer(tabContentContainer, tabFields.entityType, tabIndex, windowId);
         } catch (exception) {
             console.error(exception);
             kendo.alert("Er is iets fout gegaan tijdens het uitvoeren van scripts voor velden op dit tabblad. Neem a.u.b. contact op met ons.");

@@ -1353,7 +1353,7 @@ const moduleSettings = {
         async onTabStripSelect(itemId, windowId, event) {
             // Initialize dynamic fields on the current tab, if that hasn't been done yet.
             const contentElement = $(event.contentElement);
-            await this.fields.initializeDynamicFields(windowId, $(event.item).text(), contentElement);
+            await this.fields.initializeDynamicFields(windowId, $(event.item).index(), contentElement);
 
             // Refresh code mirror instances, otherwise they get strange styling issues.
             setTimeout(() => {
@@ -1951,14 +1951,26 @@ const moduleSettings = {
                     } else {
                         this.mainTabStrip.insertAfter({
                             text: tabData.name,
+                            encoded: false,
                             content: "<div class='dynamicTabContent'>" + tabData.htmlTemplate + "</div>",
                             spriteCssClass: "addedFromDatabase"
                         }, this.mainTabStrip.tabGroup.children().eq(0));
-
-                        this.base.fields.fieldInitializers.mainScreen[tabData.name] = {
+                        
+                        const tabName = this.mainTabStrip.tabGroup.children().eq(1).text();
+                        
+                        // Shift all elements one position further.
+                        const fields = this.base.fields.fieldInitializers.mainScreen;
+                        for (let i = Object.keys(fields).length; i > 0; i--) {
+                            fields[i] = fields[i - 1];
+                            itemHtmlResult.tabs[i].index = (itemHtmlResult.tabs[i].index ?? 0) + 1;
+                        }
+                        
+                        // Store the tab in the first position in the tab collection.
+                        fields[0] = {
                             executed: false,
                             script: tabData.scriptTemplate,
-                            entityType: itemMetaData.entityType
+                            entityType: itemMetaData.entityType,
+                            name: tabName
                         };
                     }
                 }
@@ -1970,7 +1982,7 @@ const moduleSettings = {
                 for (let i = itemHtmlResult.tabs.length - 1; i >= 0; i--) {
                     const tabData = itemHtmlResult.tabs[i];
                     const container = this.mainTabStrip.contentHolder(i);
-                    this.base.fields.setupDependencies(container, itemMetaData.entityType, tabData.name || "Gegevens");
+                    this.base.fields.setupDependencies(container, itemMetaData.entityType, tabData.index || 0);
                 }
 
                 // Handle dependencies for the first tab, to make sure all the correct fields are hidden/shown on the first tab. The other tabs will be done once they are opened.
