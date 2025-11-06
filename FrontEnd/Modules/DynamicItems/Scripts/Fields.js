@@ -1355,7 +1355,7 @@ export class Fields {
 
         const getSuffixFromSelectedColumn = (selectedItem) => {
             let suffixToUse = "";
-            if (selectedItem.selectedColumn) {
+            if (selectedItem && selectedItem.selectedColumn) {
                 const selectedColumnName = selectedItem.selectedColumn.field;
                 const split = selectedColumnName.split("_");
                 if (split.length > 1) {
