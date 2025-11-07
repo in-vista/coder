@@ -31,7 +31,7 @@ const options = $.extend({
                         url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(fieldOptions.queryId || dynamicItems.settings.zeroEncrypted)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
                         data: JSON.stringify({
                             ...inputData,
-                            _filter: kendoOptions.data.filter?.filters
+                            _filter: !(fieldOptions.customServerFiltering ?? false) ? kendoOptions.data.filter?.filters : null
                         })
                     });
 
