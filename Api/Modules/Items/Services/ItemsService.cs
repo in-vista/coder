@@ -1103,59 +1103,6 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                     actionQuery = actionQuery.Replace($"{{{dataRow.Field<string>("property_name").ToMySqlSafeValue(false)}}}", dataRow.Field<string>("property_value").ToMySqlSafeValue(false), StringComparison.OrdinalIgnoreCase);
                 }
             }
-            
-            // Perform replacements for server filtering for comboboxes.
-            if (extraParameters != null && extraParameters.TryGetValue("_filter", out object comboboxFiltersObject) && comboboxFiltersObject is JArray comboboxFiltersJson)
-            {
-                ComboboxFilterModel[] comboboxFilters = JsonConvert.DeserializeObject<ComboboxFilterModel[]>(comboboxFiltersJson.ToString());
-
-                List<string> whereClauses = new List<string>();
-
-                foreach (ComboboxFilterModel comboboxFilter in comboboxFilters)
-                {
-                    string expression = null;
-
-                    string parameterName = $"{comboboxFilter.Field}_filter";
-
-                    object sqlRawValue = comboboxFilter.Value;
-                    string sqlValueInExpression = $"?{parameterName}";
-                    if (DateTime.TryParse(comboboxFilter.Value, out DateTime sqlDateTimeValue))
-                    {
-                        sqlRawValue = $"{sqlDateTimeValue:yyyy-MM-dd HH:mm:ss}";
-                        sqlValueInExpression = $"DATE(?{parameterName})";
-                    }
-
-                    expression = comboboxFilter.Operator switch
-                    {
-                        "eq" => $"t.`{comboboxFilter.Field}` = {sqlValueInExpression}",
-                        "neq" => $"t.`{comboboxFilter.Field}` != {sqlValueInExpression}",
-                        "isnull" => $"t.`{comboboxFilter.Field}` IS NULL",
-                        "isnotnull" => $"t.`{comboboxFilter.Field}` IS NOT NULL",
-                        "lt" => $"`t.{comboboxFilter.Field}` < {sqlValueInExpression}",
-                        "lte" => $"t.`{comboboxFilter.Field}` <= {sqlValueInExpression}",
-                        "gt" => $"t.`{comboboxFilter.Field}` > {sqlValueInExpression}",
-                        "gte" => $"t.`{comboboxFilter.Field}` >= {sqlValueInExpression}",
-                        "startswith" => $"t.`{comboboxFilter.Field}` LIKE CONCAT({sqlValueInExpression}, '%')",
-                        "doesnotstartwith" => $"t.`{comboboxFilter.Field}` NOT LIKE CONCAT({sqlValueInExpression}, '%')",
-                        "endswith" => $"t.`{comboboxFilter.Field}` LIKE CONCAT('%', {sqlValueInExpression})",
-                        "doesnotendwith" => $"t.`{comboboxFilter.Field}` NOT LIKE CONCAT('%', {sqlValueInExpression})",
-                        "contains" => $"t.`{comboboxFilter.Field}` LIKE CONCAT('%', {sqlValueInExpression}, '%')",
-                        "doesnotcontain" => $"t.`{comboboxFilter.Field}` NOT LIKE CONCAT('%', {sqlValueInExpression}, '%')",
-                        _ => expression
-                    };
-                    
-                    clientDatabaseConnection.AddParameter(parameterName, sqlRawValue);
-
-                    if(!string.IsNullOrEmpty(expression))
-                        whereClauses.Add(expression);
-                }
-
-                if (whereClauses.Count > 0)
-                {
-                    string joinedWhereClause = string.Join(" AND ", whereClauses);
-                    actionQuery = $"SELECT * FROM ({actionQuery}) t WHERE {joinedWhereClause}";
-                }
-            }
 
             // And finally execute the action button query.
             try
@@ -1179,6 +1126,59 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                     StatusCode = HttpStatusCode.BadRequest,
                     ErrorMessage = "Dit item bestaat al en kan niet nogmaals toegevoegd worden."
                 };
+            }
+            
+             // Perform server filtering for comboboxes.
+            if (extraParameters != null && extraParameters.TryGetValue("_filter", out object comboboxFiltersObject) && comboboxFiltersObject is JArray comboboxFiltersJson)
+            {
+                ComboboxFilterModel[] comboboxFilters = JsonConvert.DeserializeObject<ComboboxFilterModel[]>(comboboxFiltersJson.ToString());
+                IEnumerable<DataRow> dataTableEnumerable = dataTable.AsEnumerable();
+                
+                foreach (ComboboxFilterModel comboboxFilter in comboboxFilters)
+                {
+                    string fieldName = comboboxFilter.Field;
+                    string fieldValue = comboboxFilter.Value;
+                    
+                    Func<DataRow, bool> filterPredicate = row => comboboxFilter.Operator switch
+                    {
+                        "eq" => row[fieldName].Equals(fieldValue),
+                        "neq" => row[fieldName].Equals(fieldValue),
+                        "isnull" => row.IsNull(fieldValue),
+                        "isnotnull" => !row.IsNull(fieldValue),
+                        "lt" => 
+                            decimal.TryParse(row[fieldName].ToString(), out decimal rowValueDecimal) &&
+                            decimal.TryParse(fieldValue, out decimal fieldValueDecimal) &&
+                            rowValueDecimal < fieldValueDecimal,
+                        "lte" => decimal.TryParse(row[fieldName].ToString(), out decimal rowValueDecimal) &&
+                                 decimal.TryParse(fieldValue, out decimal fieldValueDecimal) &&
+                                 rowValueDecimal <= fieldValueDecimal,
+                        "gt" => decimal.TryParse(row[fieldName].ToString(), out decimal rowValueDecimal) &&
+                                decimal.TryParse(fieldValue, out decimal fieldValueDecimal) &&
+                                rowValueDecimal > fieldValueDecimal,
+                        "gte" => decimal.TryParse(row[fieldName].ToString(), out decimal rowValueDecimal) &&
+                                 decimal.TryParse(fieldValue, out decimal fieldValueDecimal) &&
+                                 rowValueDecimal >= fieldValueDecimal,
+                        "startswith" => row[fieldName].ToString()?.StartsWith(fieldValue) ?? false,
+                        "doesnotstartwith" => !row[fieldName].ToString()?.StartsWith(fieldValue) ?? false,
+                        "endswith" => row[fieldName].ToString()?.EndsWith(fieldValue) ?? false,
+                        "doesnotendwith" => !row[fieldName].ToString()?.EndsWith(fieldValue) ?? false,
+                        "contains" => row[fieldName].ToString()?.Contains(fieldValue) ?? false,
+                        "doesnotcontain" => !row[fieldName].ToString()?.Contains(fieldValue) ?? false,
+                        _ => false
+                    };
+
+                    dataTableEnumerable = dataTableEnumerable.Where(row => filterPredicate(row)).ToList();
+
+                    if (!dataTableEnumerable.Any())
+                        break;
+                }
+
+                List<DataRow> filteredRows = dataTableEnumerable.ToList();
+                
+                if(filteredRows.Any())
+                    dataTable = filteredRows.CopyToDataTable();
+                else
+                    dataTable.Clear();
             }
 
             var itemIdResult = "";

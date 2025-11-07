@@ -788,7 +788,7 @@ export class Fields {
             const itemDetails = await this.base.getItemDetails(itemId, entityType);
             
             // Prepare a list of selected items with the selected item from the combobox.
-            const selectedItems = [ selectedItem ];
+            const selectedItems = [ selectedItem ].filter(item => !!item);
             
             // Execute the actions with the given information of the combobox.
             this.executeActionButtonActions(options.actions, extraValues, itemDetails, propertyId, entityType, selectedItems);
