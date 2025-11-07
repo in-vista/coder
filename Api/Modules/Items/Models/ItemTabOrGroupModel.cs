@@ -13,6 +13,11 @@ namespace Api.Modules.Items.Models
         /// Gets or sets the name of the tab.
         /// </summary>
         public string Name { get; set; }
+        
+        /// <summary>
+        /// The HTML representing the visualization of the group's title.
+        /// </summary>
+        public string GroupHtml { get; set; }
 
         /// <summary>
         /// Gets the HTML for this tab, this contains all fields.

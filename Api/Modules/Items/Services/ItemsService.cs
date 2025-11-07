@@ -1277,7 +1277,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
 
             var itemIsFromArchive = false;
             var query = $@"SET SESSION group_concat_max_len = 1000000;
-                                SELECT e.tab_name, e.group_name, e.inputtype AS field_type, t.html_template, e.display_name, e.property_name, e.options, e.module_id,
+                                SELECT e.tab_name, e.tab_html, e.group_name, e.inputtype AS field_type, t.html_template, e.display_name, e.property_name, e.options, e.module_id,
     	                            e.explanation, d.long_value, d.`value`, e.default_value, e.id, e.width, e.height, e.css, e.extended_explanation, e.label_style, e.label_width, e.access_key,
     	                            e.depends_on_field, e.depends_on_operator, e.depends_on_value, IFNULL(e.depends_on_action, 'toggle-visibility') AS depends_on_action, e.ordering, t.script_template,
     	                            e.save_on_change, files.JSON AS filesJSON, 0 AS itemLinkId, e.regex_validation, e.mandatory, e.language_code,
@@ -1312,7 +1312,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 
                                 UNION ALL
                                 
-                                SELECT 'Velden vanuit koppeling' AS tab_name, e.group_name, e.inputtype AS field_type, t.html_template, e.display_name, e.property_name, e.options, e.module_id,
+                                SELECT 'Velden vanuit koppeling' AS tab_name, e.tab_html, e.group_name, e.inputtype AS field_type, t.html_template, e.display_name, e.property_name, e.options, e.module_id,
     	                            e.explanation, d.long_value, d.`value`, e.default_value, e.id, e.width, e.height, e.css, e.extended_explanation, e.label_style, e.label_width, e.access_key,
     	                            e.depends_on_field, e.depends_on_operator, e.depends_on_value, IFNULL(e.depends_on_action, 'toggle-visibility') AS depends_on_action, e.ordering, t.script_template,
     	                            e.save_on_change, files.JSON AS filesJSON, il.id AS itemLinkId, e.regex_validation, e.mandatory, e.language_code,
@@ -1405,12 +1405,21 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             {
                 // Get or create the object for the current tab.
                 var tabName = dataRow.Field<string>("tab_name");
+                var tabHtml = dataRow.Field<string>("tab_html");
                 var tab = results.Tabs.FirstOrDefault(r => r.Name.Equals(tabName, StringComparison.OrdinalIgnoreCase));
                 if (tab == null)
                 {
-                    tab = new ItemTabOrGroupModel { Name = tabName };
+                    tab = new ItemTabOrGroupModel
+                    {
+                        Name = tabName,
+                        GroupHtml = tabHtml
+                    };
                     results.Tabs.Add(tab);
                 }
+                
+                // Overwrite the group HTML if it was not set, but this tab has it set.
+                if (string.IsNullOrEmpty(tab.GroupHtml) && !string.IsNullOrEmpty(tabHtml))
+                    tab.GroupHtml = tabHtml;
 
                 var groupName = dataRow.Field<string>("group_name") ?? "";
                 var group = tab.Groups.FirstOrDefault(g => g.Name.Equals(groupName, StringComparison.OrdinalIgnoreCase));

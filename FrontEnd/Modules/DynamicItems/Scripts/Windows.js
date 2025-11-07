@@ -438,10 +438,14 @@ export class Windows {
                             container.find("input").first().focus();
                         } else {
                             currentItemTabStrip.insertAfter({
-                                text: tabData.name,
+                                text: tabData.groupHtml ?? tabData.name,
+                                encoded: !tabData.groupHtml,
                                 content: "<div class='dynamicTabContent'>" + tabData.htmlTemplate + "</div>",
                                 spriteCssClass: "addedFromDatabase"
                             }, currentItemTabStrip.tabGroup.children().eq(0));
+
+                            const tabElement = currentItemTabStrip.tabGroup.children().eq(1);
+                            tabElement.data('tab-name', tabData.name);
 
                             if (!this.base.fields.fieldInitializers[windowId]) {
                                 this.base.fields.fieldInitializers[windowId] = {};
