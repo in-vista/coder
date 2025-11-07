@@ -2,7 +2,7 @@
 const container = $("#container_{propertyIdWithSuffix}");
 const field = $("#field_{propertyIdWithSuffix}");
 const fieldOptions = {options};
-const options = $.extend({
+const options = $.extend(true, {
     autoClose: false,
     dataTextField: "name",
     dataValueField: "id",

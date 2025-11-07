@@ -5,7 +5,7 @@ const fieldOptions = {options};
 const itemId = '{itemIdEncrypted}';
 const entityType = '{entityType}' || null;
 const propertyId = {propertyId};
-const options = $.extend({
+const options = $.extend(true, {
     optionLabel: "Kies een waarde...",
     autoClose: false,
     dataTextField: "name",
@@ -14,6 +14,8 @@ const options = $.extend({
     filter: !!fieldOptions.serverFiltering ?? false,
     delay: fieldOptions.serverFiltering ? 400 : 200,
     change: async (event) => {
+        const combobox = event.sender;
+        
         const allowCustomValue = fieldOptions.allowCustomValue ?? true;
         if(combobox.value() && combobox.select() === -1 && !allowCustomValue)
             return;
