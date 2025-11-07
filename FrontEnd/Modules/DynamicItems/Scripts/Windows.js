@@ -23,8 +23,6 @@ export class Windows {
         this.base = base;
 
         this.mainWindow = null;
-        
-        this.openWindows = [];
 
         this.searchItemsWindow = null;
         this.searchItemsWindowSettings = {
@@ -271,39 +269,20 @@ export class Windows {
                 text: `<button type='button' class='btn btn-cancel'><ins class='icon-line-exit'></ins><span>Annuleren</span></button>${windowTitle}`,
                 encoded: false
             });
-			
-			// Flag the window to have just been opened.
-			currentItemWindow.justOpened = true;
-			setTimeout(() => { currentItemWindow.justOpened = false; });
 
             // Initialize the cancel button on the top left of the window.
             currentItemWindow.wrapper.find(".btn-cancel").click((event) => {
                 currentItemWindow.close();
             });
-            
-            // Add the window to the opened windows if it wasn't already.
-			const openWindows = this.openWindows;
-			if (!openWindows.includes(currentItemWindow)) {
-				openWindows.push(currentItemWindow);
-			}
 
-			// Attach a listener to the window that removes the window from the opened windows as soon as it closes.
-			currentItemWindow.bind('close', () => {
-				const idx = openWindows.indexOf(currentItemWindow);
-				if (idx !== -1) openWindows.splice(idx, 1);
-			});
+            const currentZIndex = currentItemWindow.wrapper.css('z-index');
+            const overlayElement = $('.k-overlay').filter(function() {
+                return Number($(this).css('z-index')) === currentZIndex - 1;
+            });
             
-            // Attach a listener to the document to close this window when clicked outside.
-			if (!$(document).data('windowOpenListenerAdded')) {
-				$(document).on('click', event => {
-					openWindows.forEach(windowInstance => {
-						if (!windowInstance.justOpened && !$(event.target).closest(windowInstance.wrapper).length) {
-							windowInstance.close();
-						}
-					});
-				});
-				$(document).data('windowOpenListenerAdded', true);
-			}
+            overlayElement.click(() => {
+                currentItemWindow.close();
+            });
 
             const afterSave = async () => {
                 isNewItem = false;
