@@ -439,30 +439,18 @@ export class Windows {
                         } else {
                             currentItemTabStrip.insertAfter({
                                 text: tabData.name,
-                                encoded: false,
                                 content: "<div class='dynamicTabContent'>" + tabData.htmlTemplate + "</div>",
                                 spriteCssClass: "addedFromDatabase"
                             }, currentItemTabStrip.tabGroup.children().eq(0));
-                            
+
                             if (!this.base.fields.fieldInitializers[windowId]) {
                                 this.base.fields.fieldInitializers[windowId] = {};
                             }
 
-                            const tabName = currentItemTabStrip.tabGroup.children().eq(1).text();
-
-                            // Shift all elements one position further.
-                            const fields = this.base.fields.fieldInitializers[windowId];
-                            for (let i = Object.keys(fields).length; i > 0; i--) {
-                                fields[i] = fields[i - 1];
-                                htmlData.tabs[i].index = (htmlData.tabs[i].index ?? 0) + 1;
-                            }
-
-                            // Store the tab in the first position in the tab collection.
-                            fields[0] = {
+                            this.base.fields.fieldInitializers[windowId][tabData.name] = {
                                 executed: false,
                                 script: tabData.scriptTemplate,
-                                entityType: entityType,
-                                name: tabName
+                                entityType: entityType
                             };
                         }
                     }
@@ -473,7 +461,7 @@ export class Windows {
                     for (let i = htmlData.tabs.length - 1; i >= 0; i--) {
                         const tabData = htmlData.tabs[i];
                         const container = currentItemTabStrip.contentHolder(i);
-                        this.base.fields.setupDependencies(container, entityType, tabData.name || 0);
+                        this.base.fields.setupDependencies(container, entityType, tabData.name || "Gegevens");
                     }
 
                     // Handle dependencies for the first tab, to make sure all the correct fields are hidden/shown on the first tab. The other tabs will be done once they are opened.
