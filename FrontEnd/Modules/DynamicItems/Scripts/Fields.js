@@ -728,8 +728,9 @@ export class Fields {
      * @param {any} itemId The item ID of the item the combobox was changed for.
      * @param {any} entityType The entity type of the item the combobox is present in.
      * @param {any} propertyId The ID of the property of the combobox.
+     * @param {any} element The element responsible for the execution of the actions.
      */
-    async onDropDownChange(event, options, itemId, entityType, propertyId) {
+    async onDropDownChange(event, options, itemId, entityType, propertyId, element) {
         await this.onFieldValueChange(event, options);
 
         if (options.allowOpeningOfSelectedItem) {
@@ -782,7 +783,7 @@ export class Fields {
             const selectedItems = [ selectedItem ].filter(item => !!item);
             
             // Execute the actions with the given information of the combobox.
-            this.executeActionButtonActions(options.actions, extraValues, itemDetails, propertyId, entityType, selectedItems);
+            this.executeActionButtonActions(options.actions, extraValues, itemDetails, propertyId, entityType, selectedItems, element);
         }
     }
 
@@ -2665,6 +2666,32 @@ export class Fields {
                         
                         // Close the window if it exists.
                         kendoWindow?.close();
+                        
+                        break;
+                    }
+                    
+                    // Action for saving the file.
+                    case 'saveItem': {
+                        const process = `saveItem_${Date.now()}`;
+                        window.processing.addProcess(process);
+                        
+                        const itemId = mainItemDetails.encryptedId;
+                        const entityType = mainItemDetails.entityType;
+                        const inputData = this.base.fields.getInputData($("#right-pane-content, .dynamicTabContent"));
+                        const title = $("#tabstrip .itemNameFieldContainer .itemNameField").val();
+
+                        if (!this.base.mainValidator.validate()) {
+                            window.processing.removeProcess(process);
+                            return false;
+                        }
+
+                        const updateItemResult = await this.base.updateItem(itemId, inputData, $("#right-pane"), false, title, false, true, entityType);
+                        document.dispatchEvent(new CustomEvent("dynamicItems.onSaveButtonClick", { detail: updateItemResult }));
+                        if (window.parent && window.parent.document) {
+                            window.parent.document.dispatchEvent(new CustomEvent("dynamicItems.onSaveButtonClick", { detail: updateItemResult }));
+                        }
+
+                        window.processing.removeProcess(process);
                         
                         break;
                     }

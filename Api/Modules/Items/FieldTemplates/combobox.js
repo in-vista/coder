@@ -11,10 +11,14 @@ const options = $.extend({
     dataTextField: "name",
     dataValueField: "id",
     minLength: 0,
-    filter: 'contains',
+    filter: !!fieldOptions.serverFiltering ?? false,
     delay: fieldOptions.serverFiltering ? 400 : 200,
     change: async (event) => {
-        await window.dynamicItems.fields.onDropDownChange(event, options, itemId, entityType, propertyId);
+        const allowCustomValue = fieldOptions.allowCustomValue ?? true;
+        if(combobox.value() && combobox.select() === -1 && !allowCustomValue)
+            return;
+        
+        await window.dynamicItems.fields.onDropDownChange(event, options, itemId, entityType, propertyId, field);
     },
     dataSource: {
         serverFiltering: fieldOptions.serverFiltering ?? false,
@@ -134,9 +138,17 @@ if (options.cascadeFrom && typeof options.cascadeFrom === "string") {
     options.dataSource.serverFiltering = true;
 }
 
-const kendoComponent = options.useDropDownList || options.mode === "dropDownList" ? field.kendoDropDownList(options).data("kendoDropDownList") : field.kendoComboBox(options).data("kendoComboBox");
+const isDropDown = options.useDropDownList || options.mode === "dropDownList";
+const kendoComponent = isDropDown ? field.kendoDropDownList(options).data("kendoDropDownList") : field.kendoComboBox(options).data("kendoComboBox");
 const readonly = {readonly};
 kendoComponent.readonly(readonly);
+
+kendoComponent.wrapper.on('keydown', function (event) {
+    if(event.key === 'Tab' || event.keyCode === 9) {
+        kendoComponent.close();
+        kendoComponent.trigger('change');
+    }
+});
 
 // Hide the caret if set.
 if(fieldOptions.hideCaret)
@@ -167,10 +179,10 @@ if (options.allowOpeningOfSelectedItem) {
 
 if (options.queryIdGetValue) {
     const itemIdEncrypted = window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId;
-    const data = {};      
+    const data = {};
     data.userId = window.dynamicItems.base.settings.userId;
     data.propertyName = container.data().propertyName;
-    
+
     Wiser.api({
         url: dynamicItems.settings.wiserApiRoot + "items/" + encodeURIComponent(itemIdEncrypted) + "/action-button/" + container.data().propertyId + "?queryId=" + encodeURIComponent(options.queryIdGetValue) + "&itemLinkId=" + encodeURIComponent(container.data().itemLinkId),
         contentType: "application/json",
@@ -179,11 +191,11 @@ if (options.queryIdGetValue) {
         data: JSON.stringify(data)
     }).then((result) => {
         console.log('Query get overrule value success', result);
-        
+
         // Set the value from the query to the input
         if (result.otherData?.[0]?.id !== undefined) {
             kendoComponent.value(result.otherData[0].id);
-            
+
             // Handle dependency again after loading the value into the combobox
             window.dynamicItems.fields.handleAllDependenciesOfContainer(window.dynamicItems.mainTabStrip.element, options.entityType, "", "mainScreen");
         }
