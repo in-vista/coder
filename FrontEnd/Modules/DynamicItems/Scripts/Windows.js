@@ -174,7 +174,7 @@ export class Windows {
                     };
 
                     if (!currentItemWindow.element.data("saving") && !$.isEmptyObject(this.base.fields.unsavedItemValues[windowId])) {
-                        Wiser.showConfirmDialog("Weet u zeker dat u wilt annuleren en gewijzigde of ingevoerde gegevens wilt verwijderen?").then(closeFunction.bind(this));
+                        Wiser.showConfirmDialog("Weet u zeker dat u wilt afsluiten zonder de wijzigingen op te slaan?","Weet je zeker dat je wilt afsluiten zonder op te slaan?","Nee, terug naar bewerken","Ja, afsluiten zonder opslaan").then(closeFunction.bind(this));
                         closeEvent.preventDefault();
                         return false;
                     }
@@ -272,6 +272,15 @@ export class Windows {
 
             // Initialize the cancel button on the top left of the window.
             currentItemWindow.wrapper.find(".btn-cancel").click((event) => {
+                currentItemWindow.close();
+            });
+
+            const currentZIndex = currentItemWindow.wrapper.css('z-index');
+            const overlayElement = $('.k-overlay').filter(function() {
+                return Number($(this).css('z-index')) === currentZIndex - 1;
+            });
+            
+            overlayElement.click(() => {
                 currentItemWindow.close();
             });
 
@@ -408,10 +417,14 @@ export class Windows {
                             container.find("input").first().focus();
                         } else {
                             currentItemTabStrip.insertAfter({
-                                text: tabData.name,
+                                text: tabData.groupHtml ?? tabData.name,
+                                encoded: !tabData.groupHtml,
                                 content: "<div class='dynamicTabContent'>" + tabData.htmlTemplate + "</div>",
                                 spriteCssClass: "addedFromDatabase"
                             }, currentItemTabStrip.tabGroup.children().eq(0));
+
+                            const tabElement = currentItemTabStrip.tabGroup.children().eq(1);
+                            tabElement.data('tab-name', tabData.name);
 
                             if (!this.base.fields.fieldInitializers[windowId]) {
                                 this.base.fields.fieldInitializers[windowId] = {};

@@ -1353,7 +1353,8 @@ const moduleSettings = {
         async onTabStripSelect(itemId, windowId, event) {
             // Initialize dynamic fields on the current tab, if that hasn't been done yet.
             const contentElement = $(event.contentElement);
-            await this.fields.initializeDynamicFields(windowId, $(event.item).text(), contentElement);
+            const tabName = $(event.item).data('tab-name') ?? $(event.item).text();
+            await this.fields.initializeDynamicFields(windowId, tabName, contentElement);
 
             // Refresh code mirror instances, otherwise they get strange styling issues.
             setTimeout(() => {
@@ -1950,10 +1951,14 @@ const moduleSettings = {
                         $.globalEval(tabData.scriptTemplate);
                     } else {
                         this.mainTabStrip.insertAfter({
-                            text: tabData.name,
+                            text: tabData.groupHtml ?? tabData.name,
+                            encoded: !tabData.groupHtml,
                             content: "<div class='dynamicTabContent'>" + tabData.htmlTemplate + "</div>",
                             spriteCssClass: "addedFromDatabase"
                         }, this.mainTabStrip.tabGroup.children().eq(0));
+                        
+                        const tabElement = this.mainTabStrip.tabGroup.children().eq(1);
+                        tabElement.data('tab-name', tabData.name);
 
                         this.base.fields.fieldInitializers.mainScreen[tabData.name] = {
                             executed: false,

@@ -571,7 +571,7 @@ export class Fields {
 
         const tabFields = windowFields[tabName];
         if (!tabFields) {
-            if (tabName !== "Overzicht" && tabName !== "Gegevens" && tabName !== "Historie") {
+            if (tabName !== "Overzicht" && tabName !== "Gegevens" && tabName !== "Historie" && tabIndex !== 0) {
                 console.warn(`initializeDynamicFields called with non-existing tab. Window: '${windowId}', tab: ${tabName}`);
             }
             return;
@@ -725,44 +725,66 @@ export class Fields {
      * Event that gets fired when the users changes the value of a kendoDropdown.
      * @param {any} event The change event of the kendoDropdown.
      * @param {any} options The field options.
+     * @param {any} itemId The item ID of the item the combobox was changed for.
+     * @param {any} entityType The entity type of the item the combobox is present in.
+     * @param {any} propertyId The ID of the property of the combobox.
+     * @param {any} element The element responsible for the execution of the actions.
      */
-    onDropDownChange(event, options) {
-        this.onFieldValueChange(event, options);
+    async onDropDownChange(event, options, itemId, entityType, propertyId, element) {
+        await this.onFieldValueChange(event, options);
 
         if (options.allowOpeningOfSelectedItem) {
             event.sender.element.closest(".item").find(".openItemButton").toggleClass("hidden", !event.sender.value());
         }
 
-        if (!options.linkedFields || !options.linkedFields.length) {
-            return;
-        }
-
-        const fieldsContainer = event.sender.element.closest(".k-content");
         const selectedItem = event.sender.dataItem();
-        options.linkedFields.forEach((fieldName) => {
-            if (!selectedItem[fieldName]) {
-                return;
-            }
 
-            const value = selectedItem[fieldName];
-            const fieldContainer = fieldsContainer.find(`[data-property-name='${fieldName}']`);
-            const field = fieldContainer.find(`[name='${fieldName}']`);
-            const kendoControlName = field.data("kendoControl");
-
-            if (kendoControlName) {
-                const kendoControl = field.data(kendoControlName);
-                if (kendoControl) {
-                    if (options.overwriteExistingValues || !kendoControl.value()) {
-                        kendoControl.value(value);
-                    }
+        if (options.linkedFields && options.linkedFields.length) {
+            const fieldsContainer = event.sender.element.closest(".k-content");
+            options.linkedFields.forEach((fieldName) => {
+                if (!selectedItem[fieldName]) {
                     return;
                 }
-            }
 
-            if (options.overwriteExistingValues || !field.val()) {
-                field.val(value);
-            }
-        });
+                const value = selectedItem[fieldName];
+                const fieldContainer = fieldsContainer.find(`[data-property-name='${fieldName}']`);
+                const field = fieldContainer.find(`[name='${fieldName}']`);
+                const kendoControlName = field.data("kendoControl");
+
+                if (kendoControlName) {
+                    const kendoControl = field.data(kendoControlName);
+                    if (kendoControl) {
+                        if (options.overwriteExistingValues || !kendoControl.value()) {
+                            kendoControl.value(value);
+                        }
+                        return;
+                    }
+                }
+
+                if (options.overwriteExistingValues || !field.val()) {
+                    field.val(value);
+                }
+            });
+        }
+        
+        // Execute actions if any are given.
+        if(options.actions) {
+            // Collect extra values for the action execution.
+            const value = event.sender.value();
+            const text = event.sender.text();
+            const extraValues = {
+                value, text
+            };
+            
+            // Retrieve the item details based on the item ID.
+            const itemDetails = await this.base.getItemDetails(itemId, entityType);
+            
+            // Prepare a list of selected items with the selected item from the combobox.
+            const selectedItems = [ selectedItem ].filter(item => !!item);
+            
+            // Execute the actions with the given information of the combobox.
+            this.executeActionButtonActions(options.actions, extraValues, itemDetails, propertyId, entityType, selectedItems, element);
+        }
     }
 
     /**
@@ -1325,7 +1347,7 @@ export class Fields {
 
         const getSuffixFromSelectedColumn = (selectedItem) => {
             let suffixToUse = "";
-            if (selectedItem.selectedColumn) {
+            if (selectedItem && selectedItem.selectedColumn) {
                 const selectedColumnName = selectedItem.selectedColumn.field;
                 const split = selectedColumnName.split("_");
                 if (split.length > 1) {
@@ -2644,6 +2666,32 @@ export class Fields {
                         
                         // Close the window if it exists.
                         kendoWindow?.close();
+                        
+                        break;
+                    }
+                    
+                    // Action for saving the file.
+                    case 'saveItem': {
+                        const process = `saveItem_${Date.now()}`;
+                        window.processing.addProcess(process);
+                        
+                        const itemId = mainItemDetails.encryptedId;
+                        const entityType = mainItemDetails.entityType;
+                        const inputData = this.base.fields.getInputData($("#right-pane-content, .dynamicTabContent"));
+                        const title = $("#tabstrip .itemNameFieldContainer .itemNameField").val();
+
+                        if (!this.base.mainValidator.validate()) {
+                            window.processing.removeProcess(process);
+                            return false;
+                        }
+
+                        const updateItemResult = await this.base.updateItem(itemId, inputData, $("#right-pane"), false, title, false, true, entityType);
+                        document.dispatchEvent(new CustomEvent("dynamicItems.onSaveButtonClick", { detail: updateItemResult }));
+                        if (window.parent && window.parent.document) {
+                            window.parent.document.dispatchEvent(new CustomEvent("dynamicItems.onSaveButtonClick", { detail: updateItemResult }));
+                        }
+
+                        window.processing.removeProcess(process);
                         
                         break;
                     }
