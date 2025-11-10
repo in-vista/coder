@@ -355,15 +355,92 @@
     .date-selector {
         display: flex;
         align-items: center;
-        justify-content: center;
+        /*justify-content: space-between; /* verdeelt links/midden/rechts */
+        justify-content: left;
         padding: 6px;
         background: #f0f0f0;
         font-family: sans-serif;
+        /*position: relative; /* nodig voor absolute centrering */
     }
     .date-selector button {
         margin: 0 10px;
         padding: 4px 8px;
         cursor: pointer;
+    }
+
+    .timeline-date-selector {
+        flex: 0 0 auto; /* links vast */
+    }
+
+    .timeline-search {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%); /* echt in het midden */
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .timeline-search input {
+        padding: 4px 8px;
+    }
+    .timeline-search button {
+        margin: 0 10px;
+        padding: 4px 8px;
+        cursor: pointer;
+    }
+    .timeline-search .searchIcon:before {
+        content: url('/img/glass.svg');
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+    }    
+    .timeline-search {
+        z-index: 105;
+    }
+    .search-container {
+        position: absolute;
+        top: 30px;
+        background-color: #FFFFFF;
+        width: 50vw;
+        border-left: 1px solid #F0F0F0;
+        border-right: 1px solid #F0F0F0;
+        border-bottom: 1px solid #F0F0F0;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    .search-container .loader {
+        padding: 5px;
+    }
+    .search-item-today-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 10px 5px 10px;
+        cursor: pointer;
+        clear: both;
+        font-size: larger;
+        font-weight: bold;
+    }
+    .search-item-today-item:hover {
+        background-color: var(--color-1);
+        /* background-color: #00B0FF; */
+        color: #FFFFFF;
+    } 
+    .reservation.highlight {
+        background-color: #000000 !important;
+        color: #FFFFFF !important;
+    }
+    #timeline-search {
+        border: none;
+        width: 300px;
+        font-size: 16px;
+    }
+    .search-title {
+        font-weight: bold;
+        font-size: larger;
+        margin-top: 25px;
+        margin-left: 5px;
+        color: #AAAAAA;
     }
     #current-date {
         font-weight: bold;
@@ -400,17 +477,52 @@
 
 <div id="timelineScheduler">
     <div class="date-selector">
-        <button id="prev-day">&lt;</button>
-        <span id="current-date" style="cursor:pointer;">Kies datum</span>
-        <button id="next-day">&gt;</button>
-        <button id="refresh-button">Verversen</button>
+        <div class="timeline-date-selector">
+            <button id="prev-day">&lt;</button>
+            <span id="current-date" style="cursor:pointer;">Kies datum</span>
+            <button id="next-day">&gt;</button>
+            <button id="refresh-button">Verversen</button>
+        </div>
+        <div class="timeline-search">
+            <!--<div class="searchIcon"></div>-->
+            <input type="text" placeholder="Begin met typen om te zoeken..." id="timeline-search" />
+            <!--<button id="search-button">Zoeken</button>-->
+            <div class="search-container" style="display: none;">
+                <div class="search-title">Geselecteerde datum</div>
+                <div id="search-container">
+                    <!-- Hier komen de resultaten te staan -->
+                </div>
+                <div class="search-title">Alle resultaten</div>
+                <div id="search-container-database">
+                    <!-- Hier komen de resultaten te staan -->
+                </div>
+            </div>
+        </div>
+        <div id="search-item-today-template" style="display: none;">
+            <div class="search-item-today-item" data-reservation-id="{reservationId}" data-reservation-id-encrypted="{encryptedId}">
+                <div>{name}</div>
+                <div>{time}</div>
+            </div>
+        </div>
+        <div id="search-item-database-template" style="display: none;">
+            <div class="search-item-today-item" data-reservation-id="{reservationId}" data-reservation-id-encrypted="{encryptedId}" data-date="{date}">
+                <div class="search-item-column" style="flex:1;">{dateformatted}</div>
+                <div class="search-item-column" style="flex:1;">{timeformatted}</div>
+                <div class="search-item-column" style="flex:3;">{name}</div>
+                <div class="search-item-column" style="flex:1;">{numberofpersons}</div>
+                <div class="search-item-column" style="flex:1;">{table}</div>
+                <!--<div class="search-item-column" style="flex:1100px;">{arrangement}</div>
+                <div class="search-item-column" style="flex:1200px;">{status}</div>-->
+            </div>
+        </div>
     </div>
     <div class="scheduler">
         <div class="scheduler-header">
             <div class="table-label" style="background:#f7f7f7;height:auto;"></div>
             <div class="timeline" id="header-timeline"></div>
         </div>
-        <div class="scheduler-header" style="top:27px;">
+        <!-- <div class="scheduler-header" style="top:27px;"> --> 
+        <div class="scheduler-header">
             <div class="table-label label-sum-persons">Zittend</div>
             <div class="timeline" id="header-sum-persons"></div>
         </div>

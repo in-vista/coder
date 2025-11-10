@@ -99,39 +99,110 @@
     
             // Get tables and reservations
             await this.getTables();    
-            //await this.getReservations();
-
-            this.getReservations(this.toDateString(this.currentDate)).then(() => {
-                this.renderReservations();
-            }).catch(err => {
-                console.error("Fout bij ophalen reserveringen:", err);
-            });
             
-            // Render reservations
-            //this.renderReservations();
-    
+            // Get and render reservations
+            this.getReservations(this.toDateString(this.currentDate))
+            
             // Start horizontal scrollbar in the middle
             const scheduler = document.querySelector(".scheduler");
             if (scheduler) {
                 scheduler.scrollLeft = (scheduler.scrollWidth - scheduler.clientWidth) / 2;
             }
     
-            // Add observer, so timeline will be refreshed when iframe gets focus back      
+            // Add observer, so timeline will be refreshed when iframe gets focus back (change tab in Coder and back to scheduler)     
             /*const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         console.log("Timeline scheduler is weer zichtbaar, refresh.");
     
                         // async functie aanroepen zonder await
-                        this.getReservations(this.toDateString(this.currentDate)).then(() => {
-                            this.renderReservations();
-                        }).catch(err => {
-                            console.error("Fout bij ophalen reserveringen:", err);
-                        });
+                        this.getReservations(this.toDateString(this.currentDate))
                     }
                 });
             });
-            observer.observe(scheduler);  */      
+            observer.observe(scheduler);*/
+            
+            var searchResult = '';
+            const searchContainer = document.querySelector(".search-container");
+            
+            // Zoek in lokale reserveringen (dag die open staat)
+            document.getElementById("timeline-search").addEventListener("keyup", async () => {
+                searchResult = await timelineScheduler.search(document.getElementById("timeline-search").value);
+                if (searchResult) 
+                    document.getElementById("search-container").innerHTML = searchResult;                
+                else
+                    document.getElementById("search-container").innerHTML = '<div class="loader"><i>Geen resultaten</i></div>';                
+                searchContainer.style.display = 'block';
+            });
+
+            // Zoek in alle reserveringen (database)            
+            let debounceTimeout;
+            document.getElementById("timeline-search").addEventListener("input", () => {
+                const searchInput = document.getElementById("timeline-search").value;
+
+                // Vorige timeout annuleren
+                clearTimeout(debounceTimeout);
+
+                // Nieuwe timeout instellen
+                debounceTimeout = setTimeout(async () => {
+                    if (searchInput.length >= 3) { // Zoeken in database vanaf drie karakters
+                        document.getElementById("search-container-database").innerHTML = '<div class="loader">Bezig met zoeken...</div>';
+                        searchResult = await timelineScheduler.searchDatabase(searchInput);
+                        if (searchResult) 
+                            document.getElementById("search-container-database").innerHTML = searchResult;
+                        else
+                            document.getElementById("search-container-database").innerHTML = '<div class="loader"><i>Geen resultaten</i></div>';
+                    }
+                }, 300); // vertraging op starten zoekfunctie
+            });
+
+            // Event delegation voor hover/highlight
+            document.addEventListener('mouseenter', (e) => {
+                // check dat het een element is
+                if (!(e.target instanceof Element)) return;
+
+                // zoek het dichtstbijzijnde .search-item-today-item
+                const item = e.target.closest('.search-item-today-item');
+                if (!item) return;
+
+                const reservationId = item.getAttribute('data-reservation-id');
+                timelineScheduler.highlightAndScrollToReservation(reservationId);
+            }, true); // useCapture true, zodat mouseenter werkt op delegation
+
+            // Event delegation voor mouseleave
+            document.addEventListener('mouseleave', (e) => {
+                if (!(e.target instanceof Element)) return;
+
+                const item = e.target.closest('.search-item-today-item');
+                if (!item) return;
+
+                const reservationId = item.getAttribute('data-reservation-id');
+                const reservation = document.querySelector(`.reservation[data-id="${reservationId}"]`);
+                if (reservation) {
+                    reservation.classList.remove('highlight');
+                }
+            }, true);
+
+            // sluit de search container als er buiten wordt geklikt
+            document.addEventListener('click', async (event) => {
+                // check of er buiten de box én niet op de knop is geklikt
+                if (!searchContainer.contains(event.target)) {
+                    searchContainer.style.display = 'none';
+                }
+                
+                // open de reservering als erop geklikt wordt
+                if (!(event.target instanceof Element)) return;
+
+                const item = event.target.closest('.search-item-today-item');
+                if (!item) return;
+
+                timelineScheduler.openReservationInCoder(item.getAttribute('data-reservation-id-encrypted'));
+                
+                // Open datum van reservering in timeline view en scroll naar hoogte van reservering en highlight reservering
+                timelineScheduler.currentDate = new Date(item.getAttribute('data-date'));                
+                await timelineScheduler.updateDateDisplay();
+                timelineScheduler.highlightAndScrollToReservation(item.getAttribute('data-reservation-id'));
+            });
         }
     
         formatTime(hour, minute=0){
@@ -261,7 +332,7 @@
                         this.updateReservation(this.activeDrag.res);
                         this.renderReservations();
                     } else {
-                        this.openReservationInCoder(this.activeDrag.res);
+                        this.openReservationInCoder(this.activeDrag.res.reservationIdEncrypted);
                     }
     
                     this.activeDrag = null;
@@ -359,7 +430,6 @@
             // Get reservations for new date from database
             console.log('updateDateDisplay');
             await this.getReservations(this.toDateString(this.currentDate));
-            this.renderReservations();
         }
     
         // Get reservations from database and fill or refresh internal
@@ -369,39 +439,45 @@
         //  { id: 1, name: "Jan", table: 123, start: 12.0, end: 14.0, paid: true, color: "#FF0000", numberOfPersons: 5, etc. },
         //  { id: 4, name: "Jan", table: 123, start: 15.25, end: 16.5, paid: true, color: "#FF0000", numberOfPersons: 2, etc. }, etc.    
         //];
-        async getReservations(date){
+        async getReservations(date){            
+            // Object check is because double callback after opening item and return to scheduler
+            if (date && (typeof date === 'object')) {
+                return;
+            } 
+            
             try {
                 document.getElementById('spinner').style.display = 'flex';
-    
-                if (!date) {
-                    date = this.toDateString(new Date());
+                
+                if (!date) { 
+                    //date = timelineScheduler.toDateString(new Date());
+                    date = timelineScheduler.toDateString(timelineScheduler.currentDate);
                 }
     
-                let startDateTime = `${date} ${this.decimalToTime(this.startTime)}`;
+                let startDateTime = `${date} ${timelineScheduler.decimalToTime(timelineScheduler.startTime)}`;
                 let endDateTime;
     
                 // If endtime is before starttime, then the endtime is the next day        
-                if (this.endTime < this.startTime) {
-                    endDateTime = `${this.addOneDay(date)} ${this.decimalToTime(this.endTime)}`;
+                if (timelineScheduler.endTime < timelineScheduler.startTime) {
+                    endDateTime = `${timelineScheduler.addOneDay(date)} ${timelineScheduler.decimalToTime(timelineScheduler.endTime)}`;
                 }
                 else {
-                    endDateTime = `${date} ${this.decimalToTime(this.endTime)}`;
+                    endDateTime = `${date} ${timelineScheduler.decimalToTime(timelineScheduler.endTime)}`;
                 }
     
                 // Get reservations            
-                const reservationsResponse = await axios.get(`${this.domain}/template.gcl?templateName=getReservationsForTimeline&startDateTime=${startDateTime}&endDateTime=${endDateTime}`);
-                this.reservations = reservationsResponse.data.map(r => ({
+                const reservationsResponse = await axios.get(`${timelineScheduler.domain}/template.gcl?templateName=getReservationsForTimeline&startDateTime=${startDateTime}&endDateTime=${endDateTime}`);
+                timelineScheduler.reservations = reservationsResponse.data.map(r => ({
                     reservationId: r.id,
                     reservationIdEncrypted: r.encryptedId,
                     name: r.customer_full_name || r.notes || "Walk-in",
                     table: r.table,
-                    start: this.timeToDecimal(r.start),
-                    end: this.timeToDecimal(r.end),
+                    start: timelineScheduler.timeToDecimal(r.start),
+                    end: timelineScheduler.timeToDecimal(r.end),
                     startDate: r.start.substring(0,10),
                     endDate: r.end.substring(0,10),
                     paid: r.paid,
-                    color:  r.event_color || this.arrangements.find(item => item.id === r.arrangement)?.color || "#4B99D2", // fallback kleur
-                    textColor: r.text_color || this.arrangements.find(item => item.id === r.arrangement)?.text_color || "#FFFFFF",
+                    color:  r.event_color || timelineScheduler.arrangements.find(item => item.id === r.arrangement)?.color || "#4B99D2", // fallback kleur
+                    textColor: r.text_color || timelineScheduler.arrangements.find(item => item.id === r.arrangement)?.text_color || "#FFFFFF",
                     numberOfPersons: parseInt(r.number_of_persons, 10) || 0,
                     arrangement: parseInt(r.arrangement, 10) || 0,
                     notes: r.notes,
@@ -410,9 +486,12 @@
                     customerFullName: r.customer_full_name || "Walk-in",
                     customerPhoneNumber: r.customer_phone_number,
                     customerMobileNumber: r.customer_mobile_number,
+                    customerEmailAddress: r.customer_email_address,
                     checkIn: r.check_in,
                     checkOut: r.check_out
                 }));
+
+                timelineScheduler.renderReservations();
             } catch(exception) {
                 UIkit.notification({
                     message: `<span uk-icon='icon: warning'></span> Kon reserveringen niet laden`,
@@ -734,7 +813,7 @@
                         if (editBtn) {
                             editBtn.addEventListener("click", function(event) {
                                 event.preventDefault();
-                                timelineScheduler.openReservationInCoder(res);
+                                timelineScheduler.openReservationInCoder(res.reservationIdEncrypted);
                             });
                         }
     
@@ -922,7 +1001,7 @@
                             // open the created reservation
                             newReservation.reservationId = response.data.id;
                             newReservation.reservationIdEncrypted = response.data.encryptedId;
-                            timelineScheduler.openReservationInCoder(newReservation);
+                            timelineScheduler.openReservationInCoder(newReservation.reservationIdEncrypted);
                         }
                     }
     
@@ -966,7 +1045,7 @@
                             // open the created reservation
                             newReservation.reservationId = response.data.id;
                             newReservation.reservationIdEncrypted = response.data.encryptedId;
-                            timelineScheduler.openReservationInCoder(newReservation);
+                            timelineScheduler.openReservationInCoder(newReservation.reservationIdEncrypted);
                         }
                     });
     
@@ -1046,12 +1125,12 @@
         }
     
         // Open reservation from Coder in iframe
-        openReservationInCoder(reservation) {
+        openReservationInCoder(reservationIdEncrypted) {
             if (window.top === self) {
-                alert(`Open reservation in Coder: ${reservation.name} (${reservation.reservationIdEncrypted})`);
+                alert(`Open reservation in Coder: ${reservationIdEncrypted}`);
             }
             else {
-                dynamicItems.windows.loadItemInWindow(false, reservation.reservationId, reservation.reservationIdEncrypted, 'reservation', '', false, dynamicItems.grids.mainGrid, { hideTitleColumn: true }, 0, null, null);
+                dynamicItems.windows.loadItemInWindow(false, 0, reservationIdEncrypted, 'reservation', '', false, dynamicItems.grids.mainGrid, { hideTitleColumn: true }, 0, null, null, 0, this.getReservations);
 
                 /*let target = window.location.href.includes('reservery.dev') || window.location.href.includes('localhost') ? 'https://maindev.coder.nl' : 'https://' + new URL(window.location.href).hostname.split('.')[0] + '.coder.nl';
                 window.top.postMessage({
@@ -1126,8 +1205,117 @@
                 .filter(r => r.start <= time && r.end >= time) // check of reservering actief is
                 .reduce((sum, r) => sum + (r.numberOfPersons || 0), 0); // tel alles op
         }
+
+        // Functie voor het uitvoeren van een zoekopdracht
+        async search(searchTerm){
+            if (!searchTerm) return '';            
+                        
+            // Eerst zoeken in lokale reserveringen (view die nu open staat)
+            var searchTemplate = document.getElementById("search-item-today-template");            
+            var searchTerms = searchTerm.toLowerCase().split(' ');
+            var results = '';
+            
+            this.reservations.forEach(r => {
+                var searchOn = `${r.customerFullName} ${r.customerPhoneNumber} ${r.customerMobileNumber} ${r.customerEmailAddress} ${r.notes}`.toLowerCase();                
+                if (searchTerms.every(term => searchOn.includes(term))) {
+                    let html = searchTemplate.innerHTML;
+                    html = html.replace("{reservationId}", r.reservationId)
+                        .replace("{time}", timelineScheduler.decimalToTime(r.start))
+                        .replace("{name}", r.customerFullName)
+                        .replace("{encryptedId}", r.reservationIdEncrypted)
+                    results = `${results}${html}`;
+                }
+            })
+            
+            return results;
+        }
+
+        // Functie voor het uitvoeren van een zoekopdracht op de database (alle reserveringen)
+        currentSearchController = null;
+        async searchDatabase(searchTerm) {
+            if (!searchTerm) return '';
+
+            // Annuleer vorige request
+            if (timelineScheduler.currentSearchController) {
+                timelineScheduler.currentSearchController.abort();
+            }
+
+            timelineScheduler.currentSearchController = new AbortController();
+
+            try {
+                var searchTemplate = document.getElementById("search-item-database-template");                
+                
+                const response = await axios.get(
+                    `${this.domain}/template.gcl?templateName=searchFromTimeline&search=${searchTerm}`,
+                    { signal: timelineScheduler.currentSearchController.signal }
+                );
+
+                // Resultaten samenstellen
+                const results = response.data.map(reservation => {
+                    const arrangementAbbr = timelineScheduler.arrangements.find(item => item.id === reservation.arrangement)?.abbreviation ?? '';
+                    let html = searchTemplate.innerHTML;
+                    html = html.replace("{reservationId}", reservation.reservationId)
+                        .replace("{date}", reservation.date)
+                        .replace("{dateformatted}", reservation.reservationDate)
+                        .replace("{timeformatted}", reservation.reservationTime)
+                        .replace("{name}", reservation.name)
+                        .replace("{numberofpersons}", `${reservation.numberOfPersons}p`)
+                        .replace("{table}", timelineScheduler.getTableNamesByIds(reservation.tables))
+                        .replace("{arrangement}", arrangementAbbr)
+                        .replace("{status}", reservation.reservationStatus)
+                        .replace("{encryptedId}", reservation.encryptedId);
+                    return html;
+                }).join("");
+                
+                return results;
+            }
+            catch (error) {
+                if (error.name === "CanceledError") {
+                    console.log("Vorige request geannuleerd");
+                } else {
+                    console.error(error);
+                }
+            }
+            
+            return '';
+        }
+
+        // Functie geeft tafelnamen terug op basis van ingegeven komma-gescheiden string met tafel id's
+        getTableNamesByIds(idsString) {
+            if (!idsString) return '';
+            
+            // Split de inkomende string in een array met getallen
+            const ids = idsString.split(',').map(id => parseInt(id.trim()));
+
+            // Maak een array met alle tafels uit alle groepen
+            const allTables = Object.values(this.tableGroups).flat();
+
+            // Filter de tafels die overeenkomen met de opgegeven IDs
+            const matched = allTables.filter(table => ids.includes(table.id));
+
+            // Geef hun 'text'-waarden terug, gescheiden door komma's
+            return matched.map(t => t.text).join(', ');
+        }
+
+        // Functie highlight de reservering en scrollt er naartoe
+        highlightAndScrollToReservation(reservationId) {
+            const reservation = document.querySelector(`.reservation[data-id="${reservationId}"]`);
+            if (reservation) {
+                reservation.classList.add('highlight');
+
+                // check of element zichtbaar is in viewport
+                const rect = reservation.getBoundingClientRect();
+                const isVisible =
+                    rect.top >= 0 &&
+                    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight);
+
+                if (!isVisible) {
+                    reservation.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
     }
-    
+
     // Inject custom Javascript code from the entity property's settings.
     {customScript}
 })();
