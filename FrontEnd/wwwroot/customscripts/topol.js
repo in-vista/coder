@@ -62,7 +62,7 @@
                 self.iframe.setAttribute('allowfullscreen', '');
                 self.iframe.setAttribute('webkitallowfullscreen', '');
                 self.iframe.setAttribute('mozallowfullscreen', '');
-                self.iframe.src = "https://d5aoblv5p04cg.cloudfront.net/mjml4-editor-3/index.html";
+                self.iframe.src = "https://v3.email-assets.topol.io/mjml4-editor-3/index.html";
             }
 
             this.init = function(options, callback) {
