@@ -122,20 +122,18 @@
             });
             observer.observe(scheduler);*/
             
-            var searchResult = '';
             const searchContainer = document.querySelector(".search-container");
             
             // Zoek in lokale reserveringen (dag die open staat)
+            var searchResultLocal = '';
             document.getElementById("timeline-search").addEventListener("keyup", async () => {
-                searchResult = await timelineScheduler.search(document.getElementById("timeline-search").value);
-                if (searchResult) 
-                    document.getElementById("search-container").innerHTML = searchResult;                
-                else
-                    document.getElementById("search-container").innerHTML = '<div class="loader"><i>Geen resultaten</i></div>';                
+                searchResultLocal = await timelineScheduler.search(document.getElementById("timeline-search").value);
+                document.getElementById("search-container").innerHTML = searchResultLocal;                
                 searchContainer.style.display = 'block';
             });
 
-            // Zoek in alle reserveringen (database)            
+            // Zoek in alle reserveringen (database)
+            var searchResultDatabase = '';
             let debounceTimeout;
             document.getElementById("timeline-search").addEventListener("input", () => {
                 const searchInput = document.getElementById("timeline-search").value;
@@ -146,12 +144,12 @@
                 // Nieuwe timeout instellen
                 debounceTimeout = setTimeout(async () => {
                     if (searchInput.length >= 3) { // Zoeken in database vanaf drie karakters
-                        document.getElementById("search-container-database").innerHTML = '<div class="loader">Bezig met zoeken...</div>';
-                        searchResult = await timelineScheduler.searchDatabase(searchInput);
-                        if (searchResult) 
-                            document.getElementById("search-container-database").innerHTML = searchResult;
-                        else
-                            document.getElementById("search-container-database").innerHTML = '<div class="loader"><i>Geen resultaten</i></div>';
+                        document.getElementById("search-container").innerHTML += '<div class="loader">Bezig met zoeken...</div>';
+                        searchResultDatabase = await timelineScheduler.searchDatabase(searchInput);
+                        document.getElementById("search-container").innerHTML = document.getElementById("search-container").innerHTML.replace('<div class="loader">Bezig met zoeken...</div>',searchResultDatabase);
+                        
+                        if (!searchResultLocal && !searchResultDatabase)
+                            document.getElementById("search-container").innerHTML = '<div class="loader"><i>Geen resultaten</i></div>';
                     }
                 }, 300); // vertraging op starten zoekfunctie
             });
@@ -759,6 +757,7 @@
                         // Reservation hover
                         const hover = document.createElement("div");
                         hover.id = `hover${res.reservationId}${res.table}`;
+                        hover.dataset.id = res.reservationId;
                         hover.classList.add("hover");
                         const left = getOffset(res.start, new Date(res.startDate).getDate() !== this.currentDate.getDate());
                         const width = (res.end - res.start) * this.cellWidth * (60 / (60 / this.quartersPerHour));
@@ -774,7 +773,7 @@
                     {phoneNumbers}<hr class="hover-horizontal-line" />
                     <span class="hover-arrangement">${this.arrangements.find(item => item.id === res.arrangement)?.title || ""}</span><span class="hover-paid-amount">&euro; ${res.paid}</span><br />
                     <div class="hover-notes">
-                      <span class="hover-reservation-notes">${res.notes || "<span style='color:#CCCCCC;'>Klik hier om notities toe te voegen</span>"}</span>
+                      <div class="hover-reservation-notes">${res.notes || "<span style='color:#CCCCCC;'>Klik hier om notities toe te voegen</span>"}</div>
                       <div class="hover-edit-area" style="display:none;">
                         <textarea class="hover-notes-textarea">${res.notes || ""}</textarea>
                         <div class="hover-edit-actions">
@@ -787,7 +786,7 @@
                         <a href="#" title="Inchecken" class="check-in" style="${res.checkIn!==null ? `display:none;` : ""}">📥</a>
                         <a href="#" title="Uitchecken" class="check-out" style="${res.checkIn===null || res.checkOut!==null ? `display:none;` : ""}">📤</a>                    
                         ${res.warning ? `<a href="#" title="${res.warning}">⚠️</a>` : ""}
-                        <a href="#" title="Reservering bewerken" class="edit-button">✏️️</a>
+                        <!--<a href="#" title="Reservering bewerken" class="edit-button">✏️️</a>-->
                     </span>`;
                         if (res.numberOfVisits>0){
                             hover.innerHTML = hover.innerHTML.replace("{numberOfVisits}", `⭐ ${res.numberOfVisits} bezoeken`);
@@ -822,41 +821,47 @@
                         if (checkInButton) {
                             checkInButton.addEventListener("click", function(event) {
                                 event.preventDefault();
-                                axios.post(`${this.domain}/template.gcl?templateName=checkInFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}});
-                                checkInButton.style.display = "none";
-                                const checkOutButton = hover.querySelector(".check-out");
-                                if (checkOutButton) {
-                                    checkOutButton.style.display = "inline";
-                                }
+                                axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkInFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}});                                
+                                const elementsIn = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-in`);
+                                elementsIn.forEach(el => {
+                                    el.style.display = 'none';
+                                });
+                                const elementsOut = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-out`);
+                                elementsOut.forEach(el => {
+                                    el.style.display = 'inline-flex';
+                                });
                             });
                         }
     
                         // Uitchecken
-                        const checkOutButton = hover.querySelector(".check-out");
+                        const checkOutButton = hover.querySelector(".check-out");                        
                         if (checkOutButton) {
                             checkOutButton.addEventListener("click", function(event) {
                                 event.preventDefault();
-                                axios.post(`${this.domain}/template.gcl?templateName=checkOutFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}});
-                                checkOutButton.style.display = "none";
+                                axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkOutFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}});
+                                const elements = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-out`);
+                                elements.forEach(el => {
+                                    el.style.display = 'none';
+                                });
                             });
                         }
     
                         // logica voor inline editing notes
-                        const notesSpan = hover.querySelector(".hover-reservation-notes");
+                        const notesDiv = hover.querySelector(".hover-reservation-notes");
                         const editArea = hover.querySelector(".hover-edit-area");
                         const textarea = hover.querySelector(".hover-notes-textarea");
     
                         // klik op notitie zelf -> editmodus
-                        notesSpan.addEventListener("click", () => {
-                            notesSpan.style.display = "none";
+                        notesDiv.addEventListener("click", () => {
+                            notesDiv.style.display = "none";
                             editArea.style.display = "block";
                             textarea.focus();
                         });
     
                         hover.querySelector(".hover-save").addEventListener("click", () => {
                             const newNotes = textarea.value.trim();
-                            notesSpan.textContent = newNotes || "—";
-                            notesSpan.style.display = "inline";
+                            notesDiv.textContent = newNotes || "—";
+                            notesDiv.style.display = "block";
                             editArea.style.display = "none";
     
                             // update in je model
@@ -868,7 +873,7 @@
     
                         hover.querySelector(".hover-cancel").addEventListener("click", () => {
                             textarea.value = res.notes || "";
-                            notesSpan.style.display = "inline";
+                            notesDiv.style.display = "block";
                             editArea.style.display = "none";
                         });
     
@@ -1211,18 +1216,27 @@
             if (!searchTerm) return '';            
                         
             // Eerst zoeken in lokale reserveringen (view die nu open staat)
-            var searchTemplate = document.getElementById("search-item-today-template");            
+            var searchTemplate = document.getElementById("search-item-template");            
             var searchTerms = searchTerm.toLowerCase().split(' ');
             var results = '';
-            
-            this.reservations.forEach(r => {
-                var searchOn = `${r.customerFullName} ${r.customerPhoneNumber} ${r.customerMobileNumber} ${r.customerEmailAddress} ${r.notes}`.toLowerCase();                
+
+            const uniqueReservations = [...new Map(this.reservations.map(r => [r.reservationId, r])).values()];
+            uniqueReservations.forEach(r => {
+                var searchOn = `${r.customerFullName} ${r.customerPhoneNumber} ${r.customerMobileNumber} ${r.customerEmailAddress} ${r.notes} ${r.start}`.toLowerCase();                
                 if (searchTerms.every(term => searchOn.includes(term))) {
+                    const arrangementAbbr = timelineScheduler.arrangements.find(item => item.id === r.arrangement)?.abbreviation ?? '';
+                    const tables = timelineScheduler.getTableNamesByIds(timelineScheduler.reservations.filter(rr => rr.reservationId === r.reservationId).map(rrr => rrr.table).join(','));
                     let html = searchTemplate.innerHTML;
                     html = html.replace("{reservationId}", r.reservationId)
-                        .replace("{time}", timelineScheduler.decimalToTime(r.start))
+                        .replace("{date}", "")
+                        .replace("{dateformatted}", "Actieve dag")
+                        .replace("{timeformatted}", timelineScheduler.decimalToTime(r.start))
                         .replace("{name}", r.customerFullName)
-                        .replace("{encryptedId}", r.reservationIdEncrypted)
+                        .replace("{numberofpersons}", `${r.numberOfPersons}p`)
+                        .replace("{table}", tables)
+                        .replace("{arrangement}", arrangementAbbr)
+                        .replace("{status}", "")
+                        .replace("{encryptedId}", r.reservationIdEncrypted);
                     results = `${results}${html}`;
                 }
             })
@@ -1243,10 +1257,10 @@
             timelineScheduler.currentSearchController = new AbortController();
 
             try {
-                var searchTemplate = document.getElementById("search-item-database-template");                
+                var searchTemplate = document.getElementById("search-item-template");                
                 
                 const response = await axios.get(
-                    `${this.domain}/template.gcl?templateName=searchFromTimeline&search=${searchTerm}`,
+                    `${this.domain}/template.gcl?templateName=searchFromTimeline&search=${searchTerm}&currentDate=${this.toDateString(this.currentDate)}`,
                     { signal: timelineScheduler.currentSearchController.signal }
                 );
 

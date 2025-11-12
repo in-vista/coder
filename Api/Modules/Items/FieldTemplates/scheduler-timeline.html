@@ -230,6 +230,13 @@
         font-size: 16px;
         margin-right: 8px;
     }
+    .hover-reservation-notes {
+        overflow: auto;
+        height: 78px;
+    }
+    .hover-notes-textarea {
+        padding: 0;
+    }
     .icons {
         display: flex;
         margin-left: auto;
@@ -334,9 +341,9 @@
         text-decoration: none;
         background-color: lightgray;
     }
-    .hover-icons a:last-child {
+    /*.hover-icons a:last-child { Dit was voor de edit button, die is uigecomment
         float: right;
-    }
+    }*/
 
     .current-time-line {
         position: absolute;
@@ -387,13 +394,7 @@
         margin: 0 10px;
         padding: 4px 8px;
         cursor: pointer;
-    }
-    .timeline-search .searchIcon:before {
-        content: url('/img/glass.svg');
-        display: inline-block;
-        width: 24px;
-        height: 24px;
-    }    
+    }        
     .timeline-search {
         z-index: 105;
     }
@@ -483,36 +484,23 @@
             <button id="next-day">&gt;</button>
             <button id="refresh-button">Verversen</button>
         </div>
-        <div class="timeline-search">
-            <!--<div class="searchIcon"></div>-->
-            <input type="text" placeholder="Begin met typen om te zoeken..." id="timeline-search" />
-            <!--<button id="search-button">Zoeken</button>-->
-            <div class="search-container" style="display: none;">
-                <div class="search-title">Geselecteerde datum</div>
+        <div class="timeline-search">            
+            <input type="text" placeholder="Begin met typen om te zoeken..." id="timeline-search" />            
+            <div class="search-container" style="display: none;">                
                 <div id="search-container">
-                    <!-- Hier komen de resultaten te staan -->
-                </div>
-                <div class="search-title">Alle resultaten</div>
-                <div id="search-container-database">
-                    <!-- Hier komen de resultaten te staan -->
+                    <!-- Hier komen de resultaten te staan -->                
                 </div>
             </div>
-        </div>
-        <div id="search-item-today-template" style="display: none;">
-            <div class="search-item-today-item" data-reservation-id="{reservationId}" data-reservation-id-encrypted="{encryptedId}">
-                <div>{name}</div>
-                <div>{time}</div>
-            </div>
-        </div>
-        <div id="search-item-database-template" style="display: none;">
+        </div> 
+        <div id="search-item-template" style="display: none;">
             <div class="search-item-today-item" data-reservation-id="{reservationId}" data-reservation-id-encrypted="{encryptedId}" data-date="{date}">
                 <div class="search-item-column" style="flex:1;">{dateformatted}</div>
                 <div class="search-item-column" style="flex:1;">{timeformatted}</div>
                 <div class="search-item-column" style="flex:3;">{name}</div>
                 <div class="search-item-column" style="flex:1;">{numberofpersons}</div>
                 <div class="search-item-column" style="flex:1;">{table}</div>
-                <!--<div class="search-item-column" style="flex:1100px;">{arrangement}</div>
-                <div class="search-item-column" style="flex:1200px;">{status}</div>-->
+                <!--<div class="search-item-column" style="flex:1;">{arrangement}</div>
+                <div class="search-item-column" style="flex:1;">{status}</div>-->
             </div>
         </div>
     </div>
