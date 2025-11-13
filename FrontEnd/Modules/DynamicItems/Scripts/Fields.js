@@ -3945,7 +3945,7 @@ export class Fields {
         // Refresh the current item after this input changes
         if (options.refreshOnChange ?? false) {
             const previouslySelectedTab = window.dynamicItems.mainTabStrip.select().index();
-            const isNew = itemContainer.data('isNewItem');
+            const isNew = itemContainer.data('isNewItem') ?? false;
             await window.dynamicItems.loadItem(
                 window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId,
                 isNew,
