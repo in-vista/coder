@@ -17,7 +17,7 @@ const options = $.extend(true, {
         const combobox = event.sender;
         
         const allowCustomValue = fieldOptions.allowCustomValue ?? true;
-        if(combobox.value() && combobox.select() === -1 && !allowCustomValue)
+        if(combobox.select() === -1 && !allowCustomValue)
             return;
         
         await window.dynamicItems.fields.onDropDownChange(event, options, itemId, entityType, propertyId, field);

@@ -595,7 +595,7 @@ export class Windows {
                 await new Promise(resolve => {
                     // Handle the message event handler.
                     function messageHandler(event) {
-                        if (event.origin !== 'https://d5aoblv5p04cg.cloudfront.net')
+                        if (event.origin !== 'https://v3.email-assets.topol.io')
                             return;
 
                         const data = event.data;
