@@ -82,8 +82,8 @@ namespace Api.Core.Services
 
             // If the regular user login failed, try to login as an admin account.
             var totpSuccessAdmin = false;
-            
-            if ((loginResult.StatusCode != HttpStatusCode.OK) || (loginResult.ModelObject.Id == 1 && apiSettings.AdminSubDomains.Contains(subDomain)))
+
+            if ((loginResult.StatusCode != HttpStatusCode.OK) || (loginResult.ModelObject.Id == 1 && apiSettings.AdminSubDomains != null && apiSettings.AdminSubDomains.Contains(subDomain)))
             {
                 var adminAccountLoginResult = await usersService.LoginAdminAccountAsync(context.UserName, context.Password, totpPin: totpPin);
                 if (adminAccountLoginResult.StatusCode != HttpStatusCode.OK)
