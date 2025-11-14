@@ -311,7 +311,7 @@ export class Grids {
             }
 
             if (!gridViewSettings.toolbar || !gridViewSettings.toolbar.hideClearFiltersButton) {
-                const clearFilterQueryId = gridViewSettings.toolbar.clearFilterQueryId || null;
+                const clearFilterQueryId = gridViewSettings.toolbar?.clearFilterQueryId || null;
                 const clearFilterQueryIdEncoded = JSON.stringify(clearFilterQueryId);
                 
                 toolbar.push({
@@ -1056,7 +1056,7 @@ export class Grids {
 
         const toolbar = [];
         if (!options.toolbar || !options.toolbar.hideClearFiltersButton) {
-            const clearFilterQueryId = options.toolbar.clearFilterQueryId || null;
+            const clearFilterQueryId = options.toolbar?.clearFilterQueryId || null;
             const clearFilterQueryIdEncoded = JSON.stringify(clearFilterQueryId);
             
             toolbar.push({

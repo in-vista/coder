@@ -247,7 +247,7 @@
         }
     
         if (window.dynamicItems.grids.onClearAllFiltersClick && (!options.toolbar || !options.toolbar.hideClearFiltersButton)) {
-            const clearFilterQueryId = options.toolbar.clearFilterQueryId || null;
+            const clearFilterQueryId = options.toolbar?.clearFilterQueryId || null;
             const clearFilterQueryIdEncoded = JSON.stringify(clearFilterQueryId);
             
             toolbar.push({
