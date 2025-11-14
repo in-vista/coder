@@ -2486,7 +2486,7 @@ export class Fields {
                         if (kendoWindow.length === 0) {
                             // The opened item is in the main window.
                             const previouslySelectedTab = this.base.mainTabStrip.select().index();
-                            const isNew = kendoWindow.data('isNewItem');
+                            const isNew = kendoWindow?.data('isNewItem') ?? false;
                             await this.base.loadItem(this.base.settings.initialItemId ? this.base.settings.initialItemId : this.base.selectedItem.id, isNew, previouslySelectedTab, entityType);
                         } else {
                             // The opened item is in a window.
