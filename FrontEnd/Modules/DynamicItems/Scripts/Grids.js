@@ -1405,7 +1405,7 @@ export class Grids {
                 let idFound = false;
                 let encryptedIdFound = false;
                 if (split.length >= 2) {
-                    entityType = split[split.length - 1];
+                    const clickedColumnEntityType = split[split.length - 1];
 
                     for (const key in dataItem) {
                         if (!dataItem.hasOwnProperty(key)) {
@@ -1414,12 +1414,12 @@ export class Grids {
 
                         const columnName = Strings.unmakeJsonPropertyName(key);
 
-                        if (!idFound && (columnName.indexOf(`ID_${entityType}`) === 0 || columnName.indexOf(`id_${entityType}`) === 0 || columnName.indexOf(`itemId_${entityType}`) === 0 || columnName.indexOf(`itemid_${entityType}`) === 0 || columnName.indexOf(`item_id_${entityType}`) === 0)) {
+                        if (!idFound && (columnName.indexOf(`ID_${clickedColumnEntityType}`) === 0 || columnName.indexOf(`id_${clickedColumnEntityType}`) === 0 || columnName.indexOf(`itemId_${clickedColumnEntityType}`) === 0 || columnName.indexOf(`itemid_${clickedColumnEntityType}`) === 0 || columnName.indexOf(`item_id_${clickedColumnEntityType}`) === 0)) {
                             itemId = dataItem[key];
                             idFound = true;
                         }
 
-                        if (!encryptedIdFound && (columnName.indexOf(`encryptedId_${entityType}`) === 0 || columnName.indexOf(`encryptedid_${entityType}`) === 0 || columnName.indexOf(`encrypted_id_${entityType}`) === 0 || columnName.indexOf(`idencrypted_${entityType}`) === 0)) {
+                        if (!encryptedIdFound && (columnName.indexOf(`encryptedId_${clickedColumnEntityType}`) === 0 || columnName.indexOf(`encryptedid_${clickedColumnEntityType}`) === 0 || columnName.indexOf(`encrypted_id_${clickedColumnEntityType}`) === 0 || columnName.indexOf(`idencrypted_${clickedColumnEntityType}`) === 0)) {
                             encryptedId = dataItem[key];
                             encryptedIdFound = true;
                         }
@@ -1428,6 +1428,9 @@ export class Grids {
                             break;
                         }
                     }
+                    
+                    if(encryptedIdFound && idFound)
+                        entityType = clickedColumnEntityType;
                 }
             }
 
