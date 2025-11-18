@@ -274,6 +274,15 @@ dd {
 	min-width: 10%;
 	max-width: 100%;
 }
+.item-window-header-actions > .item:has(.action-button) {
+	width: fit-content;
+	background-color: unset;
+	min-width: unset;
+	max-width: unset;
+}
+.item-window-header-actions > .item > .action-button {
+	padding: 0;
+}
 .item .disabled {
 	opacity: 0.5;
 }

@@ -10,7 +10,7 @@
     
     options = $.extend({
         click: (event) => {
-            window.dynamicItems.fields.onActionButtonClick(event, encryptedItemId, propertyId, options, field); 
+            window.dynamicItems.fields.onActionButtonClick(event, encryptedItemId, propertyId, options, field);
         },
         icon: "gear"
     }, options);
@@ -39,6 +39,52 @@
         (options.hideWhenNew && isNew)
     )
         field.closest('.item').hide();
+    
+    // Move the action button to the header if set to be so.
+    if(options.header) {
+        // Retrieve the button container, button and icon.
+        const item = field.closest('.item');
+        const button = item.find('.k-button');
+        const icon = button.find('.k-icon');
+        
+        // Move the element to the header of the item window.
+        const itemWindow = item.closest('.k-window');
+        const itemWindowHeader = itemWindow.find('.k-window-titlebar');
+        const itemWindowHeaderContainer = itemWindowHeader.find('.item-window-header-actions').length
+            ? itemWindowHeader.find('.item-window-header-actions')
+            : $('<div class="item-window-header-actions" style="flex-grow: 1"></div>').insertAfter(itemWindowHeader.find('.k-window-title'));
+        itemWindowHeaderContainer.append(item);
+        
+        // Initial settings.
+        item.css({
+            'width': ''
+        });
+        button.find('.k-button-text').remove();
+        icon.css({
+            'font-size': '32px'
+        });
+        
+        // Tooltip on event.
+        field.on('mouseenter', event => {
+            tooltip.style.opacity = '1';
+            tooltip.textContent = options.text;
+
+            // Get button position
+            const rect = button.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+
+            // Calculate position (centered above button)
+            const top = rect.top + window.scrollY + tooltipRect.height + 18;
+            const left = rect.left + window.scrollX + (rect.width / 2) - (tooltipRect.width / 2);
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+        });
+        
+        // Tooltip off event.
+        field.on('mouseleave', () => {
+            tooltip.style.opacity = '0';
+        });
+    }
     
     {customScript}
 })();
