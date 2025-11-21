@@ -393,8 +393,12 @@ const moduleSettings = {
 
                 for (let i = 0; i < selectedUsers.length; i++) {
                     const userId = selectedUsers[i].id;
-                    const username = selectedUsers[i].name;
+                    const username = selectedUsers[i].title;
                     const parentId = this.settings.zeroEncrypted;
+                    const taskContent = document.getElementById("taskDescription").value;
+
+                    // Check whether to send an email or not
+                    const sendEmail = document.getElementById("taskEmail").checked;
 
                     // The input data is the entered information.
                     const inputData = [
@@ -404,7 +408,7 @@ const moduleSettings = {
                         },
                         {
                             key: "content",
-                            value: document.getElementById("taskDescription").value
+                            value: taskContent
                         },
                         {
                             key: "userid",
@@ -423,7 +427,7 @@ const moduleSettings = {
                             value: this.settings.wiserUserId
                         }
                     ];
-
+                    
                     // Create the item.
                     const createResult = await this.createItem("agendering", parentId, null, null, inputData);
 
@@ -434,7 +438,11 @@ const moduleSettings = {
                         contentType: "application/json",
                         data: JSON.stringify({
                             channel: "agendering",
-                            userId: userId
+                            userId: userId,
+                            sendEmail: sendEmail,
+                            eventData: JSON.stringify({
+                                message: taskContent
+                            })
                         })
                     });
 
