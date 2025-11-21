@@ -249,45 +249,49 @@ export class Grids {
                         });
                     }
                 }
+                
+                const canDelete = window.dynamicItems.settings.permissions.canDelete ?? true;
+                
+                if(canDelete) {
+                    if (gridViewSettings.deleteItemQueryId && (typeof (gridViewSettings.showDeleteButton) === "undefined" || gridViewSettings.showDeleteButton === true)) {
+                        commandColumnWidth += 40;
 
-                if (gridViewSettings.deleteItemQueryId && (typeof (gridViewSettings.showDeleteButton) === "undefined" || gridViewSettings.showDeleteButton === true)) {
-                    commandColumnWidth += 40;
+                        const onDeleteClick = async (event) => {
+                            const mainItemDetails = this.mainGrid.dataItem($(event.currentTarget).closest("tr")) || {};
 
-                    const onDeleteClick = async (event) => {
-                        const mainItemDetails = this.mainGrid.dataItem($(event.currentTarget).closest("tr")) || {};
+                            if (!gridViewSettings || gridViewSettings.showDeleteConformations !== false) {
+                                const itemName = mainItemDetails.title || mainItemDetails.name;
+                                const deleteConfirmationText = itemName ? `het item '${itemName}'` : "het geselecteerde item";
+                                await Wiser.showConfirmDialog(`Weet u zeker dat u ${deleteConfirmationText} wilt verwijderen?`)
+                            }
 
-                        if (!gridViewSettings || gridViewSettings.showDeleteConformations !== false) {
-                            const itemName = mainItemDetails.title || mainItemDetails.name;
-                            const deleteConfirmationText = itemName ? `het item '${itemName}'` : "het geselecteerde item";
-                            await Wiser.showConfirmDialog(`Weet u zeker dat u ${deleteConfirmationText} wilt verwijderen?`)
-                        }
+                            await Wiser.api({
+                                method: "POST",
+                                url: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(mainItemDetails.encryptedId || mainItemDetails.encrypted_id || mainItemDetails.encryptedid || this.base.settings.zeroEncrypted)}/action-button/0?queryId=${encodeURIComponent(gridViewSettings.deleteItemQueryId)}&itemLinkId=${encodeURIComponent(mainItemDetails.linkId || mainItemDetails.linkId || 0)}`,
+                                data: JSON.stringify(mainItemDetails),
+                                contentType: "application/json"
+                            });
 
-                        await Wiser.api({
-                            method: "POST",
-                            url: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(mainItemDetails.encryptedId || mainItemDetails.encrypted_id || mainItemDetails.encryptedid || this.base.settings.zeroEncrypted)}/action-button/0?queryId=${encodeURIComponent(gridViewSettings.deleteItemQueryId)}&itemLinkId=${encodeURIComponent(mainItemDetails.linkId || mainItemDetails.linkId || 0)}`,
-                            data: JSON.stringify(mainItemDetails),
-                            contentType: "application/json"
+                            this.mainGrid.dataSource.read();
+                        };
+
+                        commands.push({
+                            name: "remove",
+                            iconClass: "k-font-icon k-i-delete",
+                            text: "",
+                            click: this.base.grids.executeToolbarActionButton(event, () => onDeleteClick.bind(this))
                         });
+                    }
+                    else if (gridViewSettings.showDeleteButton === true) {
+                        commandColumnWidth += 40;
 
-                        this.mainGrid.dataSource.read();
-                    };
-
-                    commands.push({
-                        name: "remove",
-                        iconClass: "k-font-icon k-i-delete",
-                        text: "",
-                        click: this.base.grids.executeToolbarActionButton(event, () => onDeleteClick.bind(this))
-                    });
-                }
-                else if (gridViewSettings.showDeleteButton === true) {
-                    commandColumnWidth += 40;
-
-                    commands.push({
-                        name: "remove",
-                        text: "",
-                        iconClass: "k-font-icon k-i-delete",
-                        click: (event) => this.base.grids.executeToolbarActionButton(event, () => this.base.grids.onDeleteItemClick(event, this.mainGrid, "deleteItem", gridViewSettings))
-                    });
+                        commands.push({
+                            name: "remove",
+                            text: "",
+                            iconClass: "k-font-icon k-i-delete",
+                            click: (event) => this.base.grids.executeToolbarActionButton(event, () => this.base.grids.onDeleteItemClick(event, this.mainGrid, "deleteItem", gridViewSettings))
+                        });
+                    }
                 }
 
                 if (gridDataResult.columns) {
