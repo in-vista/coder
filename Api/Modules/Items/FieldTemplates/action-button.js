@@ -49,11 +49,13 @@
         
         // Move the element to the header of the item window.
         const itemWindow = item.closest('.k-window');
-        const itemWindowHeader = itemWindow.find('.k-window-titlebar');
-        const itemWindowHeaderContainer = itemWindowHeader.find('.item-window-header-actions').length
-            ? itemWindowHeader.find('.item-window-header-actions')
-            : $('<div class="item-window-header-actions" style="flex-grow: 1"></div>').insertAfter(itemWindowHeader.find('.k-window-title'));
-        itemWindowHeaderContainer.append(item);
+        const itemWindowActionsContainer = itemWindow.find('.item-window-actions').length
+            ? itemWindow.find('.item-window-actions')
+            : $('<div class="item-window-actions"></div>').insertAfter(itemWindow.find('.k-window-titlebar'));
+        itemWindowActionsContainer.append(item);
+        
+        // Remove unused elements from the item.
+        item.find('h4, .handler, .form-hint').remove();
         
         // Initial settings.
         item.css({
@@ -64,26 +66,31 @@
             'font-size': '32px'
         });
         
-        // Tooltip on event.
-        field.on('mouseenter', event => {
-            tooltip.style.opacity = '1';
-            tooltip.textContent = options.text;
+        // Tooltip.
+        if(options.text !== undefined) {
+            // Get the tooltip element.
+            const tooltip = document.getElementById('FixerTooltip');
+            
+            item.on('mouseover', function(event) {
+                // Show the tooltip.
+                tooltip.style.opacity = '1';
+                tooltip.textContent = options.text;
 
-            // Get button position
-            const rect = button.getBoundingClientRect();
-            const tooltipRect = tooltip.getBoundingClientRect();
+                // Get button position
+                const rect = button[0].getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
 
-            // Calculate position (centered above button)
-            const top = rect.top + window.scrollY + tooltipRect.height + 18;
-            const left = rect.left + window.scrollX + (rect.width / 2) - (tooltipRect.width / 2);
-            tooltip.style.top = `${top}px`;
-            tooltip.style.left = `${left}px`;
-        });
-        
-        // Tooltip off event.
-        field.on('mouseleave', () => {
-            tooltip.style.opacity = '0';
-        });
+                // Calculate position (centered above button)
+                const top = rect.top + window.scrollY + tooltipRect.height + 18;
+                const left = rect.left + window.scrollX + (rect.width / 2) - (tooltipRect.width / 2);
+                tooltip.style.top = `${top}px`;
+                tooltip.style.left = `${left}px`;
+            });
+            
+            item.on('mouseout', function(event) {
+                tooltip.style.opacity = '0';
+            });
+        }
     }
     
     {customScript}
