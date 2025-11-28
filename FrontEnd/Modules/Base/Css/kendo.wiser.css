@@ -291,6 +291,9 @@
 	height: 42px;
 	width: 100%;
 }
+.item-window-actions > .item > .k-button {
+	margin: 0;
+}
 .k-button:not(.loading) .loadingText,
 .k-button:not(.loading) .loader-icon,
 .k-button.loading .originalText{
@@ -418,11 +421,11 @@
 /* KENDO - WINDOW */
 .k-window-titlebar {
 	padding: 8px;
+	column-gap: 8px;
 }
 .k-window-titlebar .k-window-title {
 	font: 24px/43px var(--title-txt);
 	font-weight: 400;
-	padding-right: 16px;
 	white-space: break-spaces;
 	line-height: 1em;
 	align-items: center;
@@ -2079,6 +2082,11 @@ table.k-editor {
 }
 .k-animation-container input[type="checkbox"] {
 	transform: translate(-7px, 1px);
+}
+
+/* Tooltip */
+.k-tooltip > .k-tooltip-content {
+	color: #fff;
 }
 
 /**********************
