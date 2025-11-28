@@ -49,9 +49,10 @@
         
         // Move the element to the header of the item window.
         const itemWindow = item.closest('.k-window');
-        const itemWindowActionsContainer = itemWindow.find('.item-window-actions').length
-            ? itemWindow.find('.item-window-actions')
-            : $('<div class="item-window-actions"></div>').insertAfter(itemWindow.find('.k-window-titlebar'));
+        const itemWindowTitlebar = itemWindow.find('.k-window-titlebar');
+        const itemWindowActionsContainer = itemWindowTitlebar.find('.item-window-actions').length
+            ? itemWindowTitlebar.find('.item-window-actions')
+            : $('<div class="item-window-actions"></div>').insertAfter(itemWindowTitlebar.find('.k-window-title'));
         itemWindowActionsContainer.append(item);
         
         // Remove unused elements from the item.
@@ -68,31 +69,19 @@
         
         // Tooltip.
         if(options.text !== undefined) {
-            item.on('mouseover', function(event) {
-                // Get the tooltip element.
-                const tooltip = document.getElementById('FixerTooltip');
-                
-                // Show the tooltip.
-                tooltip.style.opacity = '1';
-                tooltip.textContent = options.text;
-
-                // Get button position
-                const rect = button[0].getBoundingClientRect();
-                const tooltipRect = tooltip.getBoundingClientRect();
-
-                // Calculate position (centered above button)
-                const top = rect.top + window.scrollY + tooltipRect.height + 18;
-                const left = rect.left + window.scrollX + (rect.width / 2) - (tooltipRect.width / 2);
-                tooltip.style.top = `${top}px`;
-                tooltip.style.left = `${left}px`;
-            });
+            // Set the title of the tooltip element.
+            item.find('.tooltip').attr('title', options.text);
             
-            item.on('mouseout', function(event) {
-                // Get the tooltip element.
-                const tooltip = document.getElementById('FixerTooltip');
-                
-                tooltip.style.opacity = '0';
-            });
+            // Create a Kendo tooltip.
+            const tooltip = item.kendoTooltip({
+                position: 'bottom',
+                content: function(event) {
+                    const target = event.target;
+                    return $(target).find('.tooltip').attr('title');
+                }
+            }).data('kendoTooltip');
+            
+            tooltip.refresh();
         }
     }
     

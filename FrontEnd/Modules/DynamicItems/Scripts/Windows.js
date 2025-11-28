@@ -269,6 +269,11 @@ export class Windows {
                 text: `<button type='button' class='btn btn-cancel'><ins class='icon-line-exit'></ins><span>Annuleren</span></button>${windowTitle}`,
                 encoded: false
             });
+            
+            // Hide the title if the title is empty.
+            const currentItemWindowTitle = currentItemWindow.wrapper.find('.k-window-title');
+            if(!windowTitle)
+                currentItemWindowTitle.css('display', 'none');
 
             // Initialize the cancel button on the top left of the window.
             currentItemWindow.wrapper.find(".btn-cancel").click((event) => {
