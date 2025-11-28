@@ -63,7 +63,7 @@
         });
         button.find('.k-button-text').remove();
         icon.css({
-            'font-size': '32px'
+            'font-size': '24px'
         });
         
         // Tooltip.
