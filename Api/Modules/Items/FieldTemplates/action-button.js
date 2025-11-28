@@ -68,10 +68,10 @@
         
         // Tooltip.
         if(options.text !== undefined) {
-            // Get the tooltip element.
-            const tooltip = document.getElementById('FixerTooltip');
-            
             item.on('mouseover', function(event) {
+                // Get the tooltip element.
+                const tooltip = document.getElementById('FixerTooltip');
+                
                 // Show the tooltip.
                 tooltip.style.opacity = '1';
                 tooltip.textContent = options.text;
@@ -88,6 +88,9 @@
             });
             
             item.on('mouseout', function(event) {
+                // Get the tooltip element.
+                const tooltip = document.getElementById('FixerTooltip');
+                
                 tooltip.style.opacity = '0';
             });
         }
