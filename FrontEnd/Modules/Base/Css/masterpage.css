@@ -274,6 +274,28 @@ dd {
 	min-width: 10%;
 	max-width: 100%;
 }
+.item-window-actions {
+	display: flex;
+	width: 100%;
+	gap: 8px;
+	margin: 8px;
+}
+.item-window-actions > .item {
+	background-color: unset;
+	display: flex;
+	justify-items: center;
+	align-items: center;
+	margin: 0;
+	padding: 0;
+}
+.item-window-actions > .item > .action-button {
+	padding: 8px;
+	background-color: rgb(45, 75, 104);
+	color: #fff;
+}
+.item-window-actions > .item[data-label-style="float"] > .k-button {
+	height: unset;
+}
 .item .disabled {
 	opacity: 0.5;
 }
@@ -820,7 +842,7 @@ dd {
 	line-height: 28px;
 	padding-bottom: 0;
 }
-.item[data-label-style="float"] > .k-button {
+:not(.item-window-actions) > .item[data-label-style="float"] > .k-button {
 	height: 50px;
 	padding-top: 20px;
 }
