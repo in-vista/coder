@@ -201,6 +201,9 @@
                 await timelineScheduler.updateDateDisplay();
                 timelineScheduler.highlightAndScrollToReservation(item.getAttribute('data-reservation-id'));
             });
+
+            // Automatic refresh every x minutes
+            setInterval(() => this.updateDateDisplay(), 300*1000);
         }
     
         formatTime(hour, minute=0){
