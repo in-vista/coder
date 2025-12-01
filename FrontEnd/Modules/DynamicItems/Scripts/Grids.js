@@ -23,6 +23,7 @@ export class Grids {
         this.mainGrid = null;
         this.mainGridFirstLoad = true;
         this.mainGridForceRecount = false;
+        this.gridContextMenu = null;
     }
 
     /**
@@ -702,6 +703,27 @@ export class Grids {
                 this.mainGrid.element.on("dblclick", "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
             }
             this.mainGrid.element.find(".k-i-refresh").parent().click(this.base.onMainRefreshButtonClick.bind(this.base));
+
+            this.gridContextMenu = $('#gridContextMenu').kendoContextMenu({
+                target: '.k-table-tbody',
+                filter: '.k-table-row',
+                open: event => {
+                    this.mainGrid.clearSelection();
+                    this.mainGrid.select(event.target);
+                },
+                select: event => {
+                    const target = event.target;
+                    console.log(event);
+                }
+            }).data("kendoContextMenu");
+            
+            this.gridContextMenu.setOptions({
+                dataSource: [
+                    {
+                        text: 'Test'
+                    }
+                ]
+            });
         } catch (exception) {
             kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals, of neem contact op met ons.");
             console.error(exception);
