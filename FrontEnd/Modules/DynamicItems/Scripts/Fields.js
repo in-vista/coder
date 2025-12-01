@@ -953,7 +953,12 @@ export class Fields {
             // Try to determine the entity type. If this button is located within a window, that window element
             // might have the entity type set as one of its data properties.
             let entityType;
-            const window = event.sender.element.closest("div.entity-container");
+            let window = event.sender.element.closest("div.entity-container");
+            
+            // Find the entity container in the closest Kendo window if no window was found.
+            if(!window)
+                window = event.sender.element.closest('.k-window').find("div.entity-container").first();
+            
             if (window) {
                 entityType = window.data("entityType");
                 if (!entityType && window.data("entityTypeDetails")) {
