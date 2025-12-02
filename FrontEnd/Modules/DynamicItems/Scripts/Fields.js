@@ -2500,7 +2500,15 @@ export class Fields {
 
                     // Refreshes the currently opened item.
                     case "refreshCurrentItem": {
-                        const kendoWindow = element.closest(".popup-container");
+                        let kendoWindow;
+                        
+                        // Check if the element is part of an item popup.
+                        const dataItemId = element.closest('.item')?.attr('data-item-id');
+                        if(dataItemId !== undefined && dataItemId !== false) {
+                            kendoWindow = $(`#existingItemWindow_${dataItemId}`);
+                        } else {
+                            kendoWindow = element.closest(".popup-container");
+                        }
 
                         if (kendoWindow.length === 0) {
                             // The opened item is in the main window.
