@@ -733,10 +733,15 @@ main, div, section {
             overflow: hidden;
             text-overflow: ellipsis;
             vertical-align: middle;
-
+            
+            @include md-down {
+                font-size: 16px;
+                max-width: 240px;
+            }
+            
             @include lg {
                 font-size: 16px;
-                max-width: 220px;
+                max-width: 180px;
             }
         }
 
@@ -812,6 +817,10 @@ main, div, section {
             width: 200px;
             height: 100%;
 
+            @include md-down {
+                width: 100vw;
+            }
+            
             @include lg {
                 width: 300px;
             }
@@ -1027,7 +1036,11 @@ body {
     &.menu-active {
         nav {
             width: 200px;
-
+            
+            @include md-down {
+                width: 100vw;  
+            }
+            
             @include lg {
                 width: 300px;
             }
