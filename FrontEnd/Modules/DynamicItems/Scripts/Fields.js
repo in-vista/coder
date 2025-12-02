@@ -1541,6 +1541,15 @@ export class Fields {
                                 close: (event) => { event.sender.destroy(); }
                             }).data("kendoDialog");
 
+                            dialog.element.on("dblclick", ".k-grid tr", (event) => {
+                                if ($(event.target).closest(".k-grid-header").length || event.target.tagName === "TEXTAREA") {
+                                    return;
+                                }
+                                
+                                okButtonAction(parameter, event);
+                                dialog.close(event);
+                            });
+
                             // Trigger the OK button click when the user presses enter in the dialog.
                             dialog.element.on("keyup", function(event) {
                                 if (!event.key || event.key.toLowerCase() !== "enter") return;

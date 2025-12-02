@@ -1012,7 +1012,25 @@ export class Windows {
 
             await require("/kendo/messages/kendo.grid.nl-NL.js");
             this.searchItemsGrid = searchItemsGridElement.kendoGrid(finalGridOptions).data("kendoGrid");
+            this.searchItemsGrid.tbody.off("click.rowCheckbox").on("click.rowCheckbox", "tr", (event) => {
+                if ($(event.target).closest("a, button, input, textarea, select").length) return;
 
+                const row = $(event.currentTarget);
+                const checkbox = row.find(".k-checkbox");
+                if (!checkbox.length) return;
+                
+                const checked = !checkbox.prop("checked");
+                checkbox.prop("checked", checked);
+                
+                if (checked) {
+                    row.addClass("k-selected");
+                } else {
+                    row.removeClass("k-selected");
+                }
+                
+                this.onSearchItemsGridChange.call(this, { sender: this.searchItemsGrid, row: row });
+            });
+            
             if (this.searchGridSettings.enableSelectAllServerSide) {
                 this.searchItemsGrid.thead.find(".k-checkbox").click((event) => {
                     event.preventDefault();
