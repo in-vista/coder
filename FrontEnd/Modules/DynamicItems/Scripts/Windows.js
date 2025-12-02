@@ -403,6 +403,9 @@ export class Windows {
                     currentItemTabStrip.element.find("> .k-tabstrip-items-wrapper > ul > li .addedFromDatabase").each((index, element) => {
                         currentItemTabStrip.remove($(element).closest("li.k-item"));
                     });
+                    
+                    // Delete any action buttons in the header to be re-added.
+                    currentItemWindow.element.closest('.k-window')?.find('.item-window-actions')?.remove();
 
                     // Handle access rights.
                     currentItemWindow.wrapper.find(".itemNameField").prop("readonly", !htmlData.canWrite).prop("disabled", !htmlData.canWrite);
