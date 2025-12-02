@@ -685,7 +685,7 @@ class Main {
                 },
 
                 toggleMenuState() {
-                    if (window.matchMedia("(max-width: 769px)").matches) {
+                    if (window.matchMedia("(max-width: 768px)").matches) {
                         document.body.classList.toggle("menu-active");
                         document.body.classList.toggle("off-canvas");
                     } else {
