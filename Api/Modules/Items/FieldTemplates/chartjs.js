@@ -229,77 +229,90 @@
             }
         });
     }
-    
-    // Initialize the chart.
-    const chart = new Chart(chartElement, {
-        type: options.type,
-        data: {
-            labels: labels,
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: !!options.group || !!options.dynamicGroups
+    try {
+        // Initialize the chart.
+        const chart = new Chart(chartElement, {
+            type: options.type,
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: !!options.group || !!options.dynamicGroups
+                    }
+                },
+                ...options,
+                onClick: (event) => {
+                    // Retrieve the grid options of this chart and check if it is set. If not, skip this behaviour.
+                    const gridOptions = options.grid;
+                    if (!gridOptions)
+                        return;
+
+                    // Retrieve all clicked elements in the chart.
+                    const elements = chart.getElementsAtEventForMode(event, 'nearest', {
+                        intersect: true
+                    }, true);
+
+                    // Retrieve the Kendo grid.
+                    const gridPropertyId = gridOptions.propertyId;
+                    const gridElement = $(`#overviewGrid${gridPropertyId}`);
+                    const grid = gridElement.data("kendoGrid");
+
+                    // Validate whether there were any elements clicked.
+                    // If no elements were clicked, deselect the grid and reload the results.
+                    if (!elements || elements.length === 0) {
+                        grid.dataSource.read();
+                        return;
+                    }
+
+                    // Retrieve the firstly clicked element and its properties.
+                    const element = elements[0];
+                    const {datasetIndex, index} = element;
+
+                    // Retrieve the value of the clicked element as stored in the chart's dataset.
+                    const value = chart.data.datasets[datasetIndex].data[index];
+                    const label = chart.data.labels[index];
+
+                    // Retrieve the "real value" of the clicked element.
+                    // In most cases you can retrieve the real value as is. In other cases the retrieved value comes
+                    // as an object of different values. You can use the options to select a specific property from this
+                    // object to be used as the "real value".
+                    let realValue = value;
+                    if (typeof (value) === 'object' && gridOptions.valueProperty)
+                        realValue = value[gridOptions.valueProperty];
+
+                    // Retrieve optional overwrites for the provided chart data values.
+                    const chartLabelDataField = gridOptions.data?.label ?? 'chart_label';
+                    const chartValueDataField = gridOptions.data?.label ?? 'chart_value';
+
+                    // Refresh the grid with the provided chart data.
+                    grid.dataSource.read({
+                        extraValuesForQuery: {
+                            [chartLabelDataField]: String(label),
+                            [chartValueDataField]: String(realValue)
+                        }
+                    });
                 }
             },
-            ...options,
-            onClick: (event) => {
-                // Retrieve the grid options of this chart and check if it is set. If not, skip this behaviour.
-                const gridOptions = options.grid;
-                if(!gridOptions)
-                    return;
-                
-                // Retrieve all clicked elements in the chart.
-                const elements = chart.getElementsAtEventForMode(event, 'nearest', {
-                    intersect: true
-                }, true);
-
-                // Retrieve the Kendo grid.
-                const gridPropertyId = gridOptions.propertyId;
-                const gridElement = $(`#overviewGrid${gridPropertyId}`);
-                const grid = gridElement.data("kendoGrid");
-                
-                // Validate whether there were any elements clicked.
-                // If no elements were clicked, deselect the grid and reload the results.
-                if(!elements || elements.length === 0) {
-                    grid.dataSource.read();
-                    return;
-                }
-                
-                // Retrieve the firstly clicked element and its properties.
-                const element = elements[0];
-                const { datasetIndex, index } = element;
-                
-                // Retrieve the value of the clicked element as stored in the chart's dataset.
-                const value = chart.data.datasets[datasetIndex].data[index];
-                const label = chart.data.labels[index];
-                
-                // Retrieve the "real value" of the clicked element.
-                // In most cases you can retrieve the real value as is. In other cases the retrieved value comes
-                // as an object of different values. You can use the options to select a specific property from this
-                // object to be used as the "real value".
-                let realValue = value;
-                if(typeof(value) === 'object' && gridOptions.valueProperty)
-                    realValue = value[gridOptions.valueProperty];
-                
-                // Retrieve optional overwrites for the provided chart data values.
-                const chartLabelDataField = gridOptions.data?.label ?? 'chart_label';
-                const chartValueDataField = gridOptions.data?.label ?? 'chart_value';
-                
-                // Refresh the grid with the provided chart data.
-                grid.dataSource.read({
-                    extraValuesForQuery: {
-                        [chartLabelDataField]: String(label),
-                        [chartValueDataField]: String(realValue)
-                    }
-                });
+            plugins: plugins
+        });
+    }  catch (err) {
+    console.error('chart initialization failed:', err);
+} finally {
+    setTimeout(() => {
+        try {
+            if (loader && loader.length) {
+                loader.removeClass('loading');
             }
-        },
-        plugins: plugins
-    });
+        } catch (removeErr) {
+            console.error('failed to remove loader:', removeErr);
+        }
+    }, 40);
+}
     
     loader.removeClass('loading');
 
