@@ -30,6 +30,11 @@
         /// Gets or sets the ID of the user to send the message to.
         /// </summary>
         public ulong UserId { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the whether an email has to be sent to the user.
+        /// </summary>
+        public bool SendEmail { get; set; }
 
         /// <summary>
         /// Whether the message is not meant for a specific user, but for all connected users.
