@@ -953,7 +953,12 @@ export class Fields {
             // Try to determine the entity type. If this button is located within a window, that window element
             // might have the entity type set as one of its data properties.
             let entityType;
-            const window = event.sender.element.closest("div.entity-container");
+            let window = event.sender.element.closest("div.entity-container");
+            
+            // Find the entity container in the closest Kendo window if no window was found.
+            if(!window)
+                window = event.sender.element.closest('.k-window').find("div.entity-container").first();
+            
             if (window) {
                 entityType = window.data("entityType");
                 if (!entityType && window.data("entityTypeDetails")) {
@@ -1940,10 +1945,15 @@ export class Fields {
                             kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter is er geen URL ingevuld. Neem a.u.b. contact op met ons.`);
                             break;
                         }
-
-                        // The queryActionResult are from a previously executed query. This way you can combine the actions executeQuery(Once) and openUrl to open a newly created or updated item in a specific URL.
-                        if (queryActionResult && queryActionResult.otherData && queryActionResult.otherData.length>0 && queryActionResult.otherData[0].urlPart) {
-                            action.url = action.url.replace(/{urlPart}/gi, queryActionResult.otherData[0].urlPart || "");
+                        
+                        // Replace any variables from the query action results of a previously executed query.
+                        if(queryActionResult?.otherData?.length) {
+                            const replacementMap = queryActionResult.otherData[0];
+                            action.url = action.url.replace(/{([^{}]+)}/gi, (match, replacementKey) => {
+                                if(!replacementMap.hasOwnProperty(replacementKey))
+                                    return null;
+                                return replacementMap[replacementKey];
+                            });
                         }
 
                         if (action.dataFromQuery) {
