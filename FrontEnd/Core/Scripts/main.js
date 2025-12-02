@@ -685,16 +685,17 @@ class Main {
                 },
 
                 toggleMenuState() {
-                    if (document.body.classList.contains("off-canvas")) {
-                        document.body.classList.remove("off-canvas");
-                        document.body.classList.add("on-canvas");
-
-                    } else if (document.body.classList.contains("on-canvas")) {
-                        document.body.classList.add("menu-active");
-                        document.body.classList.remove("on-canvas");
+                    if (window.matchMedia("(max-width: 769px)").matches) {
+                        document.body.classList.toggle("menu-active");
+                        document.body.classList.toggle("off-canvas");
                     } else {
-                        document.body.classList.add("off-canvas");
-                        document.body.classList.remove("menu-active");
+                        if (document.body.classList.contains("off-canvas")) {
+                            document.body.classList.replace("off-canvas", "on-canvas");
+                        } else if (document.body.classList.contains("on-canvas")) {
+                            document.body.classList.replace("on-canvas", "menu-active");
+                        } else {
+                            document.body.classList.replace("menu-active", "off-canvas");
+                        }
                     }
                 },
 
