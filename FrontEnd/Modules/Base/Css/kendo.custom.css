@@ -2009,6 +2009,11 @@ html .km-pane-wrapper .km-widget,
     border-color: var(--sec-color);
 }
 
+.k-overlay {
+    background-color:#CCC;
+    opacity: 0.85 !important;
+}
+
 .k-column-menu,
 .k-column-menu .k-item,
 .k-overflow-container .k-overflow-group {
