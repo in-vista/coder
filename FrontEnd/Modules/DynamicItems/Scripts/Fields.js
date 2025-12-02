@@ -956,7 +956,7 @@ export class Fields {
             let window = event.sender.element.closest("div.entity-container");
             
             // Find the entity container in the closest Kendo window if no window was found.
-            if(!window)
+            if(!window || window.length === 0)
                 window = event.sender.element.closest('.k-window').find("div.entity-container").first();
             
             if (window) {
