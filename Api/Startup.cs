@@ -18,12 +18,10 @@ using Api.Modules.Templates.Interfaces;
 using Api.Modules.Templates.Services;
 using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Tenants.Services;
-using Api.Modules.Topol;
-using Api.Modules.Topol.Interfaces;
+using Duende.IdentityServer.Services;
 using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using GeeksCoreLibrary.Modules.Databases.Services;
-using IdentityServer4.Services;
 using JavaScriptEngineSwitcher.ChakraCore;
 using JavaScriptEngineSwitcher.Extensions.MsDependencyInjection;
 using Microsoft.AspNetCore.Builder;
@@ -259,9 +257,9 @@ namespace Api
             });
 
             // Enable CORS for Identityserver 4.
-            services.AddSingleton<ICorsPolicyService>((container) =>
+            services.AddSingleton<ICorsPolicyService>(container =>
             {
-                var logger = container.GetRequiredService<ILogger<DefaultCorsPolicyService>>();
+                ILogger<DefaultCorsPolicyService> logger = container.GetRequiredService<ILogger<DefaultCorsPolicyService>>();
                 return new DefaultCorsPolicyService(logger)
                 {
                     AllowAll = true
