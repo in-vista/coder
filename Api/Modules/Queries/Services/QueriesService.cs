@@ -64,17 +64,21 @@ namespace Api.Modules.Queries.Services
         /// <inheritdoc />
         public async Task<ServiceResult<List<QueryModel>>> GetForExportModuleAsync(ClaimsIdentity identity)
         {
-            var results = await GetQueriesForModuleAsync(identity, "show_in_export_module").ToListAsync();
+            List<QueryModel> list = [];
+            await foreach(QueryModel queryModelItem in GetQueriesForModuleAsync(identity, "show_in_export_module"))
+                list.Add(queryModelItem);
 
-            return new ServiceResult<List<QueryModel>>(results);
+            return new ServiceResult<List<QueryModel>>(list);
         }
 
         /// <inheritdoc />
         public async Task<ServiceResult<List<QueryModel>>> GetForCommunicationModuleAsync(ClaimsIdentity identity)
         {
-            var results = await GetQueriesForModuleAsync(identity, "show_in_communication_module").ToListAsync();
+            List<QueryModel> list = [];
+            await foreach(QueryModel queryModelItem in GetQueriesForModuleAsync(identity, "show_in_communication_module"))
+                list.Add(queryModelItem);
 
-            return new ServiceResult<List<QueryModel>>(results);
+            return new ServiceResult<List<QueryModel>>(list);
         }
 
         /// <inheritdoc />
