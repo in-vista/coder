@@ -1919,6 +1919,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                             (Convert.ToBoolean(dataRow["readonly"]) ||
                              (userItemPermissions & AccessRights.Update) != AccessRights.Update).ToString()
                             .ToLowerInvariant())
+                        .Replace("{pattern}", String.IsNullOrWhiteSpace(regExValidation) ? ".*" : regExValidation)
                         .Replace("{userId}", userId.ToString())
                         .Replace("{width}", width <= 0 ? "50" : width.ToString())
                         .Replace("{height}", height <= 0 ? "" : height.ToString())
