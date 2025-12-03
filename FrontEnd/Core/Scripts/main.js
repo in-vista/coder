@@ -741,6 +741,11 @@ class Main {
                         mainStyle.top = 0;
                         mainStyle.left = 0;
                     }
+
+                    if (window.matchMedia("(max-width: 768px)").matches) {
+                        document.body.classList.toggle("menu-active");
+                        document.body.classList.toggle("off-canvas");
+                    }
                 },
 
                 closeModule(module) {

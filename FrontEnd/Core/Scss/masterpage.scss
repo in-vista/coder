@@ -329,8 +329,8 @@ main, div, section {
                 right: 0;
                 height: 35px;
             }
-
-            @include xl {
+            
+            @include lg {
                 align-items: flex-end;
                 background-color: transparent;
                 border-color: transparent;
@@ -338,7 +338,6 @@ main, div, section {
                 flex-grow: 1;
                 order: 1;
             }
-
             > div {
                 width: 100%;
             }
@@ -696,8 +695,7 @@ main, div, section {
         width: 80px;
         z-index: 10;
 
-
-        @include xl {
+        @include lg {
             top: 70px;
         }
 
@@ -884,7 +882,7 @@ main {
     bottom: 0;
     z-index: 1;
 
-    @include xl {
+    @include lg {
         padding: 20px;
         top: 70px;
     }
