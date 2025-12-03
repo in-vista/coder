@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -9,10 +10,8 @@ using Api.Core.Services;
 using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Files.Interfaces;
 using Api.Modules.Pdfs.Interfaces;
-using EvoPdf;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Interfaces;
-using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using GeeksCoreLibrary.Modules.GclConverters.Interfaces;
 using GeeksCoreLibrary.Modules.GclConverters.Models;
@@ -115,9 +114,9 @@ namespace Api.Modules.Pdfs.Services
                         await using var downloadStream = await response.Content.ReadAsStreamAsync();
                         await downloadStream.CopyToAsync(pdfStream);
                     }
-                    else if (!pdfFile.Data.IsNullOrEmpty())
+                    else if (pdfFile.Data.Length > 0 && pdfFile.Data.All(b => b != 0))
                     {
-                        await pdfStream.WriteAsync(pdfFile.Data.AsMemory(0, pdfFile.Data.Length));         
+                        await pdfStream.WriteAsync(pdfFile.Data.AsMemory(0, pdfFile.Data.Length));
                     }
 
                     // If the pdf file is empty (no file at the URL and no file in the blob field) then skip to next file
