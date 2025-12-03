@@ -14,12 +14,12 @@
     </ul>
     <div id="serviceTab">
         <div class="formview compact">
-            @{RenderProperties(Model, Model.GetType(), ConfigurationTab.Service, true, "");}
+            @{await RenderProperties(Model, Model.GetType(), ConfigurationTab.Service, true, "");}
         </div>
     </div>
     <div id="timersTab">
         <div class="formview compact">
-            @{RenderProperties(Model, Model.GetType(), ConfigurationTab.Timers, true, "");}
+            @{await RenderProperties(Model, Model.GetType(), ConfigurationTab.Timers, true, "");}
         </div>
     </div>
 
@@ -246,7 +246,7 @@
         </div>
     }
 
-    void RenderProperties(object data, Type type, string tab, bool IsFilled, string trace)
+    async Task RenderProperties(object data, Type type, string tab, bool IsFilled, string trace)
     {
         foreach (var property in type.GetProperties())
         {
@@ -258,7 +258,7 @@
             {
                 if (data is IList list)
                 {
-                    RenderProperty(null, property, attributes, null, tab, trace);
+                    await RenderProperty(null, property, attributes, null, tab, trace);
                 }
                 else
                 {
@@ -267,22 +267,22 @@
                     {
                         if (IsFilled)
                         {
-                            RenderProperty(data?.GetType().GetProperty(property.Name)?.GetValue(data, null), property, attributes, data?.GetType().GetProperty(property.Name)?.GetValue(data, null).ToString(), tab, trace);
+                            await RenderProperty(data?.GetType().GetProperty(property.Name)?.GetValue(data, null), property, attributes, data?.GetType().GetProperty(property.Name)?.GetValue(data, null).ToString(), tab, trace);
                         }
                         else
                         {
-                            RenderProperty(data?.GetType().GetProperty(property.Name)?.GetValue(data, null), property, attributes, null, tab, trace);
+                            await RenderProperty(data?.GetType().GetProperty(property.Name)?.GetValue(data, null), property, attributes, null, tab, trace);
                         }
                         continue;
                     }
                     // Check if we should send the data
                     if (IsFilled)
                     {
-                        RenderProperty(data?.GetType().GetProperty(property.Name)?.GetValue(data, null), property, attributes, null, tab, trace);
+                        await RenderProperty(data?.GetType().GetProperty(property.Name)?.GetValue(data, null), property, attributes, null, tab, trace);
                     }
                     else
                     {
-                        RenderProperty(null, property, attributes, null, tab, trace);
+                        await RenderProperty(null, property, attributes, null, tab, trace);
                     }
                 }
             }
@@ -302,19 +302,19 @@
                 var listType = genericTypes[0];
                 // Get the list from the data
                 var dataList = data?.GetType().GetProperty(property.Name)?.GetValue(data, null) as IList;
-                RenderProperties(dataList, listType, tab, false, trace + $"/{property?.Name}");
+                await RenderProperties(dataList, listType, tab, false, trace + $"/{property?.Name}");
             }
             else
             {
                 if (data is IList list)
                 {
                     // Since data is a list, we should let the function know that we shouldn't fill any data
-                    RenderProperties(null, property.PropertyType, tab, false, trace + $"/{property?.Name}");
+                    await RenderProperties(null, property.PropertyType, tab, false, trace + $"/{property?.Name}");
                 }
                 else
                 {
                     // Render the properties of the class
-                    RenderProperties(data?.GetType().GetProperty(property.Name)?.GetValue(data, null), property.PropertyType, tab, true, trace + $"/{property?.Name}");
+                    await RenderProperties(data?.GetType().GetProperty(property.Name)?.GetValue(data, null), property.PropertyType, tab, true, trace + $"/{property?.Name}");
                 }
             }
         }
