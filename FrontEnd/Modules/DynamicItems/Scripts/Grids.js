@@ -361,7 +361,7 @@ export class Grids {
             }
 
             if (gridViewSettings.toolbar && gridViewSettings.toolbar.customActions && gridViewSettings.toolbar.customActions.length > 0) {
-                this.addCustomActionsToToolbar("#gridView", 0, 0, toolbar, gridViewSettings.toolbar.customActions);
+                this.addCustomActionsToToolbar("#gridView", 0, 0, toolbar, gridViewSettings.toolbar.customActions, undefined);
             }
 
             let totalResults = gridDataResult.totalResults;
@@ -395,6 +395,9 @@ export class Grids {
             } else if (gridViewSettings.clientSideFiltering === true) {
                 filterable = defaultFilters;
             }
+            
+            // Store the toolbar property before deleting it.
+            const toolbarSettings = gridViewSettings?.toolbar;
 
             // Delete properties that we have already defined, so that they won't be overwritten again by the $.extend below.
             delete gridViewSettings.filterable;
@@ -703,27 +706,61 @@ export class Grids {
                 this.mainGrid.element.on("dblclick", "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
             }
             this.mainGrid.element.find(".k-i-refresh").parent().click(this.base.onMainRefreshButtonClick.bind(this.base));
-
-            this.gridContextMenu = $('#gridContextMenu').kendoContextMenu({
-                target: '.k-table-tbody',
-                filter: '.k-table-row',
-                open: event => {
-                    this.mainGrid.clearSelection();
-                    this.mainGrid.select(event.target);
-                },
-                select: event => {
-                    const target = event.target;
-                    console.log(event);
-                }
-            }).data("kendoContextMenu");
             
-            this.gridContextMenu.setOptions({
-                dataSource: [
-                    {
-                        text: 'Test'
-                    }
-                ]
-            });
+            if (toolbarSettings && toolbarSettings.customActions && toolbarSettings.customActions.length > 0) {
+                // Retrieve all custom actions of the grid.
+                const customActions = toolbarSettings.customActions;
+                
+                // Retrieve all custom actions in the grid that require a row to be selected.
+                const contextMenuActions = customActions.filter(action => !action.allowNoSelection);
+                
+                // Only allow a context menu in the grid if there are any actions that require a row to be selected.
+                if(contextMenuActions.length > 0) {
+                    this.gridContextMenu = $('#gridContextMenu').kendoContextMenu({
+                        target: '.k-table-tbody',
+                        filter: '.k-table-row',
+                        open: event => {
+                            this.mainGrid.clearSelection();
+                            this.mainGrid.select(event.target);
+                        },
+                        select: event => {
+                            const target = event.target;
+                            console.log(event);
+                        }
+                    }).data("kendoContextMenu");
+
+                    const createMenuItem = (action) => ({
+                        text: action.text,
+                        icon: action.icon,
+                        actionFn: async event => await window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick(
+                            '#gridView', 0, 0, JSON.stringify(action), event, undefined
+                        )
+                    });
+
+                    const groupedData = [];
+                    const groups = {};
+
+                    contextMenuActions.forEach(action => {
+                        if (action.groupName) {
+                            if (!groups[action.groupName]) {
+                                groups[action.groupName] = {
+                                    text: action.groupName,
+                                    encoded: false,
+                                    items: []
+                                };
+                                groupedData.push(groups[action.groupName]);
+                            }
+                            groups[action.groupName].items.push(createMenuItem(action));
+                        } else {
+                            groupedData.push(createMenuItem(action));
+                        }
+                    });
+
+                    this.gridContextMenu.setOptions({
+                        dataSource: groupedData
+                    });
+                }
+            }
         } catch (exception) {
             kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals, of neem contact op met ons.");
             console.error(exception);
