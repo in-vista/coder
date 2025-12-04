@@ -595,7 +595,7 @@ const moduleSettings = {
                                     transportOptions.success(templatesToCommit);
                                 } catch (exception) {
                                     console.error(exception);
-                                    kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
+                                    kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
                                     transportOptions.error(exception);
                                 }
 
@@ -704,7 +704,7 @@ const moduleSettings = {
 
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
+                kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
             }
         }
 
@@ -734,7 +734,7 @@ const moduleSettings = {
                                     transportOptions.success(templatesToCommit);
                                 } catch (exception) {
                                     console.error(exception);
-                                    kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
+                                    kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
                                     transportOptions.error(exception);
                                 }
 
@@ -843,7 +843,7 @@ const moduleSettings = {
 
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
+                kendo.alert("Er is iets fout gegaan met het laden van de wijzigingen in templates. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
             }
         }
 
@@ -873,7 +873,7 @@ const moduleSettings = {
                                     transportOptions.success(templatesToCommit);
                                 } catch (exception) {
                                     console.error(exception);
-                                    kendo.alert("Er is iets fout gegaan met het laden van niet afgeronde commits. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
+                                    kendo.alert("Er is iets fout gegaan met het laden van niet afgeronde commits. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
                                     transportOptions.error(exception);
                                 }
 
@@ -983,7 +983,7 @@ const moduleSettings = {
 
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het laden van de nog niet afgeronde commits. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
+                kendo.alert("Er is iets fout gegaan met het laden van de nog niet afgeronde commits. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
             }
         }
 
@@ -1013,7 +1013,7 @@ const moduleSettings = {
                                     transportOptions.success(templatesToCommit);
                                 } catch (exception) {
                                     console.error(exception);
-                                    kendo.alert("Er is iets fout gegaan met het laden van de commit historie. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
+                                    kendo.alert("Er is iets fout gegaan met het laden van de commit historie. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
                                     transportOptions.error(exception);
                                 }
 
@@ -1107,7 +1107,7 @@ const moduleSettings = {
 
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het laden van de commit historie. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
+                kendo.alert("Er is iets fout gegaan met het laden van de commit historie. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
             }
         }
 
@@ -1137,7 +1137,7 @@ const moduleSettings = {
                                     transportOptions.success(templatesToCommit);
                                 } catch (exception) {
                                     console.error(exception);
-                                    kendo.alert("Er is iets fout gegaan met het laden van niet afgeronde commits. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
+                                    kendo.alert("Er is iets fout gegaan met het laden van niet afgeronde commits. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
                                     transportOptions.error(exception);
                                 }
 
@@ -1238,7 +1238,7 @@ const moduleSettings = {
 
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het laden van de reviews. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw..");
+                kendo.alert("Er is iets fout gegaan met het laden van de reviews. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
             }
         }
 
