@@ -1,5 +1,6 @@
 ﻿(function() {
 var field = $("#field_{propertyIdWithSuffix}");
+const item = field.closest('.item');
 var options = {options};
 options.type = options.type || "text";
 
@@ -45,16 +46,37 @@ switch (options.type.toLowerCase()) {
         break;
 }
 
+const regexFailedMessage = options.regexFailedMessage ?? 'Ongeldige waarde.';
+const regexFailedMessageElement = item.find('.regexFailedMessage');
+
 if (codeMirrorSettings.mode) {
 	// Only load code mirror when we actually need it.
 	Misc.ensureCodeMirror().then(function() {
         field.parent().removeAttr("class");
 		var codeMirrorInstance = CodeMirror.fromTextArea(field[0], codeMirrorSettings);
 		field.data("CodeMirrorInstance", codeMirrorInstance);
+		
+		codeMirrorInstance.on('change', function(editor, changeObject) {
+			const value = editor.doc.getValue();
+			validateRegex(value);
+		});
 	});
 }
 
-field.change((event) => { window.dynamicItems.fields.onFieldValueChange(event, options); }).keyup(window.dynamicItems.fields.onTextFieldKeyUp.bind(window.dynamicItems.fields));
+field
+	.change(async (event) => {
+		await window.dynamicItems.fields.onFieldValueChange(event, options);
+	})
+	.keyup(async event => {
+		await window.dynamicItems.fields.onTextFieldKeyUp(event);
+		validateRegex($(event.target).val());
+	});
+
+function validateRegex(input) {
+	const regex = /{pattern}/;
+	const matchesRegex = regex.test(input);
+	regexFailedMessageElement[!matchesRegex ? 'text' : 'html'](!matchesRegex ? regexFailedMessage : '&nbsp;');
+}
 
 {customScript}
 })();

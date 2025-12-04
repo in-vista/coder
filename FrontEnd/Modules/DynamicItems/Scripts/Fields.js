@@ -956,7 +956,7 @@ export class Fields {
             let window = event.sender.element.closest("div.entity-container");
             
             // Find the entity container in the closest Kendo window if no window was found.
-            if(!window)
+            if(!window || window.length === 0)
                 window = event.sender.element.closest('.k-window').find("div.entity-container").first();
             
             if (window) {
@@ -1541,6 +1541,15 @@ export class Fields {
                                 close: (event) => { event.sender.destroy(); }
                             }).data("kendoDialog");
 
+                            dialog.element.on("dblclick", ".k-grid tr", (event) => {
+                                if ($(event.target).closest(".k-grid-header").length || event.target.tagName === "TEXTAREA") {
+                                    return;
+                                }
+                                
+                                okButtonAction(parameter, event);
+                                dialog.close(event);
+                            });
+
                             // Trigger the OK button click when the user presses enter in the dialog.
                             dialog.element.on("keyup", function(event) {
                                 if (!event.key || event.key.toLowerCase() !== "enter") return;
@@ -1945,10 +1954,15 @@ export class Fields {
                             kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter is er geen URL ingevuld. Neem a.u.b. contact op met ons.`);
                             break;
                         }
-
-                        // The queryActionResult are from a previously executed query. This way you can combine the actions executeQuery(Once) and openUrl to open a newly created or updated item in a specific URL.
-                        if (queryActionResult && queryActionResult.otherData && queryActionResult.otherData.length>0 && queryActionResult.otherData[0].urlPart) {
-                            action.url = action.url.replace(/{urlPart}/gi, queryActionResult.otherData[0].urlPart || "");
+                        
+                        // Replace any variables from the query action results of a previously executed query.
+                        if(queryActionResult?.otherData?.length) {
+                            const replacementMap = queryActionResult.otherData[0];
+                            action.url = action.url.replace(/{([^{}]+)}/gi, (match, replacementKey) => {
+                                if(!replacementMap.hasOwnProperty(replacementKey))
+                                    return null;
+                                return replacementMap[replacementKey];
+                            });
                         }
 
                         if (action.dataFromQuery) {
@@ -2486,7 +2500,15 @@ export class Fields {
 
                     // Refreshes the currently opened item.
                     case "refreshCurrentItem": {
-                        const kendoWindow = element.closest(".popup-container");
+                        let kendoWindow;
+                        
+                        // Check if the element is part of an item popup.
+                        const dataItemId = element.closest('.item')?.attr('data-item-id');
+                        if(dataItemId !== undefined && dataItemId !== false) {
+                            kendoWindow = $(`#existingItemWindow_${dataItemId}`);
+                        } else {
+                            kendoWindow = element.closest(".popup-container");
+                        }
 
                         if (kendoWindow.length === 0) {
                             // The opened item is in the main window.

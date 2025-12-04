@@ -203,7 +203,7 @@
             });
 
             // Automatic refresh every x minutes
-            setInterval(() => this.updateDateDisplay(), 300*1000);
+            setInterval(() => this.updateDateDisplay(), 300*1000);            
         }
     
         formatTime(hour, minute=0){
@@ -214,7 +214,7 @@
             if(this.workStart <= this.workEnd) return hour >= this.workStart && hour < this.workEnd;
             return hour >= this.workStart || hour < this.workEnd;
         }
-    
+
         addDragResize(block, res, handle) {
             // BEGIN DRAG
             block.addEventListener("mousedown", (e) => {
@@ -824,7 +824,12 @@
                         if (checkInButton) {
                             checkInButton.addEventListener("click", function(event) {
                                 event.preventDefault();
-                                axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkInFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}});                                
+                                axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkInFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}})
+                                    .then(response => {
+                                        timelineScheduler.showToast("Inchecken succesvol", { type: "success" });
+                                    }).catch(error => {
+                                        timelineScheduler.showToast("Inchecken mislukt", { type: "error" });
+                                });                                
                                 const elementsIn = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-in`);
                                 elementsIn.forEach(el => {
                                     el.style.display = 'none';
@@ -841,7 +846,11 @@
                         if (checkOutButton) {
                             checkOutButton.addEventListener("click", function(event) {
                                 event.preventDefault();
-                                axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkOutFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}});
+                                axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkOutFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}})  .then(response => {
+                                    timelineScheduler.showToast("Uitchecken succesvol", { type: "success" });
+                                }).catch(error => {
+                                    timelineScheduler.showToast("Uitchecken mislukt", { type: "error" });
+                                });
                                 const elements = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-out`);
                                 elements.forEach(el => {
                                     el.style.display = 'none';
@@ -1330,6 +1339,40 @@
                     reservation.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }
+        }
+
+        showToast(message, options = {}) {
+            const { type = 'success', duration = 3500 } = options;
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = 'toast ' + type;
+            el.setAttribute('role', 'status'); // toegankelijkheid
+            el.innerHTML = `<div class="icon" aria-hidden="true">${ type === 'success' ? '✔️' : '⚠️' }</div>
+                <div class="msg">${message}</div>
+                <button class="close" aria-label="Sluit">&times;</button>`;
+
+            // close knop
+            el.querySelector('.close').addEventListener('click', () => timelineScheduler.removeToast(el));
+
+            // auto remove
+            const timer = setTimeout(() => timelineScheduler.removeToast(el), duration);
+
+            // stop auto-dismiss bij hover
+            el.addEventListener('mouseenter', () => clearTimeout(timer));
+            el.addEventListener('mouseleave', () => {
+                setTimeout(() => timelineScheduler.removeToast(el), 1200);
+            });
+
+            container.appendChild(el);
+            return el;
+        }
+
+        removeToast(el) {
+            if (!el) return;
+            el.style.animation = 'fadeOut .25s ease forwards';
+            setTimeout(() => {
+                if (el.parentNode) el.parentNode.removeChild(el);
+            }, 250);
         }
     }
 
