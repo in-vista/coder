@@ -720,44 +720,73 @@ export class Grids {
                         target: '.k-table-tbody',
                         filter: '.k-table-row',
                         open: event => {
+                            if(!event.event || event.event.type !== 'contextmenu')
+                                return;
+                            
                             this.mainGrid.clearSelection();
                             this.mainGrid.select(event.target);
+                            
+                            const dataItem = this.mainGrid.dataItem(event.target);
+                            
+                            const groupedData = [];
+                            
+                            contextMenuActions
+                                .filter(action => {
+                                    // Retrieve data of the button.
+                                    const condition = action.condition;
+                                    const roles = action.roles;
+                                    const showOnReadOnly = action.showOnReadOnly;
+                                    const minimumRows = action.minimumRows;
+                                    const maximumRows = action.maximumRows;
+                                    
+                                    // Filter out if the action button should be hidden.
+                                    return !this.shouldHideActionButton([ dataItem ], condition, roles, showOnReadOnly, minimumRows, maximumRows);
+                                })
+                                .forEach(action => {
+                                    if (!action.groupName) {
+                                        groupedData.push(createMenuItem(action));
+                                        return;
+                                    }
+
+                                    let group = groupedData.find(i => i.isGroup && i.text === action.groupName);
+
+                                    if (!group) {
+                                        group = {
+                                            isGroup: true,
+                                            text: action.groupName,
+                                            encoded: false,
+                                            items: []
+                                        };
+                                        groupedData.push(group);
+                                    }
+                                    
+                                    group.items.push(createMenuItem(action));
+                                });
+                            
+                            this.gridContextMenu.setOptions({
+                                dataSource: groupedData
+                            });
                         },
-                        select: event => {
-                            const target = event.target;
-                            console.log(event);
+                        select: async event => {
+                            const item = $(event.item);
+                            
+                            const actionData = item.attr('action');
+                            if(!actionData)
+                                return;
+                            
+                            const action = JSON.parse(atob(actionData));
+
+                            await window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick('#gridView', 0, 0, action, event, undefined);
                         }
                     }).data("kendoContextMenu");
-
+                    
+                    // Prepare a local function to create an item in the context menu.
                     const createMenuItem = (action) => ({
                         text: action.text,
                         icon: action.icon,
-                        actionFn: async event => await window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick(
-                            '#gridView', 0, 0, JSON.stringify(action), event, undefined
-                        )
-                    });
-
-                    const groupedData = [];
-                    const groups = {};
-
-                    contextMenuActions.forEach(action => {
-                        if (action.groupName) {
-                            if (!groups[action.groupName]) {
-                                groups[action.groupName] = {
-                                    text: action.groupName,
-                                    encoded: false,
-                                    items: []
-                                };
-                                groupedData.push(groups[action.groupName]);
-                            }
-                            groups[action.groupName].items.push(createMenuItem(action));
-                        } else {
-                            groupedData.push(createMenuItem(action));
+                        attr: {
+                            'action': btoa(JSON.stringify(action))
                         }
-                    });
-
-                    this.gridContextMenu.setOptions({
-                        dataSource: groupedData
                     });
                 }
             }
@@ -1908,54 +1937,17 @@ export class Grids {
             selectedData.push(rowData);
         });
         
-        conditionalButtons.each(async function () {
+        conditionalButtons.each(async () => {
             // Retrieve data of the button.
             const button = $(this);
             const condition = button.data('condition');
             const roles = button.data('roles');
             const showOnReadOnly = button.data('show-on-read-only');
-            const minimumRows = button.data('minimum-rows') ?? 0;
-            const maximumRows = button.data('maximum-rows') ?? Number.MAX_VALUE;
+            const minimumRows = button.data('minimum-rows');
+            const maximumRows = button.data('maximum-rows');
             
-            // Do not hide buttons by default.
-            let shouldHide = false;
-            
-            // Conditional check.
-            if(condition) {
-                const decodedCondition = Misc.decodeHtml(condition);
-
-                // Evaluate the condition for every selected row in the grid.
-                shouldHide = !selectedData.every(function(element, index, array) {
-                    const parameterNames = Object.keys(element);
-                    const parameterValues = Object.values(element);
-
-                    const func = new Function(...parameterNames, `return ${decodedCondition}`);
-                    return func(...parameterValues);
-                });
-            }
-            
-            // Roles check.
-            if(!shouldHide && roles) {
-                // Retrieve the user data from the local storage.
-                const userDataString = localStorage.getItem('userData');
-                const userData = userDataString ? JSON.parse(userDataString) : [];
-                // Retrieve the role from the user data.
-                const userRole = userData.role;
-                
-                // Check whether the user's role is required by the action button.
-                const rolesArray = roles.split(',');
-                shouldHide = !rolesArray.includes(userRole);
-            }
-            
-            // Check whether any of the selected rows is set to be read-only and should be hidden.
-            if(!shouldHide)
-                shouldHide = !showOnReadOnly && readOnly;
-            
-            // Check whether the user has selected more or less than the allowed rows selected of the action button.
-            if(!shouldHide) {
-                const selectedRowsAmount = selectedRows.length;
-                shouldHide = selectedRowsAmount < minimumRows || selectedRowsAmount > maximumRows;
-            }
+            // Determine whether the action button should be hidden or not.
+            const shouldHide = this.shouldHideActionButton(selectedData, condition, roles, showOnReadOnly, minimumRows, maximumRows);
 
             // Show or hide the action button based on the evaluated condition or default value.
             button.toggleClass('hidden', shouldHide || event.sender.select().length === 0);
@@ -1967,6 +1959,54 @@ export class Grids {
             const totalAmountOfButtons = buttonGroupElement.find("a.k-button:not(.hidden)").length;
             buttonGroupElement.toggleClass("hidden", totalAmountOfButtons === 0);
         }
+    }
+
+    /**
+     * 
+     */
+    shouldHideActionButton(dataItems, condition = undefined, roles = undefined, showOnReadOnly = undefined, minimumRows = undefined, maximumRows = undefined) {
+        // Do not hide buttons by default.
+        let shouldHide = false;
+        
+        // Conditional check.
+        if(condition !== undefined) {
+            const decodedCondition = Misc.decodeHtml(condition);
+
+            // Evaluate the condition for every selected row in the grid.
+            shouldHide = !dataItems.every(function(element, index, array) {
+                const parameterNames = Object.keys(element);
+                const parameterValues = Object.values(element);
+
+                const func = new Function(...parameterNames, `return ${decodedCondition}`);
+                return func(...parameterValues);
+            });
+        }
+
+        // Roles check.
+        if(!shouldHide && roles !== undefined) {
+            // Retrieve the user data from the local storage.
+            const userDataString = localStorage.getItem('userData');
+            const userData = userDataString ? JSON.parse(userDataString) : [];
+            // Retrieve the role from the user data.
+            const userRole = userData.role;
+
+            // Check whether the user's role is required by the action button.
+            const rolesArray = roles.split(',');
+            shouldHide = !rolesArray.includes(userRole);
+        }
+
+        // Check whether any of the selected rows is set to be read-only and should be hidden.
+        if(!shouldHide && showOnReadOnly !== undefined)
+            shouldHide = !showOnReadOnly && readOnly;
+
+        // Check whether the user has selected more or less than the allowed rows selected of the action button.
+        if(!shouldHide && (minimumRows !== undefined || maximumRows !== undefined)) {
+            const selectedRowsAmount = dataItems.length;
+            shouldHide = selectedRowsAmount < minimumRows && selectedRowsAmount > maximumRows;
+        }
+        
+        // Return whether to hide the action button or not.
+        return shouldHide;
     }
 
     /**
