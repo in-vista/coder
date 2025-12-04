@@ -201,6 +201,31 @@
                 await timelineScheduler.updateDateDisplay();
                 timelineScheduler.highlightAndScrollToReservation(item.getAttribute('data-reservation-id'));
             });
+            
+            // Change view when clicking list or timeline view
+            const timelineBtn = document.getElementById("timeline-view-btn");
+            const listBtn = document.getElementById("list-view-btn");
+            const timelineScheduler = document.querySelector(".scheduler");
+            const listView = document.getElementById("list-view");
+            timelineBtn.addEventListener("click", () => {
+                timelineBtn.classList.add("active");
+                listBtn.classList.remove("active");
+
+                timelineScheduler.classList.remove("hidden");
+                listView.classList.add("hidden");
+
+                this.renderReservations(); // timeline terug opbouwen
+            });
+
+            listBtn.addEventListener("click", () => {
+                listBtn.classList.add("active");
+                timelineBtn.classList.remove("active");
+
+                timelineScheduler.classList.add("hidden");
+                listView.classList.remove("hidden");
+
+                this.renderListView();
+            });
 
             // Automatic refresh every x minutes
             setInterval(() => this.updateDateDisplay(), 300*1000);            
@@ -1373,6 +1398,105 @@
             setTimeout(() => {
                 if (el.parentNode) el.parentNode.removeChild(el);
             }, 250);
+        }      
+        
+        // For list view, accordion for each quarter wich contains reservations
+        groupReservationsByQuarter() {
+            const groups = {};
+            const uniqueReservations = [...new Map(this.reservations.map(r => [r.reservationId, r])).values()];
+            uniqueReservations.forEach(r => {                
+                const slot = Math.floor(r.start * this.quartersPerHour);
+                if (!groups[slot]) groups[slot] = [];
+                groups[slot].push(r);
+            });
+
+            return groups;
+        }
+
+        renderListView() {
+            const listView = document.getElementById("list-view");
+            listView.innerHTML = ""; // leeg
+            const groups = this.groupReservationsByQuarter();
+
+            Object.keys(groups).sort((a,b)=>a-b).forEach(q => {
+                const startHour = q / this.quartersPerHour;
+                const label = `${String(Math.floor(startHour)).padStart(2,'0')}:${String(Math.round((startHour%1)*60)).padStart(2,'0')}`;
+                const totalPersons = groups[q].reduce((sum, r) => sum + (r.numberOfPersons || 0), 0);
+                
+                const accordion = document.createElement("div");
+                accordion.className = "list-accordion";
+                accordion.innerText = `${label} — ${groups[q].length} reservering(en) — ${totalPersons} personen`;
+                accordion.dataset.slot = q;
+
+                const panel = document.createElement("div");
+                panel.className = "list-panel";
+                panel.style.display = "block";
+
+                groups[q].forEach(res => {
+                    const tables = timelineScheduler.getTableNamesByIds(timelineScheduler.reservations.filter(rr => rr.reservationId === res.reservationId).map(rrr => rrr.table).join(','));
+                    const arrangement = timelineScheduler.arrangements.find(item => item.id === res.arrangement)?.abbreviation;
+                    const row = document.createElement("div");
+                    row.className = "list-reservation";
+
+                    row.innerHTML = `
+                        <span class="status-dot" style="background-color:${res.color}"></span>
+            
+                        <span class="customer-name">${res.name}</span>
+            
+                        <span class="returning-star">${res.numberOfVisits > 1 ? "⭐" : ""}</span>
+            
+                        <span class="persons">${res.numberOfPersons}p</span>
+            
+                        <span class="table">${tables}</span>
+            
+                        <span class="notes">${res.notes || ""}</span>
+                        
+                        ${arrangement ? `<span class="arrangement-badge">${arrangement}</span>` : `<span></span>`}
+            
+                        ${res.warning ? `
+                            <span class="warning-icon" title="${res.warning}">⚠️</span>
+                        ` : `<span></span>`}
+            
+                        <span class="status-badge ${res.checkOut ? "checked-out" : res.checkIn ? "checked-in" : ""}">
+                            ${res.checkOut ? "UITGEHECKT" : res.checkIn ? "INGECHECKT" : ""}
+                        </span>
+            
+                        <button class="icon-btn" title="Inchecken">
+                            ${!res.checkIn && !res.checkOut ? "📥" : ""}
+                        </button>
+                        
+                        <button class="icon-btn" title="Uitchecken">
+                            ${res.checkIn && !res.checkOut ? "📤" : ""}
+                        </button>
+                        
+                        <button class="icon-btn" title="Stuur bericht">
+                            ${res.customerFullName !== "Walk-in" ? "✉️" : ""}
+                        </button>
+                    `;
+
+                    // Hover highlight
+                    row.addEventListener("mouseenter", () =>
+                        row.classList.add("active-row")
+                    );
+                    row.addEventListener("mouseleave", () =>
+                        row.classList.remove("active-row")
+                    );
+
+                    // Click → Show hover popup from timeline view
+                    row.addEventListener("click", () =>
+                        timelineScheduler.openReservationInCoder(res.reservationIdEncrypted)
+                    );
+
+                    panel.appendChild(row);
+                });
+
+                accordion.addEventListener("click", () => {
+                    panel.style.display = (panel.style.display === "block") ? "none" : "block";
+                });
+
+                listView.appendChild(accordion);
+                listView.appendChild(panel);
+            });
         }
     }
 
