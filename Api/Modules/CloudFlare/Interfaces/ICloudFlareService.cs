@@ -13,6 +13,7 @@ namespace Api.Modules.CloudFlare.Interfaces
         /// </summary>
         /// <param name="fileName">Name of the file to upload.</param>
         /// <param name="fileBytes">Contents of the file to upload.</param>
+        /// <param name="useVariant">The key of the variant as stored on AWS.</param>
         /// <returns>string with url from CloudFlare</returns>
         Task<string> UploadImageAsync(string fileName, byte[] fileBytes, string useVariant);
 

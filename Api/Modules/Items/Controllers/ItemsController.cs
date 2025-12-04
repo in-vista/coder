@@ -68,6 +68,7 @@ namespace Api.Modules.Items.Controllers
         /// Get the HTML and javascript for single Wiser item, to show the item in Wiser.
         /// </summary>
         /// <param name="encryptedId">The encrypted ID of the item to get.</param>
+        /// <param name="isNew">Indicates whether the given item is new.</param>
         /// <param name="propertyIdSuffix">Optional: The suffix of every field on the item. This is used to give each field a unique ID, when multiple items are opened at the same time. Default value is <see langword="null"/>.</param>
         /// <param name="itemLinkId">Optional: The id of the item link from wiser_itemlink. This should be used when opening an item via a sub-entities-grid, to show link fields. Default value is 0.</param>
         /// <param name="entityType">Optional: The entity type of the item. Default value is <see langword="null"/>.</param>
@@ -153,6 +154,7 @@ namespace Api.Modules.Items.Controllers
         /// <param name="item">The item to create.</param>
         /// <param name="parentId">Optional: The encrypted ID of the parent to create this item under.</param>
         /// <param name="linkType">Optional: The link type of the link to the parent.</param>
+        /// <param name="alsoCreateInMainBranch">Optional: Whether to create the item in the main branch.</param>
         /// <returns>A CreateItemResultModel with information about the newly created item.</returns>
         [HttpPost]
         [ProducesResponseType(typeof(CreateItemResultModel), StatusCodes.Status200OK)]

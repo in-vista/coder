@@ -191,8 +191,6 @@ WHERE query.id = ?id";
             var isOnBranch = !branchesService.IsMainBranch(tenant.ModelObject).ModelObject; 
             
             var mainTenant = await wiserTenantsService.GetSingleAsync(tenant.ModelObject.TenantId, true);
-            
-            var id = -1;
 
             if (isOnBranch)
             {
@@ -242,7 +240,7 @@ WHERE query.id = ?id";
                 await targetDatabase.ExecuteAsync(lockQuery);
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -256,7 +254,7 @@ WHERE query.id = ?id";
                 await targetDatabase.ExecuteAsync(unlockQuery);
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }

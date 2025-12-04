@@ -447,7 +447,7 @@ ORDER BY name ASC");
                 await targetDatabase.ExecuteAsync(lockQuery);
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -461,7 +461,7 @@ ORDER BY name ASC");
                 await targetDatabase.ExecuteAsync(unlockQuery);
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }

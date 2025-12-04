@@ -238,6 +238,7 @@ namespace Api.Modules.Templates.Services
         /// Compares 2 values of a property and saves differences to a TemplateHistoryModel.
         /// </summary>
         /// <param name="propName">The name of the property that is compared</param>
+        /// <param name="type">The type of template.</param>
         /// <param name="newValue">The new value of the property</param>
         /// <param name="oldValue">The old value of the property</param>
         /// <param name="templateModel">The TemplateHistoryModel to which differences will be saved</param>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using Api.Core.Filters;
@@ -207,9 +208,18 @@ namespace Api
                 .AddProfileService<WiserProfileService>()
                 .AddResourceOwnerValidator<WiserGrantValidator>();
 
+            services.AddSingleton<HttpClient>(sp =>
+            {
+                HttpClientHandler clientHandler = new HttpClientHandler();
+
+                if (webHostEnvironment.IsDevelopment())
+                    clientHandler.ServerCertificateCustomValidationCallback = (request, certificate, chain, errors) => true;
+
+                return new HttpClient(clientHandler);
+            });
+            
             if (webHostEnvironment.IsDevelopment())
             {
-                System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
                 identityServerBuilder.AddDeveloperSigningCredential();
             }
             else

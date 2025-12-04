@@ -558,8 +558,8 @@ namespace Api.Core.Services
         {
             logger.LogTrace($"Disposing instance of MySqlDatabaseConnection with ID '{instanceId}' on URL {HttpContextHelpers.GetOriginalRequestUri(httpContextAccessor.HttpContext)}");
             dataReader?.Dispose();
-            AddConnectionCloseLogAsync(false, true);
-            AddConnectionCloseLogAsync(true, true);
+            _ = AddConnectionCloseLogAsync(false, true);
+            _ = AddConnectionCloseLogAsync(true, true);
             WiserDatabaseConnection?.Dispose();
         }
 
