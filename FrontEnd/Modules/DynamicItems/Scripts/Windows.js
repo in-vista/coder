@@ -158,7 +158,7 @@ export class Windows {
                             }
                         } catch (exception) {
                             console.error(exception);
-                            kendo.alert("Er is iets fout gegaan met het verwijderen van het tijdelijk aangemaakt item. Neem a.u.b.");
+                            kendo.alert("Er is iets fout gegaan met het verwijderen van het tijdelijk aangemaakt item.");
                         }
 
                         // Delete all field initializers of the current window, so they don't stay in memory. We don't need them anymore once the window is closed.

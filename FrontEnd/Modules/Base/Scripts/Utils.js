@@ -87,7 +87,7 @@ export class Modules {
         } catch (exception) {
             if (exception.status !== 404) {
                 console.error("Error while getting module settings", exception);
-                kendo.alert("Er is iets fout gegaan met het ophalen van de instellingen voor deze module. Neem a.u.b.");
+                kendo.alert("Er is iets fout gegaan met het ophalen van de instellingen voor deze module.");
             }
             return {};
         }
@@ -415,7 +415,7 @@ export class Wiser {
             return result;
         } catch (exception) {
             console.error("Error while getting logged in user data", exception);
-            kendo.alert("Er is iets fout gegaan met het ophalen van instellingen (logged in user data) die nodig zijn voor bepaalde functionaliteit. Neem a.u.b.");
+            kendo.alert("Er is iets fout gegaan met het ophalen van instellingen (logged in user data) die nodig zijn voor bepaalde functionaliteit.");
             return {};
         }
     }
@@ -634,12 +634,12 @@ export class Wiser {
             try {
                 // Initial checks.
                 if (!apiConnectionId) {
-                    reject("Er is geen 'apiConnectionId' ingesteld. Neem a.u.b.");
+                    reject("Er is geen 'apiConnectionId' ingesteld.");
                     return;
                 }
 
                 if (!settings || !settings.serviceRoot) {
-                    reject("Er is geen 'serviceRoot' ingesteld. Neem a.u.b.");
+                    reject("Er is geen 'serviceRoot' ingesteld.");
                     return;
                 }
 
@@ -648,7 +648,7 @@ export class Wiser {
                 // Get the settings.
                 const apiConnectionData = await Wiser.api({ url: `${settings.wiserApiRoot}api-connections/${apiConnectionId}` });
                 if (!apiConnectionData || !apiConnectionData.options) {
-                    reject("Er werd geprobeerd om een API aan te roepen, echter zijn er niet genoeg gegevens bekend. Neem a.u.b.");
+                    reject("Er werd geprobeerd om een API aan te roepen, echter zijn er niet genoeg gegevens bekend.");
                     window.processing.removeProcess(process);
                     return;
                 }
@@ -664,7 +664,7 @@ export class Wiser {
                 const extraHeaders = apiOptions.extraHeaders || {};
 
                 if (!apiOptions.baseUrl) {
-                    reject("Er werd geprobeerd om een API aan te roepen, echter zijn er niet genoeg gegevens bekend. Neem a.u.b.");
+                    reject("Er werd geprobeerd om een API aan te roepen, echter zijn er niet genoeg gegevens bekend.");
                     window.processing.removeProcess(process);
                     return;
                 }
@@ -681,7 +681,7 @@ export class Wiser {
                             await Wiser.doOauth2Authentication(settings, apiOptions, apiConnectionId, authenticationData, extraHeaders, itemDetails, extraData, success, reject);
                             break;
                         default:
-                            reject("Geen of onbekend authenticatie-type opgegeven. Neem a.u.b.");
+                            reject("Geen of onbekend authenticatie-type opgegeven.");
                             window.processing.removeProcess(process);
                             return;
                     }
@@ -895,7 +895,7 @@ export class Wiser {
             } else {
                 // We have no refresh token and no authentication token, this means the user must manually login first (that is how OAUTH2 works).
                 if (!apiOptions.authentication.authUrl || !apiOptions.authentication.clientId || !apiOptions.authentication.callBackUrl) {
-                    reject("Er werd geprobeerd om een API aan te roepen, echter zijn er niet genoeg gegevens bekend voor de authenticatie. Neem a.u.b.");
+                    reject("Er werd geprobeerd om een API aan te roepen, echter zijn er niet genoeg gegevens bekend voor de authenticatie.");
                     return;
                 }
 
@@ -953,7 +953,7 @@ export class Wiser {
      */
     static async onHtmlEditorFileExec(event, kendoEditor, moduleName, filesRootId) {
         if (!filesRootId) {
-            kendo.alert("Er is nog geen 'filesRootId' ingesteld in de database. Neem a.u.b. om dit te laten instellen.");
+            kendo.alert("Er is nog geen 'filesRootId' ingesteld in de database.");
         } else {
             const fileManagerWindowSender = { kendoEditor: kendoEditor, codeMirror: null, contentbuilder: null };
             const fileManagerWindowMode = this.fileManagerModes.files;
@@ -973,7 +973,7 @@ export class Wiser {
      */
     static async onHtmlEditorImageExec(event, kendoEditor, moduleName, imagesRootId) {
         if (!imagesRootId) {
-            kendo.alert("Er is nog geen 'imagesRootId' ingesteld in de database. Neem a.u.b. om dit te laten instellen.");
+            kendo.alert("Er is nog geen 'imagesRootId' ingesteld in de database.");
         } else {
             const fileManagerWindowSender = { kendoEditor: kendoEditor, codeMirror: null, contentbuilder: null };
             const fileManagerWindowMode = this.fileManagerModes.images;
@@ -1266,7 +1266,7 @@ export class Wiser {
             };
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan met het dupliceren van het item. Neem a.u.b.");
+            kendo.alert("Er is iets fout gegaan met het dupliceren van het item.");
             return {};
         }
     }

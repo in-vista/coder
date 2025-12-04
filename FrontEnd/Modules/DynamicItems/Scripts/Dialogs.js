@@ -99,7 +99,7 @@ export class Dialogs {
             $("#addButton").toggle(entityTypes && entityTypes.length > 0);
         } catch (exception) {
             console.error("Error while getting available entity types", exception);
-            kendo.alert("Er is iets fout gegaan met het ophalen van de beschikbare entiteitstypes voor deze module. Neem a.u.b.");
+            kendo.alert("Er is iets fout gegaan met het ophalen van de beschikbare entiteitstypes voor deze module.");
         }
 
         window.processing.removeProcess(process);

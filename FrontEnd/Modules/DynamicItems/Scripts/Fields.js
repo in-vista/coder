@@ -600,7 +600,7 @@ export class Fields {
             this.base.fields.handleAllDependenciesOfContainer(tabContentContainer, tabFields.entityType, tabName, windowId);
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan tijdens het uitvoeren van scripts voor velden op dit tabblad. Neem a.u.b.");
+            kendo.alert("Er is iets fout gegaan tijdens het uitvoeren van scripts voor velden op dit tabblad.");
         }
 
         window.processing.removeProcess(process);
@@ -917,7 +917,7 @@ export class Fields {
             event.preventDefault();
             // An action button should have at least one action, otherwise it's configured incorrectly.
             if (!options.actions || !options.actions.length) {
-                kendo.alert("Deze knop is niet goed ingesteld. Neem a.u.b.");
+                kendo.alert("Deze knop is niet goed ingesteld.");
                 return;
             }
 
@@ -1562,7 +1562,7 @@ export class Fields {
 
                                 } catch (exception) {
                                     console.error(exception);
-                                    kendo.alert("Er is iets fout gegaan met het laden van de standaardwaarde voor deze combobox. Neem a.u.b.");
+                                    kendo.alert("Er is iets fout gegaan met het laden van de standaardwaarde voor deze combobox.");
                                 }
                             }
 
@@ -1582,7 +1582,7 @@ export class Fields {
                                                 kendoOptions.success(queryResult.otherData);
                                             } catch (exception) {
                                                 kendoOptions.error(exception);
-                                                kendo.alert("Er is iets fout gegaan met het laden van de gegevens voor deze combobox. Neem a.u.b.");
+                                                kendo.alert("Er is iets fout gegaan met het laden van de gegevens voor deze combobox.");
                                             }
                                         }
                                     }
@@ -1620,7 +1620,7 @@ export class Fields {
                                         options.dataValueField = "id";
                                         break;
                                     default:
-                                        kendo.alert(`Onbekende datasource (' ${options.dataSource}') opgegeven bij combobox-veld ('${options.name}'). Neem a.u.b.`);
+                                        kendo.alert(`Onbekende datasource (' ${options.dataSource}') opgegeven bij combobox-veld ('${options.name}').`);
                                         break;
                                 }
                             }
@@ -1888,7 +1888,7 @@ export class Fields {
                     // Opens a new tab/window in the browser of the user with the given URL. A tab will be opened for every selected item.
                     case "openUrl": {
                         if (!action.url) {
-                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter is er geen URL ingevuld. Neem a.u.b.`);
+                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter is er geen URL ingevuld.`);
                             break;
                         }
 
@@ -1962,7 +1962,7 @@ export class Fields {
                     // Opens a new tab/window in the browser of the user with the given URL. If multiple
                     case "openUrlOnce": {
                         if (!action.url) {
-                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter is er geen URL ingevuld. Neem a.u.b.`);
+                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter is er geen URL ingevuld.`);
                             break;
                         }
 
@@ -2108,7 +2108,7 @@ export class Fields {
 
                         if (!windowItemId) {
                             // We can't open a window with an item if we have no item ID, so show an error.
-                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter is er geen item ID ingevuld. Neem a.u.b.`);
+                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter is er geen item ID ingevuld.`);
                             break;
                         }
 
@@ -2124,17 +2124,17 @@ export class Fields {
                     // Generates a text file based on query results.
                     case "generateTextFile": {
                         if (!action.queryId) {
-                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter zijn niet alle instellingen daarvoor ingevuld. Neem a.u.b.`);
+                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter zijn niet alle instellingen daarvoor ingevuld.`);
                             return false;
                         }
 
                         queryActionResult = await executeQuery();
 
                         if (!queryActionResult.success) {
-                            kendo.alert(queryActionResult.errorMessage || `Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter is er iets fout gegaan bij het uitvoeren van de query. Neem a.u.b.`);
+                            kendo.alert(queryActionResult.errorMessage || `Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter is er iets fout gegaan bij het uitvoeren van de query.`);
                             return false;
                         } else if (queryActionResult.otherData.length !== 1 || !queryActionResult.otherData[0].filename || !queryActionResult.otherData[0].result) {
-                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter voldoet het resultaat niet aan de eisen. Neem a.u.b.`);
+                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter voldoet het resultaat niet aan de eisen.`);
                             return false;
                         }
 
@@ -2162,7 +2162,7 @@ export class Fields {
                                 kendo.alert(queryActionResult.errorMessage || `Er is iets fout gegaan met het uitvoeren van de actie '${action.type}', probeer het a.u.b. nogmaals.`);
                                 return false;
                             } else if (!queryActionResult.otherData[0].id || !queryActionResult.otherData[0].propertynames) {
-                                kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter voldoet het resultaat niet aan de eisen. De selectie dient tenminste een encrypted 'id' en een 'propertynames' te bevatten. Neem a.u.b.`);
+                                kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter voldoet het resultaat niet aan de eisen. De selectie dient tenminste een encrypted 'id' en een 'propertynames' te bevatten.`);
                                 return false;
                             }
                             action.propertyNames = queryActionResult.otherData[0].propertynames;
@@ -2206,14 +2206,14 @@ export class Fields {
                     // Generates a (HTML) file via get_items.jcl.
                     case "generateFile": {
                         if ((!action.dataSelectorId && !action.queryId) || (!action.contentItemId && !userParametersWithValues.contentItemId) || !action.contentPropertyName) {
-                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter zijn niet alle instellingen daarvoor ingevuld. Neem a.u.b.`);
+                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter zijn niet alle instellingen daarvoor ingevuld.`);
                             break;
                         }
 
                         const templateDetails = await this.base.getItemDetails(userParametersWithValues.contentItemId || action.contentItemId);
 
                         if (!templateDetails) {
-                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter kon de template voor het bestand niet gevonden worden. Neem a.u.b.`);
+                            kendo.alert(`Er werd geprobeerd om actie type '${action.type}' uit te voeren, echter kon de template voor het bestand niet gevonden worden.`);
                             break;
                         }
 
@@ -2369,7 +2369,7 @@ export class Fields {
                         // The function that actually updates the link in the database.
                         const updateItemLink = async function () {
                             if (!userParametersWithValues || (!userParametersWithValues.selected_linkId && !userParametersWithValues.selected_link_id)) {
-                                kendo.alert(`Geen link ID gevonden voor actie '${action.type}'. Neem a.u.b.`);
+                                kendo.alert(`Geen link ID gevonden voor actie '${action.type}'.`);
                                 return false;
                             }
 
@@ -2533,7 +2533,7 @@ export class Fields {
                         const isGlobalMessage = action.isGlobalMessage;
                         
                         if (!userId && !isGlobalMessage) {
-                            kendo.alert("Er is geen ontvanger ingesteld voor pusher. Neem a.u.b.");
+                            kendo.alert("Er is geen ontvanger ingesteld voor pusher.");
                             return false;
                         }
                         
@@ -2625,7 +2625,7 @@ export class Fields {
 
                     // Unknown action, show an error.
                     default: {
-                        kendo.alert(`Onbekend actie-type '${action.type}'. Neem a.u.b.`);
+                        kendo.alert(`Onbekend actie-type '${action.type}'.`);
                         break;
                     }
                 }
@@ -2665,7 +2665,7 @@ export class Fields {
             emailData = emailData || {};
 
             if (!action || !action.contentPropertyName) {
-                kendo.alert("Deze functionaliteit is nog niet volledig ingesteld ('contentPropertyName' is leeg). Neem a.u.b.");
+                kendo.alert("Deze functionaliteit is nog niet volledig ingesteld ('contentPropertyName' is leeg).");
                 resolve();
                 return;
             }
@@ -3084,7 +3084,7 @@ export class Fields {
 
                                                         Promise.all(queryPromises).then(success).catch((error) => {
                                                             console.error(error);
-                                                            kendo.alert(`Er is iets fout gegaan tijdens het uitvoeren van actie '${action.executeQueryAfterEmail}' na het sturen van de e-mail. De e-mail zelf is wel gestuurd. Neem a..u.b.`);
+                                                            kendo.alert(`Er is iets fout gegaan tijdens het uitvoeren van actie '${action.executeQueryAfterEmail}' na het sturen van de e-mail. De e-mail zelf is wel gestuurd.`);
                                                         });
                                                         Promise.allSettled(queryPromises).then(() => {
                                                             loader.removeClass("loading");
@@ -3278,7 +3278,7 @@ export class Fields {
      */
     async onHtmlEditorImageExec(event, kendoEditor, codeMirror, contentbuilder) {
          if (!this.base.settings.imagesRootId) {
-            kendo.alert("Er is nog geen 'imagesRootId' ingesteld in de database. Neem a.u.b.");
+            kendo.alert("Er is nog geen 'imagesRootId' ingesteld in de database.");
         } else {
              const fileManagerWindowSender = { kendoEditor: kendoEditor, codeMirror: codeMirror, contentbuilder: contentbuilder };
              const fileManagerWindow = Wiser.initializeFileManager(fileManagerWindowSender, this.base.windows.fileManagerModes.images, this.base.settings.iframeMode, this.base.settings.gridViewMode, this.base.settings.moduleName);
@@ -3297,7 +3297,7 @@ export class Fields {
      */
     async onHtmlEditorFileExec(event, kendoEditor, codeMirror, contentbuilder) {
         if (!this.base.settings.filesRootId) {
-            kendo.alert("Er is nog geen 'filesRootId' ingesteld in de database. Neem a.u.b.");
+            kendo.alert("Er is nog geen 'filesRootId' ingesteld in de database.");
         } else {
             const fileManagerWindowSender = { kendoEditor: kendoEditor, codeMirror: codeMirror, contentbuilder: contentbuilder };
             const fileManagerWindow = Wiser.initializeFileManager(fileManagerWindowSender, this.base.windows.fileManagerModes.files, this.base.settings.iframeMode, this.base.settings.gridViewMode, this.base.settings.moduleName);
@@ -3316,7 +3316,7 @@ export class Fields {
      */
     async onHtmlEditorTemplateExec(event, kendoEditor, codeMirror, contentbuilder) {
         if (!this.base.settings.templatesRootId) {
-            kendo.alert("Er is nog geen 'templatesRootId' ingesteld in de database. Neem a.u.b.");
+            kendo.alert("Er is nog geen 'templatesRootId' ingesteld in de database.");
         } else {
             const fileManagerWindowSender = { kendoEditor: kendoEditor, codeMirror: codeMirror, contentbuilder: contentbuilder };
             const fileManagerWindow = Wiser.initializeFileManager(fileManagerWindowSender, this.base.windows.fileManagerModes.templates, this.base.settings.iframeMode, this.base.settings.gridViewMode, this.base.settings.moduleName);

@@ -1375,7 +1375,7 @@ export class Grids {
                 if (split.length < 2 && !entityType) {
                     if (!options.hideCommandColumn && (!this.base.settings.gridViewSettings || !this.base.settings.gridViewSettings.hideCommandColumn)) {
                         console.error(`Could not retrieve entity type from clicked column ('${column.field}')`);
-                        kendo.alert("Er is geen entiteittype gevonden voor de aangeklikte kolom. Neem a.u.b.");
+                        kendo.alert("Er is geen entiteittype gevonden voor de aangeklikte kolom.");
                     }
 
                     return;
@@ -1416,7 +1416,7 @@ export class Grids {
 
             if (!encryptedId) {
                 if (!options.hideCommandColumn && (!this.base.settings.gridViewSettings || !this.base.settings.gridViewSettings.hideCommandColumn)) {
-                    kendo.alert("Er is geen encrypted ID gevonden. Neem a.u.b.");
+                    kendo.alert("Er is geen encrypted ID gevonden.");
                 }
                 return;
             }
@@ -1424,7 +1424,7 @@ export class Grids {
             if (!title || !itemId || !entityType) {
                 const itemDetails = (await this.base.getItemDetails(encryptedId, entityType));
                 if (!itemDetails) {
-                    kendo.alert("Er is geen item gevonden met het id in de geselecteerde regel. Waarschijnlijk is dit geen geldig ID. Neem a.u.b.");
+                    kendo.alert("Er is geen item gevonden met het id in de geselecteerde regel. Waarschijnlijk is dit geen geldig ID.");
                     return;
                 }
 
@@ -1435,7 +1435,7 @@ export class Grids {
         }
 
         if (!encryptedId) {
-            kendo.alert("Er is geen encrypted ID gevonden. Neem a.u.b.");
+            kendo.alert("Er is geen encrypted ID gevonden.");
             return;
         }
 
@@ -1579,7 +1579,7 @@ export class Grids {
             const itemId = dataItem[`ID_${options.entityType}`] || dataItem[`id_${options.entityType}`] || dataItem[`itemId_${options.entityType}`] || dataItem[`itemid_${options.entityType}`] || dataItem[`item_id_${options.entityType}`];
 
             if (!itemId) {
-                kendo.alert(`Er is geen encrypted ID gevonden voor dit item. Neem a.u.b.`);
+                kendo.alert(`Er is geen encrypted ID gevonden voor dit item.`);
                 return;
             }
 

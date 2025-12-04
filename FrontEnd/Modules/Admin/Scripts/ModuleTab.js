@@ -511,7 +511,7 @@ export class ModuleTab {
         catch (exception) {
             console.error(exception);
             if (exception && exception.status !== 409) {
-                this.base.showNotification("notification", "Er is iets fout gegaan met het aanmaken van het root item voor de nieuwe module. Verwijder a.u.b. de nieuwe module en robeer het opnieuw.", "error");
+                this.base.showNotification("notification", "Er is iets fout gegaan met het aanmaken van het root item voor de nieuwe module. Verwijder a.u.b. de nieuwe module en probeer het opnieuw.", "error");
             }
         }
     }
