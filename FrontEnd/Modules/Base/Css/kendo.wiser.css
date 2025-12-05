@@ -469,6 +469,9 @@
 .k-window-titlebar .k-window-action {
 	opacity: 1;
 }
+.k-window-titlebar-actions {
+    margin-left: auto;
+}
 .k-window-titlebar .k-window-actions,
 .k-window-titlebar .k-window-titlebar-actions {
 	height: 43px;
