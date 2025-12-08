@@ -783,6 +783,18 @@ class Main {
 
                     this.$store.dispatch(ACTIVATE_MODULE, moduleId);
                 },
+                
+                async requestModuleFullScreen(moduleId) {
+                    const module = this.openedModules.find(m => m.id === moduleId);
+                    if(!module) {
+                        console.warn('Attempted to open a module that does not exist!');
+                        return;
+                    }
+                    
+                    const iframe = document.getElementById(moduleId);
+                    
+                    await iframe.requestFullscreen();
+                },
 
                 async openTenantManagement() {
                     this.openModule({
