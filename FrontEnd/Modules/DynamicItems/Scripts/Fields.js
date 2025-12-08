@@ -124,7 +124,6 @@ export class Fields {
                     results.push(data);
                     return;
                 } else {
-                    console.log(`Kendo control found for '${fieldName}', but it's not initialized, so using default value.`, kendoControlName, data);
                     data.value = field.data("defaultValue");
                     if (data.value) {
                         results.push(data);
@@ -1549,23 +1548,37 @@ export class Fields {
                                 okButtonAction(parameter, event);
                                 dialog.close(event);
                             });
-
-                            // Trigger the OK button click when the user presses enter in the dialog.
-                            dialog.element.on("keyup", function(event) {
-                                if (!event.key || event.key.toLowerCase() !== "enter") return;
-
+                            
+                            const allowKeyAction = (event) => {
                                 // array of class names to ignore
                                 const ignoreClasses = [
                                     "k-filter-menu-container"
                                 ];
-
+                                
                                 // check if any of these elements are visible
                                 const ignoreVisible = ignoreClasses.some(cls => $(`.${cls}:visible`).length);
-                                if (ignoreVisible) return;
+                                if (ignoreVisible) return false;
 
-                                // ignore textarea
-                                if (event.target.tagName === "TEXTAREA") return;
+                                // ignore textarea and inputs
+                                return !(event.target.tagName === "TEXTAREA" || event.target.nodeName === "INPUT");
+                            };
 
+                            // Close the dialog when the user presses escape in the dialog.
+                            dialog.element.on("keyup", function(event) {
+                                if (!event.key || event.key.toLowerCase() !== "escape") return;
+                                
+                                if(!allowKeyAction(event)) return;
+                                
+                                reject({ userPressedCancel: true })
+                                dialog.close(event);
+                            });
+                            
+                            // Trigger the OK button click when the user presses enter in the dialog.
+                            dialog.element.on("keyup", function(event) {
+                                if (!event.key || event.key.toLowerCase() !== "enter") return;
+                                
+                                if(!allowKeyAction(event)) return;
+                                
                                 // trigger the OK button
                                 $(event.currentTarget)
                                     .next()
