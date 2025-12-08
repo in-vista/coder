@@ -269,6 +269,23 @@ const moduleSettings = {
         }
 
         closeForm() {
+            const form = $(this.taskForm); 
+
+            // Clear fields
+            form.find("input[type=text], textarea").val("");
+            form.find("input[type=checkbox]").prop("checked", false);
+
+            // Reset DatePicker
+            const datepicker = $("#taskDate").data("kendoDatePicker");
+            if (datepicker) datepicker.value(null);
+
+            // Reset MultiSelect
+            const multiselect = $("#taskUsers").data("kendoMultiSelect");
+            if (multiselect) multiselect.value([]);
+
+            // Reset datepicker
+            datepicker.value(new Date());
+            
             this.taskForm.classList.remove("active");
         }
 
