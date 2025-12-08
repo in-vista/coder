@@ -609,7 +609,7 @@ const moduleSettings = {
                 console.error(exception);
                 Wiser.alert({
                     title: "Ophalen dataselector data mislukt",
-                    content: "Het ophalen van de data selector data is mislukt. Probeer het a.u.b. nogmaals, of neem contact met ons op."
+                    content: "Het ophalen van de data selector data is mislukt. Probeer het a.u.b. nogmaals."
                 });
             }
         }
@@ -1256,7 +1256,7 @@ const moduleSettings = {
             if (!saveSuccessful) {
                 Wiser.alert({
                     title: "Opslaan mislukt",
-                    content: "Het opslaan van het dashboard layout is mislukt. Probeer het a.u.b. nogmaals door de layout nogmaals aan te passen, of neem contact op met ons."
+                    content: "Het opslaan van het dashboard layout is mislukt. Probeer het a.u.b. nogmaals door de layout nogmaals aan te passen."
                 });
             }
         }

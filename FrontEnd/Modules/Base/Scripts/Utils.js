@@ -87,7 +87,7 @@ export class Modules {
         } catch (exception) {
             if (exception.status !== 404) {
                 console.error("Error while getting module settings", exception);
-                kendo.alert("Er is iets fout gegaan met het ophalen van de instellingen voor deze module. Neem a.u.b. contact op met ons.");
+                kendo.alert("Er is iets fout gegaan met het ophalen van de instellingen voor deze module.");
             }
             return {};
         }
@@ -415,7 +415,7 @@ export class Wiser {
             return result;
         } catch (exception) {
             console.error("Error while getting logged in user data", exception);
-            kendo.alert("Er is iets fout gegaan met het ophalen van instellingen (logged in user data) die nodig zijn voor bepaalde functionaliteit. Neem a.u.b. contact op met ons.");
+            kendo.alert("Er is iets fout gegaan met het ophalen van instellingen (logged in user data) die nodig zijn voor bepaalde functionaliteit.");
             return {};
         }
     }
@@ -634,12 +634,12 @@ export class Wiser {
             try {
                 // Initial checks.
                 if (!apiConnectionId) {
-                    reject("Er is geen 'apiConnectionId' ingesteld. Neem a.u.b. contact op met ons.");
+                    reject("Er is geen 'apiConnectionId' ingesteld.");
                     return;
                 }
 
                 if (!settings || !settings.serviceRoot) {
-                    reject("Er is geen 'serviceRoot' ingesteld. Neem a.u.b. contact op met ons.");
+                    reject("Er is geen 'serviceRoot' ingesteld.");
                     return;
                 }
 
@@ -648,7 +648,7 @@ export class Wiser {
                 // Get the settings.
                 const apiConnectionData = await Wiser.api({ url: `${settings.wiserApiRoot}api-connections/${apiConnectionId}` });
                 if (!apiConnectionData || !apiConnectionData.options) {
-                    reject("Er werd geprobeerd om een API aan te roepen, echter zijn er niet genoeg gegevens bekend. Neem a.u.b. contact op met ons.");
+                    reject("Er werd geprobeerd om een API aan te roepen, echter zijn er niet genoeg gegevens bekend.");
                     window.processing.removeProcess(process);
                     return;
                 }
@@ -664,7 +664,7 @@ export class Wiser {
                 const extraHeaders = apiOptions.extraHeaders || {};
 
                 if (!apiOptions.baseUrl) {
-                    reject("Er werd geprobeerd om een API aan te roepen, echter zijn er niet genoeg gegevens bekend. Neem a.u.b. contact op met ons.");
+                    reject("Er werd geprobeerd om een API aan te roepen, echter zijn er niet genoeg gegevens bekend.");
                     window.processing.removeProcess(process);
                     return;
                 }
@@ -681,7 +681,7 @@ export class Wiser {
                             await Wiser.doOauth2Authentication(settings, apiOptions, apiConnectionId, authenticationData, extraHeaders, itemDetails, extraData, success, reject);
                             break;
                         default:
-                            reject("Geen of onbekend authenticatie-type opgegeven. Neem a.u.b. contact op met ons.");
+                            reject("Geen of onbekend authenticatie-type opgegeven.");
                             window.processing.removeProcess(process);
                             return;
                     }
@@ -895,7 +895,7 @@ export class Wiser {
             } else {
                 // We have no refresh token and no authentication token, this means the user must manually login first (that is how OAUTH2 works).
                 if (!apiOptions.authentication.authUrl || !apiOptions.authentication.clientId || !apiOptions.authentication.callBackUrl) {
-                    reject("Er werd geprobeerd om een API aan te roepen, echter zijn er niet genoeg gegevens bekend voor de authenticatie. Neem a.u.b. contact op met ons.");
+                    reject("Er werd geprobeerd om een API aan te roepen, echter zijn er niet genoeg gegevens bekend voor de authenticatie.");
                     return;
                 }
 
@@ -953,7 +953,7 @@ export class Wiser {
      */
     static async onHtmlEditorFileExec(event, kendoEditor, moduleName, filesRootId) {
         if (!filesRootId) {
-            kendo.alert("Er is nog geen 'filesRootId' ingesteld in de database. Neem a.u.b. contact op met ons om dit te laten instellen.");
+            kendo.alert("Er is nog geen 'filesRootId' ingesteld in de database.");
         } else {
             const fileManagerWindowSender = { kendoEditor: kendoEditor, codeMirror: null, contentbuilder: null };
             const fileManagerWindowMode = this.fileManagerModes.files;
@@ -973,7 +973,7 @@ export class Wiser {
      */
     static async onHtmlEditorImageExec(event, kendoEditor, moduleName, imagesRootId) {
         if (!imagesRootId) {
-            kendo.alert("Er is nog geen 'imagesRootId' ingesteld in de database. Neem a.u.b. contact op met ons om dit te laten instellen.");
+            kendo.alert("Er is nog geen 'imagesRootId' ingesteld in de database.");
         } else {
             const fileManagerWindowSender = { kendoEditor: kendoEditor, codeMirror: null, contentbuilder: null };
             const fileManagerWindowMode = this.fileManagerModes.images;
@@ -1050,7 +1050,7 @@ export class Wiser {
             translationsDialog.open();
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. nogmaals.");
         }
     }
 
@@ -1106,7 +1106,7 @@ export class Wiser {
                 }
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan tijdens het uitvoeren (of opzoeken) van de actie 'api_after_update'. Indien er een koppeling is opgezet met een extern systeem, dan zijn de wijzigingen nu niet gesynchroniseerd naar dat systeem. Probeer het a.u.b. nogmaals, of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan tijdens het uitvoeren (of opzoeken) van de actie 'api_after_update'. Indien er een koppeling is opgezet met een extern systeem, dan zijn de wijzigingen nu niet gesynchroniseerd naar dat systeem. Probeer het a.u.b. nogmaals.");
             }
 
             return {
@@ -1125,7 +1125,7 @@ export class Wiser {
             } else if (exception.statusText) {
                 error = exception.statusText;
             }
-            kendo.alert(`Er is iets fout gegaan met het aanmaken van het item. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
+            kendo.alert(`Er is iets fout gegaan met het aanmaken van het item. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
             return null;
         }
     }
@@ -1175,13 +1175,13 @@ export class Wiser {
                 }
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan tijdens het uitvoeren (of opzoeken) van de actie 'api_after_update'. Indien er een koppeling is opgezet met een extern systeem, dan zijn de wijzigingen nu niet gesynchroniseerd naar dat systeem. Probeer het a.u.b. nogmaals, of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan tijdens het uitvoeren (of opzoeken) van de actie 'api_after_update'. Indien er een koppeling is opgezet met een extern systeem, dan zijn de wijzigingen nu niet gesynchroniseerd naar dat systeem. Probeer het a.u.b. nogmaals.");
             }
 
             return updateResult;
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan tijdens opslaan van de wijzigingen. Probeer het a.u.b. nogmaals, of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens opslaan van de wijzigingen. Probeer het a.u.b. nogmaals.");
             return false;
         }
     }
@@ -1201,7 +1201,7 @@ export class Wiser {
             }
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan tijdens het uitvoeren (of opzoeken) van de actie 'api_before_delete'. Hierdoor is het betreffende item ook niet uit Coder verwijderd. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het uitvoeren (of opzoeken) van de actie 'api_before_delete'. Hierdoor is het betreffende item ook niet uit Coder verwijderd. Probeer het a.u.b. nogmaals.");
             return new Promise((resolve, reject) => {
                 reject(exception);
             });
@@ -1216,7 +1216,7 @@ export class Wiser {
     }
 
     /**
-     * Moves an item from archive back to the default tables again, so that it can be used again..
+     * Moves an item from archive back to the default tables again, so that it can be used again.
      * @param {any} moduleSettings The settings of the module that calls this method. This needs to contain at least the "wiserApiRoot" property.
      * @param {string} encryptedItemId The encrypted item ID.
      * @param {string} entityType The entity type of the item to undelete.
@@ -1266,7 +1266,7 @@ export class Wiser {
             };
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan met het dupliceren van het item. Neem a.u.b. contact op met ons.");
+            kendo.alert("Er is iets fout gegaan met het dupliceren van het item.");
             return {};
         }
     }
@@ -1327,14 +1327,14 @@ export class Wiser {
             icon: "save",
             click: async (event) => {
                 if (!fileManagerWindowSender) {
-                    kendo.alert("Er is geen HTML editor gevonden waar dit bestand toegevoegd kan worden. Sluit aub dit scherm en probeer het opnieuw, of neem contact op met ons.");
+                    kendo.alert("Er is geen HTML editor gevonden waar dit bestand toegevoegd kan worden. Sluit aub dit scherm en probeer het opnieuw.");
                     return;
                 }
 
                 let html = "";
 
                 if (!fileManagerIframe || !fileManagerIframe.contentWindow || !fileManagerIframe.contentWindow.document) {
-                    kendo.alert("Het iframe voor bestandsbeheer kon niet gevonden worden of is leeg. Ververs a.u.b. de tab waar Coder in draait en probeer het opnieuw, of neem contact op met ons.");
+                    kendo.alert("Het iframe voor bestandsbeheer kon niet gevonden worden of is leeg. Ververs a.u.b. de tab waar Coder in draait en probeer het opnieuw.");
                     return;
                 }
 
@@ -1373,7 +1373,7 @@ export class Wiser {
                         break;
                     }
                     default: {
-                        kendo.alert(`Onbekende mode ('${this.fileManagerModes}') voor bestandsbeheer. Sluit a.u.b. dit scherm en probeer het opnieuw, of neem contact op met ons.`)
+                        kendo.alert(`Onbekende mode ('${this.fileManagerModes}') voor bestandsbeheer. Sluit a.u.b. dit scherm en probeer het opnieuw.`)
                         return;
                     }
                 }

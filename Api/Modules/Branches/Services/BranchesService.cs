@@ -139,7 +139,7 @@ namespace Api.Modules.Branches.Services
                 return new ServiceResult<TenantModel>
                 {
                     StatusCode = HttpStatusCode.Conflict,
-                    ErrorMessage = $"We hebben geprobeerd een database aan te maken met de naam '{databaseName}', echter bestaat deze al. Kies a.u.b. een andere naam, of neem contact op met ons."
+                    ErrorMessage = $"We hebben geprobeerd een database aan te maken met de naam '{databaseName}', echter bestaat deze al. Kies a.u.b. een andere naam."
                 };
             }
 

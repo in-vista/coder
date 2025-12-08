@@ -443,7 +443,7 @@ const moduleSettings = {
                                     this.createNewTemplate(parentId, title, type, treeView, !parentId || isFromRootItem ? undefined : selectedTreeViewNode);
                                 } catch (exception) {
                                     console.error(exception);
-                                    kendo.alert("Er is iets fout gegaan. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+                                    kendo.alert("Er is iets fout gegaan. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
                                 }
                             }
                         }
@@ -453,7 +453,7 @@ const moduleSettings = {
                 dialog.open();
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+                kendo.alert("Er is iets fout gegaan. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
             }
         }
 
@@ -770,7 +770,7 @@ const moduleSettings = {
                     });
                     break;
                 default:
-                    kendo.alert(`Onbekende actie '${action}'. Probeer het a.u.b. opnieuw op neem contact op.`);
+                    kendo.alert(`Onbekende actie '${action}'. Probeer het a.u.b. opnieuw.`);
                     break;
             }
 
@@ -1088,7 +1088,7 @@ const moduleSettings = {
                 dynamicGridDiv.on("dblclick", "tr.k-selected", this.onDynamicContentOpenClick.bind(this));
             } catch (exception) {
                 console.error(exception);
-                kendo.alert(`Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.<br>${exception.responseText || exception}`);
+                kendo.alert(`Er is iets fout gegaan. Probeer het a.u.b. opnieuw.<br>${exception.responseText || exception}`);
                 window.processing.removeProcess(process);
             }
         }
@@ -1175,7 +1175,7 @@ const moduleSettings = {
                     conflictedWith: conflictedWith
                 };
             } catch (exception) {
-                kendo.alert(`Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.<br>${exception.responseText || exception}`);
+                kendo.alert(`Er is iets fout gegaan. Probeer het a.u.b. opnieuw.<br>${exception.responseText || exception}`);
                 window.processing.removeProcess(process);
             }
         }
@@ -1762,7 +1762,7 @@ const moduleSettings = {
                         this.dynamicContentGrid.dataSource.read();
                     }).fail((jqXhr, textStatus, errorThrown) => {
                         console.error(errorThrown);
-                        kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                        kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals.");
                     });
             })
 
@@ -2097,7 +2097,7 @@ const moduleSettings = {
                 window.popupNotification.show(`Template '${id}' is succesvol hernoemd naar '${newName}'`, "info");
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan, probeer het a.u.b. opnieuw of neem contact op.");
+                kendo.alert("Er is iets fout gegaan, probeer het a.u.b. opnieuw.");
                 success = false;
             }
 
@@ -2125,7 +2125,7 @@ const moduleSettings = {
                 window.popupNotification.show(`Template '${id}' is succesvol verwijderd`, "info");
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan, probeer het a.u.b. opnieuw of neem contact op.");
+                kendo.alert("Er is iets fout gegaan, probeer het a.u.b. opnieuw.");
                 success = false;
             }
 
@@ -2419,7 +2419,7 @@ const moduleSettings = {
                 }
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan, probeer het a.u.b. opnieuw of neem contact op.");
+                kendo.alert("Er is iets fout gegaan, probeer het a.u.b. opnieuw.");
                 success = false;
             }
 
@@ -2475,7 +2475,7 @@ const moduleSettings = {
                 this.treeViewTabStrip.select(searchResultsTab);
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan, probeer het a.u.b. opnieuw of neem contact op.");
+                kendo.alert("Er is iets fout gegaan, probeer het a.u.b. opnieuw.");
             }
 
             container.removeClass("loading");
@@ -2555,7 +2555,7 @@ const moduleSettings = {
                 });
                 window.Wiser.createHistoryDiffFields(document.getElementById("historyContainer"));
             } catch (exception) {
-                kendo.alert("Er is iets fout gegaan met het laden van de historie. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan met het laden van de historie. Probeer het a.u.b. opnieuw.");
                 console.error(exception);
             }
 
@@ -2597,7 +2597,7 @@ const moduleSettings = {
                 window.Wiser.createHistoryDiffFields(document.getElementById("historyContainer"));
                 this.lastLoadedHistoryPartNumber++;
             } catch (exception) {
-                kendo.alert("Er is iets fout gegaan met het laden van de historie. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan met het laden van de historie. Probeer het a.u.b. opnieuw.");
                 console.error(exception);
             }
 
@@ -2822,7 +2822,7 @@ const moduleSettings = {
                 await this.updateRenderingDataOnMeasurementsTab(templateId);
                 this.renderingLogsChart.resize();
             } catch (exception) {
-                kendo.alert("Er is iets fout gegaan met het laden van de metingen. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan met het laden van de metingen. Probeer het a.u.b. opnieuw.");
                 console.error(exception);
             }
 
@@ -2856,7 +2856,7 @@ const moduleSettings = {
             }
             catch (exception) {
                 console.error(error);
-                kendo.alert("Er is iets fout gegaan met het opslaan van de instellingen. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan met het opslaan van de instellingen. Probeer het a.u.b. opnieuw.");
             }
             finally {
                 window.processing.removeProcess(saveProcess);
@@ -2943,7 +2943,7 @@ const moduleSettings = {
             }
             catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het ophalen van gegevens. Probeer het a.u.b. opnieuw of neem contact op met ons.")
+                kendo.alert("Er is iets fout gegaan met het ophalen van gegevens. Probeer het a.u.b. opnieuw.")
             }
             finally {
                 window.processing.removeProcess(process);
@@ -3003,7 +3003,7 @@ const moduleSettings = {
                 }
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op.");
+                kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
                 success = false;
             }
 
@@ -3129,7 +3129,7 @@ const moduleSettings = {
                 window.popupNotification.show(`Templates van Coder 1 zijn succesvol geïmporteerd.`, "info");
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan, probeer het a.u.b. opnieuw of neem contact op.");
+                kendo.alert("Er is iets fout gegaan, probeer het a.u.b. opnieuw.");
             }
 
             window.processing.removeProcess(process);

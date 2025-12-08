@@ -19,7 +19,7 @@ export default class CacheService extends BaseService {
             } else if (error.response && error.response.statusText) {
                 errorMessage = error.response.statusText;
             }
-            result.message = `Er is iets fout gegaan tijdens het legen van de cache. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br>${errorMessage}`;
+            result.message = `Er is iets fout gegaan tijdens het legen van de cache. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br>${errorMessage}`;
             if (error.response) {
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
