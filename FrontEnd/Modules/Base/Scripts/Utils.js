@@ -1426,7 +1426,7 @@ export class Wiser {
 
         // Some things should not be done if we're in iframe mode.
         if (iframeMode || gridviewMode) {
-            return;
+            return fileManagerWindow;
         }
 
         if (fileManagerWindowSender.contentBuilder !== null) {
