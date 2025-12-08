@@ -46,7 +46,7 @@
         hoverTimers = {};
         domain = "https://koks.reservery.dev";
     
-        constructor() {
+        constructor() {            
             this.init();
         }
     
@@ -65,9 +65,9 @@
                 dateFormat: "dd-mm-YYYY",
                 locale: "nl", // Nederlands
                 clickOpens: false, // we openen handmatig
-                onChange: function(selectedDates) {
-                    timelineScheduler.currentDate = selectedDates[0];
-                    timelineScheduler.updateDateDisplay();
+                onChange: (selectedDates) => {
+                    this.currentDate = selectedDates[0];
+                    this.updateDateDisplay();
                 }
             });
     
@@ -205,26 +205,26 @@
             // Change view when clicking list or timeline view
             const timelineBtn = document.getElementById("timeline-view-btn");
             const listBtn = document.getElementById("list-view-btn");
-            const timelineScheduler = document.querySelector(".scheduler");
+            const timelineSchedulerEl = document.querySelector(".scheduler");
             const listView = document.getElementById("list-view");
             timelineBtn.addEventListener("click", () => {
                 timelineBtn.classList.add("active");
                 listBtn.classList.remove("active");
 
-                timelineScheduler.classList.remove("hidden");
+                timelineSchedulerEl.classList.remove("hidden");
                 listView.classList.add("hidden");
 
-                this.renderReservations(); // timeline terug opbouwen
+                this.renderReservations();
             });
 
             listBtn.addEventListener("click", () => {
                 listBtn.classList.add("active");
                 timelineBtn.classList.remove("active");
 
-                timelineScheduler.classList.add("hidden");
+                timelineSchedulerEl.classList.add("hidden");
                 listView.classList.remove("hidden");
 
-                this.renderListView();
+                this.renderReservations(); 
             });
 
             // Automatic refresh every x minutes
@@ -410,46 +410,67 @@
             });
         }
     
-    
         updateCurrentTimeLine() {
-            const line = document.getElementById('current-time-line');
             const now = new Date();
-    
-            // Only show line on the current date
-            if (this.currentDate.toDateString() !== now.toDateString()) {
-                line.style.display = 'none';
-                return;
+            const currentDateIsNow = (this.currentDate.toDateString() === now.toDateString());
+
+            if (document.getElementById("list-view-btn").classList.contains("active")) {
+                // For list view
+                
+                // Only set active time on the current date
+                if (!currentDateIsNow) {
+                    document.querySelectorAll(".activeTime").forEach(el => {
+                        el.classList.remove("activeTime");
+                    });
+                    return;
+                }
+                                 
+                const minutes = now.getMinutes();
+                const quarter = Math.floor(minutes / 15); // Bereken het kwartier (0 = 00-14, 1 = 15-29, 2 = 30-44, 3 = 45-59)
+                const quarterLabel = `${now.getHours().toString().padStart(2,'0')}:${(quarter*15).toString().padStart(2,'0')}`; // bv. "13:00", "13:15"
+                const element = Array.from(document.querySelectorAll(".timeLabel")).find(el => el.innerText === quarterLabel);
+                element.classList.add("activeTime");
             }
-    
-            let nowHour = now.getHours();
-            let nowMinute = now.getMinutes();
-    
-            // totale tijd in uren
-            let nowInHours = nowHour + nowMinute / 60;
-    
-            let start = this.startTime;
-            let end = this.endTime > this.startTime ? this.endTime : this.endTime + 24;
-    
-            // corrigeer voor tijd na middernacht
-            let nowAdjusted = nowInHours;
-            if (nowInHours < start) nowAdjusted += 24;
-    
-            if (nowAdjusted >= start && nowAdjusted <= end) {
-                // totaal aantal kwartieren vanaf starttijd
-                const totalQuartersFromStart = (nowAdjusted - start) * this.quartersPerHour;
-                const pixelsFromStart = 120 + (totalQuartersFromStart * this.cellWidth);
-                line.style.left = pixelsFromStart + 'px';
-                line.style.display = 'block';
-            } else {
-                line.style.display = 'none';
+            else {
+                // For timeline view
+                const line = document.getElementById('current-time-line');
+
+                // Only show line on the current date
+                if (!currentDateIsNow) {
+                    line.style.display = 'none';
+                    return;
+                }
+
+                let nowHour = now.getHours();
+                let nowMinute = now.getMinutes();
+
+                // totale tijd in uren
+                let nowInHours = nowHour + nowMinute / 60;
+
+                let start = this.startTime;
+                let end = this.endTime > this.startTime ? this.endTime : this.endTime + 24;
+
+                // corrigeer voor tijd na middernacht
+                let nowAdjusted = nowInHours;
+                if (nowInHours < start) nowAdjusted += 24;
+
+                if (nowAdjusted >= start && nowAdjusted <= end) {
+                    // totaal aantal kwartieren vanaf starttijd
+                    const totalQuartersFromStart = (nowAdjusted - start) * this.quartersPerHour;
+                    const pixelsFromStart = 120 + (totalQuartersFromStart * this.cellWidth);
+                    line.style.left = pixelsFromStart + 'px';
+                    line.style.display = 'block';
+                } else {
+                    line.style.display = 'none';
+                }    
             }
         }
     
         formatDate(date){
             return date.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         }
-    
-        async updateDateDisplay() {
+
+        updateDateDisplay = async () => {
             const currentDateSpan = document.getElementById("current-date");
             currentDateSpan.innerText = this.formatDate(this.currentDate);
     
@@ -638,38 +659,48 @@
         }
     
         renderReservations(){
+            if (document.getElementById("list-view-btn").classList.contains("active")){
+                this.renderListView();
+            }
+            else {
+                this.renderTimelineView();   
+            }
+            this.updateCurrentTimeLine();
+        }
+        
+        renderTimelineView() {
             this.container.innerHTML = "";
-    
+
             for(const [groupName, tables] of Object.entries(this.tableGroups)){
                 const groupHeader = document.createElement("div");
                 groupHeader.classList.add("group-header");
-    
+
                 // Add active class if room/group is active from database (user setting)
                 if (tables[0].roomActive) {
                     groupHeader.classList.add("active");
                 }
-    
+
                 const groupLabel = document.createElement("div");
                 groupLabel.classList.add("group-label");
                 groupLabel.innerText = groupName;
                 groupHeader.appendChild(groupLabel);
-    
+
                 groupHeader.addEventListener("click", ()=>{
                     groupHeader.classList.toggle("active"); // Set or remove "active" class
-    
+
                     const rows = document.querySelectorAll(`[data-group='${groupName}']`);
                     rows.forEach(r=>r.style.display = r.style.display==='none'?'':'none');
-    
+
                     // Pas de lokale tableGroups aan, zodat de instelling onthouden blijft als je van dag wisselt
                     this.tableGroups[groupName].forEach(e => {e.roomActive = e.roomActive === 1 ? 0 : 1});
-    
+
                     // Sla nieuwe instelling op bij gebruiker
                     let activeGroups = Array.from(document.querySelectorAll(".group-header.active")).map(el => el.innerText.trim()).join(",");
                     axios.post(`${this.domain}/template.gcl?templateName=saveGroupSettingsFromTimeline&userId=${dynamicItems.base.settings.userId}`, {"activeGroups": activeGroups}, {headers: {'Content-Type': 'multipart/form-data'}});
                 });
-    
+
                 this.container.appendChild(groupHeader);
-    
+
                 tables.forEach(table=>{
                     const row = document.createElement("div");
                     row.classList.add("table-row");
@@ -678,28 +709,28 @@
                     }
                     row.dataset.table = table.id;
                     row.dataset.group = groupName;
-    
+
                     const label = document.createElement("div");
                     label.classList.add("table-label");
                     label.innerText = table.text;
                     row.appendChild(label);
-    
+
                     if (table.onlineState === '1') {
                         const onlineState = document.createElement("div");
                         onlineState.classList.add("table-online-state");
                         label.appendChild(onlineState);
                     }
-    
+
                     if (table.capacity) {
                         const capacity = document.createElement("div");
                         capacity.classList.add("table-capacity");
                         capacity.innerText = table.capacity;
                         label.appendChild(capacity);
                     }
-    
+
                     const timeline = document.createElement("div");
                     timeline.classList.add("timeline");
-    
+
                     for(let i=0;i<this.totalQuarters;i++){
                         const cell = document.createElement("div");
                         cell.classList.add("quarter-cell");
@@ -710,7 +741,7 @@
                         if(!this.isInsideWorkTime(hour)) cell.classList.add("outside-work");
                         timeline.appendChild(cell);
                     }
-    
+
                     // ---------- RESERVERINGEN ----------
                     this.reservations.filter(r=>r.table===table.id).forEach(res=>{
                         const getOffset = (hour, nextDay) => {
@@ -721,13 +752,13 @@
                                 return ((hour-this.startTime)%24)*this.quartersPerHour*this.cellWidth;
                             }
                         }
-    
+
                         const getWidth = (start, end) => {
                             let diff = end - start;
                             if (diff < 0) diff += 24; // als eindtijd < starttijd → volgende dag
                             return diff * this.quartersPerHour * this.cellWidth;
                         }
-    
+
                         const block = document.createElement("div");
                         block.classList.add("reservation");
                         block.style.left = getOffset(res.start, new Date(res.startDate).getDate() !== this.currentDate.getDate())+'px';
@@ -781,7 +812,7 @@
                         handle.classList.add("resize-handle");
                         block.appendChild(handle);
                         this.addDragResize(block,res,handle);
-    
+
                         // Reservation hover
                         const hover = document.createElement("div");
                         hover.id = `hover${res.reservationId}${res.table}`;
@@ -834,7 +865,7 @@
                             phoneNumberHtml += '</span><br />';
                         }
                         hover.innerHTML = hover.innerHTML.replace("{phoneNumbers}",phoneNumberHtml);
-    
+
                         // Selecteer de edit-button binnen hover
                         const editBtn = hover.querySelector(".edit-button");
                         if (editBtn) {
@@ -843,102 +874,81 @@
                                 timelineScheduler.openReservationInCoder(res.reservationIdEncrypted);
                             });
                         }
-    
+
                         // Inchecken
                         const checkInButton = hover.querySelector(".check-in");
                         if (checkInButton) {
                             checkInButton.addEventListener("click", function(event) {
                                 event.preventDefault();
-                                axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkInFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}})
-                                    .then(response => {
-                                        timelineScheduler.showToast("Inchecken succesvol", { type: "success" });
-                                    }).catch(error => {
-                                        timelineScheduler.showToast("Inchecken mislukt", { type: "error" });
-                                });                                
-                                const elementsIn = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-in`);
-                                elementsIn.forEach(el => {
-                                    el.style.display = 'none';
-                                });
-                                const elementsOut = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-out`);
-                                elementsOut.forEach(el => {
-                                    el.style.display = 'inline-flex';
-                                });
+                                timelineScheduler.checkIn(res);
                             });
                         }
-    
+
                         // Uitchecken
-                        const checkOutButton = hover.querySelector(".check-out");                        
+                        const checkOutButton = hover.querySelector(".check-out");
                         if (checkOutButton) {
                             checkOutButton.addEventListener("click", function(event) {
                                 event.preventDefault();
-                                axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkOutFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}})  .then(response => {
-                                    timelineScheduler.showToast("Uitchecken succesvol", { type: "success" });
-                                }).catch(error => {
-                                    timelineScheduler.showToast("Uitchecken mislukt", { type: "error" });
-                                });
-                                const elements = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-out`);
-                                elements.forEach(el => {
-                                    el.style.display = 'none';
-                                });
+                                timelineScheduler.checkOut(res);
                             });
                         }
-    
+
                         // logica voor inline editing notes
                         const notesDiv = hover.querySelector(".hover-reservation-notes");
                         const editArea = hover.querySelector(".hover-edit-area");
                         const textarea = hover.querySelector(".hover-notes-textarea");
-    
+
                         // klik op notitie zelf -> editmodus
                         notesDiv.addEventListener("click", () => {
                             notesDiv.style.display = "none";
                             editArea.style.display = "block";
                             textarea.focus();
                         });
-    
+
                         hover.querySelector(".hover-save").addEventListener("click", () => {
                             const newNotes = textarea.value.trim();
                             notesDiv.textContent = newNotes || "—";
                             notesDiv.style.display = "block";
                             editArea.style.display = "none";
-    
+
                             // update in je model
                             res.notes = newNotes;
-    
+
                             // direct naar backend sturen
                             axios.post(`${this.domain}/template.gcl?templateName=saveNotesFromTimline`, res, {headers: {'Content-Type': 'multipart/form-data'}});
                         });
-    
+
                         hover.querySelector(".hover-cancel").addEventListener("click", () => {
                             textarea.value = res.notes || "";
                             notesDiv.style.display = "block";
                             editArea.style.display = "none";
                         });
-    
+
                         this.attachHoverHandlers(block, hover, res);
-    
+
                         timeline.appendChild(block);
                         timeline.appendChild(hover);
                     });
-    
+
                     // draw-to-create: correct berekenen t.o.v. timeline (ipv e.offsetX van cell)
                     let isDrawing = false;
                     let drawStartX = 0;
                     let ghostBlock = null;
                     const self = this;
                     const tl = timeline; // closure reference
-    
+
                     function startDrawing(e) {
                         // alleen linkermuisknop, en niet op bestaande reservering / resize-handle
                         if (e.button !== 0) return;
                         if (e.target.closest('.reservation') || e.target.classList?.contains('resize-handle')) return;
                         if (self.activeDrag) return; // geen create tijdens drag van reservering
-    
+
                         const rect = tl.getBoundingClientRect();
                         drawStartX = e.clientX - rect.left + tl.scrollLeft; // correcte startposition tov timeline content
                         isDrawing = true;
                         document.querySelectorAll(".hover").forEach(e => {e.style.display="none"}); // Verberg alle actieve hovers
                         timelineScheduler.suppressHover = true;
-    
+
                         ghostBlock = document.createElement('div');
                         ghostBlock.className = 'reservation ghost';
                         ghostBlock.style.backgroundColor = '#95a5a6';
@@ -947,33 +957,33 @@
                         ghostBlock.style.opacity = '0.6';
                         ghostBlock.style.pointerEvents = 'none';
                         tl.appendChild(ghostBlock);
-    
+
                         // gebruik document listeners zodat we ook buiten de timeline kunnen tekenen
                         document.addEventListener('mousemove', onDrawingMove);
                         document.addEventListener('mouseup', onDrawingEnd);
-    
+
                         // voorkom select / text highlight tijdens drag
                         e.preventDefault();
                     }
-    
+
                     function onDrawingMove(ev) {
                         if (!isDrawing || !ghostBlock) return;
                         const rect = tl.getBoundingClientRect();
                         const currentX = ev.clientX - rect.left + tl.scrollLeft;
                         const left = Math.min(drawStartX, currentX);
                         const width = Math.max(2, Math.abs(currentX - drawStartX)); // min width
-    
+
                         ghostBlock.style.left = left + 'px';
                         ghostBlock.style.width = width + 'px';
                     }
-    
+
                     async function onDrawingEnd(ev) {
                         if (!isDrawing || !ghostBlock) return;
                         // compute final positions            
                         const startPixels = parseFloat(ghostBlock.style.left);
                         const widthPixels = parseFloat(ghostBlock.style.width);
                         const minWidthForCreation = self.cellWidth; // 1 kwartier
-    
+
                         if (widthPixels < minWidthForCreation) {
                             // Te klein → geen nieuwe reservering
                             ghostBlock.remove();
@@ -984,7 +994,7 @@
                             document.removeEventListener('mouseup', onDrawingEnd);
                             return;
                         }
-    
+
                         // Snap naar kwartieren: start = floor, end = ceil
                         let startQuarters = Math.floor(startPixels / self.cellWidth);
                         let endQuarters = Math.ceil((startPixels + widthPixels) / self.cellWidth);
@@ -996,14 +1006,14 @@
                           // Drag action, calculate end
                           endQuarters = Math.ceil((startPixels + widthPixels) / self.cellWidth);  
                         }*/
-    
+
                         // clamp binnen timeline (0 .. totalQuarters)
                         startQuarters = Math.max(0, Math.min(self.totalQuarters - 1, startQuarters));
                         endQuarters = Math.max(startQuarters + 1, Math.min(self.totalQuarters, endQuarters));
-    
+
                         const startHour = (self.startTime + startQuarters / self.quartersPerHour) % 24;
                         const endHour = (self.startTime + endQuarters / self.quartersPerHour) % 24;
-    
+
                         // maak nieuw object (pas velden aan volgens jouw model)
                         const newReservation = {
                             reservationId: Date.now(), // tijdelijk id
@@ -1023,22 +1033,22 @@
                             numberOfVisits: 0,
                             warning: ""
                         };
-    
+
                         // cleanup
                         ghostBlock.remove();
                         ghostBlock = null;
                         isDrawing = false;
-    
+
                         document.removeEventListener('mousemove', onDrawingMove);
                         document.removeEventListener('mouseup', onDrawingEnd);
-    
+
                         // voeg toe en render
                         self.reservations.push(newReservation);
                         //self.renderReservations();
-    
+
                         // create reservation in database and open new reservation
                         const response  = await axios.post(`${timelineScheduler.domain}/template.gcl?templateName=insertReservationFromTimeline&userName=${dynamicItems.base.settings.username}`, newReservation, {headers: {'Content-Type': 'multipart/form-data'}});
-    
+
                         if (response.data.id) {
                             // open the created reservation
                             newReservation.reservationId = response.data.id;
@@ -1046,9 +1056,9 @@
                             timelineScheduler.openReservationInCoder(newReservation.reservationIdEncrypted);
                         }
                     }
-    
+
                     timeline.addEventListener('mousedown', startDrawing);
-    
+
                     // Dubbelklik: altijd nieuwe reservering op klikpositie
                     timeline.addEventListener('dblclick', async e => {
                         if (e.target.closest('.reservation') || e.target.classList?.contains('resize-handle')) return;
@@ -1057,7 +1067,7 @@
                         const quarter = Math.floor(clickX / self.cellWidth);
                         const startHour = (self.startTime + quarter / self.quartersPerHour) % 24;
                         const endHour = (startHour + 3) % 24; // standaard 3 uur
-    
+
                         const newReservation = {
                             reservationId: Date.now(),
                             reservationIdEncrypted: "",
@@ -1076,13 +1086,13 @@
                             numberOfVisits: 0,
                             warning: ""
                         };
-    
+
                         self.reservations.push(newReservation);
                         //self.renderReservations();
-    
+
                         // create reservation in database and open new reservation
                         const response  = await axios.post(`${this.domain}/template.gcl?templateName=insertReservationFromTimeline&userName=${dynamicItems.base.settings.username}`, newReservation, {headers: {'Content-Type': 'multipart/form-data'}});
-    
+
                         if (response.data.id) {
                             // open the created reservation
                             newReservation.reservationId = response.data.id;
@@ -1090,12 +1100,12 @@
                             timelineScheduler.openReservationInCoder(newReservation.reservationIdEncrypted);
                         }
                     });
-    
+
                     row.appendChild(timeline);
                     this.container.appendChild(row);
                 });
             }
-    
+
             // Fill header with sum of persons for all reservations 
             const headerSumPersons = document.getElementById("header-sum-persons");
             headerSumPersons.innerHTML = "";
@@ -1108,46 +1118,44 @@
                 personsDiv.innerText = this.getPersonsAtTime(time);
                 headerSumPersons.appendChild(personsDiv);
             }
-    
+
             // Give reservations with multiple tables other styling
             const seenIds = new Set();
             const connectedIds = new Set();
             const elements = document.querySelectorAll('.reservation[data-id]');
-    
+
             elements.forEach(el => {
                 const id = el.getAttribute('data-id');
                 if (seenIds.has(id)) {
                     // Duplicate gevonden: maak de tekstkleur iets lichter gebaseerd op achtergrond
                     if (!connectedIds.has(id))
                         connectedIds.add(id);
-    
+
                     const bg = getComputedStyle(el).backgroundColor;
                     el.style.color = this.lightenColor(bg, 0.4);
                 } else {
                     seenIds.add(id);
                 }
             });
-    
+
             elements.forEach(el => {
                 const id = el.getAttribute('data-id');
                 if (connectedIds.has(id)) {
                     el.classList.add('connected');
                 }
-    
+
                 el.addEventListener('mouseenter', () => {
                     document.querySelectorAll(`.reservation[data-id="${id}"]`).forEach(el => {
                         el.classList.add('hovered');
                     });
                 });
-    
+
                 el.addEventListener('mouseleave', () => {
                     document.querySelectorAll(`.reservation[data-id="${id}"]`).forEach(el => {
                         el.classList.remove('hovered');
                     });
                 });
-            });
-    
-            this.updateCurrentTimeLine();
+            });           
         }
     
         // Functie om RGB kleur lichter te maken
@@ -1417,15 +1425,19 @@
             const listView = document.getElementById("list-view");
             listView.innerHTML = ""; // leeg
             const groups = this.groupReservationsByQuarter();
+            
+            if (Object.keys(groups).length === 0){
+                listView.innerHTML = `<div style="margin: 25px;font-size:larger;">Geen reserveringen deze dag</div>`; 
+            }
 
             Object.keys(groups).sort((a,b)=>a-b).forEach(q => {
                 const startHour = q / this.quartersPerHour;
                 const label = `${String(Math.floor(startHour)).padStart(2,'0')}:${String(Math.round((startHour%1)*60)).padStart(2,'0')}`;
                 const totalPersons = groups[q].reduce((sum, r) => sum + (r.numberOfPersons || 0), 0);
-                
+
                 const accordion = document.createElement("div");
                 accordion.className = "list-accordion";
-                accordion.innerText = `${label} — ${groups[q].length} reservering(en) — ${totalPersons} personen`;
+                accordion.innerHTML = `<span class="timeLabel">${label}</span> — ${groups[q].length} reservering(en) — ${totalPersons} personen`;
                 accordion.dataset.slot = q;
 
                 const panel = document.createElement("div");
@@ -1437,42 +1449,30 @@
                     const arrangement = timelineScheduler.arrangements.find(item => item.id === res.arrangement)?.abbreviation;
                     const row = document.createElement("div");
                     row.className = "list-reservation";
-
+                    row.dataset.id = res.reservationId;
                     row.innerHTML = `
                         <span class="status-dot" style="background-color:${res.color}"></span>
-            
                         <span class="customer-name">${res.name}</span>
-            
                         <span class="returning-star">${res.numberOfVisits > 1 ? "⭐" : ""}</span>
-            
                         <span class="persons">${res.numberOfPersons}p</span>
-            
                         <span class="table">${tables}</span>
-            
                         <span class="notes">${res.notes || ""}</span>
-                        
                         ${arrangement ? `<span class="arrangement-badge">${arrangement}</span>` : `<span></span>`}
-            
                         ${res.warning ? `
                             <span class="warning-icon" title="${res.warning}">⚠️</span>
                         ` : `<span></span>`}
-            
-                        <span class="status-badge ${res.checkOut ? "checked-out" : res.checkIn ? "checked-in" : ""}">
-                            ${res.checkOut ? "UITGEHECKT" : res.checkIn ? "INGECHECKT" : ""}
+                        <span class="status-badge${res.checkOut ? " checked-out" : res.checkIn ? " checked-in" : ""}">
+                            ${res.checkOut ? "UITGECHECKT" : res.checkIn ? "INGECHECKT" : ""}
                         </span>
-            
-                        <button class="icon-btn" title="Inchecken">
-                            ${!res.checkIn && !res.checkOut ? "📥" : ""}
-                        </button>
-                        
-                        <button class="icon-btn" title="Uitchecken">
-                            ${res.checkIn && !res.checkOut ? "📤" : ""}
-                        </button>
-                        
-                        <button class="icon-btn" title="Stuur bericht">
-                            ${res.customerFullName !== "Walk-in" ? "✉️" : ""}
+                        <button class="icon-btn">
+                            <div class="check-in" title="Inchecken" style="display: ${!res.checkIn && !res.checkOut ? "block" : "none"};">📥</div>
+                            <div class="check-out" title="Uitchecken" style="display: ${res.checkIn && !res.checkOut ? "block" : "none"};">📤</div>
                         </button>
                     `;
+
+                    //<button className="icon-btn" title="Stuur bericht">
+                    //    ${res.customerFullName !== "Walk-in" ? "✉️" : ""}
+                    //</button>
 
                     // Hover highlight
                     row.addEventListener("mouseenter", () =>
@@ -1487,6 +1487,23 @@
                         timelineScheduler.openReservationInCoder(res.reservationIdEncrypted)
                     );
 
+                    // Actions on check-in and check-out buttons                    
+                    row.querySelectorAll(".icon-btn").forEach(btn => {
+                        btn.addEventListener("click", (e) => {
+                            e.stopPropagation(); // <<< voorkomt dat de rij-click mee vuurt
+
+                            const target = e.target.closest(".check-in, .check-out");
+                            if (!target) return;
+
+                            if (target.classList.contains("check-in")) {
+                                this.checkIn(res);
+                            }
+                            else if (target.classList.contains("check-out")) {
+                                this.checkOut(res);
+                            }
+                        });
+                    });
+
                     panel.appendChild(row);
                 });
 
@@ -1498,6 +1515,65 @@
                 listView.appendChild(panel);
             });
         }
+
+        checkIn(res) {
+            axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkInFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}}).then(response => {
+                timelineScheduler.reservations.find(r => r.reservationId === res.reservationId).checkIn = true;
+                
+                // Timeline view bijwerken
+                const elementsIn = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-in`);
+                elementsIn.forEach(el => {
+                    el.style.display = 'none';
+                });
+                const elementsOut = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-out`);
+                elementsOut.forEach(el => {
+                    el.style.display = 'inline-flex';
+                });
+                
+                // List view bijwerken
+                const row = document.querySelector(`.list-reservation[data-id="${res.reservationId}"]`);
+                if (row) {
+                    const badge = row.querySelector(".status-badge");
+                    if (badge) {
+                        badge.classList.remove("checked-out");
+                        badge.classList.add("checked-in");
+                        badge.innerText = "INGECHECKT";
+                    }
+                }
+                
+                timelineScheduler.showToast("Inchecken succesvol", { type: "success" });
+            }).catch(error => {
+                timelineScheduler.showToast("Inchecken mislukt", { type: "error" });
+            });
+        }
+        
+        checkOut(res) {
+            axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkOutFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}}).then(response => {
+                timelineScheduler.reservations.find(r => r.reservationId === res.reservationId).checkOut = true;
+                
+                // Timeline view bijwerken
+                const elements = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-out`);
+                elements.forEach(el => {
+                    el.style.display = 'none';
+                });
+                
+                // List view bijwerken
+                const row = document.querySelector(`.list-reservation[data-id="${res.reservationId}"]`);
+                if (row) {
+                    const badge = row.querySelector(".status-badge");
+                    if (badge){
+                        badge.classList.remove("checked-in");
+                        badge.classList.add("checked-out");
+                        badge.innerText = "UITGECHECKT";
+                    }
+                }
+                
+                timelineScheduler.showToast("Uitchecken succesvol", { type: "success" });
+            }).catch(error => {
+                timelineScheduler.showToast("Uitchecken mislukt", { type: "error" });
+            });
+        }
+        
     }
 
     // Inject custom Javascript code from the entity property's settings.
