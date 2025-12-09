@@ -1758,7 +1758,7 @@ export class Grids {
      */
     async onClearAllFiltersClick(event, queryId = null) {
         event.preventDefault();
-
+		
         const grid = $(event.target).closest(".k-grid").data("kendoGrid");
         if (!grid) {
             console.error("Grid not found, cannot clear filters.", event, $(event.target).closest(".k-grid"));
@@ -1781,9 +1781,6 @@ export class Grids {
 
         // Clear filters.
         grid.dataSource._filter = undefined;
-        
-        // Mark the grid to be first-load after changing filters.
-        this.mainGridFirstLoad = true;
         
         // Reload overview.
         grid.dataSource.read();
