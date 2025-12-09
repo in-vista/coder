@@ -510,6 +510,25 @@ export class Windows {
 
             await loadPopupContents();
 			
+			// Prepare a local function to unset the top, bottom, left and right CSS properties natively from Kendo if the window element has a maximized class.
+			const unsetTopBottomLeftRightProperties = () => {
+				const windowElement = currentItemWindow.wrapper.closest('.k-window');
+
+				if(!windowElement.hasClass('k-window-maximized'))
+					return;
+
+				windowElement.css({
+					top: '',
+					bottom: '',
+					left: '',
+					right: ''
+				});
+			}
+			
+			// Set a resize bind the window and execute to unset the top, bottom, left and right CSS properties on the element if the window has a maximized class.
+			currentItemWindow.bind('resize', unsetTopBottomLeftRightProperties);
+			unsetTopBottomLeftRightProperties();
+			
 			// Re-render the item window based on the item window mode of the entity.
 			switch(entitySettings.itemWindowMode) {
 				case 'Side':
