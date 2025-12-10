@@ -266,7 +266,10 @@ export class Windows {
 
             windowTitle = !windowTitle ? "" : `${windowTitle}`;
             currentItemWindow.title({
-                text: `<button type='button' class='btn btn-cancel'><ins class='icon-line-exit'></ins><span>Annuleren</span></button>${windowTitle}`,
+                // Text with cancel button next to it.
+                // text: `<button type='button' class='btn btn-cancel'><ins class='icon-line-exit'></ins><span>Annuleren</span></button>${windowTitle}`,
+                // Text with just the window's title.
+                text: `${windowTitle}`,
                 encoded: false
             });
             
