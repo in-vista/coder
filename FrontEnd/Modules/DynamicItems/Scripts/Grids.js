@@ -702,6 +702,9 @@ export class Grids {
                 this.mainGrid.element.on("dblclick", "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
             }
             this.mainGrid.element.find(".k-i-refresh").parent().click(this.base.onMainRefreshButtonClick.bind(this.base));
+            
+            // Resize the height of the grid to fill the remainder of the space.
+            this.mainGrid.element.find('.k-grid-content').css('height', '100%');
         } catch (exception) {
             kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals, of neem contact op met ons.");
             console.error(exception);

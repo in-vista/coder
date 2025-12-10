@@ -91,7 +91,7 @@ body.iframe #alert-pane {
 }
 
 body.gridViewMode:not(.iframe) #gridView {
-    display: block;
+    display: flex;
 }
 
 body.gridViewMode {
