@@ -282,15 +282,17 @@ export class Windows {
             currentItemWindow.wrapper.find(".btn-cancel").click((event) => {
                 currentItemWindow.close();
             });
-
-            const currentZIndex = currentItemWindow.wrapper.css('z-index');
-            const overlayElement = $('.k-overlay').filter(function() {
-                return Number($(this).css('z-index')) === currentZIndex - 1;
-            });
             
-            overlayElement.click(() => {
-                currentItemWindow.close();
-            });
+            setTimeout(() => {
+                const currentZIndex = currentItemWindow.wrapper.css('z-index');
+                const overlayElement = $('.k-overlay').filter(function() {
+                    return Number($(this).css('z-index')) === currentZIndex - 1;
+                });
+                
+                overlayElement.click(() => {
+                    currentItemWindow.close();
+                });
+            }, 400);
 
             const afterSave = async () => {
                 isNewItem = false;
