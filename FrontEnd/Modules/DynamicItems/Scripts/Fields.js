@@ -3933,6 +3933,10 @@ export class Fields {
     async onFieldValueChange(event, options = {}) {
         const fieldContainer = (event.sender ? event.sender.element : $(event.currentTarget)).closest(".item");
         const itemContainer = fieldContainer.closest("#right-pane, .popup-container");
+        const itemId = itemContainer?.data('itemId')
+            ?? (window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId);
+        const entityType = itemContainer?.data('entityType')
+            ?? (window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.entityType : window.dynamicItems.settings.entityType);
         const saveOnChange = fieldContainer.data("saveOnChange");
         if (saveOnChange) {
             let saveButton = itemContainer.find(".saveBottomPopup");
@@ -3946,7 +3950,6 @@ export class Fields {
 
         // If a queryIdOnChange is given in the options, then execute the query on change of the input
         if (options.queryIdOnChange ?? 0 > 0) {
-            const itemIdEncrypted = window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId;
             const data = {};
             data.value = event.sender.value();
             data.itemId = fieldContainer.data().itemId;
@@ -3954,7 +3957,7 @@ export class Fields {
             data.propertyName = fieldContainer.data().propertyName;   
             
             await Wiser.api({                
-                url: dynamicItems.settings.wiserApiRoot + "items/" + encodeURIComponent(itemIdEncrypted) + "/action-button/" + fieldContainer.data().propertyId + "?queryId=" + encodeURIComponent(options.queryIdOnChange) + "&itemLinkId=" + encodeURIComponent(fieldContainer.data().itemLinkId),
+                url: dynamicItems.settings.wiserApiRoot + "items/" + encodeURIComponent(itemId) + "/action-button/" + fieldContainer.data().propertyId + "?queryId=" + encodeURIComponent(options.queryIdOnChange) + "&itemLinkId=" + encodeURIComponent(fieldContainer.data().itemLinkId),
                 contentType: "application/json",
                 dataType: "json",
                 method: "POST",
@@ -3974,10 +3977,10 @@ export class Fields {
             const previouslySelectedTab = window.dynamicItems.mainTabStrip.select().index();
             const isNew = itemContainer.data('isNewItem') ?? false;
             await window.dynamicItems.loadItem(
-                window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId,
+                itemId,
                 isNew,
                 previouslySelectedTab,
-                window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.entityType : window.dynamicItems.settings.entityType);
+                entityType);
         }
     }
 
