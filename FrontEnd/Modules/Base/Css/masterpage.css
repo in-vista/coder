@@ -248,14 +248,27 @@ dd {
 	float: left;
 }
 .item-group {
+	/*
 	width: 100%;
 	display: flex;
 	flex-wrap: wrap;
 	padding: 20px 0;
 	border-bottom: 2px solid var(--white-color);
+	*/
+	width: 100%;
+	display: flex;
+	flex-wrap: wrap;
+	border-bottom: 3px solid var(--white-color);
+	margin: 10px 10px;
+	padding: 5px;
+	border: 1px solid rgba(0, 0, 0, .10);
+	border-radius: 12px;
+	background: #EAEDF0;
+	box-shadow: 0 1px 8px rgba(0, 0, 0, .06);
 }
 
 .item-group h3 {
+	/*
 	color: var(--primary-color);
 	display: block;
 	padding: 6px 8px;
@@ -264,6 +277,19 @@ dd {
 	font-weight: 500;
 	width: 100%;
 	margin-bottom: 10px;
+	 */
+	display: block;
+	color: var(--custom-color);
+	width: calc(100% + 11px);
+	border: 1px solid rgba(0, 0, 0, .08);
+	margin: -6px -5px 10px;
+	padding: 10px 10px;
+	font-size: 16px;
+	font-weight: 700;
+	line-height: 1.2;
+	border-bottom: 1px solid rgba(0, 0, 0, .10);
+	background: rgba(0, 0, 0, .03);
+	border-radius: 12px 12px 0 0;
 }
 .item {
 	border: none;
@@ -801,6 +827,11 @@ dd {
 	width: 100%;
 	z-index: 10;
 	margin-top: 5px;
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding-right: 20px;
 }
 .item[data-label-style="float"] h4 + * {
 	width: 100%;

@@ -1081,7 +1081,8 @@ span.k-input .k-input.padding-right {
 .k-dropdownlist .k-picker:focus,
 .k-numeric-wrap input:focus,
 span.k-input .k-input:focus {
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 2px 3px rgba(0, 0, 0, 0.05);
+	/*box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 2px 3px rgba(0, 0, 0, 0.05);*/
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0), 0 2px 3px rgba(0, 0, 0, 0.05);
 }
 .k-input[type=text]:hover,
 .k-input[type=number]:hover,
@@ -1098,7 +1099,8 @@ span.k-input .k-input:focus {
 .k-dropdownlist .k-picker:hover,
 .k-numeric-wrap input:hover,
 span.k-input .k-input:hover {
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 2px 3px rgba(0, 0, 0, 0.05);
+	/*box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 2px 3px rgba(0, 0, 0, 0.05);*/
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0), 0 2px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* KENDO - MULTISELECT */
