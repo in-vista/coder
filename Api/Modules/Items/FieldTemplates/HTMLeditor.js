@@ -113,16 +113,16 @@
     options.mode = parseInt(options.mode, 10) || 99;    
 
     const allTools = {        
-        "bold": [1, 2, 3, 4, 99],
-        "italic": [1, 2, 3, 4, 99],
-        "underline": [1, 2, 3, 4, 99],
-        "strikethrough": [1, 2, 3, 99],
-        "justifyLeft": [2, 3, 99],
-        "justifyCenter": [2, 3, 99],
-        "justifyRight": [2, 3, 99],
-        "justifyFull": [2, 3, 99],
-        "insertUnorderedList": [2, 3, 99],
-        "insertOrderedList": [2, 3, 99],
+        "bold": [1, 2, 3, 4, 5, 99],
+        "italic": [1, 2, 3, 4, 5, 99],
+        "underline": [1, 2, 3, 4, 5, 99],
+        "strikethrough": [1, 2, 3, 5, 99],
+        "justifyLeft": [2, 3, 5, 99],
+        "justifyCenter": [2, 3, 5, 99],
+        "justifyRight": [2, 3, 5, 99],
+        "justifyFull": [2, 3, 5, 99],
+        "insertUnorderedList": [2, 3, 5, 99],
+        "insertOrderedList": [2, 3, 5, 99],
         "indent": [2, 3, 99],
         "outdent": [2, 3, 99],
         "createLink": [2, 3, 99],
@@ -144,14 +144,14 @@
         "addColumnRight": [3, 99],
         "deleteRow": [3, 99],
         "deleteColumn": [3, 99],
-        "htmlSourceTool": [4, 99],        
+        "htmlSourceTool": [4, 5, 99],        
         "formatting": [99],
         "cleanFormatting": [99],
         "fontName": [99],
         "fontSize": [99],
         "foreColor": [99],
         "backColor": [99],
-        "maximizeTool": [1, 2, 3, 4, 99]
+        "maximizeTool": [1, 2, 3, 4, 5, 99]
     };
 
     for (let toolName in allTools) {
