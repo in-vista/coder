@@ -1877,8 +1877,8 @@ textarea[readonly],
 	justify-content: space-between;
 	align-items: center;
 	font-size: 14px;
-	height: 42px;
-	line-height: 42px;
+	height: 50px; /* was 42 */
+	line-height: 50px; /* was 42 */
 	padding: 0 12px;
 }
 

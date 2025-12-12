@@ -877,9 +877,12 @@ dd {
 	padding-top: 20px;
 }
 .item[data-label-style="float"] .readOnlyValue,
-.item[data-label-style="float"] .k-colorpicker,
+/*.item[data-label-style="float"] .k-colorpicker,*/
 .item[data-label-style="float"] .k-widget > textarea {
 	padding-top: 20px;
+}
+.item[data-label-style="float"] .k-colorpicker {
+	padding-top: 14px;
 }
 .item[data-label-style="float"] span.k-input .k-datetimepicker,
 .item[data-label-style="float"] span.k-input .k-numerictextbox,
