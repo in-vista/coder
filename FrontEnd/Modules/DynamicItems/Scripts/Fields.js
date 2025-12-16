@@ -1463,13 +1463,19 @@ export class Fields {
                                                 const selectedItem = grid.dataItem(row);
                                                 dialogSelectedItems.push(selectedItem.id || selectedItem.itemId || selectedItem.itemid || selectedItem.item_id);
                                             }
-
-                                            if (dialogSelectedItems.length === 0) {
-                                                kendo.alert("Kies a.u.b. eerst een item in het grid.");
+                                            
+                                            // Retrieve the required amount of rows to be selected.
+                                            // Defaults to having atleast one row selected.
+                                            const minimumRows = parameter.minimumRows ?? 1;
+                                            
+                                            // Check whether the user has selected the minimum amount of rows.
+                                            if (dialogSelectedItems.length < minimumRows) {
+                                                const minimumRowsMessage = minimumRows === 1 ? 'Kies a.u.b. eerst een item in het grid.' : `Kies minimaal ${minimumRows} items in het grid.`;
+                                                kendo.alert(minimumRowsMessage);
                                                 return false;
                                             }
-
-                                            value = dialogSelectedItems.join(",");
+                                            
+                                            value = dialogSelectedItems.length > 0 ? dialogSelectedItems.join(",") : null;
                                             break;
                                         }
                                     case "multiline":
