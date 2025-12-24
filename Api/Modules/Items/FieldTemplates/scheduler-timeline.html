@@ -404,6 +404,16 @@
         font-weight: bold;
     }
 
+    .list-accordion .activeTime {
+        padding: 2px 0 0 12px;
+        border-radius: 0 20px 20px 0;
+        font-size: 13px;
+        width: 60px;
+        background: #ff6565;
+        color: white;
+        display: inline-block;        
+    }
+    
     .list-panel {
         display: none;
         padding: 8px 10px;
@@ -422,9 +432,9 @@
         50px     /* arrangement */
         35px     /* warning */
         120px    /* status */
-        35px     /* check-in */
-        35px     /* check-out */
-        35px;    /* message */
+        35px;     /* check-in and out */
+        /*35px      check-out */
+        /*35px;     message */
 
         align-items: center;
         gap: 8px;
@@ -493,19 +503,16 @@
     @media (max-width: 1100px) {
         .list-reservation {
             grid-template-columns:
-            20px
-            1.7fr
-            40px
-            40px
-            3fr
-            50px
-            95px
-            35px
-            35px;
-        }
-        .returning-star,
-        .warning-icon {
-            display: none;
+            20px /* bol */
+            1.7fr /* naam */
+            25px /* ster */
+            40px /* personen */
+            40px /* tafel */
+            3fr /* notities */
+            50px /* arrangement */
+            35px /* warning */
+            95px /* status */
+            35px /* check-in and out */            
         }
     }
 
@@ -530,12 +537,29 @@
     
     .timeline-search {
         position: absolute;
-        left: 50%;
-        transform: translateX(-50%); /* echt in het midden */
         display: flex;
         align-items: center;
         gap: 6px;
+        right:3%;
     }
+
+    /* Zoekbalk in het midden op groter scherm */
+    @media (min-width: 1316px) { 
+        .timeline-search {
+            right: unset;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    }
+    
+    /* Zoekbalk kleiner op kleinere schermen */
+    @media (max-width: 844px) {
+        .timeline-search {
+            width: 150px;
+            right: 10%;
+        }
+    }
+    
     .timeline-search input {
         padding: 4px 8px;
     }
@@ -594,6 +618,9 @@
     }
     #current-date {
         font-weight: bold;
+        width: 210px;
+        text-align: center;
+        display: inline-block;
     }
     #calendar {
         position: absolute;
@@ -714,12 +741,11 @@
     </div>
     <div id="list-view" class="hidden"></div>
     <div class="scheduler">
-        <div class="scheduler-header">
+        <div class="scheduler-header">            
             <div class="table-label" style="background:#f7f7f7;height:auto;"></div>
             <div class="timeline" id="header-timeline"></div>
-        </div>
-        <!-- <div class="scheduler-header" style="top:27px;"> --> 
-        <div class="scheduler-header">
+        </div>         
+        <div class="scheduler-header" style="top:24px;">
             <div class="table-label label-sum-persons">Zittend</div>
             <div class="timeline" id="header-sum-persons"></div>
         </div>

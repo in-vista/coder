@@ -422,17 +422,21 @@
 .k-window-titlebar {
 	padding: 8px;
 	column-gap: 8px;
+	line-height: 1em;
+}
+.k-window-title {
+	line-height: normal;
+	padding: 8px;
 }
 .k-window-titlebar .k-window-title {
 	font: 24px/43px var(--title-txt);
 	font-weight: 400;
 	white-space: break-spaces;
-	line-height: 1em;
 	align-items: center;
 }
 @media (min-width: 1025px) {
 	.k-window-titlebar .k-window-title {
-		font-size: 30px;
+		font-size: 26px;
 	}
 }
 .k-window-titlebar .k-window-title strong {
@@ -453,7 +457,7 @@
 }
 .k-window-titlebar .k-window-title button > ins {
 	font-size: 24px;
-	vertical-align: text-bottom;
+	vertical-align: middle;
 }
 .k-window-titlebar .k-window-title button > span {
 	display: none;
@@ -726,6 +730,9 @@
 	color: var(--dark-txt);
 	font-family: var(--medium-txt);
 	font-weight: 500;
+}
+.k-tabstrip-items .k-item.k-active {
+	background: var(--item-bg-color);
 }
 .k-tabstrip-items .k-item.k-state-hover {
 	border-top: 1px solid var(--color-2);
@@ -1077,7 +1084,8 @@ span.k-input .k-input.padding-right {
 .k-dropdownlist .k-picker:focus,
 .k-numeric-wrap input:focus,
 span.k-input .k-input:focus {
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 2px 3px rgba(0, 0, 0, 0.05);
+	/*box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 2px 3px rgba(0, 0, 0, 0.05);*/
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0), 0 2px 3px rgba(0, 0, 0, 0.05);
 }
 .k-input[type=text]:hover,
 .k-input[type=number]:hover,
@@ -1094,7 +1102,8 @@ span.k-input .k-input:focus {
 .k-dropdownlist .k-picker:hover,
 .k-numeric-wrap input:hover,
 span.k-input .k-input:hover {
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 2px 3px rgba(0, 0, 0, 0.05);
+	/*box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 2px 3px rgba(0, 0, 0, 0.05);*/
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0), 0 2px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* KENDO - MULTISELECT */
@@ -1871,8 +1880,8 @@ textarea[readonly],
 	justify-content: space-between;
 	align-items: center;
 	font-size: 14px;
-	height: 42px;
-	line-height: 42px;
+	height: 50px; /* was 42 */
+	line-height: 50px; /* was 42 */
 	padding: 0 12px;
 }
 

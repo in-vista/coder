@@ -371,8 +371,20 @@ const moduleSettings = {
             // Binding to unselect the main tree view.
             $("body").on("click", "#left-pane, .main-window .k-window-titlebar", async (event) => {
                 const target = $(event.target);
-
-                if (target.closest(".k-window-titlebar").length === 0 && (target.hasClass("k-treeview-leaf") || target.hasClass("k-treeview-leaf-text") || target.hasClass("k-i-expand") || target.hasClass("k-treeview-toggle") || target.prop("tagName") === "BUTTON" || target.prop("tagName") === "INPUT")) {
+                
+                if (
+                    target.closest(".k-window-titlebar").length === 0 &&
+                    (
+                        target.hasClass("k-treeview-leaf") ||
+                        target.hasClass("k-treeview-leaf-text") ||
+                        target.hasClass("k-treeview-item") ||
+                        target.hasClass("k-i-expand") ||
+                        target.hasClass("k-treeview-toggle") ||
+                        target.prop("tagName") === "BUTTON" ||
+                        target.prop("tagName") === "INPUT" ||
+                        target.closest('#addButton').length
+                    )
+                ) {
                     return;
                 }
 

@@ -1462,13 +1462,19 @@ export class Fields {
                                                 const selectedItem = grid.dataItem(row);
                                                 dialogSelectedItems.push(selectedItem.id || selectedItem.itemId || selectedItem.itemid || selectedItem.item_id);
                                             }
-
-                                            if (dialogSelectedItems.length === 0) {
-                                                kendo.alert("Kies a.u.b. eerst een item in het grid.");
+                                            
+                                            // Retrieve the required amount of rows to be selected.
+                                            // Defaults to having atleast one row selected.
+                                            const minimumRows = parameter.minimumRows ?? 1;
+                                            
+                                            // Check whether the user has selected the minimum amount of rows.
+                                            if (dialogSelectedItems.length < minimumRows) {
+                                                const minimumRowsMessage = minimumRows === 1 ? 'Kies a.u.b. eerst een item in het grid.' : `Kies minimaal ${minimumRows} items in het grid.`;
+                                                kendo.alert(minimumRowsMessage);
                                                 return false;
                                             }
-
-                                            value = dialogSelectedItems.join(",");
+                                            
+                                            value = dialogSelectedItems.length > 0 ? dialogSelectedItems.join(",") : null;
                                             break;
                                         }
                                     case "multiline":
@@ -3946,6 +3952,10 @@ export class Fields {
     async onFieldValueChange(event, options = {}) {
         const fieldContainer = (event.sender ? event.sender.element : $(event.currentTarget)).closest(".item");
         const itemContainer = fieldContainer.closest("#right-pane, .popup-container");
+        const itemId = itemContainer?.data('itemId')
+            ?? (window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId);
+        const entityType = itemContainer?.data('entityType')
+            ?? (window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.entityType : window.dynamicItems.settings.entityType);
         const saveOnChange = fieldContainer.data("saveOnChange");
         if (saveOnChange) {
             let saveButton = itemContainer.find(".saveBottomPopup");
@@ -3959,7 +3969,6 @@ export class Fields {
 
         // If a queryIdOnChange is given in the options, then execute the query on change of the input
         if (options.queryIdOnChange ?? 0 > 0) {
-            const itemIdEncrypted = window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId;
             const data = {};
             data.value = event.sender.value();
             data.itemId = fieldContainer.data().itemId;
@@ -3967,7 +3976,7 @@ export class Fields {
             data.propertyName = fieldContainer.data().propertyName;   
             
             await Wiser.api({                
-                url: dynamicItems.settings.wiserApiRoot + "items/" + encodeURIComponent(itemIdEncrypted) + "/action-button/" + fieldContainer.data().propertyId + "?queryId=" + encodeURIComponent(options.queryIdOnChange) + "&itemLinkId=" + encodeURIComponent(fieldContainer.data().itemLinkId),
+                url: dynamicItems.settings.wiserApiRoot + "items/" + encodeURIComponent(itemId) + "/action-button/" + fieldContainer.data().propertyId + "?queryId=" + encodeURIComponent(options.queryIdOnChange) + "&itemLinkId=" + encodeURIComponent(fieldContainer.data().itemLinkId),
                 contentType: "application/json",
                 dataType: "json",
                 method: "POST",
@@ -3987,10 +3996,10 @@ export class Fields {
             const previouslySelectedTab = window.dynamicItems.mainTabStrip.select().index();
             const isNew = itemContainer.data('isNewItem') ?? false;
             await window.dynamicItems.loadItem(
-                window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.id : window.dynamicItems.settings.initialItemId,
+                itemId,
                 isNew,
                 previouslySelectedTab,
-                window.dynamicItems.selectedItem && window.dynamicItems.selectedItem.plainItemId ? window.dynamicItems.selectedItem.entityType : window.dynamicItems.settings.entityType);
+                entityType);
         }
     }
 

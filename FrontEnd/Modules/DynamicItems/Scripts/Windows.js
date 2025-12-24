@@ -275,7 +275,10 @@ export class Windows {
 
             windowTitle = !windowTitle ? "" : `${windowTitle}`;
             currentItemWindow.title({
-                text: `<button type='button' class='btn btn-cancel'><ins class='icon-line-exit'></ins><span>Annuleren</span></button>${windowTitle}`,
+                // Text with cancel button next to it.
+                // text: `<button type='button' class='btn btn-cancel'><ins class='icon-line-exit'></ins><span>Annuleren</span></button>${windowTitle}`,
+                // Text with just the window's title.
+                text: `${windowTitle}`,
                 encoded: false
             });
             
@@ -288,15 +291,17 @@ export class Windows {
             currentItemWindow.wrapper.find(".btn-cancel").click((event) => {
                 currentItemWindow.close();
             });
-
-            const currentZIndex = currentItemWindow.wrapper.css('z-index');
-            const overlayElement = $('.k-overlay').filter(function() {
-                return Number($(this).css('z-index')) === currentZIndex - 1;
-            });
             
-            overlayElement.click(() => {
-                currentItemWindow.close();
-            });
+            setTimeout(() => {
+                const currentZIndex = currentItemWindow.wrapper.css('z-index');
+                const overlayElement = $('.k-overlay').filter(function() {
+                    return Number($(this).css('z-index')) === currentZIndex - 1;
+                });
+                
+                overlayElement.click(() => {
+                    currentItemWindow.close();
+                });
+            }, 400);
 
             const afterSave = async () => {
                 isNewItem = false;
@@ -361,7 +366,9 @@ export class Windows {
                 },
                 icon: "cancel"
             });
-
+			
+			const entitySettings = await this.base.getEntityType(entityType);
+			
             const loadPopupContents = async (tabIndex = 0) => {
                 try {
                     currentItemWindow.element.find(".popup-loader").addClass("loading");
@@ -390,7 +397,6 @@ export class Windows {
 
                     // Get the information that we need about the opened item.
                     const promises = [
-                        this.base.getEntityType(entityType),
                         this.base.getItemHtml(encryptedItemId, entityType, isNewItem, windowId, linkId, linkType)
                     ];
 
@@ -400,14 +406,13 @@ export class Windows {
 
                     const data = await Promise.all(promises);
                     // Returned values will be in order of the Promises passed, regardless of completion order.
-                    let lastUsedEntityType = data[0];
-                    const htmlData = data[1];
+                    const htmlData = data[0];
 
-                    lastUsedEntityType.showTitleField = lastUsedEntityType.showTitleField || false;
-                    currentItemWindow.element.data("entityTypeDetails", lastUsedEntityType);
+					entitySettings.showTitleField = entitySettings.showTitleField || false;
+                    currentItemWindow.element.data("entityTypeDetails", entitySettings);
                     currentItemWindow.element.data("entityType", entityType);
                     const nameField = currentItemWindow.element.find(".itemNameField");
-                    currentItemWindow.element.find(".itemNameFieldContainer").toggle(lastUsedEntityType.showTitleField && showTitleField);
+                    currentItemWindow.element.find(".itemNameFieldContainer").toggle(entitySettings.showTitleField && showTitleField);
 
                     currentItemTabStrip.element.find("> .k-tabstrip-items-wrapper > ul > li .addedFromDatabase").each((index, element) => {
                         currentItemTabStrip.remove($(element).closest("li.k-item"));
@@ -518,6 +523,48 @@ export class Windows {
             });
 
             await loadPopupContents();
+			
+			// Prepare a local function to unset the top, bottom, left and right CSS properties natively from Kendo if the window element has a maximized class.
+			const unsetTopBottomLeftRightProperties = () => {
+				const windowElement = currentItemWindow.wrapper.closest('.k-window');
+
+				if(!windowElement.hasClass('k-window-maximized'))
+					return;
+
+				windowElement.css({
+					top: '',
+					bottom: '',
+					left: '',
+					right: ''
+				});
+			}
+			
+			// Set a resize bind the window and execute to unset the top, bottom, left and right CSS properties on the element if the window has a maximized class.
+			currentItemWindow.bind('resize', unsetTopBottomLeftRightProperties);
+			unsetTopBottomLeftRightProperties();
+			
+			// Re-render the item window based on the item window mode of the entity.
+			switch(entitySettings.itemWindowMode) {
+				case 'Side':
+					const windowElement = currentItemWindow.wrapper.closest('.k-window');
+
+					windowElement.addClass('sidebar');
+					
+					const onResizeWindow = () => {
+						windowElement.css({
+							width: '',
+							height: '',
+							left: '',
+							top: ''
+						});
+					};
+
+					currentItemWindow.bind('resize', onResizeWindow);
+
+					onResizeWindow();
+					
+					break;
+			}
         } catch (exception) {
             console.error(exception);
             kendo.alert("Er is iets fout gegaan tijdens het laden van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
