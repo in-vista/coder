@@ -1164,7 +1164,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         "doesnotendwith" => !row[fieldName].ToString()?.EndsWith(fieldValue) ?? false,
                         "contains" => row[fieldName].ToString()?.Contains(fieldValue) ?? false,
                         "doesnotcontain" => !row[fieldName].ToString()?.Contains(fieldValue) ?? false,
-                        _ => false
+                        // Default to the "contains" filter functionality.
+                        _ => row[fieldName].ToString()?.Contains(fieldValue) ?? false
                     };
 
                     dataTableEnumerable = dataTableEnumerable.Where(row => filterPredicate(row)).ToList();
