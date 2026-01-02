@@ -207,7 +207,7 @@
                                 </thead>
                                 <tbody v-if="!entitiesForBranches || !entitiesForBranches.length">
                                     <tr>
-                                        <td colspan="4">Geen entiteiten gevonden. Neem a.u.b. contact op met ons.</td>
+                                        <td colspan="4">Geen entiteiten gevonden.</td>
                                     </tr>
                                 </tbody>
                                 <tbody v-else>
@@ -331,7 +331,7 @@
 						    </div>
 						    <div class="col col-12 table-row no-top-margin">
 							    <div v-if="!entitiesForBranches || !entitiesForBranches.length">
-								    <p>Geen entiteiten gevonden. Neem a.u.b. contact op met ons.</p>
+								    <p>Geen entiteiten gevonden.</p>
 							    </div>
 							    <div class="row" v-else>
 								    <div class="col col-4" v-for="entity in entitiesForBranches" :key="entity.id">
@@ -350,7 +350,7 @@
 
                             <div class="col col-12 table-row no-top-margin">
                                 <div v-if="!linkTypesForBranches || !linkTypesForBranches.length">
-                                    <p>Geen Coder links gevonden. Neem a.u.b. contact op met ons.</p>
+                                    <p>Geen Coder links gevonden.</p>
                                 </div>
                                 <div class="row" v-else>
                                     <div class="col col-4" v-for="link in linkTypesForBranches" :key="link.id">
@@ -369,7 +369,7 @@
 						    </div>
 						    <div class="col col-12 table-row no-top-margin">
 							    <div v-if="!settingsForBranches || !settingsForBranches.length">
-								    <p>Geen Coder inrichting gevonden. Neem a.u.b. contact op met ons.</p>
+								    <p>Geen Coder inrichting gevonden.</p>
 							    </div>
 							    <div class="row" v-else>
 								    <div class="col col-4" v-for="setting in settingsForBranches" :key="setting.type">
@@ -857,7 +857,7 @@
             </section>
             <section class="full-error" v-if="!validSubDomain">
                 <ins class="icon-line-alert"></ins>
-                <span>U heeft een ongeldig subdomein gebruikt. Controleer a.u.b. het subdomein of neem contact op met ons.</span>
+                <span>U heeft een ongeldig subdomein gebruikt. Controleer a.u.b. het subdomein.</span>
             </section>
 
             <div v-if="validSubDomain && loginStatus !== 'list' && loginStatus !== 'list_loading' && loginStatus !== 'totp' && loginStatus !== 'totp_loading' && loginStatus !== 'totp_error' && !showForgotPasswordScreen && !requirePasswordChange">

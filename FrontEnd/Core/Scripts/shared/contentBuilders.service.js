@@ -23,17 +23,17 @@ export default class ContentBuildersService extends BaseService {
                 console.warn(error.response);
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
-                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de HTML. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de HTML. Probeer het a.u.b. nogmaals.";
             } else if (error.request) {
                 // The request was made but no response was received
                 // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
                 // http.ClientRequest in node.js
                 console.warn(error.request);
-                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de HTML. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de HTML. Probeer het a.u.b. nogmaals.";
             } else {
                 // Something happened in setting up the request that triggered an Error
                 console.warn(error.message);
-                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de HTML. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de HTML. Probeer het a.u.b. nogmaals.";
             }
         }
 
@@ -83,17 +83,17 @@ export default class ContentBuildersService extends BaseService {
                 console.warn(error.response);
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
-                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de snippets. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de snippets. Probeer het a.u.b. nogmaals.";
             } else if (error.request) {
                 // The request was made but no response was received
                 // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
                 // http.ClientRequest in node.js
                 console.warn(error.request);
-                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de snippets. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de snippets. Probeer het a.u.b. nogmaals.";
             } else {
                 // Something happened in setting up the request that triggered an Error
                 console.warn(error.message);
-                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de snippets. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de snippets. Probeer het a.u.b. nogmaals.";
             }
         }
 
@@ -128,17 +128,17 @@ export default class ContentBuildersService extends BaseService {
                 console.warn(error.response);
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
-                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de categorieën voor templates. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de categorieën voor templates. Probeer het a.u.b. nogmaals.";
             } else if (error.request) {
                 // The request was made but no response was received
                 // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
                 // http.ClientRequest in node.js
                 console.warn(error.request);
-                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de categorieën voor templates. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de categorieën voor templates. Probeer het a.u.b. nogmaals.";
             } else {
                 // Something happened in setting up the request that triggered an Error
                 console.warn(error.message);
-                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de categorieën voor templates. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de categorieën voor templates. Probeer het a.u.b. nogmaals.";
             }
         }
 
@@ -164,17 +164,17 @@ export default class ContentBuildersService extends BaseService {
                 console.warn(error.response);
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
-                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van het framework. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van het framework. Probeer het a.u.b. nogmaals.";
             } else if (error.request) {
                 // The request was made but no response was received
                 // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
                 // http.ClientRequest in node.js
                 console.warn(error.request);
-                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van het framework. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van het framework. Probeer het a.u.b. nogmaals.";
             } else {
                 // Something happened in setting up the request that triggered an Error
                 console.warn(error.message);
-                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van het framework. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+                result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van het framework. Probeer het a.u.b. nogmaals.";
             }
         }
 

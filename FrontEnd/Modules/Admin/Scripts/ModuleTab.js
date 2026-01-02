@@ -487,7 +487,7 @@ export class ModuleTab {
         }
         catch(exception) {
             console.error(exception);
-            this.base.showNotification("notification", "Er is iets fout gegaan met het aanmaken van de module. Probeer het a.u.b. opnieuw of neem contact op met ons.", "error");
+            this.base.showNotification("notification", "Er is iets fout gegaan met het aanmaken van de module. Probeer het a.u.b. opnieuw.", "error");
         }
     }
 
@@ -511,7 +511,7 @@ export class ModuleTab {
         catch (exception) {
             console.error(exception);
             if (exception && exception.status !== 409) {
-                this.base.showNotification("notification", "Er is iets fout gegaan met het aanmaken van het root item voor de nieuwe module. Verwijder a.u.b. de nieuwe module en robeer het opnieuw of neem contact op met ons.", "error");
+                this.base.showNotification("notification", "Er is iets fout gegaan met het aanmaken van het root item voor de nieuwe module. Verwijder a.u.b. de nieuwe module en probeer het opnieuw.", "error");
             }
         }
     }
@@ -794,7 +794,7 @@ export class ModuleTab {
             await this.base.reloadModulesOnParentFrame();
         } catch(exception) {
             console.error(exception);
-            this.base.showNotification("notification", `Er is iets fout gegaan met het verwijderen van de module. Probeer het a.u.b. opnieuw of neem contact op met ons.`, "error");
+            this.base.showNotification("notification", `Er is iets fout gegaan met het verwijderen van de module. Probeer het a.u.b. opnieuw.`, "error");
         }
     }
 }

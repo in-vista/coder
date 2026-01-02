@@ -862,7 +862,7 @@ const moduleSettings = {
                 });
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan tijdens het ophalen van het rechtermuismenu van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan tijdens het ophalen van het rechtermuismenu van dit item. Probeer het a.u.b. nogmaals.");
 
                 this.mainTreeViewContextMenu.setOptions({
                     dataSource: []
@@ -956,7 +956,7 @@ const moduleSettings = {
                                     const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
                                     kendo.alert(message);
                                 } else {
-                                    kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                                    kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals.");
                                 }
                             }
                         }).catch(() => { });
@@ -1005,7 +1005,7 @@ const moduleSettings = {
                 }
 
 
-                kendo.alert("Er is iets fout gegaan met het uitvoeren van deze actie. Probeer het a.u.b. nogmaals of neem contact op met ons");
+                kendo.alert("Er is iets fout gegaan met het uitvoeren van deze actie. Probeer het a.u.b. nogmaals");
             }
         }
 
@@ -1103,7 +1103,7 @@ const moduleSettings = {
                         break;
                     }
                     default:
-                        kendo.alert("Er is iets fout gegaan tijdens het opslaan van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                        kendo.alert("Er is iets fout gegaan tijdens het opslaan van dit item. Probeer het a.u.b. nogmaals.");
                         break;
                 }
 
@@ -1501,7 +1501,7 @@ const moduleSettings = {
                 }).data("kendoGrid");
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het initialiseren van de historie. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan met het initialiseren van de historie. Probeer het a.u.b. nogmaals.");
             }
         }
 
@@ -1678,7 +1678,7 @@ const moduleSettings = {
                 grid.element.on("dblclick", "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, grid, {}); });
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan tijdens het laden van het overzicht. Probeer het a.u.b. nogmaals door het item te sluiten en opnieuw te openen, of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan tijdens het laden van het overzicht. Probeer het a.u.b. nogmaals door het item te sluiten en opnieuw te openen.");
             }
         }
 
@@ -1715,7 +1715,7 @@ const moduleSettings = {
                     const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
                     kendo.alert(message);
                 } else {
-                    kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                    kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals.");
                 }
             }
         }
@@ -1771,7 +1771,7 @@ const moduleSettings = {
                     const message = exception.responseText || "Het is niet meer mogelijk om het verwijderen ongedaan te maken.";
                     kendo.alert(message);
                 } else {
-                    kendo.alert("Er is iets fout gegaan tijdens het verwijderen ongedaan maken van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                    kendo.alert("Er is iets fout gegaan tijdens het verwijderen ongedaan maken van dit item. Probeer het a.u.b. nogmaals.");
                 }
             }
 
@@ -1873,7 +1873,7 @@ const moduleSettings = {
                                         if (errorMessage) {
                                             kendo.alert(`Er is iets fout gegaan met vertalen. De fout was:<br><pre>${errorMessage}</pre>`);
                                         } else {
-                                            kendo.alert(`Er is iets fout gegaan met vertalen. Probeer het a.u.b. nogmaals of neem contact op.`);
+                                            kendo.alert(`Er is iets fout gegaan met vertalen. Probeer het a.u.b. nogmaals.`);
                                         }
                                     }).finally(() => {
                                         window.processing.removeProcess(process);
@@ -1887,7 +1887,7 @@ const moduleSettings = {
                 translateItemDialog.open();
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. nogmaals.");
             }
         }
 
@@ -2022,7 +2022,7 @@ const moduleSettings = {
                 if (exception.status === 404) {
                     kendo.alert("Het opgevraagde item bestaat niet.");
                 } else {
-                    kendo.alert("Er is iets fout gegaan met het laden van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                    kendo.alert("Er is iets fout gegaan met het laden van dit item. Probeer het a.u.b. nogmaals.");
                 }
             }
 

@@ -303,7 +303,7 @@ namespace Api.Modules.Files.Services
                 {
                     logger.LogError($"Error while trying to upload file via FTP: {exception}");
 
-                    var errorMessage = $"Er is iets fout gegaan tijdens het uploaden van het bestand via FTP. Probeer het aub opnieuw of neem contact op met ons.<br><br>De fout was:<br>{exception.Message}";
+                    var errorMessage = $"Er is iets fout gegaan tijdens het uploaden van het bestand via FTP. Probeer het aub opnieuw.<br><br>De fout was:<br>{exception.Message}";
                     if (!succeededFtpUploads.Any())
                     {
                         return new ServiceResult<FileModel>
@@ -325,7 +325,7 @@ namespace Api.Modules.Files.Services
                         logger.LogError($"We got an error while uploading to one of the FTP servers, after at least one already succeeded. So we tried to delete the file from the FTP that succeeded, but that also failed with the exception: {deleteException}");
                     }
 
-                    errorMessage = $"Er is iets fout gegaan tijdens het uploaden van het bestand via FTP.<br>Op {succeededFtpUploads.Count} van de {ftpSettings.Count} servers is het wel gelukt, maar bij de eerstvolgende niet.<br>Het uploaden is daarom ongedaan gemaakt op alle servers.<br>Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br>{exception.Message}";
+                    errorMessage = $"Er is iets fout gegaan tijdens het uploaden van het bestand via FTP.<br>Op {succeededFtpUploads.Count} van de {ftpSettings.Count} servers is het wel gelukt, maar bij de eerstvolgende niet.<br>Het uploaden is daarom ongedaan gemaakt op alle servers.<br>Probeer het a.u.b. nogmaals.<br><br>De fout was:<br>{exception.Message}";
                     return new ServiceResult<FileModel>
                     {
                         StatusCode = HttpStatusCode.InternalServerError,
