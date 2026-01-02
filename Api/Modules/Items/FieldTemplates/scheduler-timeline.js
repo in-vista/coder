@@ -43,11 +43,11 @@
         suppressHover = false;
         totalQuarters = (this.endTime > this.startTime ? (this.endTime - this.startTime) : (24 - this.startTime + this.endTime)) * this.quartersPerHour;
         currentDate = new Date();
-        hoverTimers = {};
-        domain = "https://koks.reservery.dev";
+        hoverTimers = {};        
     
-        constructor() {            
-            this.init();
+        constructor() {
+            this.options = {options};
+            this.init();            
         }
     
         async init(){
@@ -93,9 +93,8 @@
             currentDateSpan.innerText = this.formatDate(this.currentDate);
             this.createHeader();
 
-            // Load arrangements and cache for 1 hour
-            const arrangementsResponse = await axios.get(`${this.domain}/template.gcl?templateName=getArrangementsForTimeline`);
-            this.arrangements = arrangementsResponse.data;
+            // Load arrangements and cache for 1 hour            
+            this.arrangements = (await this.callApi(this.options.timelineSchedulerQueryGetArrangements));
     
             // Get tables and reservations
             await this.getTables();    
@@ -511,9 +510,9 @@
                     endDateTime = `${date} ${timelineScheduler.decimalToTime(timelineScheduler.endTime)}`;
                 }
     
-                // Get reservations            
-                const reservationsResponse = await axios.get(`${timelineScheduler.domain}/template.gcl?templateName=getReservationsForTimeline&startDateTime=${startDateTime}&endDateTime=${endDateTime}`);
-                timelineScheduler.reservations = reservationsResponse.data.map(r => ({
+                // Get reservations                                
+                let reservationsResponse = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryGetReservations, '{"startDateTime": "' +  startDateTime + '","endDateTime": "' +  endDateTime + '"}');
+                timelineScheduler.reservations = reservationsResponse.map(r => ({
                     reservationId: r.id,
                     reservationIdEncrypted: r.encryptedId,
                     name: r.customer_id===0 ? 'Walk-in' : r.customer_full_name==='' ? 'Geen naam bekend' : r.customer_full_name,
@@ -599,7 +598,7 @@
                 reservation.endDate = this.toDateString(this.currentDate);
             }
     
-            await axios.post(`${this.domain}/template.gcl?templateName=updateReservationFromTimeline`, reservation, {headers: {'Content-Type': 'multipart/form-data'}});
+            await this.callApi(this.options.timelineSchedulerQueryUpdateReservation, JSON.stringify(reservation));            
         }
     
         // Functie om 1 dag op te tellen bij een gegeven datum in string vorm '2025-09-01'
@@ -621,8 +620,8 @@
         //};
         async getTables() {
             try {
-                const tablesResponse = await axios.get(`${this.domain}/template.gcl?templateName=getTablesForTimeline&userId=${dynamicItems.base.settings.userId}`);
-                this.tableGroups = tablesResponse.data.reduce((groups, item) => {
+                const tablesResponse = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryGetTables);                
+                this.tableGroups = tablesResponse.reduce((groups, item) => {
                     if (!groups[item.room]) {
                         groups[item.room] = [];
                     }
@@ -695,8 +694,8 @@
                     this.tableGroups[groupName].forEach(e => {e.roomActive = e.roomActive === 1 ? 0 : 1});
 
                     // Sla nieuwe instelling op bij gebruiker
-                    let activeGroups = Array.from(document.querySelectorAll(".group-header.active")).map(el => el.innerText.trim()).join(",");
-                    axios.post(`${this.domain}/template.gcl?templateName=saveGroupSettingsFromTimeline&userId=${dynamicItems.base.settings.userId}`, {"activeGroups": activeGroups}, {headers: {'Content-Type': 'multipart/form-data'}});
+                    let activeGroups = Array.from(document.querySelectorAll(".group-header.active")).map(el => el.innerText.trim()).join(",");                    
+                    this.callApi(this.options.timelineSchedulerQuerySaveGroupSettings,'{"activeGroups": "' +  activeGroups + '"}');
                 });
 
                 this.container.appendChild(groupHeader);
@@ -915,7 +914,7 @@
                             res.notes = newNotes;
 
                             // direct naar backend sturen
-                            axios.post(`${this.domain}/template.gcl?templateName=saveNotesFromTimline`, res, {headers: {'Content-Type': 'multipart/form-data'}});
+                            this.callApi(this.options.timelineSchedulerQuerySaveNotes, JSON.stringify(res));
                         });
 
                         hover.querySelector(".hover-cancel").addEventListener("click", () => {
@@ -1047,12 +1046,12 @@
                         //self.renderReservations();
 
                         // create reservation in database and open new reservation
-                        const response  = await axios.post(`${timelineScheduler.domain}/template.gcl?templateName=insertReservationFromTimeline&userName=${dynamicItems.base.settings.username}`, newReservation, {headers: {'Content-Type': 'multipart/form-data'}});
+                        const response  = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryInsertReservation,JSON.stringify(newReservation));
 
-                        if (response.data.id) {
+                        if (response[0].id) {
                             // open the created reservation
-                            newReservation.reservationId = response.data.id;
-                            newReservation.reservationIdEncrypted = response.data.encryptedId;
+                            newReservation.reservationId = response[0].id;
+                            newReservation.reservationIdEncrypted = response[0].encryptedId;
                             timelineScheduler.openReservationInCoder(newReservation.reservationIdEncrypted);
                         }
                     }
@@ -1090,13 +1089,13 @@
                         self.reservations.push(newReservation);
                         //self.renderReservations();
 
-                        // create reservation in database and open new reservation
-                        const response  = await axios.post(`${this.domain}/template.gcl?templateName=insertReservationFromTimeline&userName=${dynamicItems.base.settings.username}`, newReservation, {headers: {'Content-Type': 'multipart/form-data'}});
+                        // create reservation in database and open new reservation                        
+                        const response  = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryInsertReservation, JSON.stringify(newReservation));
 
-                        if (response.data.id) {
+                        if (response[0].id) {
                             // open the created reservation
-                            newReservation.reservationId = response.data.id;
-                            newReservation.reservationIdEncrypted = response.data.encryptedId;
+                            newReservation.reservationId = response[0].id;
+                            newReservation.reservationIdEncrypted = response[0].encryptedId;
                             timelineScheduler.openReservationInCoder(newReservation.reservationIdEncrypted);
                         }
                     });
@@ -1304,13 +1303,16 @@
             try {
                 var searchTemplate = document.getElementById("search-item-template");                
                 
-                const response = await axios.get(
+                /*const response = await axios.get(
                     `${this.domain}/template.gcl?templateName=searchFromTimeline&search=${searchTerm}&currentDate=${this.toDateString(this.currentDate)}`,
                     { signal: timelineScheduler.currentSearchController.signal }
-                );
+                );*/
+                
+                // TODO: Send search controller for abortion
+                const response = await this.callApi(this.options.timelineSchedulerQuerySearch, '{"search": "' +  searchTerm + '","currentDate": "' + this.toDateString(this.currentDate) + '"}')
 
                 // Resultaten samenstellen
-                const results = response.data.map(reservation => {
+                const results = response.map(reservation => {
                     const arrangementAbbr = timelineScheduler.arrangements.find(item => item.id === reservation.arrangement)?.abbreviation ?? '';
                     let html = searchTemplate.innerHTML;
                     html = html.replace("{reservationId}", reservation.reservationId)
@@ -1517,7 +1519,7 @@
         }
 
         checkIn(res) {
-            axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkInFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}}).then(response => {
+            timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryCheckIn,'{"reservationId": "' + res.reservationId + '"}').then(response => {
                 timelineScheduler.reservations.find(r => r.reservationId === res.reservationId).checkIn = true;
                 
                 // Timeline view bijwerken
@@ -1548,7 +1550,7 @@
         }
         
         checkOut(res) {
-            axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkOutFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}}).then(response => {
+            timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryCheckOut,'{"reservationId": "' + res.reservationId + '"}').then(response => {            
                 timelineScheduler.reservations.find(r => r.reservationId === res.reservationId).checkOut = true;
                 
                 // Timeline view bijwerken
@@ -1573,7 +1575,23 @@
                 timelineScheduler.showToast("Uitchecken mislukt", { type: "error" });
             });
         }
-        
+
+        async callApi(queryId, data) {
+            try {
+                const queryResults = await Wiser.api({
+                    method: "POST",
+                    url: dynamicItems.settings.wiserApiRoot +
+                        "items/" + encodeURIComponent("{itemIdEncrypted}") +
+                        "/action-button/{propertyId}?queryId=" + encodeURIComponent(queryId || 0),
+                    contentType: "application/json",
+                    data: data
+                });
+
+                return queryResults.otherData;
+            } catch (error) {
+                console.error(error);                
+            }
+        }
     }
 
     // Inject custom Javascript code from the entity property's settings.
