@@ -1302,14 +1302,15 @@
 
             try {
                 var searchTemplate = document.getElementById("search-item-template");                
-                
-                /*const response = await axios.get(
-                    `${this.domain}/template.gcl?templateName=searchFromTimeline&search=${searchTerm}&currentDate=${this.toDateString(this.currentDate)}`,
-                    { signal: timelineScheduler.currentSearchController.signal }
-                );*/
-                
-                // TODO: Send search controller for abortion
-                const response = await this.callApi(this.options.timelineSchedulerQuerySearch, '{"search": "' +  searchTerm + '","currentDate": "' + this.toDateString(this.currentDate) + '"}')
+                                
+                const response = await this.callApi(
+                    this.options.timelineSchedulerQuerySearch,
+                    JSON.stringify({
+                        search: searchTerm,
+                        currentDate: this.toDateString(this.currentDate)
+                    }),
+                    timelineScheduler.currentSearchController.signal
+                );
 
                 // Resultaten samenstellen
                 const results = response.map(reservation => {
@@ -1576,7 +1577,7 @@
             });
         }
 
-        async callApi(queryId, data) {
+        async callApi(queryId, data, signal = null) {
             try {
                 const queryResults = await Wiser.api({
                     method: "POST",

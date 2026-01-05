@@ -274,7 +274,7 @@ export class Strings {
  * Wiser utils.
  */
 export class Wiser {
-    static async api(settings) {
+    static async api(settings, signal = null) {
         // Find the Window that contains the main vue app of Wiser. We need this for saving the promise of refreshing the auth token.
         // We do this on that window, because some modules have multiple iframes that all do xhr calls, so we need to make sure they all wait for each other
         // and use the same refresh token.
@@ -368,7 +368,24 @@ export class Wiser {
             });
         }
 
-        return $.ajax(settings).fail((jqXhr, textStatus, errorThrown) => {
+        const jqXhr = $.ajax(settings);
+
+        if (signal) {
+            if (signal.aborted) {
+                jqXhr.abort();
+            } else {
+                signal.addEventListener("abort", () => {
+                    jqXhr.abort();
+                }, { once: true });
+            }
+        }
+
+        return jqXhr.fail((jqXhr, textStatus, errorThrown) => {
+            if (textStatus === "abort") {
+                // Dit is een bewuste abort → niets loggen
+                return;
+            }
+
             if (jqXhr.status !== 401) {
                 return;
             }
