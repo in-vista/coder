@@ -386,11 +386,19 @@ export class Grids {
                     isFalse: "<span>Nee</span>"
                 }
             };
-
+            
+            debugger;
             if (gridViewSettings.filterable === true) {
                 filterable = defaultFilters;
             } else if (typeof gridViewSettings.filterable === "object") {
                 filterable = $.extend(true, {}, defaultFilters, gridViewSettings.filterable);
+                
+                // Overwrite an operator type if one was set in the grid view settings.
+                if(gridViewSettings?.filterable?.operators) {
+                    for(const operatorType of Object.keys(gridViewSettings.filterable.operators)) {
+                        filterable.operators[operatorType] = gridViewSettings.filterable.operators[operatorType];
+                    }
+                }
             } else if (gridViewSettings.clientSideFiltering === true) {
                 filterable = defaultFilters;
             }
