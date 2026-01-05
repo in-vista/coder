@@ -1762,7 +1762,9 @@ const moduleSettings = {
                         this.dynamicContentGrid.dataSource.read();
                     }).fail((jqXhr, textStatus, errorThrown) => {
                         console.error(errorThrown);
-                        kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals.");
+                        
+                        const message = errorThrown.responseText || 'Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals.';
+                        kendo.alert(message);
                     });
             })
 

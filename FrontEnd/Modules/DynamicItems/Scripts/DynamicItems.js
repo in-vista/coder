@@ -952,12 +952,16 @@ const moduleSettings = {
                                 this.base.mainTreeView.remove(selectedNode);
                             } catch (exception) {
                                 console.error(exception);
-                                if (exception.status === 409) {
-                                    const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
-                                    kendo.alert(message);
-                                } else {
-                                    kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals.");
+
+                                let message = exception.responseText;
+                                if(!message) {
+                                    switch(exception.status) {
+                                        case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
+                                        default: message = "Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het nogmaals."; break;
+                                    }
                                 }
+
+                                kendo.alert(message);
                             }
                         }).catch(() => { });
 
@@ -1711,12 +1715,16 @@ const moduleSettings = {
 
             } catch (exception) {
                 console.error(exception);
-                if (exception.status === 409) {
-                    const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
-                    kendo.alert(message);
-                } else {
-                    kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals.");
+
+                let message = exception.responseText;
+                if(!message) {
+                    switch(exception.status) {
+                        case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
+                        default: message = "Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het nogmaals."; break;
+                    }
                 }
+
+                kendo.alert(message);
             }
         }
 

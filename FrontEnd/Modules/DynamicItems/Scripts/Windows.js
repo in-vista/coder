@@ -602,13 +602,16 @@ export class Windows {
             console.error(exception);
             popupWindowContainer.find(".popup-loader").removeClass("loading");
             popupWindowContainer.data("saving", false);
-
-            if (exception.status === 409) {
-                const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
-                kendo.alert(message);
-            } else {
-                kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het nogmaals.");
+            
+            let message = exception.responseText;
+            if(!message) {
+                switch(exception.status) {
+                    case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
+                    default: message = "Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het nogmaals."; break;
+                }
             }
+
+            kendo.alert(message);
         }
     }
 
