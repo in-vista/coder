@@ -16,7 +16,7 @@ export default class DataSelectorsService extends BaseService {
         } catch (error) {
             result.success = false;
             console.error("Error get data selectors", typeof(error.toJSON) === "function" ? error.toJSON() : error);
-            result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van data selectors. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+            result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van data selectors. Probeer het a.u.b. nogmaals.";
 
             if (error.response) {
                 // The request was made and the server responded with a status code
@@ -50,7 +50,7 @@ export default class DataSelectorsService extends BaseService {
         } catch (error) {
             result.success = false;
             console.error("Error get data selectors", typeof(error.toJSON) === "function" ? error.toJSON() : error);
-            result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van data selector templates. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+            result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van data selector templates. Probeer het a.u.b. nogmaals.";
 
             if (error.response) {
                 // The request was made and the server responded with a status code
@@ -88,7 +88,7 @@ export default class DataSelectorsService extends BaseService {
         } catch (error) {
             result.success = false;
             console.error("Error get data selectors", typeof(error.toJSON) === "function" ? error.toJSON() : error);
-            result.message = "Er is een onbekende fout opgetreden tijdens genereren van de preview voor de gekozen data selector. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+            result.message = "Er is een onbekende fout opgetreden tijdens genereren van de preview voor de gekozen data selector. Probeer het a.u.b. nogmaals.";
 
             if (error.response) {
                 // The request was made and the server responded with a status code

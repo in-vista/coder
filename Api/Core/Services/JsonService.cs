@@ -108,9 +108,26 @@ namespace Api.Core.Services
         /// <returns>True if the values is present in the list of JSON properties to encrypt. False otherwise.</returns>
         private bool ShouldEncryptProperty(string propertyName, List<string> extraPropertiesToEncrypt = null)
         {
+            bool Matches(IEnumerable<string> patterns) =>
+                patterns != null && patterns.Any(p => MatchesPattern(propertyName, p));
+
             return
-                apiSettings.JsonPropertiesToAlwaysEncrypt.Any(p => p.Equals(propertyName, StringComparison.OrdinalIgnoreCase)) || 
-                (extraPropertiesToEncrypt != null && extraPropertiesToEncrypt.Any(p => p.Equals(propertyName, StringComparison.OrdinalIgnoreCase)));
+                Matches(apiSettings.JsonPropertiesToAlwaysEncrypt) ||
+                Matches(extraPropertiesToEncrypt);
+        }
+        
+        private bool MatchesPattern(string propertyName, string pattern)
+        {
+            // Geen wildcard → exacte match
+            if (!pattern.Contains('*'))
+                return string.Equals(propertyName, pattern, StringComparison.OrdinalIgnoreCase);
+
+            var parts = pattern.Split('*');
+            if (pattern.EndsWith("*") && parts.Length == 2)
+                return propertyName.StartsWith(parts[0], StringComparison.OrdinalIgnoreCase);
+
+            // fallback (zou normaal niet gebeuren)
+            return false;
         }
     }
 }

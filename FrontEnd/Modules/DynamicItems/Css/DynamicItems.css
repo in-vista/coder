@@ -91,7 +91,7 @@ body.iframe #alert-pane {
 }
 
 body.gridViewMode:not(.iframe) #gridView {
-    display: block;
+    display: flex;
 }
 
 body.gridViewMode {
@@ -470,4 +470,10 @@ body.iframe .editMenu {
 
 #imageDialog > .image-zoom-container.zoomed {
     cursor: zoom-out;
+}
+
+.k-window.sidebar {
+    width: 530px;
+    max-width: 530px;
+    margin-left: calc(100% - 560px);
 }

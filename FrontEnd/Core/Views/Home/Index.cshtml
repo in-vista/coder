@@ -46,6 +46,9 @@
                     <div class="ico-item" v-if="modules.find(m => m.moduleId === 709)">
                         <ins class="icon-line-search" @@click="openModule(709)"></ins>
                     </div>
+                    <div class="ico-item" v-if="activeModule">
+                        <ins class="icon-desktop" @@click="requestModuleFullScreen(activeModule)"></ins>
+                    </div>
                     <task-alerts ref="taskAlerts"></task-alerts>
                 </li>
 
@@ -69,8 +72,8 @@
             <p v-if="user.loggedIn && !mainLoader && !hasModules">Voor deze gebruiker zijn geen modules beschikbaar.</p>
             <login v-bind:sub-domain="appSettings.subDomain" v-if="!user.loggedIn || requirePasswordChange" ref="login"></login>
             <section class="iframe-container">
-                <iframe v-for="module in openedModulesWithBackend" :key="module.id" :src="module.iframeUrl || `/Modules/${module.iframeType || module.type}${module.fileName}${module.queryString}`" :id="module.id" :class="{ active: module.id === activeModule }" frameborder="0" scrolling="auto"></iframe>
-                <iframe v-for="module in openedWiser1Modules" :key="module.id" :src="`${appSettings.wiser1BaseUrl}?singleModuleId=${module.moduleId}&autoLoginCookie=${encodeURIComponent(user.cookieValue)}&autoLoginUserId=${encodeURIComponent(user.encryptedId)}`" :class="{ active: module.id === activeModule }" frameborder="0" scrolling="auto"></iframe>
+                <iframe v-for="module in openedModulesWithBackend" :key="module.id" :src="module.iframeUrl || `/Modules/${module.iframeType || module.type}${module.fileName}${module.queryString}`" :id="module.id" :class="{ active: module.id === activeModule }" frameborder="0" scrolling="auto" allowfullscreen></iframe>
+                <iframe v-for="module in openedWiser1Modules" :key="module.id" :src="`${appSettings.wiser1BaseUrl}?singleModuleId=${module.moduleId}&autoLoginCookie=${encodeURIComponent(user.cookieValue)}&autoLoginUserId=${encodeURIComponent(user.encryptedId)}`" :class="{ active: module.id === activeModule }" frameborder="0" scrolling="auto" allowfullscreen></iframe>
             </section>
 
             <keep-alive>
@@ -204,7 +207,7 @@
                                 </thead>
                                 <tbody v-if="!entitiesForBranches || !entitiesForBranches.length">
                                     <tr>
-                                        <td colspan="4">Geen entiteiten gevonden. Neem a.u.b. contact op met ons.</td>
+                                        <td colspan="4">Geen entiteiten gevonden.</td>
                                     </tr>
                                 </tbody>
                                 <tbody v-else>
@@ -328,7 +331,7 @@
 						    </div>
 						    <div class="col col-12 table-row no-top-margin">
 							    <div v-if="!entitiesForBranches || !entitiesForBranches.length">
-								    <p>Geen entiteiten gevonden. Neem a.u.b. contact op met ons.</p>
+								    <p>Geen entiteiten gevonden.</p>
 							    </div>
 							    <div class="row" v-else>
 								    <div class="col col-4" v-for="entity in entitiesForBranches" :key="entity.id">
@@ -347,7 +350,7 @@
 
                             <div class="col col-12 table-row no-top-margin">
                                 <div v-if="!linkTypesForBranches || !linkTypesForBranches.length">
-                                    <p>Geen Coder links gevonden. Neem a.u.b. contact op met ons.</p>
+                                    <p>Geen Coder links gevonden.</p>
                                 </div>
                                 <div class="row" v-else>
                                     <div class="col col-4" v-for="link in linkTypesForBranches" :key="link.id">
@@ -366,7 +369,7 @@
 						    </div>
 						    <div class="col col-12 table-row no-top-margin">
 							    <div v-if="!settingsForBranches || !settingsForBranches.length">
-								    <p>Geen Coder inrichting gevonden. Neem a.u.b. contact op met ons.</p>
+								    <p>Geen Coder inrichting gevonden.</p>
 							    </div>
 							    <div class="row" v-else>
 								    <div class="col col-4" v-for="setting in settingsForBranches" :key="setting.type">
@@ -854,7 +857,7 @@
             </section>
             <section class="full-error" v-if="!validSubDomain">
                 <ins class="icon-line-alert"></ins>
-                <span>U heeft een ongeldig subdomein gebruikt. Controleer a.u.b. het subdomein of neem contact op met ons.</span>
+                <span>U heeft een ongeldig subdomein gebruikt. Controleer a.u.b. het subdomein.</span>
             </section>
 
             <div v-if="validSubDomain && loginStatus !== 'list' && loginStatus !== 'list_loading' && loginStatus !== 'totp' && loginStatus !== 'totp_loading' && loginStatus !== 'totp_error' && !showForgotPasswordScreen && !requirePasswordChange">

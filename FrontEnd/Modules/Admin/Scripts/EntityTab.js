@@ -386,7 +386,7 @@ export class EntityTab {
             this.entityTabStrip.wrapper.hide();
         } catch(exception) {
             console.error(exception);
-            this.base.showNotification("notification", `Er is iets fout gegaan met het verwijderen van de module. Probeer het a.u.b. opnieuw of neem contact op met ons.`, "error");
+            this.base.showNotification("notification", `Er is iets fout gegaan met het verwijderen van de module. Probeer het a.u.b. opnieuw.`, "error");
         }
     }
 

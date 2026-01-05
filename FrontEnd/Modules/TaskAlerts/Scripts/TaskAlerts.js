@@ -269,6 +269,23 @@ const moduleSettings = {
         }
 
         closeForm() {
+            const form = $(this.taskForm); 
+
+            // Clear fields
+            form.find("input[type=text], textarea").val("");
+            form.find("input[type=checkbox]").prop("checked", false);
+
+            // Reset DatePicker
+            const datepicker = $("#taskDate").data("kendoDatePicker");
+            if (datepicker) datepicker.value(null);
+
+            // Reset MultiSelect
+            const multiselect = $("#taskUsers").data("kendoMultiSelect");
+            if (multiselect) multiselect.value([]);
+
+            // Reset datepicker
+            datepicker.value(new Date());
+            
             this.taskForm.classList.remove("active");
         }
 
@@ -463,7 +480,7 @@ const moduleSettings = {
                 this.closeForm();
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het aanmaken van deze agendering. Probeer het opnieuw of neem contact op met ons");
+                kendo.alert("Er is iets fout gegaan met het aanmaken van deze agendering. Probeer het opnieuw");
             }
         }
 
@@ -526,7 +543,7 @@ const moduleSettings = {
                 this.closeEditForm();
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het updaten van deze agendering. Probeer het opnieuw of neem contact op met ons");
+                kendo.alert("Er is iets fout gegaan met het updaten van deze agendering. Probeer het opnieuw");
             }
         }
 
@@ -608,7 +625,7 @@ const moduleSettings = {
                 } else if (exception.statusText) {
                     error = exception.statusText;
                 }
-                kendo.alert(`Er is iets fout gegaan met het aanmaken van het item. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
+                kendo.alert(`Er is iets fout gegaan met het aanmaken van het item. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
                 return null;
             }
         }

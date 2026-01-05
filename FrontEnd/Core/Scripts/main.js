@@ -783,6 +783,18 @@ class Main {
 
                     this.$store.dispatch(ACTIVATE_MODULE, moduleId);
                 },
+                
+                async requestModuleFullScreen(moduleId) {
+                    const module = this.openedModules.find(m => m.id === moduleId);
+                    if(!module) {
+                        console.warn('Attempted to open a module that does not exist!');
+                        return;
+                    }
+                    
+                    const iframe = document.getElementById(moduleId);
+                    
+                    await iframe.requestFullscreen();
+                },
 
                 async openTenantManagement() {
                     this.openModule({
@@ -1137,7 +1149,7 @@ class Main {
 
                     const module = this.modules.find(module => module.type === "Configuration");
                     if (!module) {
-                        kendo.alert("Configuratiemodule niet gevonden. Ververs a.u.b. de pagina en probeer het opnieuw, of neem contact op met ons.");
+                        kendo.alert("Configuratiemodule niet gevonden. Ververs a.u.b. de pagina en probeer het opnieuw.");
                         return;
                     }
 

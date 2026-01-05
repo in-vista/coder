@@ -17,7 +17,7 @@ export default class TenantsService extends BaseService {
         } catch (error) {
             result.success = false;
             console.error("Error tenant exists check", typeof(error.toJSON) === "function" ? error.toJSON() : error);
-            result.message = "Er is een onbekende fout opgetreden tijdens het controleren of deze klant al bestaat. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+            result.message = "Er is een onbekende fout opgetreden tijdens het controleren of deze klant al bestaat. Probeer het a.u.b. nogmaals.";
 
             if (error.response) {
                 // The request was made and the server responded with a status code
@@ -91,7 +91,7 @@ export default class TenantsService extends BaseService {
         } catch (error) {
             result.success = false;
             console.error("Error create tenant", typeof(error.toJSON) === "function" ? error.toJSON() : error);
-            result.message = "Er is een onbekende fout opgetreden tijdens het aanmaken van deze klant. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+            result.message = "Er is een onbekende fout opgetreden tijdens het aanmaken van deze klant. Probeer het a.u.b. nogmaals.";
 
             if (error.response) {
                 // The request was made and the server responded with a status code
@@ -142,7 +142,7 @@ export default class TenantsService extends BaseService {
             result.success = false;
             result.data = [];
             console.error("Error create tenant", typeof(error.toJSON) === "function" ? error.toJSON() : error);
-            result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de clusters. Heb je de juiste access token ingevuld? Probeer het a.u.b. nogmaals of neem contact op met ons.";
+            result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de clusters. Heb je de juiste access token ingevuld? Probeer het a.u.b. nogmaals.";
 
             if (error.response) {
                 // The request was made and the server responded with a status code
@@ -189,7 +189,7 @@ export default class TenantsService extends BaseService {
         } catch (error) {
             result.success = false;
             console.error("Error create tenant", typeof(error.toJSON) === "function" ? error.toJSON() : error);
-            result.message = "Er is een onbekende fout opgetreden tijdens het aanmaken van de database voor deze klant. Probeer het a.u.b. nogmaals of neem contact op met ons.";
+            result.message = "Er is een onbekende fout opgetreden tijdens het aanmaken van de database voor deze klant. Probeer het a.u.b. nogmaals.";
 
             if (error.response) {
                 // The request was made and the server responded with a status code
@@ -233,7 +233,7 @@ export default class TenantsService extends BaseService {
             } else if (error.response && error.response.statusText) {
                 errorMessage = error.response.statusText;
             }
-            result.message = `Er is iets fout gegaan tijdens het aanmaken van deze omgeving. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br>${errorMessage}`;
+            result.message = `Er is iets fout gegaan tijdens het aanmaken van deze omgeving. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br>${errorMessage}`;
             if (error.response) {
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
@@ -312,7 +312,7 @@ export default class TenantsService extends BaseService {
             } else if (error.response && error.response.statusText) {
                 errorMessage = error.response.statusText;
             }
-            result.message = `Er is iets fout gegaan tijdens het overzetten van de wijzigingen. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br>${errorMessage}`;
+            result.message = `Er is iets fout gegaan tijdens het overzetten van de wijzigingen. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br>${errorMessage}`;
             if (error.response) {
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
