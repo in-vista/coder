@@ -387,7 +387,6 @@ export class Grids {
                 }
             };
             
-            debugger;
             if (gridViewSettings.filterable === true) {
                 filterable = defaultFilters;
             } else if (typeof gridViewSettings.filterable === "object") {
