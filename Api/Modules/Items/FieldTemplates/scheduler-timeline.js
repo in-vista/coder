@@ -9,9 +9,7 @@
         });
     }
     
-    const scripts = [
-        "https://cdn.jsdelivr.net/npm/uikit@3.21.12/dist/js/uikit.min.js",
-        "https://cdn.jsdelivr.net/npm/uikit@3.21.12/dist/js/uikit-icons.min.js",
+    const scripts = [        
         "https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js",
         "https://cdn.jsdelivr.net/npm/flatpickr",
         "https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/nl.js"
@@ -568,10 +566,7 @@
 
                 timelineScheduler.renderReservations();
             } catch(exception) {
-                UIkit.notification({
-                    message: `<span uk-icon='icon: warning'></span> Kon reserveringen niet laden`,
-                    status: 'danger'
-                });
+                timelineScheduler.showToast("Reserveringen laden mislukt", { type: "error" });
                 console.error(exception);
             }
             finally {
@@ -647,7 +642,7 @@
         //  "Kleine Tafels": [{id: 123, text:"Tafel 1", capacity:"1 - 6"},{id:456, text:"Tafel 2", capacity:"1 - 4"}],
         //  "Grote Tafels": [{id: 789, text:"Tafel 3", capacity:"2 - 4"},{id:1011, text:"Tafel 4", capacity:"7 - 10"}]
         //};
-        async getTables() {
+        async getTables() {            
             try {
                 const tablesResponse = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryGetTables);                
                 this.tableGroups = tablesResponse.reduce((groups, item) => {
@@ -664,10 +659,7 @@
                     return groups;
                 }, {});
             } catch(exception) {
-                UIkit.notification({
-                    message: `<span uk-icon='icon: warning'></span> Kon tafels niet laden`,
-                    status: 'danger'
-                });
+                timelineScheduler.showToast("Tafels laden mislukt", { type: "error" });
                 console.error(exception);
             }
         }
