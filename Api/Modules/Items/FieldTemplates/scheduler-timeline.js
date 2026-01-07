@@ -218,7 +218,10 @@
                 const item = event.target.closest('.search-item-today-item');
                 if (!item) return;
 
-                timelineScheduler.openReservationInCoder(item.getAttribute('data-reservation-id-encrypted'));
+                const reservationId = Number(item.getAttribute('data-reservation-id'));
+                const encryptedReservationId = item.getAttribute('data-reservation-id-encrypted');
+
+                timelineScheduler.openReservationInCoder(reservationId, encryptedReservationId);
                 
                 // Open datum van reservering in timeline view en scroll naar hoogte van reservering en highlight reservering
                 timelineScheduler.currentDate = new Date(item.getAttribute('data-date'));                
@@ -382,7 +385,8 @@
                         this.updateReservation(this.activeDrag.res);
                         this.renderReservations();
                     } else {
-                        this.openReservationInCoder(this.activeDrag.res.reservationIdEncrypted);
+                        const reservation = this.activeDrag.res;
+                        this.openReservationInCoder(reservation.reservationId, reservation.reservationIdEncrypted);
                     }
     
                     this.activeDrag = null;
@@ -895,7 +899,7 @@
                         if (editBtn) {
                             editBtn.addEventListener("click", function(event) {
                                 event.preventDefault();
-                                timelineScheduler.openReservationInCoder(res.reservationIdEncrypted);
+                                timelineScheduler.openReservationInCoder(res.reservationId, res.reservationIdEncrypted);
                             });
                         }
 
@@ -1077,7 +1081,7 @@
                             // open the created reservation
                             newReservation.reservationId = response[0].id;
                             newReservation.reservationIdEncrypted = response[0].encryptedId;
-                            timelineScheduler.openReservationInCoder(newReservation.reservationIdEncrypted);
+                            timelineScheduler.openReservationInCoder(newReservation.reservationId, newReservation.reservationIdEncrypted);
                         }
                     }
 
@@ -1121,7 +1125,7 @@
                             // open the created reservation
                             newReservation.reservationId = response[0].id;
                             newReservation.reservationIdEncrypted = response[0].encryptedId;
-                            timelineScheduler.openReservationInCoder(newReservation.reservationIdEncrypted);
+                            timelineScheduler.openReservationInCoder(newReservation.reservationId, newReservation.reservationIdEncrypted);
                         }
                     });
 
@@ -1199,12 +1203,12 @@
         }
     
         // Open reservation from Coder in iframe
-        openReservationInCoder(reservationIdEncrypted) {
+        openReservationInCoder(reservationId, reservationIdEncrypted) {
             if (window.top === self) {
                 alert(`Open reservation in Coder: ${reservationIdEncrypted}`);
             }
             else {
-                dynamicItems.windows.loadItemInWindow(false, 0, reservationIdEncrypted, 'reservation', '', false, dynamicItems.grids.mainGrid, { hideTitleColumn: true }, 0, null, null, 0, this.getReservations);
+                dynamicItems.windows.loadItemInWindow(false, reservationId, reservationIdEncrypted, 'reservation', '', false, dynamicItems.grids.mainGrid, { hideTitleColumn: true }, 0, null, null, 0, this.getReservations);
 
                 /*let target = window.location.href.includes('reservery.dev') || window.location.href.includes('localhost') ? 'https://maindev.coder.nl' : 'https://' + new URL(window.location.href).hostname.split('.')[0] + '.coder.nl';
                 window.top.postMessage({
@@ -1512,7 +1516,7 @@
 
                     // Click → Show hover popup from timeline view
                     row.addEventListener("click", () =>
-                        timelineScheduler.openReservationInCoder(res.reservationIdEncrypted)
+                        timelineScheduler.openReservationInCoder(res.reservationId, res.reservationIdEncrypted)
                     );
 
                     // Actions on check-in and check-out buttons                    
