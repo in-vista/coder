@@ -102,10 +102,35 @@
             // Get and render reservations
             this.getReservations(this.toDateString(this.currentDate))
             
-            // Start horizontal scrollbar in the middle
+            // Horizontal scroll bar position
             const scheduler = document.querySelector(".scheduler");
             if (scheduler) {
-                scheduler.scrollLeft = (scheduler.scrollWidth - scheduler.clientWidth) / 2;
+                if (this.currentDate.toDateString() === new Date().toDateString()) {
+                    const now = new Date();
+                    const nowHour = now.getHours() + now.getMinutes() / 60;
+                    if (nowHour < this.startTime && nowHour > this.endTime) { // Is outside view    
+                        // Start horizontal scrollbar in the middle
+                        scheduler.scrollLeft = (scheduler.scrollWidth - scheduler.clientWidth) / 2; 
+                    }
+                    else {
+                        // Start horizontal scrollbar with the current time in the middle
+                        const hoursFromStart = (nowHour - this.startTime + 24) % 24;
+                        const pixelsFromStart = hoursFromStart * this.quartersPerHour * this.cellWidth;
+                        const targetScrollLeft = pixelsFromStart - scheduler.clientWidth / 2;
+
+                        scheduler.scrollLeft = Math.max(
+                            0,
+                            Math.min(
+                                scheduler.scrollWidth - scheduler.clientWidth,
+                                targetScrollLeft
+                            )
+                        );
+                    }
+                }
+                else {
+                    // Start horizontal scrollbar in the middle
+                    scheduler.scrollLeft = (scheduler.scrollWidth - scheduler.clientWidth) / 2;
+                }    
             }
     
             // Add observer, so timeline will be refreshed when iframe gets focus back (change tab in Coder and back to scheduler)     
