@@ -24,6 +24,7 @@ export class Grids {
         this.mainGridFirstLoad = true;
         this.mainGridForceRecount = false;
         this.gridContextMenu = null;
+        this.conditionCache = new Map();
     }
 
     /**
@@ -646,7 +647,7 @@ export class Grids {
                     });
 
                     // To hide toolbar buttons that require a row to be selected.
-                    this.onGridSelectionChange(event, false);
+                    this.onGridSelectionChange(event);
 
                     if (gridViewSettings.keepFiltersState !== false && filtersChanged) {
                         await this.saveGridViewFiltersState(`main_grid_filters_${this.base.settings.moduleId}`, event.sender);
@@ -667,23 +668,8 @@ export class Grids {
                     }
                 },
                 change: (event) => {
-                    // Retrieve the elements of the selected rows
-                    const selectedRows = event.sender.wrapper.find('tr.k-selected');
-                    
-                    // Gather field data for each selected row in the grid.
-                    const selectedData = [];
-                    selectedRows.each(function() {
-                        const row = $(this);
-                        const grid = row.closest('.k-grid').data('kendoGrid');
-                        const rowData = grid.dataItem(row);
-                        selectedData.push(rowData);
-                    });
-                    
-                    // Determine whether any of the selected items is marked to be read-only.
-                    const readOnly = selectedData.some(row => row.read_only ?? false);
-                    
                     // Invoke the grid selection change event.
-                    this.onGridSelectionChange(event, readOnly);
+                    this.onGridSelectionChange(event);
                 },
                 resizable: true,
                 sortable: true,
@@ -1940,21 +1926,13 @@ export class Grids {
      * @param {boolean} readOnly - Whether the contextual item is read-only and should not show action buttons if they
      * are supposed to be hidden if the item is read-only.
      */
-    async onGridSelectionChange(event, readOnly = false) {
+    async onGridSelectionChange(event) {
         // Check based on given condition to hide.
         const conditionalButtons = event.sender.wrapper.find('.k-button.hide-when-no-selected-rows');
 
         // Retrieve the elements of the selected rows
-        const selectedRows = event.sender.wrapper.find('tr.k-table-row.k-selected');
-
-        // Gather field data for each selected row in the grid.
-        const selectedData = [];
-        selectedRows.each(function() {
-            const row = $(this);
-            const grid = row.closest('.k-grid').data('kendoGrid');
-            const rowData = grid.dataItem(row);
-            selectedData.push(rowData);
-        });
+        const grid = event.sender;
+        const selectedData = grid.select().map(row => grid.dataItem(row));
         
         conditionalButtons.each(async () => {
             // Retrieve data of the button.
@@ -1990,14 +1968,18 @@ export class Grids {
         // Conditional check.
         if(condition !== undefined) {
             const decodedCondition = Misc.decodeHtml(condition);
+            
+            let compiledCondition = this.conditionCache.get(decodedCondition);
+            if(!compiledCondition) {
+                const parameterNames = Object.keys(dataItems[0]);
+                compiledCondition = new Function(...parameterNames, `return ${decodedCondition}`);
+                this.conditionCache.set(decodedCondition, compiledCondition);
+            }
 
             // Evaluate the condition for every selected row in the grid.
             shouldHide = !dataItems.every(function(element, index, array) {
-                const parameterNames = Object.keys(element);
                 const parameterValues = Object.values(element);
-
-                const func = new Function(...parameterNames, `return ${decodedCondition}`);
-                return func(...parameterValues);
+                return compiledCondition(...parameterValues);
             });
         }
 
