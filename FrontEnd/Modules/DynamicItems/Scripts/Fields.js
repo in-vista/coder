@@ -1841,6 +1841,22 @@ export class Fields {
                     };
 
                     for (const parameter of action.userParameters) {
+                        // Skip the parameter if it does not meet the given conditions.
+                        const parameterCondition = parameter.condition;
+                        if(parameterCondition !== undefined) {
+                            // Retrieve a set of parameter names and their values from the current user parameters.
+                            const parameterNames = Object.keys(userParametersWithValues);
+                            const parameterValues = Object.values(userParametersWithValues);
+                            
+                            // Create a test function to evaluate the condition code.
+                            const conditionFunction = new Function(...parameterNames, `return ${parameterCondition}`);
+                            const conditionResult = conditionFunction(...parameterValues);
+                            
+                            // If the condition was not met, we want to skip this user parameter.
+                            if(!conditionResult)
+                                continue;
+                        }
+                        
                         if (typeof userParametersWithValues[parameter.name] !== "undefined") {
                             // Only ask for each parameter once.
                             continue;
