@@ -718,8 +718,12 @@ export class Grids {
                 // Retrieve all custom actions of the grid.
                 const customActions = toolbarSettings.customActions;
                 
-                // Retrieve all custom actions in the grid that require a row to be selected.
-                const contextMenuActions = customActions.filter(action => !action.allowNoSelection);
+                // Retrieve all custom actions in the grid.
+                const contextMenuActions = customActions
+                    // Filter out any actions that do not need a row to be selected, as those are irrelevant.
+                    .filter(action => !action.allowNoSelection)
+                    // Filter out any actions that are set to not be shown in a context menu.
+                    .filter(action => action.contextMenu ?? true);
                 
                 // Only allow a context menu in the grid if there are any actions that require a row to be selected.
                 if(contextMenuActions.length > 0) {
