@@ -38,6 +38,12 @@ if (defaultValue) {
     options.value = typeof defaultValue === "string" ? defaultValue.split(",") : defaultValue;
 }
 
+if(fieldOptions.optionLabel !== undefined) {
+    const optionLabel = fieldOptions.optionLabel;
+    field.attr('placeholder', optionLabel);
+    field.attr('data-placeholder', optionLabel);
+}
+
 if (typeof options.dataSource === "string") {
     switch (options.dataSource.toLowerCase()) {
         case "wiserusers":

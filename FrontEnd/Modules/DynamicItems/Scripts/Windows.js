@@ -128,62 +128,67 @@ export class Windows {
                 return;
             }
 
-            currentItemWindow = $("#itemWindow_template").clone(true).attr("id", windowId).kendoWindow({
-                width: "90%",
-                height: "90%",
-                visible: false,
-                modal: true,
-                actions: ["Verwijderen", "Terugzetten", "Verversen", "Vertalen", "Close"],
-                close: (closeEvent) => {
-                    const closeFunction = () => {
-                        try {
-                            // If the current item is a new item and it's not being saved at the moment, then delete it because it was a temporary item.
-                            if (isNewItem && !currentItemWindow.element.data("saving")) {
-                                let canDelete = true;
-                                for (let gridElement of currentItemWindow.element.find(".grid")) {
-                                    const kendoGrid = $(gridElement).data("kendoGrid");
-                                    if (!kendoGrid) {
-                                        continue;
+            currentItemWindow = $("#itemWindow_template")
+                .clone(true)
+                .attr("id", windowId)
+                .attr('data-item-id', itemId)
+                .kendoWindow({
+                    width: "90%",
+                    height: "90%",
+                    visible: false,
+                    modal: true,
+                    actions: ["Verwijderen", "Terugzetten", "Verversen", "Vertalen", "Close"],
+                    close: (closeEvent) => {
+                        const closeFunction = () => {
+                            try {
+                                // If the current item is a new item and it's not being saved at the moment, then delete it because it was a temporary item.
+                                if (isNewItem && !currentItemWindow.element.data("saving")) {
+                                    let canDelete = true;
+                                    for (let gridElement of currentItemWindow.element.find(".grid")) {
+                                        const kendoGrid = $(gridElement).data("kendoGrid");
+                                        if (!kendoGrid) {
+                                            continue;
+                                        }
+    
+                                        // Don't delete this item if someone added something in one of the grids on the item.
+                                        if (kendoGrid.dataSource.data().length > 0) {
+                                            canDelete = false;
+                                        }
                                     }
-
-                                    // Don't delete this item if someone added something in one of the grids on the item.
-                                    if (kendoGrid.dataSource.data().length > 0) {
-                                        canDelete = false;
+    
+                                    if (canDelete) {
+                                        this.base.deleteItem(encryptedItemId, entityType);
                                     }
                                 }
-
-                                if (canDelete) {
-                                    this.base.deleteItem(encryptedItemId, entityType);
-                                }
+                            } catch (exception) {
+                                console.error(exception);
+                                kendo.alert("Er is iets fout gegaan met het verwijderen van het tijdelijk aangemaakt item.");
                             }
-                        } catch (exception) {
-                            console.error(exception);
-                            kendo.alert("Er is iets fout gegaan met het verwijderen van het tijdelijk aangemaakt item.");
+    
+                            // Delete all field initializers of the current window, so they don't stay in memory. We don't need them anymore once the window is closed.
+                            delete this.base.fields.fieldInitializers[windowId];
+    
+                            // Destroy the window.
+                            try {
+                                currentItemWindow.destroy();
+                            } catch (exception) {
+                                console.error(exception);
+                            }
+                            currentItemWindow.element.remove();
+                        };
+    
+                        if (!currentItemWindow.element.data("saving") && !$.isEmptyObject(this.base.fields.unsavedItemValues[windowId])) {
+                            Wiser.showConfirmDialog("Weet u zeker dat u wilt afsluiten zonder de wijzigingen op te slaan?","Weet je zeker dat je wilt afsluiten zonder op te slaan?","Nee, terug naar bewerken","Ja, afsluiten zonder opslaan").then(closeFunction.bind(this));
+                            closeEvent.preventDefault();
+                            return false;
                         }
-
-                        // Delete all field initializers of the current window, so they don't stay in memory. We don't need them anymore once the window is closed.
-                        delete this.base.fields.fieldInitializers[windowId];
-
-                        // Destroy the window.
-                        try {
-                            currentItemWindow.destroy();
-                        } catch (exception) {
-                            console.error(exception);
-                        }
-                        currentItemWindow.element.remove();
-                    };
-
-                    if (!currentItemWindow.element.data("saving") && !$.isEmptyObject(this.base.fields.unsavedItemValues[windowId])) {
-                        Wiser.showConfirmDialog("Weet u zeker dat u wilt afsluiten zonder de wijzigingen op te slaan?","Weet je zeker dat je wilt afsluiten zonder op te slaan?","Nee, terug naar bewerken","Ja, afsluiten zonder opslaan").then(closeFunction.bind(this));
-                        closeEvent.preventDefault();
-                        return false;
+    
+                        closeFunction();
+                        
+                        callback?.(null);
                     }
-
-                    closeFunction();
-                    
-                    callback?.(null);
-                }
-            }).data("kendoWindow");
+                })
+                .data("kendoWindow");
 
             const infoPanel = $("#infoPanel_template").clone(true).attr("id", `${windowId}_infoPanel`).insertAfter(currentItemWindow.element);
             const newMetaToggleElementId = `${windowId}_meta-toggle`;

@@ -105,6 +105,12 @@ namespace Api.Core.Services
         {
             return ConnectionForReading;
         }
+        
+        /// <inheritdoc />
+        public string GetConnectionStringForReading() => ConnectionForReading?.ConnectionString;
+        
+        /// <inheritdoc />
+        public string GetConnectionStringForWriting() => ConnectionForReading?.ConnectionString;
 
         /// <inheritdoc />
         public Task<int> BulkInsertAsync(DataTable dataTable, string tableName, bool useWritingConnectionIfAvailable = true, bool useInsertIgnore = false)

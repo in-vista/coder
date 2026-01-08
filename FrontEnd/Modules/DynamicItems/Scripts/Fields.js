@@ -2511,7 +2511,7 @@ export class Fields {
                         // Check if the element is part of an item popup.
                         const dataItemId = element.closest('.item')?.attr('data-item-id');
                         if(dataItemId !== undefined && dataItemId !== false) {
-                            kendoWindow = $(`#existingItemWindow_${dataItemId}`);
+                            kendoWindow = $(`.popup-container[data-item-id="${dataItemId}"]`);
                         } else {
                             kendoWindow = element.closest(".popup-container");
                         }
