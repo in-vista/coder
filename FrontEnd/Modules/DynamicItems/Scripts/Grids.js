@@ -24,7 +24,6 @@ export class Grids {
         this.mainGridFirstLoad = true;
         this.mainGridForceRecount = false;
         this.gridContextMenu = null;
-        this.conditionCache = new Map();
     }
 
     /**
@@ -1965,15 +1964,18 @@ export class Grids {
         // Do not hide buttons by default.
         let shouldHide = false;
         
+        // Prepare a map with cached compiled Javascript functions used for condition tests.
+        const conditionCache = new Map();
+        
         // Conditional check.
         if(condition !== undefined) {
             const decodedCondition = Misc.decodeHtml(condition);
             
-            let compiledCondition = this.conditionCache.get(decodedCondition);
+            let compiledCondition = conditionCache.get(decodedCondition);
             if(!compiledCondition) {
                 const parameterNames = Object.keys(dataItems[0]);
                 compiledCondition = new Function(...parameterNames, `return ${decodedCondition}`);
-                this.conditionCache.set(decodedCondition, compiledCondition);
+                conditionCache.set(decodedCondition, compiledCondition);
             }
 
             // Evaluate the condition for every selected row in the grid.
