@@ -367,7 +367,7 @@ const communicationModuleSettings = {
                 }).data("kendoNumericTextBox");
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
             } finally {
                 window.processing.removeProcess(process);
             }
@@ -470,7 +470,7 @@ const communicationModuleSettings = {
                 window.location = "/Modules/Communication";
             } catch (exception) {
                 console.error(exception);
-                kendo.alert(`Er is iets fout gegaan tijdens het verwijderen van de communicatie-instellingen met ID '${this.settings.settingsId}'. Probeer het a.u.b. opnieuw of neem contact op met ons.`);
+                kendo.alert(`Er is iets fout gegaan tijdens het verwijderen van de communicatie-instellingen met ID '${this.settings.settingsId}'. Probeer het a.u.b. opnieuw.`);
                 window.processing.removeProcess(process);
             }
         }
@@ -519,7 +519,7 @@ const communicationModuleSettings = {
                 kendo.alert("De instellingen zijn succesvol opgeslagen.");
             } catch (exception) {
                 console.error(exception);
-                kendo.alert(`Er is iets fout gegaan tijdens het laden van de communicatie-instellingen met ID '${this.settings.settingsId}'. Probeer het a.u.b. opnieuw of neem contact op met ons.`);
+                kendo.alert(`Er is iets fout gegaan tijdens het laden van de communicatie-instellingen met ID '${this.settings.settingsId}'. Probeer het a.u.b. opnieuw.`);
             } finally {
                 window.processing.removeProcess(process);
             }
@@ -683,7 +683,7 @@ const communicationModuleSettings = {
                 }
             } catch (exception) {
                 console.error(exception);
-                kendo.alert(`Er is iets fout gegaan tijdens het opslaan van de communicatie-instellingen met ID '${id}'. Probeer het a.u.b. opnieuw of neem contact op met ons.`);
+                kendo.alert(`Er is iets fout gegaan tijdens het opslaan van de communicatie-instellingen met ID '${id}'. Probeer het a.u.b. opnieuw.`);
             } finally {
                 window.processing.removeProcess(process);
             }

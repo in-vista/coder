@@ -9,9 +9,7 @@
         });
     }
     
-    const scripts = [
-        "https://cdn.jsdelivr.net/npm/uikit@3.21.12/dist/js/uikit.min.js",
-        "https://cdn.jsdelivr.net/npm/uikit@3.21.12/dist/js/uikit-icons.min.js",
+    const scripts = [        
         "https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js",
         "https://cdn.jsdelivr.net/npm/flatpickr",
         "https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/nl.js"
@@ -43,11 +41,11 @@
         suppressHover = false;
         totalQuarters = (this.endTime > this.startTime ? (this.endTime - this.startTime) : (24 - this.startTime + this.endTime)) * this.quartersPerHour;
         currentDate = new Date();
-        hoverTimers = {};
-        domain = "https://koks.reservery.dev";
+        hoverTimers = {};        
     
-        constructor() {            
-            this.init();
+        constructor() {
+            this.options = {options};
+            this.init();            
         }
     
         async init(){
@@ -93,9 +91,8 @@
             currentDateSpan.innerText = this.formatDate(this.currentDate);
             this.createHeader();
 
-            // Load arrangements and cache for 1 hour
-            const arrangementsResponse = await axios.get(`${this.domain}/template.gcl?templateName=getArrangementsForTimeline`);
-            this.arrangements = arrangementsResponse.data;
+            // Load arrangements and cache for 1 hour            
+            this.arrangements = (await this.callApi(this.options.timelineSchedulerQueryGetArrangements));
     
             // Get tables and reservations
             await this.getTables();    
@@ -103,10 +100,35 @@
             // Get and render reservations
             this.getReservations(this.toDateString(this.currentDate))
             
-            // Start horizontal scrollbar in the middle
+            // Horizontal scroll bar position
             const scheduler = document.querySelector(".scheduler");
             if (scheduler) {
-                scheduler.scrollLeft = (scheduler.scrollWidth - scheduler.clientWidth) / 2;
+                if (this.currentDate.toDateString() === new Date().toDateString()) {
+                    const now = new Date();
+                    const nowHour = now.getHours() + now.getMinutes() / 60;
+                    if (nowHour < this.startTime && nowHour > this.endTime) { // Is outside view    
+                        // Start horizontal scrollbar in the middle
+                        scheduler.scrollLeft = (scheduler.scrollWidth - scheduler.clientWidth) / 2; 
+                    }
+                    else {
+                        // Start horizontal scrollbar with the current time in the middle
+                        const hoursFromStart = (nowHour - this.startTime + 24) % 24;
+                        const pixelsFromStart = hoursFromStart * this.quartersPerHour * this.cellWidth;
+                        const targetScrollLeft = pixelsFromStart - scheduler.clientWidth / 2;
+
+                        scheduler.scrollLeft = Math.max(
+                            0,
+                            Math.min(
+                                scheduler.scrollWidth - scheduler.clientWidth,
+                                targetScrollLeft
+                            )
+                        );
+                    }
+                }
+                else {
+                    // Start horizontal scrollbar in the middle
+                    scheduler.scrollLeft = (scheduler.scrollWidth - scheduler.clientWidth) / 2;
+                }    
             }
     
             // Add observer, so timeline will be refreshed when iframe gets focus back (change tab in Coder and back to scheduler)     
@@ -194,7 +216,10 @@
                 const item = event.target.closest('.search-item-today-item');
                 if (!item) return;
 
-                timelineScheduler.openReservationInCoder(item.getAttribute('data-reservation-id-encrypted'));
+                const reservationId = Number(item.getAttribute('data-reservation-id'));
+                const encryptedReservationId = item.getAttribute('data-reservation-id-encrypted');
+
+                timelineScheduler.openReservationInCoder(reservationId, encryptedReservationId);
                 
                 // Open datum van reservering in timeline view en scroll naar hoogte van reservering en highlight reservering
                 timelineScheduler.currentDate = new Date(item.getAttribute('data-date'));                
@@ -358,7 +383,8 @@
                         this.updateReservation(this.activeDrag.res);
                         this.renderReservations();
                     } else {
-                        this.openReservationInCoder(this.activeDrag.res.reservationIdEncrypted);
+                        const reservation = this.activeDrag.res;
+                        this.openReservationInCoder(reservation.reservationId, reservation.reservationIdEncrypted);
                     }
     
                     this.activeDrag = null;
@@ -511,9 +537,9 @@
                     endDateTime = `${date} ${timelineScheduler.decimalToTime(timelineScheduler.endTime)}`;
                 }
     
-                // Get reservations            
-                const reservationsResponse = await axios.get(`${timelineScheduler.domain}/template.gcl?templateName=getReservationsForTimeline&startDateTime=${startDateTime}&endDateTime=${endDateTime}`);
-                timelineScheduler.reservations = reservationsResponse.data.map(r => ({
+                // Get reservations                                
+                let reservationsResponse = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryGetReservations, '{"startDateTime": "' +  startDateTime + '","endDateTime": "' +  endDateTime + '"}');
+                timelineScheduler.reservations = reservationsResponse.map(r => ({
                     reservationId: r.id,
                     reservationIdEncrypted: r.encryptedId,
                     name: r.customer_id===0 ? 'Walk-in' : r.customer_full_name==='' ? 'Geen naam bekend' : r.customer_full_name,
@@ -540,10 +566,7 @@
 
                 timelineScheduler.renderReservations();
             } catch(exception) {
-                UIkit.notification({
-                    message: `<span uk-icon='icon: warning'></span> Kon reserveringen niet laden`,
-                    status: 'danger'
-                });
+                timelineScheduler.showToast("Reserveringen laden mislukt", { type: "error" });
                 console.error(exception);
             }
             finally {
@@ -599,7 +622,7 @@
                 reservation.endDate = this.toDateString(this.currentDate);
             }
     
-            await axios.post(`${this.domain}/template.gcl?templateName=updateReservationFromTimeline`, reservation, {headers: {'Content-Type': 'multipart/form-data'}});
+            await this.callApi(this.options.timelineSchedulerQueryUpdateReservation, JSON.stringify(reservation));            
         }
     
         // Functie om 1 dag op te tellen bij een gegeven datum in string vorm '2025-09-01'
@@ -619,10 +642,10 @@
         //  "Kleine Tafels": [{id: 123, text:"Tafel 1", capacity:"1 - 6"},{id:456, text:"Tafel 2", capacity:"1 - 4"}],
         //  "Grote Tafels": [{id: 789, text:"Tafel 3", capacity:"2 - 4"},{id:1011, text:"Tafel 4", capacity:"7 - 10"}]
         //};
-        async getTables() {
+        async getTables() {            
             try {
-                const tablesResponse = await axios.get(`${this.domain}/template.gcl?templateName=getTablesForTimeline&userId=${dynamicItems.base.settings.userId}`);
-                this.tableGroups = tablesResponse.data.reduce((groups, item) => {
+                const tablesResponse = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryGetTables);                
+                this.tableGroups = tablesResponse.reduce((groups, item) => {
                     if (!groups[item.room]) {
                         groups[item.room] = [];
                     }
@@ -636,10 +659,7 @@
                     return groups;
                 }, {});
             } catch(exception) {
-                UIkit.notification({
-                    message: `<span uk-icon='icon: warning'></span> Kon tafels niet laden`,
-                    status: 'danger'
-                });
+                timelineScheduler.showToast("Tafels laden mislukt", { type: "error" });
                 console.error(exception);
             }
         }
@@ -695,8 +715,8 @@
                     this.tableGroups[groupName].forEach(e => {e.roomActive = e.roomActive === 1 ? 0 : 1});
 
                     // Sla nieuwe instelling op bij gebruiker
-                    let activeGroups = Array.from(document.querySelectorAll(".group-header.active")).map(el => el.innerText.trim()).join(",");
-                    axios.post(`${this.domain}/template.gcl?templateName=saveGroupSettingsFromTimeline&userId=${dynamicItems.base.settings.userId}`, {"activeGroups": activeGroups}, {headers: {'Content-Type': 'multipart/form-data'}});
+                    let activeGroups = Array.from(document.querySelectorAll(".group-header.active")).map(el => el.innerText.trim()).join(",");                    
+                    this.callApi(this.options.timelineSchedulerQuerySaveGroupSettings,'{"activeGroups": "' +  activeGroups + '"}');
                 });
 
                 this.container.appendChild(groupHeader);
@@ -871,7 +891,7 @@
                         if (editBtn) {
                             editBtn.addEventListener("click", function(event) {
                                 event.preventDefault();
-                                timelineScheduler.openReservationInCoder(res.reservationIdEncrypted);
+                                timelineScheduler.openReservationInCoder(res.reservationId, res.reservationIdEncrypted);
                             });
                         }
 
@@ -915,7 +935,7 @@
                             res.notes = newNotes;
 
                             // direct naar backend sturen
-                            axios.post(`${this.domain}/template.gcl?templateName=saveNotesFromTimline`, res, {headers: {'Content-Type': 'multipart/form-data'}});
+                            this.callApi(this.options.timelineSchedulerQuerySaveNotes, JSON.stringify(res));
                         });
 
                         hover.querySelector(".hover-cancel").addEventListener("click", () => {
@@ -1047,13 +1067,13 @@
                         //self.renderReservations();
 
                         // create reservation in database and open new reservation
-                        const response  = await axios.post(`${timelineScheduler.domain}/template.gcl?templateName=insertReservationFromTimeline&userName=${dynamicItems.base.settings.username}`, newReservation, {headers: {'Content-Type': 'multipart/form-data'}});
+                        const response  = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryInsertReservation,JSON.stringify(newReservation));
 
-                        if (response.data.id) {
+                        if (response[0].id) {
                             // open the created reservation
-                            newReservation.reservationId = response.data.id;
-                            newReservation.reservationIdEncrypted = response.data.encryptedId;
-                            timelineScheduler.openReservationInCoder(newReservation.reservationIdEncrypted);
+                            newReservation.reservationId = response[0].id;
+                            newReservation.reservationIdEncrypted = response[0].encryptedId;
+                            timelineScheduler.openReservationInCoder(newReservation.reservationId, newReservation.reservationIdEncrypted);
                         }
                     }
 
@@ -1090,14 +1110,14 @@
                         self.reservations.push(newReservation);
                         //self.renderReservations();
 
-                        // create reservation in database and open new reservation
-                        const response  = await axios.post(`${this.domain}/template.gcl?templateName=insertReservationFromTimeline&userName=${dynamicItems.base.settings.username}`, newReservation, {headers: {'Content-Type': 'multipart/form-data'}});
+                        // create reservation in database and open new reservation                        
+                        const response  = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryInsertReservation, JSON.stringify(newReservation));
 
-                        if (response.data.id) {
+                        if (response[0].id) {
                             // open the created reservation
-                            newReservation.reservationId = response.data.id;
-                            newReservation.reservationIdEncrypted = response.data.encryptedId;
-                            timelineScheduler.openReservationInCoder(newReservation.reservationIdEncrypted);
+                            newReservation.reservationId = response[0].id;
+                            newReservation.reservationIdEncrypted = response[0].encryptedId;
+                            timelineScheduler.openReservationInCoder(newReservation.reservationId, newReservation.reservationIdEncrypted);
                         }
                     });
 
@@ -1175,12 +1195,12 @@
         }
     
         // Open reservation from Coder in iframe
-        openReservationInCoder(reservationIdEncrypted) {
+        openReservationInCoder(reservationId, reservationIdEncrypted) {
             if (window.top === self) {
                 alert(`Open reservation in Coder: ${reservationIdEncrypted}`);
             }
             else {
-                dynamicItems.windows.loadItemInWindow(false, 0, reservationIdEncrypted, 'reservation', '', false, dynamicItems.grids.mainGrid, { hideTitleColumn: true }, 0, null, null, 0, this.getReservations);
+                dynamicItems.windows.loadItemInWindow(false, reservationId, reservationIdEncrypted, 'reservation', '', false, dynamicItems.grids.mainGrid, { hideTitleColumn: true }, 0, null, null, 0, this.getReservations);
 
                 /*let target = window.location.href.includes('reservery.dev') || window.location.href.includes('localhost') ? 'https://maindev.coder.nl' : 'https://' + new URL(window.location.href).hostname.split('.')[0] + '.coder.nl';
                 window.top.postMessage({
@@ -1303,14 +1323,18 @@
 
             try {
                 var searchTemplate = document.getElementById("search-item-template");                
-                
-                const response = await axios.get(
-                    `${this.domain}/template.gcl?templateName=searchFromTimeline&search=${searchTerm}&currentDate=${this.toDateString(this.currentDate)}`,
-                    { signal: timelineScheduler.currentSearchController.signal }
+                                
+                const response = await this.callApi(
+                    this.options.timelineSchedulerQuerySearch,
+                    JSON.stringify({
+                        search: searchTerm,
+                        currentDate: this.toDateString(this.currentDate)
+                    }),
+                    timelineScheduler.currentSearchController.signal
                 );
 
                 // Resultaten samenstellen
-                const results = response.data.map(reservation => {
+                const results = response.map(reservation => {
                     const arrangementAbbr = timelineScheduler.arrangements.find(item => item.id === reservation.arrangement)?.abbreviation ?? '';
                     let html = searchTemplate.innerHTML;
                     html = html.replace("{reservationId}", reservation.reservationId)
@@ -1484,7 +1508,7 @@
 
                     // Click → Show hover popup from timeline view
                     row.addEventListener("click", () =>
-                        timelineScheduler.openReservationInCoder(res.reservationIdEncrypted)
+                        timelineScheduler.openReservationInCoder(res.reservationId, res.reservationIdEncrypted)
                     );
 
                     // Actions on check-in and check-out buttons                    
@@ -1517,7 +1541,7 @@
         }
 
         checkIn(res) {
-            axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkInFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}}).then(response => {
+            timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryCheckIn,'{"reservationId": "' + res.reservationId + '"}').then(response => {
                 timelineScheduler.reservations.find(r => r.reservationId === res.reservationId).checkIn = true;
                 
                 // Timeline view bijwerken
@@ -1548,7 +1572,7 @@
         }
         
         checkOut(res) {
-            axios.post(`${timelineScheduler.domain}/template.gcl?templateName=checkOutFromTimeline`, {"reservationId": res.reservationId}, {headers: {'Content-Type': 'multipart/form-data'}}).then(response => {
+            timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryCheckOut,'{"reservationId": "' + res.reservationId + '"}').then(response => {            
                 timelineScheduler.reservations.find(r => r.reservationId === res.reservationId).checkOut = true;
                 
                 // Timeline view bijwerken
@@ -1573,7 +1597,23 @@
                 timelineScheduler.showToast("Uitchecken mislukt", { type: "error" });
             });
         }
-        
+
+        async callApi(queryId, data, signal = null) {
+            try {
+                const queryResults = await Wiser.api({
+                    method: "POST",
+                    url: dynamicItems.settings.wiserApiRoot +
+                        "items/" + encodeURIComponent("{itemIdEncrypted}") +
+                        "/action-button/{propertyId}?queryId=" + encodeURIComponent(queryId || 0),
+                    contentType: "application/json",
+                    data: data
+                });
+
+                return queryResults.otherData;
+            } catch (error) {
+                console.error(error);                
+            }
+        }
     }
 
     // Inject custom Javascript code from the entity property's settings.

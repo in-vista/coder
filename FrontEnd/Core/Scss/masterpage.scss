@@ -1161,3 +1161,46 @@ ul.totp-backup-codes {
 .change-password-prompt input {
     width: 100%;
 }
+
+@media (max-width: $screen-md-max) {
+    .main-menu {
+        height: 70px;
+    }
+    
+    .main-menu #menu-btn {
+        background: unset;
+        width: fit-content;
+    }
+    
+    header > .main-menu > li#side-menu {
+        width: fit-content;
+        min-width: unset;
+    }
+
+    .main-menu > li {
+        min-width: unset;
+    }
+
+    .main-menu > li.icons .ico-item:last-child {
+        padding-right: 0;
+    }
+
+    .main-menu > li.icons .ico-item,
+    .main-menu > li.icons .ico-item:first-child,
+    .main-menu > li.icons .ico-item:last-child {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .main-menu > li.icons .ico-item ins {
+        width: unset;
+    }
+    
+    #taskFrame {
+        position: fixed !important;
+    }
+    
+    .main-menu > .login {
+        flex: 1 0;
+    }
+}

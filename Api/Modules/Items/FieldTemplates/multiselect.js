@@ -62,7 +62,7 @@ if (typeof options.dataSource === "string") {
             }
             break;
         default:
-            kendo.alert(`Onbekende datasource (' ${options.dataSource}') opgegeven bij combobox-veld ('{title}'). Neem a.u.b. contact op met ons.`);
+            kendo.alert(`Onbekende datasource (' ${options.dataSource}') opgegeven bij combobox-veld ('{title}').`);
             break;
     }
 } else if (options.entityType && !fieldOptions.useDataQuery) {

@@ -128,71 +128,67 @@ export class Windows {
                 return;
             }
 
-            currentItemWindow = $("#itemWindow_template").clone(true).attr("id", windowId).kendoWindow({
-                width: "90%",
-                height: "90%",
-                visible: false,
-                modal: true,
-                actions: ["Verwijderen", "Terugzetten", "Verversen", "Vertalen", "Close"],
-                close: (closeEvent) => {
-                    const closeFunction = () => {
-                        try {
-                            // If the current item is a new item and it's not being saved at the moment, then delete it because it was a temporary item.
-                            if (isNewItem && !currentItemWindow.element.data("saving")) {
-                                let canDelete = true;
-                                for (let gridElement of currentItemWindow.element.find(".grid")) {
-                                    const kendoGrid = $(gridElement).data("kendoGrid");
-                                    if (!kendoGrid) {
-                                        continue;
+            currentItemWindow = $("#itemWindow_template")
+                .clone(true)
+                .attr("id", windowId)
+                .attr('data-item-id', itemId)
+                .kendoWindow({
+                    width: "90%",
+                    height: "90%",
+                    visible: false,
+                    modal: true,
+                    actions: ["Verwijderen", "Terugzetten", "Verversen", "Vertalen", "Close"],
+                    close: (closeEvent) => {
+                        const closeFunction = () => {
+                            try {
+                                // If the current item is a new item and it's not being saved at the moment, then delete it because it was a temporary item.
+                                if (isNewItem && !currentItemWindow.element.data("saving")) {
+                                    let canDelete = true;
+                                    for (let gridElement of currentItemWindow.element.find(".grid")) {
+                                        const kendoGrid = $(gridElement).data("kendoGrid");
+                                        if (!kendoGrid) {
+                                            continue;
+                                        }
+    
+                                        // Don't delete this item if someone added something in one of the grids on the item.
+                                        if (kendoGrid.dataSource.data().length > 0) {
+                                            canDelete = false;
+                                        }
                                     }
-
-                                    // Don't delete this item if someone added something in one of the grids on the item.
-                                    if (kendoGrid.dataSource.data().length > 0) {
-                                        canDelete = false;
+    
+                                    if (canDelete) {
+                                        this.base.deleteItem(encryptedItemId, entityType);
                                     }
                                 }
-
-                                if (canDelete) {
-                                    this.base.deleteItem(encryptedItemId, entityType);
-                                }
+                            } catch (exception) {
+                                console.error(exception);
+                                kendo.alert("Er is iets fout gegaan met het verwijderen van het tijdelijk aangemaakt item.");
                             }
-                        } catch (exception) {
-                            console.error(exception);
-                            kendo.alert("Er is iets fout gegaan met het verwijderen van het tijdelijk aangemaakt item. Neem a.u.b. contact op met ons.");
+    
+                            // Delete all field initializers of the current window, so they don't stay in memory. We don't need them anymore once the window is closed.
+                            delete this.base.fields.fieldInitializers[windowId];
+    
+                            // Destroy the window.
+                            try {
+                                currentItemWindow.destroy();
+                            } catch (exception) {
+                                console.error(exception);
+                            }
+                            currentItemWindow.element.remove();
+                        };
+    
+                        if (!currentItemWindow.element.data("saving") && !$.isEmptyObject(this.base.fields.unsavedItemValues[windowId])) {
+                            Wiser.showConfirmDialog("Weet u zeker dat u wilt afsluiten zonder de wijzigingen op te slaan?","Weet je zeker dat je wilt afsluiten zonder op te slaan?","Nee, terug naar bewerken","Ja, afsluiten zonder opslaan").then(closeFunction.bind(this));
+                            closeEvent.preventDefault();
+                            return false;
                         }
-
-                        // Delete all field initializers of the current window, so they don't stay in memory. We don't need them anymore once the window is closed.
-                        delete this.base.fields.fieldInitializers[windowId];
-
-                        // Destroy the window.
-                        try {
-                            currentItemWindow.destroy();
-                        } catch (exception) {
-                            console.error(exception);
-                        }
-                        currentItemWindow.element.remove();
-                    };
-
-                    // Check if a search window is opened, if so close that one first before attempting to close the main window.
-                    const searchItemsWindow = document.getElementById("searchItemsWindow_wnd_title");
-
-                    if(searchItemsWindow.checkVisibility()){
-                        this.searchItemsWindow.close();
-                        closeEvent.preventDefault();
-                        return false;
+    
+                        closeFunction();
+                        
+                        callback?.(null);
                     }
-
-                    if (!currentItemWindow.element.data("saving") && !$.isEmptyObject(this.base.fields.unsavedItemValues[windowId])) {
-                        Wiser.showConfirmDialog("Weet u zeker dat u wilt afsluiten zonder de wijzigingen op te slaan?","Weet je zeker dat je wilt afsluiten zonder op te slaan?","Nee, terug naar bewerken","Ja, afsluiten zonder opslaan").then(closeFunction.bind(this));
-                        closeEvent.preventDefault();
-                        return false;
-                    }
-
-                    closeFunction();
-                    
-                    callback?.(null);
-                }
-            }).data("kendoWindow");
+                })
+                .data("kendoWindow");
 
             const infoPanel = $("#infoPanel_template").clone(true).attr("id", `${windowId}_infoPanel`).insertAfter(currentItemWindow.element);
             const newMetaToggleElementId = `${windowId}_meta-toggle`;
@@ -487,7 +483,7 @@ export class Windows {
                     this.base.fields.initializePro6PPBindings(currentItemWindow.wrapper);
                 } catch (exception) {
                     console.error(exception);
-                    kendo.alert("Er is iets fout gegaan tijdens het (her)laden van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                    kendo.alert("Er is iets fout gegaan tijdens het (her)laden van dit item. Probeer het a.u.b. nogmaals.");
                 }
 
                 if (!currentItemWindow) {
@@ -567,7 +563,7 @@ export class Windows {
 			}
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan tijdens het laden van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het laden van dit item. Probeer het a.u.b. nogmaals.");
         }
     }
 
@@ -611,13 +607,16 @@ export class Windows {
             console.error(exception);
             popupWindowContainer.find(".popup-loader").removeClass("loading");
             popupWindowContainer.data("saving", false);
-
-            if (exception.status === 409) {
-                const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
-                kendo.alert(message);
-            } else {
-                kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het nogmaals.");
+            
+            let message = exception.responseText;
+            if(!message) {
+                switch(exception.status) {
+                    case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
+                    default: message = "Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het nogmaals."; break;
+                }
             }
+
+            kendo.alert(message);
         }
     }
 
@@ -734,7 +733,7 @@ export class Windows {
                     break;
                 }
                 default:
-                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van dit item. Probeer het a.u.b. nogmaals.");
                     break;
             }
         }
@@ -845,7 +844,7 @@ export class Windows {
             this.searchItemsWindowSettings.senderGrid.dataSource.read();
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan tijdens het verwerken van de nieuwe koppeling(en). Probeer het a.u.b. nogmaals of neem contact op met ons");
+            kendo.alert("Er is iets fout gegaan tijdens het verwerken van de nieuwe koppeling(en). Probeer het a.u.b. nogmaals");
         }
 
         this.searchGridChangeBusy = false;
@@ -1101,7 +1100,7 @@ export class Windows {
             }
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan met het initialiseren van het overzicht. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan met het initialiseren van het overzicht. Probeer het a.u.b. nogmaals.");
         }
     }
 }

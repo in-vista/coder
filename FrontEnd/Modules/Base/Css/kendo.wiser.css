@@ -1345,6 +1345,7 @@ span.k-input .k-input:hover {
 .k-filtercell .k-input,
 .k-filtercell .k-picker {
 	border: none;
+	width: fit-content;
 }
 .k-filtercell .k-autocomplete {
 	width: 100%;

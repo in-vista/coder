@@ -46,7 +46,7 @@ public class GoogleTranslateService : IGoogleTranslateService, IScopedService
             logger.LogWarning(invalidApiKeyException, "User tried to translate, but there is no API key configured in Coder.");
             return new ServiceResult<IList<TranslationResult>>
             {
-                ErrorMessage = "De vertaalmodule is niet beschikbaar omdat er geen API Key voor de Google Translate API is ingesteld. Neem a.u.b. contact op met ons.",
+                ErrorMessage = "De vertaalmodule is niet beschikbaar omdat er geen API Key voor de Google Translate API is ingesteld.",
                 StatusCode = HttpStatusCode.Conflict
             };
         }
@@ -66,7 +66,7 @@ public class GoogleTranslateService : IGoogleTranslateService, IScopedService
             logger.LogWarning(invalidApiKeyException, "User tried to translate, but there is no API key configured in Coder.");
             return new ServiceResult<IList<TranslationResult>>
             {
-                ErrorMessage = "De vertaalmodule is niet beschikbaar omdat er geen API Key voor de Google Translate API is ingesteld. Neem a.u.b. contact op met ons.",
+                ErrorMessage = "De vertaalmodule is niet beschikbaar omdat er geen API Key voor de Google Translate API is ingesteld.",
                 StatusCode = HttpStatusCode.Conflict
             };
         }
