@@ -203,7 +203,7 @@ export class Windows {
                 currentItemWindow.element.find(".saveAndCloseBottomPopup").trigger("click");
             });
 
-            currentItemWindow.maximize().center().open();
+            currentItemWindow.maximize().center();
 
             // Initialize the tab strip on the new window.
             const currentItemTabStrip = currentItemWindow.element.find(".tabStripPopup").kendoTabStrip({
@@ -364,6 +364,30 @@ export class Windows {
             });
 			
 			const entitySettings = await this.base.getEntityType(entityType);
+
+            // Re-render the item window based on the item window mode of the entity.
+            switch(entitySettings.itemWindowMode) {
+                case 'Side':
+                    const windowElement = currentItemWindow.wrapper.closest('.k-window');
+
+                    windowElement.addClass('sidebar');
+
+                    const onResizeWindow = () => {
+                        windowElement.css({
+                            width: '',
+                            height: '',
+                            left: '',
+                            top: ''
+                        });
+                    };
+
+                    currentItemWindow.bind('resize', onResizeWindow);
+                    onResizeWindow();
+
+                    break;
+            }
+
+            currentItemWindow.open();
 			
             const loadPopupContents = async (tabIndex = 0) => {
                 try {
@@ -538,29 +562,6 @@ export class Windows {
 			// Set a resize bind the window and execute to unset the top, bottom, left and right CSS properties on the element if the window has a maximized class.
 			currentItemWindow.bind('resize', unsetTopBottomLeftRightProperties);
 			unsetTopBottomLeftRightProperties();
-			
-			// Re-render the item window based on the item window mode of the entity.
-			switch(entitySettings.itemWindowMode) {
-				case 'Side':
-					const windowElement = currentItemWindow.wrapper.closest('.k-window');
-
-					windowElement.addClass('sidebar');
-					
-					const onResizeWindow = () => {
-						windowElement.css({
-							width: '',
-							height: '',
-							left: '',
-							top: ''
-						});
-					};
-
-					currentItemWindow.bind('resize', onResizeWindow);
-
-					onResizeWindow();
-					
-					break;
-			}
         } catch (exception) {
             console.error(exception);
             kendo.alert("Er is iets fout gegaan tijdens het laden van dit item. Probeer het a.u.b. nogmaals.");
