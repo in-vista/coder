@@ -176,6 +176,15 @@ export class Windows {
                             }
                             currentItemWindow.element.remove();
                         };
+
+                        // Check if a search window is opened, if so close that one first before attempting to close the main window.
+                        const searchItemsWindow = document.getElementById("searchItemsWindow_wnd_title");
+
+                        if(searchItemsWindow.checkVisibility()){
+                            this.searchItemsWindow.close();
+                            closeEvent.preventDefault();
+                            return false;
+                        }
     
                         if (!currentItemWindow.element.data("saving") && !$.isEmptyObject(this.base.fields.unsavedItemValues[windowId])) {
                             Wiser.showConfirmDialog("Weet u zeker dat u wilt afsluiten zonder de wijzigingen op te slaan?","Weet je zeker dat je wilt afsluiten zonder op te slaan?","Nee, terug naar bewerken","Ja, afsluiten zonder opslaan").then(closeFunction.bind(this));
