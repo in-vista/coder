@@ -3461,9 +3461,7 @@ export class Fields {
      */
     async onHtmlEditorHtmlSourceExec(event, editor, itemId) {
         const htmlWindow = $("#htmlSourceWindow").clone(true);
-        const editorValue = editor.value();
-        const breakLineEditorValue = editorValue.replace(/<br ?\/>/g, '\n');
-        const textArea = htmlWindow.find("textarea").val(breakLineEditorValue);
+        const textArea = htmlWindow.find("textarea").val(editor.value());
         // Prettify code from minified text.
         const pretty = await require('pretty');
         textArea[0].value = pretty(textArea[0].value, {
@@ -3525,8 +3523,7 @@ export class Fields {
 
         htmlWindow.find(".k-primary, .k-button-solid-primary").kendoButton({
             click: () => {
-                const value = codeMirrorInstance.getValue();
-                editor.value(value);
+                editor.value(codeMirrorInstance.getValue());
                 kendoWindow.close();
             },
             icon: "save"
