@@ -333,7 +333,9 @@ export class Windows {
             currentItemWindow.element.find(".saveBottomPopup").kendoButton({
                 icon: "save",
                 click: async (event) => {
-                    await this.onSaveItemPopupClick(event, false, !senderGrid);
+                    const success = await this.onSaveItemPopupClick(event, false, !senderGrid);
+                    if(!success)
+                        return;
                     
                     // Store the previous state of the item.
                     const wasNewItem = isNewItem;
@@ -351,7 +353,10 @@ export class Windows {
             currentItemWindow.element.find(".saveAndCloseBottomPopup").kendoButton({
                 icon: "save",
                 click: async (event) => {
-                    await this.onSaveItemPopupClick(event, true, !senderGrid);
+                    const success = await this.onSaveItemPopupClick(event, true, !senderGrid);
+                    if(!success)
+                        return;
+                    
                     afterSave();
                 }
             });
@@ -648,7 +653,7 @@ export class Windows {
 
             if (!validator.validate()) {
                 popupWindowContainer.find(".popup-loader").removeClass("loading");
-                return;
+                return false;
             }
 
             // Check if the item has a Topol instance running.
@@ -699,12 +704,12 @@ export class Windows {
             }
 
             if (!isNewItemWindow) {
-                return;
+                return true;
             }
 
             const treeView = this.base.mainTreeView;
             if (!treeView || !addToTreeView) {
-                return;
+                return true;
             }
 
             const selectedNode = treeView.select();
@@ -737,6 +742,8 @@ export class Windows {
                     break;
             }
         }
+        
+        return true;
     }
 
     /**
