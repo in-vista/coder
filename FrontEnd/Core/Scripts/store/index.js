@@ -395,19 +395,19 @@ const modulesModule = {
                 }
 
                 const moduleGroup = {
-                    name: groupName,
-                    modules: []
-                }
+                    ...modules[groupName],
+                    name: groupName
+                };
+                
                 state.moduleGroups.push(moduleGroup);
 
-                for (let module of modules[groupName]) {
+                for (let module of moduleGroup.modules) {
                     if (!module.name) {
                         console.warn("Found module without name, so skipping it", module);
                         continue;
                     }
 
                     state.allModules.push(module);
-                    moduleGroup.modules.push(module);
 
                     if (module.autoLoad) {
                         hasAutoload = true;
@@ -591,7 +591,7 @@ const modulesModule = {
                     continue;
                 }
 
-                for (let module of moduleGroups[group]) {
+                for (let module of moduleGroups[group].modules) {
                     if (!module.autoLoad) {
                         continue;
                     }

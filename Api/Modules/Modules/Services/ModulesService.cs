@@ -109,6 +109,7 @@ namespace Api.Modules.Modules.Services
         module.icon,
         module.type,
         module.group,
+        module.group_icon,
         module.options,
         module.custom_query,        
         module.is_fullscreen
@@ -133,6 +134,7 @@ UNION
         module.icon,
         module.type,
         module.group,
+        module.group_icon,
         module.options,
         module.custom_query,
         module.is_fullscreen
@@ -198,6 +200,7 @@ UNION
                 rightsModel.Icon = dataRow.Field<string>("icon");
                 rightsModel.Type = dataRow.Field<string>("type");
                 rightsModel.Group = originalGroupName;
+                rightsModel.GroupIcon = dataRow.Field<string>("group_icon");
                 rightsModel.Pinned = pinnedModules.Contains(moduleId);
                 rightsModel.AutoLoad = autoLoadModules.Contains(moduleId);
                 rightsModel.PinnedGroup = PinnedModulesGroupName;

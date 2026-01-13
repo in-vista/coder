@@ -58,6 +58,11 @@
         public string Group { get; set; }
         
         /// <summary>
+        /// Gets or sets the group icon in the form of an MDI alias.
+        /// </summary>
+        public string GroupIcon { get; set; }
+        
+        /// <summary>
         /// Gets or sets if the module is pinned by the user.
         /// </summary>
         public bool Pinned { get; set; }

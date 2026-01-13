@@ -19,6 +19,8 @@ import taskAlerts from "./components/task-alerts";
 import {DropDownList} from "@progress/kendo-vue-dropdowns";
 import WiserDialog from "./components/wiser-dialog";
 
+import '@mdi/font/css/materialdesignicons.min.css';
+
 import "../Scss/main.scss";
 import "../Scss/task-alerts.scss";
 

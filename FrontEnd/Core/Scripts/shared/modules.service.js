@@ -15,34 +15,37 @@ export default class ModulesService extends BaseService {
                 if (!result.hasOwnProperty(groupName)) {
                     continue;
                 }
+                
+                const modules = result[groupName];
+                
+                result[groupName] = {
+                    icon: modules.find(module => !!module.group_icon)?.group_icon,
+                    modules: modules.map(module => {
+                        switch (module.moduleId) {
+                            case 5004:
+                                module.fileName = `/Import`;
+                                break;
+                            case 5005:
+                                module.fileName = `/Export`;
+                                break;
+                            default:
+                                module.fileName = ``;
+                                break;
+                        }
 
-                result[groupName].map(module => {
-                    module.icon = `icon-${module.icon}`;
+                        if (this.dynamicItemsModules.indexOf(module.type) > -1) {
+                            module.iframeType = "DynamicItems";
+                            module.queryString = `?moduleId=${!module.itemId ? module.moduleId : 0}&iframe=${module.iframe || false}${(!module.itemId ? "" : `&itemId=${encodeURIComponent(module.itemId)}`)}${(!module.entityType? "" : `&entityType=${encodeURIComponent(module.entityType)}`)}`;
+                        } else if (module.type === "FileManager") {
+                            module.queryString = "?hideFields=true";
+                        } else {
+                            module.iframeType = module.type;
+                            module.queryString = "";
+                        }
 
-                    switch (module.moduleId) {
-                        case 5004:
-                            module.fileName = `/Import`;
-                            break;
-                        case 5005:
-                            module.fileName = `/Export`;
-                            break;
-                        default:
-                            module.fileName = ``;
-                            break;
-                    }
-
-                    if (this.dynamicItemsModules.indexOf(module.type) > -1) {
-                        module.iframeType = "DynamicItems";
-                        module.queryString = `?moduleId=${!module.itemId ? module.moduleId : 0}&iframe=${module.iframe || false}${(!module.itemId ? "" : `&itemId=${encodeURIComponent(module.itemId)}`)}${(!module.entityType? "" : `&entityType=${encodeURIComponent(module.entityType)}`)}`;
-                    } else if (module.type === "FileManager") {
-                        module.queryString = "?hideFields=true";
-                    } else {
-                        module.iframeType = module.type;
-                        module.queryString = "";
-                    }
-
-                    return module;
-                });
+                        return module;
+                    })
+                }
             }
 
             return result;
