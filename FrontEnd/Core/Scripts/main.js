@@ -427,6 +427,26 @@ class Main {
                 moduleGroups() {
                     return this.$store.state.modules.moduleGroups;
                 },
+                pinnedModuleGroups() {
+                    return this.$store.state.modules.moduleGroups.flatMap(moduleGroup => moduleGroup.modules)
+                        .filter(module => module.pinned)
+                        .reduce((accumulator, module) => {
+                            let moduleGroup = accumulator.find(group => group.name === module.pinnedGroup);
+                            
+                            if(!moduleGroup) {
+                                moduleGroup = {
+                                    name: module.pinnedGroup,
+                                    icon: 'pin',
+                                    modules: []
+                                }
+                                accumulator.push(moduleGroup);
+                            }
+                            
+                            moduleGroup.modules.push(module);
+                            
+                            return accumulator;
+                        }, []);
+                },
                 openedModules() {
                     return this.$store.state.modules.openedModules;
                 },

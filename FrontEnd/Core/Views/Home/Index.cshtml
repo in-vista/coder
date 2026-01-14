@@ -13,23 +13,25 @@
                 <img src="img/logo-coder.png" alt="logo"/>
             </div>
             <div id="modules" class="coder-menu-group">
-                <div v-for="moduleGroup in moduleGroups" :key="moduleGroup.name" class="coder-menu-item">
-                    <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)">
-                        <i class="mdi mdi-size-2" :class="[ `mdi-${moduleGroup.icon ?? 'cog'}` ]"></i>
-                    </div>
-                    <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event)">
-                        <p class="coder-menu-item-popout-title">{{ moduleGroup.name }}</p>
-                        <div class="coder-menu-item-popout-items">
-                            <div v-for="module in moduleGroup.modules" :key="module.moduleId" class="coder-menu-item-popout-item" @@click="onOpenModuleClick($event, module)">
-                                <i class="mdi mdi-size-2" :class="[ `mdi-${module.icon ?? 'cog'}` ]"></i>
-                                <span>{{ module.name }}</span>
-                                <v-hover v-slot="{ isHovering }">
-                                    <i class="mdi mdi-size-2" :class="[ `mdi-${module.pinned ? 'pin-off' : 'pin'}${!isHovering ? '-outline' : ''}` ]" @@click.stop="onTogglePin($event, module.moduleId)"></i>
-                                </v-hover>
+                <template v-for="moduleGroup in [ ...pinnedModuleGroups, ...moduleGroups ]" :key="moduleGroup.name">
+                    <div v-if="moduleGroup.modules.length" class="coder-menu-item">
+                        <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)">
+                            <i class="mdi mdi-size-2" :class="[ `mdi-${moduleGroup.icon ?? 'cog'}` ]"></i>
+                        </div>
+                        <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event)">
+                            <p class="coder-menu-item-popout-title">{{ moduleGroup.name }}</p>
+                            <div class="coder-menu-item-popout-items">
+                                <div v-for="module in moduleGroup.modules" :key="module.moduleId" class="coder-menu-item-popout-item" @@click="onOpenModuleClick($event, module)">
+                                    <i class="mdi mdi-size-2" :class="[ `mdi-${module.icon ?? 'cog'}` ]"></i>
+                                    <span>{{ module.name }}</span>
+                                    <v-hover v-slot="{ isHovering }">
+                                        <i class="mdi mdi-size-2" :class="[ `mdi-${module.pinned ? 'pin-off' : 'pin'}${!isHovering ? '-outline' : ''}` ]" @@click.stop="onTogglePin($event, module.moduleId)"></i>
+                                    </v-hover>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </template>
             </div>
             <div id="account-info" class="coder-menu-group">
                 <div class="coder-menu-item">
