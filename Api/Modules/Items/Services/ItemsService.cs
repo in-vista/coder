@@ -2109,6 +2109,10 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             result.ChangedBy = dataTable.Rows[0].Field<string>("changed_by");
             result.EnableMultipleEnvironments = Convert.ToBoolean(dataTable.Rows[0]["enable_multiple_environments"]);
             result.DeleteAction = dataTable.Rows[0].Field<string>("delete_action");
+            
+            // Fallback for entity type.
+            if (string.IsNullOrEmpty(result.EntityType))
+                result.EntityType = entityType;
 
             return new ServiceResult<ItemMetaDataModel>(result);
         }
