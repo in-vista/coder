@@ -15,6 +15,7 @@ import DatabasesService from "./shared/databases.service";
 import store from "./store/index";
 import login from "./components/login";
 import taskAlerts from "./components/task-alerts";
+import vhover from "./components/vhover";
 
 import {DropDownList} from "@progress/kendo-vue-dropdowns";
 import WiserDialog from "./components/wiser-dialog";
@@ -628,7 +629,8 @@ class Main {
                 "WiserDialog": WiserDialog,
                 "tenantManagement": defineAsyncComponent(() => import(/* webpackChunkName: "tenant-management" */"./components/tenant-management")),
                 "login": login,
-                "taskAlerts": taskAlerts
+                "taskAlerts": taskAlerts,
+                "v-hover": vhover
             },
             watch: {
                 async loginStatus(newValue, oldValue) {
