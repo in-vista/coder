@@ -695,8 +695,10 @@ const moduleSettings = {
         onOpenTaskClick(event) {
             event.preventDefault();
             const properties = event.currentTarget.dataset;
+            const hasItemId = properties.itemId !== "0";
 
             if (window.parent) {
+                if(hasItemId){
                 window.parent.main.vueApp.openModule({
                     moduleId: `wiserItem_${properties.itemId}`,
                     name: `Coder item via agendering`,
@@ -706,6 +708,16 @@ const moduleSettings = {
                     fileName: "DynamicItems.aspx",
                     queryString: `?moduleId=${encodeURIComponent(properties.moduleId || 0)}&iframe=true&itemId=${encodeURIComponent(properties.itemId)}&entityType=${encodeURIComponent(properties.entityType || "agendering")}`
                 });
+                } else{
+                    window.parent.main.vueApp.openModule({
+                        moduleId: properties.moduleId || 0,
+                        name: "Coder module via agendering",
+                        type: "dynamicItems",
+                        iframe: false,
+                        fileName: "",
+                        queryString: `?moduleId=${encodeURIComponent(properties.moduleId || 0)}&iframe=false`
+                    });
+                }
             }
         }
 
