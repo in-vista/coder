@@ -34,7 +34,7 @@
                         <i class="mdi mdi-size-2 mdi-account"></i>
                     </div>
                     <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event)">
-                        <p class="coder-menu-item-popout-title"><strong>Welkom</strong> {{ user.name }}.</p>
+                        <p class="coder-menu-item-popout-title"><strong>Welkom</strong> <span class="coder-highlight">{{ user.name }}</span>.</p>
                         <div class="coder-menu-item-popout-items">
                             <div class="coder-menu-item-popout-item" :class="{ 'disabled': !markerWidget }">
                                 <i class="mdi mdi-size-2 mdi-bug"></i>
