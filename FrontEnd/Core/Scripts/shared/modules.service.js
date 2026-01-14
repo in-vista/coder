@@ -18,8 +18,12 @@ export default class ModulesService extends BaseService {
                 
                 const modules = result[groupName];
                 
+                const icon = groupName === 'Vastgepind'
+                    ? 'pin'
+                    : modules.find(module => !!module.groupIcon)?.groupIcon;
+                
                 result[groupName] = {
-                    icon: modules.find(module => !!module.group_icon)?.group_icon,
+                    icon: icon,
                     modules: modules.map(module => {
                         switch (module.moduleId) {
                             case 5004:
