@@ -1363,6 +1363,11 @@ body {
     border-radius: 8px;
 }
 
+.coder-menu-item-popout-item.disabled {
+    color: #808080;
+    cursor: not-allowed;
+}
+
 .coder-menu-item-popout-item > i:first-child {
     flex-shrink: 0;
 }
