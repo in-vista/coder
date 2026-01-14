@@ -1937,9 +1937,12 @@ export class Grids {
 
         // Retrieve the elements of the selected rows
         const grid = event.sender;
-        const selectedData = grid.select().map(row => grid.dataItem(row));
+        const selectedData = grid.select().get().map(row => grid.dataItem(row).toJSON());
         
-        conditionalButtons.each(async () => {
+        // Store the context of this so it can be used in function scopes.
+        const that = this;
+        
+        conditionalButtons.each(function() {
             // Retrieve data of the button.
             const button = $(this);
             const condition = button.data('condition');
@@ -1949,7 +1952,7 @@ export class Grids {
             const maximumRows = button.data('maximum-rows');
             
             // Determine whether the action button should be hidden or not.
-            const shouldHide = this.shouldHideActionButton(selectedData, condition, roles, showOnReadOnly, minimumRows, maximumRows);
+            const shouldHide = that.shouldHideActionButton(selectedData, condition, roles, showOnReadOnly, minimumRows, maximumRows);
 
             // Show or hide the action button based on the evaluated condition or default value.
             button.toggleClass('hidden', shouldHide || event.sender.select().length === 0);
