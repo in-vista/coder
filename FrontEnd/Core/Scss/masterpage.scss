@@ -1245,7 +1245,7 @@ body {
 }
 
 #coder-menu > #logo-container {
-    margin: 12px 8px 48px 8px;
+    margin: 12px 12px 48px 12px;
     
     display: flex;
     justify-content: center;
@@ -1323,9 +1323,9 @@ body {
     border-radius: 8px;
 }
 
-.coder-menu-item-popout > .module-window-title {
+.coder-menu-item-popout > .coder-menu-item-popout-title {
     font-weight: 800;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
     padding-left: 6px;
     padding-right: 6px;
     font-size: 1.02em;
