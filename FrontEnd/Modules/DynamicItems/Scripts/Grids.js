@@ -699,7 +699,9 @@ export class Grids {
             this.mainGrid = $("#gridView").kendoGrid(finalGridViewSettings).data("kendoGrid");
 
             if (!disableOpeningOfItems) {
-                this.mainGrid.element.on("click", "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
+                // const eventType = (options.singleClickOpen ?? false) ? 'click' : 'dblclick';
+                const eventType = this.informationBlockIframe ? 'click' : 'dblclick';
+                this.mainGrid.element.on(eventType, "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
             }
             this.mainGrid.element.find(".k-i-refresh").parent().click(this.base.onMainRefreshButtonClick.bind(this.base));
             
@@ -1303,7 +1305,7 @@ export class Grids {
         });
 
         if (!options.disableOpeningOfItems) {
-            element.on("click", "tbody tr[data-uid] td", (event) => { this.onShowDetailsClick(event, kendoGrid, options); });
+            element.on('dblclick', "tbody tr[data-uid] td", (event) => { this.onShowDetailsClick(event, kendoGrid, options); });
         }
 
         if (!options.allowMultipleRows) {
