@@ -877,17 +877,9 @@ main {
     @include transition(50ms);
     overflow: hidden;
     padding: 10px;
-    position: fixed;
-    top: 105px;
-    left: 80px;
     right: 0;
     bottom: 0;
     z-index: 1;
-
-    @include lg {
-        padding: 20px;
-        top: 70px;
-    }
 
     .window-container {
         @include transition(50ms);
@@ -1033,69 +1025,6 @@ main {
     }
 }
 
-body {
-    &.menu-active {
-        nav {
-            width: 200px;
-            
-            @include md-down {
-                width: 100vw;  
-            }
-            
-            @include lg {
-                width: 300px;
-            }
-
-            strong {
-                max-height: 40px;
-                padding-left: 22px;
-            }
-
-            .side-sub-menu {
-                margin-bottom: 15px;
-            }
-        }
-
-        #side-btn {
-            left: 200px;
-
-            @include lg {
-                left: 300px;
-            }
-
-            > ins {
-                transform: rotate(180deg);
-            }
-        }
-
-        main {
-            left: 200px;
-
-            @include lg {
-                left: 300px;
-            }
-
-            &.login {
-                left: 0;
-            }
-        }
-    }
-
-    &.off-canvas {
-        nav {
-            transform: translateX(-110%);
-        }
-
-        #side-btn {
-            left: -50px;
-        }
-
-        main {
-            left: 0;
-        }
-    }
-}
-
 /** Fix for CSS bug Kendo, dropdown inside a dialog will otherwise not be properly visible. **/
 .k-animation-container-shown {
     z-index: 1100 !important;
@@ -1198,10 +1127,6 @@ ul.totp-backup-codes {
         width: unset;
     }
     
-    #taskFrame {
-        position: fixed !important;
-    }
-    
     .main-menu > .login {
         flex: 1 0;
     }
@@ -1226,8 +1151,8 @@ $mdi-sizes: (
     }
 }
 
-body {
-    background-color: #f5f5f5 !important;
+#app > div {
+    display: flex;
 }
 
 #coder-menu {
@@ -1239,13 +1164,16 @@ body {
     display: flex;
     flex-direction: column;
     column-gap: 16px;
-    
+
     color: #fff;
+}
+
+#coder-menu, #modules-strip {
     font-family: 'Coder', sans-serif;
 }
 
 #coder-menu > #logo-container {
-    margin: 12px 12px 48px 12px;
+    margin: 12px 12px 32px 12px;
     
     display: flex;
     justify-content: center;
@@ -1281,7 +1209,8 @@ body {
     position: relative;
 }
 
-.coder-menu-item-content {
+.coder-menu-item-content,
+.tab-strip-button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1289,10 +1218,12 @@ body {
     height: 48px;
     
     border-radius: 8px;
-    cursor: pointer;
+    cursor: pointer !important;
 }
 
-.coder-menu-item-content:hover {
+.coder-menu-item-content:hover,
+.tab-strip-button:hover {
+    color: #fff;
     background-color: #052776;
 }
 
@@ -1379,6 +1310,96 @@ body {
 
 .coder-menu-item-popout-title, .coder-menu-item-popout-item > span {
     white-space: nowrap;
+}
+
+#coder-container {
+    display: flex;
+    flex-direction: column;
+    
+    flex-grow: 1;
+    
+    background-color: #f8f8f8;
+}
+
+#coder-tab-strip {
+    display: flex;
+    height: 48px;
+    background-color: #fff;
+    
+    & > #coder-tab-strip-actions {
+        display: flex;
+        align-items: center;
+        column-gap: 8px;
+
+        flex-shrink: 0;
+
+        margin-right: 8px;
+    }
+}
+
+#modules-strip {
+    display: flex;
+    flex-grow: 1;
+}
+
+.modules-strip-tab {
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+    
+    padding: 8px;
+    
+    background-color: #031B53;
+    color: #fff;
+    
+    & > *:not(.tab-strip-button) {
+        pointer-events: none;
+    }
+    
+    &.active {
+        background-color: transparent;
+        color: #031B53;
+    }
+    
+    &:not(.active) {
+        cursor: pointer;
+    }
+    
+    & > .modules-strip-tab-title {
+        font-size: 0.85em;
+        font-weight: 600;
+    }
+}
+
+.tab-strip-button {
+    width: 32px;
+    height: 32px;
+}
+
+.modules-strip-tab:last-child {
+    border-radius: 0 8px 8px 0;
+}
+
+#coder-container {
+    & > main {
+        flex-grow: 1;
+        
+        & > .logo-ghost-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            width: 100%;
+            height: 100%;
+        }
+    }
+}
+
+.logo-ghost-container > .logo-ghost {
+    filter: grayscale(1);
+    opacity: 0.2;
+    width: 128px;
+    height: auto;
 }
 
 .coder-highlight {

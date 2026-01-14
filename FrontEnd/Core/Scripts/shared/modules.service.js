@@ -10,7 +10,7 @@ export default class ModulesService extends BaseService {
     async getModules() {
         try {
             const modulesResult = await this.base.api.get(`/api/v3/modules`);
-            const result = this.parseList(modulesResult);
+            let result = this.parseList(modulesResult);
             for (let groupName in result) {
                 if (!result.hasOwnProperty(groupName)) {
                     continue;
@@ -20,9 +20,10 @@ export default class ModulesService extends BaseService {
                 
                 const icon = groupName === 'Vastgepind'
                     ? 'pin'
-                    : modules.find(module => !!module.groupIcon)?.groupIcon;
+                    : modules.find(module => !!module.groupOptions?.icon)?.groupOptions.icon;
                 
                 result[groupName] = {
+                    ...modules.find(module => !!module.groupOptions)?.groupOptions,
                     icon: icon,
                     modules: modules.map(module => {
                         switch (module.moduleId) {
@@ -46,12 +47,20 @@ export default class ModulesService extends BaseService {
                             module.iframeType = module.type;
                             module.queryString = "";
                         }
+                        
+                        module.icon ??= icon;
 
                         return module;
                     })
                 }
             }
-
+            
+            // Sort modules within a module group.
+            for(const groupName of Object.keys(result)) {
+                const moduleGroup = result[groupName];
+                moduleGroup.modules = moduleGroup.modules.sort((a, b) => (a.ordering ?? 0) - (b.ordering ?? 0));
+            }
+            
             return result;
         } catch (error) {
             console.error(error);

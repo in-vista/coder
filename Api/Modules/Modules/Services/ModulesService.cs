@@ -109,10 +109,11 @@ namespace Api.Modules.Modules.Services
         module.icon,
         module.type,
         module.group,
-        module.group_icon,
+        module.group_options,
         module.options,
         module.custom_query,        
-        module.is_fullscreen
+        module.is_fullscreen,
+        module.ordering
     FROM {WiserTableNames.WiserUserRoles} AS user_role
     JOIN {WiserTableNames.WiserRoles} AS role ON role.id = user_role.role_id
     JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = role.id AND permission.module_id > 0
@@ -134,10 +135,11 @@ UNION
         module.icon,
         module.type,
         module.group,
-        module.group_icon,
+        module.group_options,
         module.options,
         module.custom_query,
-        module.is_fullscreen
+        module.is_fullscreen,
+        module.ordering
     FROM {WiserTableNames.WiserModule} AS module
     WHERE module.id IN ({String.Join(",", modulesForAdmins)})
 )";
@@ -200,12 +202,16 @@ UNION
                 rightsModel.Icon = dataRow.Field<string>("icon");
                 rightsModel.Type = dataRow.Field<string>("type");
                 rightsModel.Group = originalGroupName;
-                rightsModel.GroupIcon = dataRow.Field<string>("group_icon");
                 rightsModel.Pinned = pinnedModules.Contains(moduleId);
                 rightsModel.AutoLoad = autoLoadModules.Contains(moduleId);
                 rightsModel.PinnedGroup = PinnedModulesGroupName;
                 rightsModel.HasCustomQuery = hasCustomQuery;
                 rightsModel.IsFullscreen = dataRow["is_fullscreen"].ToString() == "1";
+                rightsModel.Ordering = uint.TryParse(dataRow["ordering"].ToString(), out uint ordering) ? ordering : 0;
+                
+                string groupOptionsJson = dataRow.Field<string>("group_options");
+                if (!string.IsNullOrEmpty(groupOptionsJson))
+                    rightsModel.GroupOptions = JObject.Parse(groupOptionsJson);
 
                 if (String.IsNullOrWhiteSpace(rightsModel.Icon))
                 {

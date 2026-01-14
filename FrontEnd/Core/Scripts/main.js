@@ -725,6 +725,9 @@ class Main {
                 },
 
                 openModule(module) {
+                    if(this.activePopout)
+                        this.hidePopout(this.activePopout);
+                    
                     if (typeof module === "number" || typeof module === "string") {
                         module = this.modules.find(m => m.moduleId === module);
                     }

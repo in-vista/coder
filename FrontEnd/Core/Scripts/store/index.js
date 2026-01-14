@@ -388,8 +388,11 @@ const modulesModule = {
                 return;
             }
 
+            // Sort module groups.
+            const sortedGroupNames = Object.keys(modules).sort((a, b) => (modules[a].ordering ?? 0) - (modules[b].ordering ?? 0));
+
             let hasAutoload = false;
-            for (let groupName in modules) {
+            for (let groupName of sortedGroupNames) {
                 if (!modules.hasOwnProperty(groupName)) {
                     continue;
                 }

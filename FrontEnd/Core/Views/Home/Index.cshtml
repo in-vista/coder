@@ -110,20 +110,50 @@
             @*             </ul> *@
             @*         </li> *@
             @*     </ul> *@
-            @* </header> *@
-
+        @* </header> *@
+            
+        <div id="coder-container">
+            <div v-if="user.loggedIn" id="coder-tab-strip">
+                <div id="modules-strip">
+                    <div
+                        v-for="module in openedModules"
+                        :key="module.id"
+                        class="modules-strip-tab"
+                        :class="{ 'active': module.id === activeModule }"
+                        :title="module.name"
+                        @@click="setActiveModule($event, module.id)">
+                        <ins class="mdi mdi-size-2" :class="[ `mdi-${module.icon}` ]"></ins>
+                        <span class="modules-strip-tab-title">{{ module.name }}</span>
+                        <div class="tab-strip-button" @@click="closeModule(module)">
+                            <ins class="mdi mdi-close"></ins>
+                        </div>
+                    </div>
+                </div>
+                <div id="coder-tab-strip-actions">
+                    <div v-if="modules.find(m => m.moduleId === 709)" class="tab-strip-button" @@click="openModule(709)">
+                        <ins class="mdi mdi-size-2 mdi-magnify"></ins>
+                    </div>
+                    <div v-if="activeModule" class="tab-strip-button" @@click="requestModuleFullScreen(activeModule)">
+                        <ins class="mdi mdi-size-2 mdi-fullscreen"></ins>
+                    </div>
+                    <task-alerts ref="taskAlerts"></task-alerts>
+                </div>
+            </div>
             <main :class="{ login: !user.loggedIn || requirePasswordChange, 'scrollable': tenantManagementIsOpened }">
+                <div v-if="user.loggedIn && openedModules.length === 0" class="logo-ghost-container">
+                    <img class="logo-ghost" src="img/logo-coder.png" alt="logo"/>
+                </div>
                 <p v-if="user.loggedIn && !mainLoader && !hasModules">Voor deze gebruiker zijn geen modules beschikbaar.</p>
                 <login v-bind:sub-domain="appSettings.subDomain" v-if="!user.loggedIn || requirePasswordChange" ref="login"></login>
                 <section class="iframe-container">
                     <iframe v-for="module in openedModulesWithBackend" :key="module.id" :src="module.iframeUrl || `/Modules/${module.iframeType || module.type}${module.fileName}${module.queryString}`" :id="module.id" :class="{ active: module.id === activeModule }" frameborder="0" scrolling="auto" allowfullscreen></iframe>
                     <iframe v-for="module in openedWiser1Modules" :key="module.id" :src="`${appSettings.wiser1BaseUrl}?singleModuleId=${module.moduleId}&autoLoginCookie=${encodeURIComponent(user.cookieValue)}&autoLoginUserId=${encodeURIComponent(user.encryptedId)}`" :class="{ active: module.id === activeModule }" frameborder="0" scrolling="auto" allowfullscreen></iframe>
                 </section>
-
                 <keep-alive>
                     <tenant-management v-if="user.adminLogin && activeModule === 'tenantManagement'" v-bind:sub-domain="appSettings.subDomain" ref="tenantManagement"></tenant-management>
                 </keep-alive>
             </main>
+        </div>
 
             <wiser-dialog class="general-message-dialog" :modal="true" :width="'400px'" :title="generalMessagePromptTitle" ref="generalMessagePrompt" :visible="false" :actions="[{ text: 'OK', primary: true }]">
                 <div class="form-row">
