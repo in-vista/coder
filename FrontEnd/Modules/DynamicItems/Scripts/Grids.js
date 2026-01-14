@@ -121,23 +121,27 @@ export class Grids {
                         if (!(await this.informationBlockIframe[0].contentWindow.dynamicItems.onSaveButtonClick(event))) {
                             return false;
                         }
+                        
+                        const entityType = informationBlockSettings.initialItem.entityType;
 
-                        const createItemResult = await this.base.createItem(informationBlockSettings.initialItem.entityType, informationBlockSettings.initialItem.newItemParentId, "", null, [], true);
+                        const createItemResult = await this.base.createItem(entityType, informationBlockSettings.initialItem.newItemParentId, "", null, [], true);
                         if (!createItemResult) {
                             return hideGrid;
                         }
 
                         const itemId = createItemResult.itemId;
                         this.informationBlockIframe.attr("loading", "eager");
-                        this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
+                        this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&entityType=${entityType}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
                     },
                     icon: "save"
                 });
             };
 
             let itemId = informationBlockSettings.initialItem.itemId;
+            const entityType = informationBlockSettings.initialItem.entityType;
+            
             if (!itemId) {
-                const createItemResult = await this.base.createItem(informationBlockSettings.initialItem.entityType, informationBlockSettings.initialItem.newItemParentId, "", null, [], true);
+                const createItemResult = await this.base.createItem(entityType, informationBlockSettings.initialItem.newItemParentId, "", null, [], true);
                 if (!createItemResult) {
                     return hideGrid;
                 }
@@ -145,7 +149,7 @@ export class Grids {
             }
 
             this.informationBlockIframe.attr("loading", "eager");
-            this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
+            this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&entityType=${entityType}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
         } catch (exception) {
             kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals.");
             console.error(exception);
@@ -695,7 +699,7 @@ export class Grids {
             this.mainGrid = $("#gridView").kendoGrid(finalGridViewSettings).data("kendoGrid");
 
             if (!disableOpeningOfItems) {
-                this.mainGrid.element.on("dblclick", "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
+                this.mainGrid.element.on("click", "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
             }
             this.mainGrid.element.find(".k-i-refresh").parent().click(this.base.onMainRefreshButtonClick.bind(this.base));
             
@@ -1299,7 +1303,7 @@ export class Grids {
         });
 
         if (!options.disableOpeningOfItems) {
-            element.on("dblclick", "tbody tr[data-uid] td", (event) => { this.onShowDetailsClick(event, kendoGrid, options); });
+            element.on("click", "tbody tr[data-uid] td", (event) => { this.onShowDetailsClick(event, kendoGrid, options); });
         }
 
         if (!options.allowMultipleRows) {
@@ -1471,7 +1475,7 @@ export class Grids {
 
         if (options.fromMainGrid && this.base.settings.openGridItemsInBlock) {
             this.base.grids.informationBlockIframe.attr("loading", "eager");
-            this.base.grids.informationBlockIframe.attr("src", `${"/Modules/DynamicItems"}?itemId=${encryptedId}&moduleId=${this.base.settings.moduleId}&iframe=true`);
+            this.base.grids.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${encryptedId}&entityType=${entityType}&moduleId=${this.base.settings.moduleId}&iframe=true`);
             return;
         }
 
