@@ -14,13 +14,13 @@
             </div>
             <div id="modules" class="coder-menu-group">
                 <div v-for="moduleGroup in moduleGroups" :key="moduleGroup.name" class="coder-menu-item">
-                    <div class="coder-menu-item-content">
+                    <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)">
                         <i class="mdi mdi-size-2" :class="[ `mdi-${moduleGroup.icon ?? 'cog'}` ]"></i>
                     </div>
-                    <div class="module-window">
-                        <p class="module-window-title">{{ moduleGroup.name }}</p>
-                        <div class="module-window-modules">
-                            <div v-for="module in moduleGroup.modules" :key="module.moduleId" class="module-window-module" @@click="onOpenModuleClick($event, module)">
+                    <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event)">
+                        <p class="coder-menu-item-popout-title">{{ moduleGroup.name }}</p>
+                        <div class="coder-menu-item-popout-items">
+                            <div v-for="module in moduleGroup.modules" :key="module.moduleId" class="coder-menu-item-popout-item" @@click="onOpenModuleClick($event, module)">
                                 <i class="mdi mdi-size-2" :class="[ `mdi-${module.icon ?? 'cog'}` ]"></i>
                                 <span>{{ module.name }}</span>
                             </div>
@@ -30,7 +30,26 @@
             </div>
             <div id="account-info" class="coder-menu-group">
                 <div class="coder-menu-item">
-                    <i class="mdi mdi-size-2 mdi-account"></i>
+                    <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)">
+                        <i class="mdi mdi-size-2 mdi-account"></i>
+                    </div>
+                    <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event)">
+                        <p class="coder-menu-item-popout-title"><strong>Welkom</strong> {{ user.name }}.</p>
+                        <div class="coder-menu-item-popout-items">
+                            <div class="coder-menu-item-popout-item">
+                                <i class="mdi mdi-size-2 mdi-bug"></i>
+                                <span @@click="openMarkerIoScreen">Bug melden</span>
+                            </div>
+                            <div class="coder-menu-item-popout-item">
+                                <i class="mdi mdi-size-2 mdi-cog"></i>
+                                <span @@click="openConfigurationModule">Coder configuratie</span>
+                            </div>
+                            <div class="coder-menu-item-popout-item">
+                                <i class="mdi mdi-size-2 mdi-logout"></i>
+                                <span @@click="logout">Uitloggen</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
