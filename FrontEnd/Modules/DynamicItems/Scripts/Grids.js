@@ -1968,24 +1968,17 @@ export class Grids {
         // Do not hide buttons by default.
         let shouldHide = false;
         
-        // Prepare a map with cached compiled Javascript functions used for condition tests.
-        const conditionCache = new Map();
-        
         // Conditional check.
         if(condition !== undefined) {
             const decodedCondition = Misc.decodeHtml(condition);
-            
-            let compiledCondition = conditionCache.get(decodedCondition);
-            if(!compiledCondition) {
-                const parameterNames = Object.keys(dataItems[0]);
-                compiledCondition = new Function(...parameterNames, `return ${decodedCondition}`);
-                conditionCache.set(decodedCondition, compiledCondition);
-            }
 
             // Evaluate the condition for every selected row in the grid.
             shouldHide = !dataItems.every(function(element, index, array) {
+                const parameterNames = Object.keys(element);
                 const parameterValues = Object.values(element);
-                return compiledCondition(...parameterValues);
+
+                const func = new Function(...parameterNames, `return ${decodedCondition}`);
+                return func(...parameterValues);
             });
         }
 
