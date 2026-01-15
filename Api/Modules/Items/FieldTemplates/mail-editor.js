@@ -2,7 +2,9 @@
     // Set up variables for elements in the document.
     const container = $("#container_{propertyIdWithSuffix}");
     const loader = container.find(".loader");
-    
+
+    // Retrieve whether item is read-only
+    const readOnly = {readonly};
     // Retrieve the settings of the entity property.
     const options = {options};
     
@@ -119,6 +121,12 @@
         }).catch(() => {
             loader.removeClass("loading");
         });
+    }
+    
+    // Ensure the mail editor doesn't get loaded when read-only
+    if(readOnly) {
+        TopolPlugin.destroy();
+        return;
     }
     
     // Set up general options for the Topol instance.

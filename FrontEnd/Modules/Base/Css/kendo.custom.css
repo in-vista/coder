@@ -563,6 +563,10 @@ textarea.k-textbox:hover,
     background-color: var(--white-color);
     color: var(--dark-txt);
 }
+.item.readonly .k-picker {
+    cursor: not-allowed;
+    pointer-events: none;
+}
 
 .k-block,
 .k-widget,
