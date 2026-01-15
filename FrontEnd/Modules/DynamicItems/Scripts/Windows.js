@@ -487,16 +487,21 @@ export class Windows {
 
                     currentItemWindow.wrapper.find(".k-i-vertalen").parent().toggleClass("hidden", this.base.allLanguages.length <= 1 && currentItemWindow.element.find(".item[data-language-code]:not([data-language-code=''])").length === 0);
 
-                    // Setup dependencies for all tabs.
+                    let tabNames = [];
+                    
+                    // Setup dependencies for all tabs and store the tab name's in an array.
                     for (let i = htmlData.tabs.length - 1; i >= 0; i--) {
                         const tabData = htmlData.tabs[i];
                         const container = currentItemTabStrip.contentHolder(i);
+                        tabNames.push(tabData.name || "Gegevens")
                         this.base.fields.setupDependencies(container, entityType, tabData.name || "Gegevens");
                     }
 
-                    // Handle dependencies for the first tab, to make sure all the correct fields are hidden/shown on the first tab. The other tabs will be done once they are opened.
-                    this.base.fields.handleAllDependenciesOfContainer(currentItemTabStrip.contentHolder(0), entityType, "Gegevens", windowId);
-
+                    // Handle dependencies for the all tabs, this is to make sure every field's dependency is doing what it's set to do.
+                    tabNames.forEach((tabName, index) => {
+                        this.base.fields.handleAllDependenciesOfContainer(currentItemTabStrip.contentHolder(index), entityType, tabName, windowId);
+                    });
+                  
                     const showGenericTab = genericTabHasFields || !htmlData.tabs.length;
                     $(currentItemTabStrip.items()[0]).toggle(genericTabHasFields || !htmlData.tabs.length);
 
