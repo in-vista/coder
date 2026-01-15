@@ -1,6 +1,14 @@
 // GOOGLE FONT
 @import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;700&family=Roboto:wght@300;400;500;700;900&display=swap');
 
+// CODER FONT
+@font-face {
+    font-family: 'Coder';
+    src: url('../Fonts/coder.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
 // VARIABLES
 @import 'variables';
 

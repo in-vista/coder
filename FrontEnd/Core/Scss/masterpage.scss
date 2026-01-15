@@ -1,3 +1,5 @@
+@use "sass:map";
+
 // Variables
 @import 'variables';
 
@@ -875,17 +877,9 @@ main {
     @include transition(50ms);
     overflow: hidden;
     padding: 10px;
-    position: fixed;
-    top: 105px;
-    left: 80px;
     right: 0;
     bottom: 0;
     z-index: 1;
-
-    @include lg {
-        padding: 20px;
-        top: 70px;
-    }
 
     .window-container {
         @include transition(50ms);
@@ -1031,69 +1025,6 @@ main {
     }
 }
 
-body {
-    &.menu-active {
-        nav {
-            width: 200px;
-            
-            @include md-down {
-                width: 100vw;  
-            }
-            
-            @include lg {
-                width: 300px;
-            }
-
-            strong {
-                max-height: 40px;
-                padding-left: 22px;
-            }
-
-            .side-sub-menu {
-                margin-bottom: 15px;
-            }
-        }
-
-        #side-btn {
-            left: 200px;
-
-            @include lg {
-                left: 300px;
-            }
-
-            > ins {
-                transform: rotate(180deg);
-            }
-        }
-
-        main {
-            left: 200px;
-
-            @include lg {
-                left: 300px;
-            }
-
-            &.login {
-                left: 0;
-            }
-        }
-    }
-
-    &.off-canvas {
-        nav {
-            transform: translateX(-110%);
-        }
-
-        #side-btn {
-            left: -50px;
-        }
-
-        main {
-            left: 0;
-        }
-    }
-}
-
 /** Fix for CSS bug Kendo, dropdown inside a dialog will otherwise not be properly visible. **/
 .k-animation-container-shown {
     z-index: 1100 !important;
@@ -1196,11 +1127,285 @@ ul.totp-backup-codes {
         width: unset;
     }
     
-    #taskFrame {
-        position: fixed !important;
-    }
-    
     .main-menu > .login {
         flex: 1 0;
     }
+}
+
+/* CODER v2 */
+$mdi-sizes: (
+        1: 16px,
+        2: 24px,
+        3: 32px,
+        4: 48px
+);
+
+.mdi {
+    color: currentColor;
+    font-size: map.get($mdi-sizes, 1);
+}
+
+@each $name, $size in $mdi-sizes {
+    .mdi-size-#{$name} {
+        font-size: $size;
+    }
+}
+
+#app > div {
+    display: flex;
+}
+
+#coder-menu {
+    min-width: 56px;
+    max-width: fit-content;
+    height: 100%;
+    background-color: #031B53;
+    
+    display: flex;
+    flex-direction: column;
+    column-gap: 16px;
+
+    color: #fff;
+}
+
+#coder-menu, #modules-strip {
+    font-family: 'Coder', sans-serif;
+}
+
+#coder-menu > #logo-container {
+    margin: 12px 12px 32px 12px;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#logo-container > img {
+    width: 100%;
+    max-width: 50px;
+    height: auto;
+}
+
+#coder-menu > .coder-menu-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    column-gap: 8px;
+    
+    padding: 4px 12px;
+
+    overflow: visible;
+}
+
+#coder-menu > #modules {
+    flex-grow: 1;
+}
+
+#coder-menu > #account-info {
+    flex-shrink: 0;
+}
+
+.coder-menu-item {
+    position: relative;
+}
+
+.coder-menu-item-content,
+.tab-strip-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    
+    border-radius: 8px;
+    cursor: pointer !important;
+}
+
+.coder-menu-item-content:hover,
+.tab-strip-button:hover {
+    color: #fff;
+    background-color: #052776;
+}
+
+.coder-menu-item > .coder-menu-item-popout {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 9999;
+    max-height: 80vh;
+    overflow-y: auto;
+    
+    opacity: 0;
+    transition: opacity 0.08s ease;
+    
+    background-color: #fff;
+    color: #2f2f2f;
+    padding: 12px;
+    border-radius: 8px;
+    
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.coder-menu-item-popout {
+    background-color: #fff;
+    color: #2f2f2f;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.coder-menu-item-popout > .coder-menu-item-popout-title {
+    font-weight: 800;
+    margin-bottom: 18px;
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 1.02em;
+}
+
+.coder-menu-item-popout-title:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 1px;
+    background-color: #e8e8e8;
+}
+
+.coder-menu-item-popout-items {
+    display: flex;
+    flex-direction: column;
+    column-gap: 8px;
+}
+
+.pin-button {
+    padding: 8px;
+}
+
+.coder-menu-item-popout-items > .coder-menu-item-popout-item {
+    display: flex;
+    
+    column-gap: 12px;
+    padding: 6px;
+    border-radius: 8px;
+    
+    font-size: 0.9em;
+    
+    cursor: pointer;
+}
+
+.coder-menu-item-popout-items > .coder-menu-item-popout-item:hover {
+    background-color: #f5f5f5;
+}
+
+.coder-menu-item-popout-item.disabled {
+    color: #808080;
+    cursor: not-allowed;
+}
+
+.coder-menu-item-popout-item > i:first-child {
+    flex-shrink: 0;
+}
+
+.coder-menu-item-popout-item > span {
+    flex-grow: 1;
+    font-weight: 600;
+}
+
+.coder-menu-item-popout-title, .coder-menu-item-popout-item > span {
+    white-space: nowrap;
+}
+
+#coder-container {
+    display: flex;
+    flex-direction: column;
+    
+    flex-grow: 1;
+    
+    background-color: #f8f8f8;
+}
+
+#coder-tab-strip {
+    display: flex;
+    height: 48px;
+    background-color: #fff;
+    
+    & > #coder-tab-strip-actions {
+        display: flex;
+        align-items: center;
+        column-gap: 8px;
+
+        flex-shrink: 0;
+
+        margin-right: 8px;
+    }
+}
+
+#modules-strip {
+    display: flex;
+    flex-grow: 1;
+}
+
+.modules-strip-tab {
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+    
+    padding: 8px;
+    
+    background-color: #031B53;
+    color: #fff;
+    
+    & > *:not(.tab-strip-button) {
+        pointer-events: none;
+    }
+    
+    &.active {
+        background-color: transparent;
+        color: #031B53;
+    }
+    
+    &:not(.active) {
+        cursor: pointer;
+    }
+    
+    & > .modules-strip-tab-title {
+        font-size: 0.85em;
+        font-weight: 600;
+    }
+}
+
+.tab-strip-button {
+    width: 32px;
+    height: 32px;
+}
+
+.modules-strip-tab:last-child {
+    border-radius: 0 8px 8px 0;
+}
+
+#coder-container {
+    & > main {
+        flex-grow: 1;
+        
+        & > .logo-ghost-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            width: 100%;
+            height: 100%;
+        }
+    }
+}
+
+.logo-ghost-container > .logo-ghost {
+    filter: grayscale(1);
+    opacity: 0.2;
+    width: 128px;
+    height: auto;
+}
+
+.coder-highlight {
+    color: #23CAAB;
 }

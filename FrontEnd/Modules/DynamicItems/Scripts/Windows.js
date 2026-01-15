@@ -203,7 +203,7 @@ export class Windows {
                 currentItemWindow.element.find(".saveAndCloseBottomPopup").trigger("click");
             });
 
-            currentItemWindow.maximize().center().open();
+            currentItemWindow.maximize().center();
 
             // Initialize the tab strip on the new window.
             const currentItemTabStrip = currentItemWindow.element.find(".tabStripPopup").kendoTabStrip({
@@ -333,7 +333,9 @@ export class Windows {
             currentItemWindow.element.find(".saveBottomPopup").kendoButton({
                 icon: "save",
                 click: async (event) => {
-                    await this.onSaveItemPopupClick(event, false, !senderGrid);
+                    const success = await this.onSaveItemPopupClick(event, false, !senderGrid);
+                    if(!success)
+                        return;
                     
                     // Store the previous state of the item.
                     const wasNewItem = isNewItem;
@@ -351,7 +353,10 @@ export class Windows {
             currentItemWindow.element.find(".saveAndCloseBottomPopup").kendoButton({
                 icon: "save",
                 click: async (event) => {
-                    await this.onSaveItemPopupClick(event, true, !senderGrid);
+                    const success = await this.onSaveItemPopupClick(event, true, !senderGrid);
+                    if(!success)
+                        return;
+                    
                     afterSave();
                 }
             });
@@ -364,6 +369,30 @@ export class Windows {
             });
 			
 			const entitySettings = await this.base.getEntityType(entityType);
+
+            // Re-render the item window based on the item window mode of the entity.
+            switch(entitySettings.itemWindowMode) {
+                case 'Side':
+                    const windowElement = currentItemWindow.wrapper.closest('.k-window');
+
+                    windowElement.addClass('sidebar');
+
+                    const onResizeWindow = () => {
+                        windowElement.css({
+                            width: '',
+                            height: '',
+                            left: '',
+                            top: ''
+                        });
+                    };
+
+                    currentItemWindow.bind('resize', onResizeWindow);
+                    onResizeWindow();
+
+                    break;
+            }
+
+            currentItemWindow.open();
 			
             const loadPopupContents = async (tabIndex = 0) => {
                 try {
@@ -538,29 +567,6 @@ export class Windows {
 			// Set a resize bind the window and execute to unset the top, bottom, left and right CSS properties on the element if the window has a maximized class.
 			currentItemWindow.bind('resize', unsetTopBottomLeftRightProperties);
 			unsetTopBottomLeftRightProperties();
-			
-			// Re-render the item window based on the item window mode of the entity.
-			switch(entitySettings.itemWindowMode) {
-				case 'Side':
-					const windowElement = currentItemWindow.wrapper.closest('.k-window');
-
-					windowElement.addClass('sidebar');
-					
-					const onResizeWindow = () => {
-						windowElement.css({
-							width: '',
-							height: '',
-							left: '',
-							top: ''
-						});
-					};
-
-					currentItemWindow.bind('resize', onResizeWindow);
-
-					onResizeWindow();
-					
-					break;
-			}
         } catch (exception) {
             console.error(exception);
             kendo.alert("Er is iets fout gegaan tijdens het laden van dit item. Probeer het a.u.b. nogmaals.");
@@ -648,7 +654,7 @@ export class Windows {
 
             if (!validator.validate()) {
                 popupWindowContainer.find(".popup-loader").removeClass("loading");
-                return;
+                return false;
             }
 
             // Check if the item has a Topol instance running.
@@ -699,12 +705,12 @@ export class Windows {
             }
 
             if (!isNewItemWindow) {
-                return;
+                return true;
             }
 
             const treeView = this.base.mainTreeView;
             if (!treeView || !addToTreeView) {
-                return;
+                return true;
             }
 
             const selectedNode = treeView.select();
@@ -737,6 +743,8 @@ export class Windows {
                     break;
             }
         }
+        
+        return true;
     }
 
     /**
