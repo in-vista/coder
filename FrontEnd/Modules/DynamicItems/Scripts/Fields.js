@@ -2710,9 +2710,11 @@ export class Fields {
                         }
 
                         // Refresh active kendoComponents with datasources (like calendars)
-                        if (kendoComponent && kendoComponent.dataSource)
-                            await kendoComponent.dataSource.read();
-                        
+                        if (typeof window.kendoComponent !== "undefined") {
+                            if (window.kendoComponent && window.kendoComponent.dataSource)
+                                await window.kendoComponent.dataSource.read();    
+                        }
+                            
                         // Close the window if it exists.
                         kendoWindow?.close();
                         

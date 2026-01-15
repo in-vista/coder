@@ -121,23 +121,27 @@ export class Grids {
                         if (!(await this.informationBlockIframe[0].contentWindow.dynamicItems.onSaveButtonClick(event))) {
                             return false;
                         }
+                        
+                        const entityType = informationBlockSettings.initialItem.entityType;
 
-                        const createItemResult = await this.base.createItem(informationBlockSettings.initialItem.entityType, informationBlockSettings.initialItem.newItemParentId, "", null, [], true);
+                        const createItemResult = await this.base.createItem(entityType, informationBlockSettings.initialItem.newItemParentId, "", null, [], true);
                         if (!createItemResult) {
                             return hideGrid;
                         }
 
                         const itemId = createItemResult.itemId;
                         this.informationBlockIframe.attr("loading", "eager");
-                        this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
+                        this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&entityType=${entityType}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
                     },
                     icon: "save"
                 });
             };
 
             let itemId = informationBlockSettings.initialItem.itemId;
+            const entityType = informationBlockSettings.initialItem.entityType;
+            
             if (!itemId) {
-                const createItemResult = await this.base.createItem(informationBlockSettings.initialItem.entityType, informationBlockSettings.initialItem.newItemParentId, "", null, [], true);
+                const createItemResult = await this.base.createItem(entityType, informationBlockSettings.initialItem.newItemParentId, "", null, [], true);
                 if (!createItemResult) {
                     return hideGrid;
                 }
@@ -145,7 +149,7 @@ export class Grids {
             }
 
             this.informationBlockIframe.attr("loading", "eager");
-            this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
+            this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&entityType=${entityType}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
         } catch (exception) {
             kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals.");
             console.error(exception);
@@ -695,7 +699,9 @@ export class Grids {
             this.mainGrid = $("#gridView").kendoGrid(finalGridViewSettings).data("kendoGrid");
 
             if (!disableOpeningOfItems) {
-                this.mainGrid.element.on("dblclick", "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
+                // const eventType = (options.singleClickOpen ?? false) ? 'click' : 'dblclick';
+                const eventType = this.informationBlockIframe ? 'click' : 'dblclick';
+                this.mainGrid.element.on(eventType, "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
             }
             this.mainGrid.element.find(".k-i-refresh").parent().click(this.base.onMainRefreshButtonClick.bind(this.base));
             
@@ -1299,7 +1305,7 @@ export class Grids {
         });
 
         if (!options.disableOpeningOfItems) {
-            element.on("dblclick", "tbody tr[data-uid] td", (event) => { this.onShowDetailsClick(event, kendoGrid, options); });
+            element.on('dblclick', "tbody tr[data-uid] td", (event) => { this.onShowDetailsClick(event, kendoGrid, options); });
         }
 
         if (!options.allowMultipleRows) {
@@ -1471,7 +1477,7 @@ export class Grids {
 
         if (options.fromMainGrid && this.base.settings.openGridItemsInBlock) {
             this.base.grids.informationBlockIframe.attr("loading", "eager");
-            this.base.grids.informationBlockIframe.attr("src", `${"/Modules/DynamicItems"}?itemId=${encryptedId}&moduleId=${this.base.settings.moduleId}&iframe=true`);
+            this.base.grids.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${encryptedId}&entityType=${entityType}&moduleId=${this.base.settings.moduleId}&iframe=true`);
             return;
         }
 
@@ -1931,9 +1937,12 @@ export class Grids {
 
         // Retrieve the elements of the selected rows
         const grid = event.sender;
-        const selectedData = grid.select().map(row => grid.dataItem(row));
+        const selectedData = grid.select().get().map(row => grid.dataItem(row).toJSON());
         
-        conditionalButtons.each(async () => {
+        // Store the context of this so it can be used in function scopes.
+        const that = this;
+        
+        conditionalButtons.each(function() {
             // Retrieve data of the button.
             const button = $(this);
             const condition = button.data('condition');
@@ -1943,7 +1952,7 @@ export class Grids {
             const maximumRows = button.data('maximum-rows');
             
             // Determine whether the action button should be hidden or not.
-            const shouldHide = this.shouldHideActionButton(selectedData, condition, roles, showOnReadOnly, minimumRows, maximumRows);
+            const shouldHide = that.shouldHideActionButton(selectedData, condition, roles, showOnReadOnly, minimumRows, maximumRows);
 
             // Show or hide the action button based on the evaluated condition or default value.
             button.toggleClass('hidden', shouldHide || event.sender.select().length === 0);
@@ -1964,24 +1973,17 @@ export class Grids {
         // Do not hide buttons by default.
         let shouldHide = false;
         
-        // Prepare a map with cached compiled Javascript functions used for condition tests.
-        const conditionCache = new Map();
-        
         // Conditional check.
         if(condition !== undefined) {
             const decodedCondition = Misc.decodeHtml(condition);
-            
-            let compiledCondition = conditionCache.get(decodedCondition);
-            if(!compiledCondition) {
-                const parameterNames = Object.keys(dataItems[0]);
-                compiledCondition = new Function(...parameterNames, `return ${decodedCondition}`);
-                conditionCache.set(decodedCondition, compiledCondition);
-            }
 
             // Evaluate the condition for every selected row in the grid.
             shouldHide = !dataItems.every(function(element, index, array) {
+                const parameterNames = Object.keys(element);
                 const parameterValues = Object.values(element);
-                return compiledCondition(...parameterValues);
+
+                const func = new Function(...parameterNames, `return ${decodedCondition}`);
+                return func(...parameterValues);
             });
         }
 

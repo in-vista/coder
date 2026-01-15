@@ -109,9 +109,11 @@ namespace Api.Modules.Modules.Services
         module.icon,
         module.type,
         module.group,
+        module.group_options,
         module.options,
         module.custom_query,        
-        module.is_fullscreen
+        module.is_fullscreen,
+        module.ordering
     FROM {WiserTableNames.WiserUserRoles} AS user_role
     JOIN {WiserTableNames.WiserRoles} AS role ON role.id = user_role.role_id
     JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = role.id AND permission.module_id > 0
@@ -133,9 +135,11 @@ UNION
         module.icon,
         module.type,
         module.group,
+        module.group_options,
         module.options,
         module.custom_query,
-        module.is_fullscreen
+        module.is_fullscreen,
+        module.ordering
     FROM {WiserTableNames.WiserModule} AS module
     WHERE module.id IN ({String.Join(",", modulesForAdmins)})
 )";
@@ -154,9 +158,7 @@ UNION
             {
                 var moduleId = dataRow.Field<int>("module_id");
                 var originalGroupName = dataRow.Field<string>("group");
-                var groupName = pinnedModules.Contains(moduleId)
-                    ? PinnedModulesGroupName
-                    : dataRow.Field<string>("group");
+                var groupName = dataRow.Field<string>("group");
                 var permissionsBitMask = (AccessRights) Convert.ToInt32(dataRow["permissions"]);
                 var options = dataRow.Field<string>("options");
 
@@ -203,6 +205,11 @@ UNION
                 rightsModel.PinnedGroup = PinnedModulesGroupName;
                 rightsModel.HasCustomQuery = hasCustomQuery;
                 rightsModel.IsFullscreen = dataRow["is_fullscreen"].ToString() == "1";
+                rightsModel.Ordering = uint.TryParse(dataRow["ordering"].ToString(), out uint ordering) ? ordering : 0;
+                
+                string groupOptionsJson = dataRow.Field<string>("group_options");
+                if (!string.IsNullOrEmpty(groupOptionsJson))
+                    rightsModel.GroupOptions = JObject.Parse(groupOptionsJson);
 
                 if (String.IsNullOrWhiteSpace(rightsModel.Icon))
                 {
@@ -272,7 +279,7 @@ UNION
                     switch (moduleId)
                     {
                         case Constants.DefaultMasterDataModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Instellingen";
+                            groupName = "Instellingen";
                             if (!results.ContainsKey(groupName))
                             {
                                 results.Add(groupName, new List<ModuleAccessRightsModel>());
@@ -280,7 +287,7 @@ UNION
 
                             results[groupName].Add(new ModuleAccessRightsModel
                             {
-                                Group = "Instellingen",
+                                Group = groupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
@@ -295,7 +302,7 @@ UNION
                             });
                             break;
                         case Constants.DefaultDataSelectorModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Contentbeheer";
+                            groupName = "Contentbeheer";
                             if (!results.ContainsKey(groupName))
                             {
                                 results.Add(groupName, new List<ModuleAccessRightsModel>());
@@ -303,7 +310,7 @@ UNION
 
                             results[groupName].Add(new ModuleAccessRightsModel
                             {
-                                Group = "Contentbeheer",
+                                Group = groupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
@@ -318,7 +325,7 @@ UNION
                             });
                             break;
                         case Constants.DefaultSearchModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Contentbeheer";
+                            groupName = "Contentbeheer";
                             if (!results.ContainsKey(groupName))
                             {
                                 results.Add(groupName, new List<ModuleAccessRightsModel>());
@@ -326,7 +333,7 @@ UNION
 
                             results[groupName].Add(new ModuleAccessRightsModel
                             {
-                                Group = "Contentbeheer",
+                                Group = groupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
@@ -341,7 +348,7 @@ UNION
                             });
                             break;
                         case Constants.DefaultAdminModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Instellingen";
+                            groupName = "Instellingen";
                             if (!results.ContainsKey(groupName))
                             {
                                 results.Add(groupName, new List<ModuleAccessRightsModel>());
@@ -364,7 +371,7 @@ UNION
                             });
                             break;
                         case Constants.DefaultImportExportModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Contentbeheer";
+                            groupName = "Contentbeheer";
                             if (!results.ContainsKey(groupName))
                             {
                                 results.Add(groupName, new List<ModuleAccessRightsModel>());
@@ -372,7 +379,7 @@ UNION
 
                             results[groupName].Add(new ModuleAccessRightsModel
                             {
-                                Group = "Contentbeheer",
+                                Group = groupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
@@ -387,7 +394,7 @@ UNION
                             });
                             break;
                         case Constants.DefaultWiserUsersModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Instellingen";
+                            groupName = "Instellingen";
                             if (!results.ContainsKey(groupName))
                             {
                                 results.Add(groupName, new List<ModuleAccessRightsModel>());
@@ -395,7 +402,7 @@ UNION
 
                             results[groupName].Add(new ModuleAccessRightsModel
                             {
-                                Group = "Gebruikers - Coder",
+                                Group = groupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
@@ -410,7 +417,7 @@ UNION
                             });
                             break;
                         case Constants.DefaultWebpagesModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Contentbeheer";
+                            groupName = "Contentbeheer";
                             if (!results.ContainsKey(groupName))
                             {
                                 results.Add(groupName, new List<ModuleAccessRightsModel>());
@@ -418,7 +425,7 @@ UNION
 
                             results[groupName].Add(new ModuleAccessRightsModel
                             {
-                                Group = "Contentbeheer",
+                                Group = groupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
@@ -433,14 +440,14 @@ UNION
                             });
                             break;
                         case Constants.DefaultVersionControlModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Systeem";
+                            groupName = "Systeem";
                             if (!results.ContainsKey(groupName))
                             {
                                 results.Add(groupName, new List<ModuleAccessRightsModel>());
                             }
                             results[groupName].Add(new ModuleAccessRightsModel
                             {
-                                Group = "Systeem",
+                                Group = groupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
@@ -455,14 +462,14 @@ UNION
                             });
                             break;
                         case Constants.DefaultTemplatesModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Systeem";
+                            groupName = "Systeem";
                             if (!results.ContainsKey(groupName))
                             {
                                 results.Add(groupName, new List<ModuleAccessRightsModel>());
                             }
                             results[groupName].Add(new ModuleAccessRightsModel
                             {
-                                Group = "Systeem",
+                                Group = groupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
@@ -486,14 +493,14 @@ UNION
             if (results.All(g => g.Value.All(m => m.Type != "Configuration")))
             {
                 var isPinned = pinnedModules.Contains(0);
-                var groupName = isPinned ? PinnedModulesGroupName : "Systeem";
+                var groupName = "Systeem";
                 if (!results.ContainsKey(groupName))
                 {
                     results.Add(groupName, new List<ModuleAccessRightsModel>());
                 }
                 results[groupName].Add(new ModuleAccessRightsModel
                 {
-                    Group = "Systeem",
+                    Group = groupName,
                     CanCreate = true,
                     CanDelete = true,
                     CanRead = true,
