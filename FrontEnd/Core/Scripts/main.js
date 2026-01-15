@@ -1400,65 +1400,62 @@ class Main {
                     }
                 },
                 showPopout(event) {
-                    // Retrieve the popout to display.
                     const trigger = event.currentTarget;
                     const popout = trigger.parentElement.querySelector('.coder-menu-item-popout');
-                    
-                    // If there is no popout, no reason to execute any further code.
-                    if (!popout)
-                        return;
+                    if (!popout) return;
 
-                    // Close the currently active popout if there is one.
+                    // This closes any previously open popout before showing a new one.
                     if (this.activePopout && this.activePopout !== popout) {
                         this.hidePopout(this.activePopout);
                     }
-                    
-                    // Set the currently active popout to this popout.
                     this.activePopout = popout;
-                    
-                    // If there was a popout cancelling sequence registered, cancel it.
+
+                    // This clears any pending hide timeout for this popout.
                     if (this.hideTimeouts.has(popout)) {
                         clearTimeout(this.hideTimeouts.get(popout));
                     }
-                    
-                    // Show the popout.
+
+                    // This makes the popout visible and ready to be positioned.
                     popout.style.display = 'block';
                     popout.style.pointerEvents = 'auto';
                     popout.style.opacity = '0';
-                    
-                    // Request frame rendering.
-                    requestAnimationFrame(() => {
-                        // Get basic spacing information of the trigger element and window.
-                        const boundingClient = trigger.getBoundingClientRect();
-                        const windowHeight = window.innerHeight;
-                        
-                        // Get the available space above and available space below.
-                        const spaceAbove = boundingClient.top - 8;
-                        const spaceBelow = windowHeight - boundingClient.bottom - 8;
 
-                        // Calculate the max height of the popout.
-                        const maxHeight = Math.max(spaceAbove + spaceBelow, 100);
+                    requestAnimationFrame(() => {
+                        const t = trigger.getBoundingClientRect();
+                        const vh = window.innerHeight;
+                        const padding = 8;
+
+                        // This places the popout to the right of the trigger.
+                        popout.style.left = `${t.right + 8}px`;
+
+                        // This sets the maximum height so the popout always fits inside the viewport.
+                        const maxHeight = vh - padding * 2;
                         popout.style.maxHeight = `${maxHeight}px`;
 
-                        // Calculate the height to utilize for the popout.
+                        // This calculates the real height of the popout including its content.
                         const popoutHeight = Math.min(popout.scrollHeight, maxHeight);
 
-                        // Calculate the offset from the left-side of the popout.
-                        popout.style.left = `${boundingClient.right + 8}px`;
+                        // This calculates the centered top position relative to the trigger.
+                        let desiredTop = t.top + t.height / 2 - popoutHeight / 2;
 
-                        // Calculate the top property to position the popout in the center of the trigger.
-                        let top = boundingClient.top + boundingClient.height / 2 - popoutHeight / 2;
+                        // This resets both top and bottom so only one of them is applied.
+                        popout.style.top = 'auto';
+                        popout.style.bottom = 'auto';
 
-                        // Force setting the bottom CSS property if the content falls outside the screen's boundaries.
-                        if (top + popoutHeight > windowHeight - 8) {
-                            popout.style.bottom = '8px';
-                            popout.style.top = 'auto';
-                        } else {
-                            popout.style.top = `${top}px`;
-                            popout.style.bottom = 'auto';
+                        // This clamps the popout to the top of the viewport if it would overflow.
+                        if (desiredTop < padding) {
+                            popout.style.top = `${padding}px`;
                         }
-                        
-                        // Set the opacity to start showing the popout.
+                        // This clamps the popout to the bottom of the viewport if it would overflow.
+                        else if (desiredTop + popoutHeight > vh - padding) {
+                            popout.style.bottom = `${padding}px`;
+                        }
+                        // This applies the centered position when the popout fits inside the viewport.
+                        else {
+                            popout.style.top = `${desiredTop}px`;
+                        }
+
+                        // This fades the popout in after positioning has been applied.
                         popout.style.opacity = '1';
                     });
                 },

@@ -1155,6 +1155,15 @@ $mdi-sizes: (
     display: flex;
 }
 
+#coder-container {
+    display: flex;
+    flex-direction: column;
+
+    flex-grow: 1;
+
+    background-color: #f8f8f8;
+}
+
 #coder-menu {
     min-width: 56px;
     max-width: fit-content;
@@ -1223,8 +1232,7 @@ $mdi-sizes: (
 
 .coder-menu-item-content:hover,
 .tab-strip-button:hover {
-    color: #fff;
-    background-color: #052776;
+    background-color: rgba(100, 100, 100, 0.08);
 }
 
 .coder-menu-item > .coder-menu-item-popout {
@@ -1254,86 +1262,106 @@ $mdi-sizes: (
     border-radius: 8px;
 }
 
-.coder-menu-item-popout > .coder-menu-item-popout-title {
+.coder-menu-item-popout-title {
     font-weight: 800;
     margin-bottom: 18px;
     padding-left: 6px;
     padding-right: 6px;
     font-size: 1.02em;
-}
 
-.coder-menu-item-popout-title:after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: -6px;
-    width: 100%;
-    height: 1px;
-    background-color: #e8e8e8;
+    white-space: nowrap;
+    
+    &:after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -6px;
+        width: 100%;
+        height: 1px;
+        background-color: #e8e8e8;
+    }
 }
 
 .coder-menu-item-popout-items {
     display: flex;
     flex-direction: column;
     column-gap: 8px;
-}
-
-.pin-button {
-    padding: 8px;
-}
-
-.coder-menu-item-popout-items > .coder-menu-item-popout-item {
-    display: flex;
     
-    column-gap: 12px;
-    padding: 6px;
+    & > .coder-menu-item-popout-item {
+        display: flex;
+        align-items: center;
+
+        column-gap: 14px;
+
+        font-size: 0.9em;
+        
+        &.disabled {
+            color: #808080;
+            cursor: not-allowed;
+        }
+        
+        & > .coder-menu-item-popout-item-content {
+            display: flex;
+            
+            flex-grow: 1;
+
+            column-gap: 12px;
+            padding: 6px;
+            
+            & > i:first-child {
+                flex-shrink: 0;
+            }
+            
+            & > span {
+                flex-grow: 1;
+                font-weight: 600;
+            }
+        }
+        
+        & > .coder-menu-item-popout-item-pin {
+            color: rgba(0, 0, 0, 0.2);
+            &:hover {
+                color: #000;
+            }
+        }
+        
+        & > span {
+            white-space: nowrap;
+        }
+    }
+}
+
+.icon-container:has(> .mdi) {
     border-radius: 8px;
-    
-    font-size: 0.9em;
-    
+    aspect-ratio: 1 / 1;
+    padding: 4px;
+    max-height: fit-content;
+}
+
+.hover {
+    border-radius: 8px;
     cursor: pointer;
-}
-
-.coder-menu-item-popout-items > .coder-menu-item-popout-item:hover {
-    background-color: #f5f5f5;
-}
-
-.coder-menu-item-popout-item.disabled {
-    color: #808080;
-    cursor: not-allowed;
-}
-
-.coder-menu-item-popout-item > i:first-child {
-    flex-shrink: 0;
-}
-
-.coder-menu-item-popout-item > span {
-    flex-grow: 1;
-    font-weight: 600;
-}
-
-.coder-menu-item-popout-title, .coder-menu-item-popout-item > span {
-    white-space: nowrap;
-}
-
-#coder-container {
-    display: flex;
-    flex-direction: column;
     
-    flex-grow: 1;
-    
-    background-color: #f8f8f8;
+    &:hover {
+        background-color: rgba(100, 100, 100, 0.08);
+    }
 }
 
 #coder-tab-strip {
     display: flex;
+    
+    width: 100%;
     height: 48px;
+    overflow: hidden;
+    
     background-color: #fff;
     
     & > #coder-tab-strip-actions {
         display: flex;
         align-items: center;
         column-gap: 8px;
+        
+        flex: 0 0 auto;
 
         flex-shrink: 0;
 
@@ -1343,7 +1371,16 @@ $mdi-sizes: (
 
 #modules-strip {
     display: flex;
-    flex-grow: 1;
+    
+    flex: 1 1 auto;
+    
+    column-gap: 1px;
+    margin-top: 8px;
+    min-width: 0;
+    
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
 }
 
 .modules-strip-tab {
@@ -1351,7 +1388,10 @@ $mdi-sizes: (
     align-items: center;
     column-gap: 10px;
     
+    flex: 0 0 auto;
+    
     padding: 8px;
+    border-radius: 8px 8px 0 0;
     
     background-color: #031B53;
     color: #fff;
@@ -1361,17 +1401,25 @@ $mdi-sizes: (
     }
     
     &.active {
-        background-color: transparent;
+        background-color: #F5F5F5;
         color: #031B53;
     }
     
     &:not(.active) {
         cursor: pointer;
+        
+        &:hover {
+            background-color: #021644;
+        }
     }
     
     & > .modules-strip-tab-title {
         font-size: 0.85em;
         font-weight: 600;
+        max-width: 150px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
     }
 }
 
@@ -1380,11 +1428,9 @@ $mdi-sizes: (
     height: 32px;
 }
 
-.modules-strip-tab:last-child {
-    border-radius: 0 8px 8px 0;
-}
-
 #coder-container {
+    min-width: 0;
+    
     & > main {
         flex-grow: 1;
         

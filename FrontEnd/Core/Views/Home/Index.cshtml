@@ -22,11 +22,13 @@
                             <p class="coder-menu-item-popout-title">{{ moduleGroup.name }}</p>
                             <div class="coder-menu-item-popout-items">
                                 <div v-for="module in moduleGroup.modules" :key="module.moduleId" class="coder-menu-item-popout-item" @@click="onOpenModuleClick($event, module)">
-                                    <i class="mdi mdi-size-2" :class="[ `mdi-${module.icon ?? 'cog'}` ]"></i>
-                                    <span>{{ module.name }}</span>
-                                    <v-hover v-slot="{ isHovering }">
-                                        <i class="mdi mdi-size-2" :class="[ `mdi-${module.pinned ? 'pin-off' : 'pin'}${!isHovering ? '-outline' : ''}` ]" @@click.stop="onTogglePin($event, module.moduleId)"></i>
-                                    </v-hover>
+                                    <div class="coder-menu-item-popout-item-content hover">
+                                        <i class="mdi mdi-size-2" :class="[ `mdi-${module.icon ?? 'cog'}` ]"></i>
+                                        <span>{{ module.name }}</span>
+                                    </div>
+                                    <div class="coder-menu-item-popout-item-pin icon-container hover">
+                                        <i class="mdi mdi-size-2" :class="[ `mdi-${module.pinned ? 'pin-off' : 'pin'}${!module.autoLoad ? '-outline' : ''}` ]" @@click.stop="onTogglePin($event, module.moduleId)"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -42,81 +44,28 @@
                         <p class="coder-menu-item-popout-title"><strong>Welkom</strong> <span class="coder-highlight">{{ user.name }}</span>.</p>
                         <div class="coder-menu-item-popout-items">
                             <div class="coder-menu-item-popout-item" :class="{ 'disabled': !markerWidget }">
-                                <i class="mdi mdi-size-2 mdi-bug"></i>
-                                <span @@click="!!markerWidget ? openMarkerIoScreen : null">Bug melden</span>
+                                <div class="coder-menu-item-popout-item-content hover">
+                                    <i class="mdi mdi-size-2 mdi-bug"></i>
+                                    <span @@click="!!markerWidget ? openMarkerIoScreen : null">Bug melden</span>
+                                </div>
                             </div>
                             <div class="coder-menu-item-popout-item">
-                                <i class="mdi mdi-size-2 mdi-cog"></i>
-                                <span @@click="openConfigurationModule">Coder configuratie</span>
+                                <div class="coder-menu-item-popout-item-content hover">
+                                    <i class="mdi mdi-size-2 mdi-cog"></i>
+                                    <span @@click="openConfigurationModule">Coder configuratie</span>
+                                </div>
                             </div>
                             <div class="coder-menu-item-popout-item">
-                                <i class="mdi mdi-size-2 mdi-logout"></i>
-                                <span @@click="logout">Uitloggen</span>
+                                <div class="coder-menu-item-popout-item-content hover">
+                                    <i class="mdi mdi-size-2 mdi-logout"></i>
+                                    <span @@click="logout">Uitloggen</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-            @* <header v-if="user.loggedIn && !requirePasswordChange"> *@
-            @*     <ul class="main-menu"> *@
-            @*         <li id="side-menu"> *@
-            @*             <div id="menu-btn" @@click="toggleMenuState()"><ins class="icon-menu"></ins><span>Menu</span></div> *@
-            @*             <div id="side-btn" @@click="toggleMenuActive()"><ins class="icon-chevron-right"></ins></div> *@
-            @*              *@
-            @*             <nav id="side-nav"> *@
-            @*                 <div class="menu-scroller"> *@
-            @*                     <ul> *@
-            @*                         <li v-for="moduleGroup in moduleGroups" :key="moduleGroup.name"> *@
-            @*                             <strong v-if="moduleGroup.name">{{ moduleGroup.name }}</strong> *@
-            @*                             <ul> *@
-            @*                                 <li v-for="module in moduleGroup.modules" :key="module.moduleId"> *@
-            @*                                     <a href="#" :title="module.name" @@click="onOpenModuleClick($event, module)"><ins :class="module.icon"></ins><span>{{ module.name }}</span></a> *@
-            @*                                     <button @@click="onTogglePin($event, module.moduleId)" :class="{ pinned: module.pinned, 'auto-load': module.autoLoad }"> *@
-            @*                                         <ins :class="{ 'icon-line-pin-empty': !module.autoLoad, 'icon-line-pin-full': module.pinned && module.autoLoad }"></ins> *@
-            @*                                     </button> *@
-            @*                                 </li> *@
-            @*                             </ul> *@
-            @*                         </li> *@
-            @*                     </ul> *@
-            @*                 </div> *@
-            @*             </nav> *@
-            @*         </li> *@
-            @* *@
-            @*         <li class="tabs"> *@
-            @*             <div v-for="module in openedModules" :key="module.id" :class="{ 'tab-item': true, active: module.id === activeModule }" @@click="setActiveModule($event, module.id)" :title="module.name"> *@
-            @*                 <ins :class="module.icon"></ins> *@
-            @*                 <strong>{{ module.name }}</strong> *@
-            @*                 <span class="close-module" title="module sluiten" @@click="closeModule(module)"></span> *@
-            @*             </div> *@
-            @*         </li> *@
-            @* *@
-            @*         <li class="icons"> *@
-            @*             <div class="ico-item" v-if="modules.find(m => m.moduleId === 709)"> *@
-            @*                 <ins class="icon-line-search" @@click="openModule(709)"></ins> *@
-            @*             </div> *@
-            @*             <div class="ico-item" v-if="activeModule"> *@
-            @*                 <ins class="icon-desktop" @@click="requestModuleFullScreen(activeModule)"></ins> *@
-            @*             </div> *@
-            @*             <task-alerts ref="taskAlerts"></task-alerts> *@
-            @*         </li> *@
-            @* *@
-            @*         <li class="login"> *@
-            @*             <span> *@
-            @*                 <strong class="title">Welkom</strong> *@
-            @*                 <span class="sub-title">{{ user.name }}</span> *@
-            @*                 <ins class="icon-chevron-down"></ins> *@
-            @*             </span> *@
-            @* *@
-            @*             <ul class="sub-menu"> *@
-            @*                 <li><a href="#" @@click="openMarkerIoScreen"><ins class="icon-line-bug"></ins><span>Bug melden! (CTRL+B)</span></a></li> *@
-            @*                 <li><a href="#" @@click="openConfigurationModule"><ins class="icon-config"></ins><span>Coder configuratie</span></a></li> *@
-            @*                 <li><a href="#" @@click="logout"><ins class="icon-line-log-out"></ins><span>Uitloggen</span></a></li> *@
-            @*             </ul> *@
-            @*         </li> *@
-            @*     </ul> *@
-        @* </header> *@
-            
         <div id="coder-container">
             <div v-if="user.loggedIn" id="coder-tab-strip">
                 <div id="modules-strip">
@@ -129,7 +78,7 @@
                         @@click="setActiveModule($event, module.id)">
                         <ins class="mdi mdi-size-2" :class="[ `mdi-${module.icon}` ]"></ins>
                         <span class="modules-strip-tab-title">{{ module.name }}</span>
-                        <div class="tab-strip-button" @@click="closeModule(module)">
+                        <div class="tab-strip-button" @@click.stop="closeModule(module)">
                             <ins class="mdi mdi-close"></ins>
                         </div>
                     </div>
@@ -159,7 +108,6 @@
                 </keep-alive>
             </main>
         </div>
-
             <wiser-dialog class="general-message-dialog" :modal="true" :width="'400px'" :title="generalMessagePromptTitle" ref="generalMessagePrompt" :visible="false" :actions="[{ text: 'OK', primary: true }]">
                 <div class="form-row">
                     {{ generalMessagePromptText }}
@@ -175,7 +123,6 @@
                 <div class="form-row">
                     <input type="password" id="newPasswordRepeat" name="newPasswordRepeat" class="loginField passwordField" placeholder="Nogmaals uw nieuwe wachtwoord" v-model="changePasswordPromptNewPasswordRepeatValue"/>
                 </div>
-
                 <div class="error" v-if="changePasswordError">{{ changePasswordError }}</div>
             </wiser-dialog>
             <wiser-dialog class="branches-dialog" :modal="true" :width="'1200px'" ref="wiserBranchesPrompt" :visible="false" :actions="[]" @@open="onWiserBranchesPromptOpen">

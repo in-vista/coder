@@ -282,6 +282,10 @@ body.iframe .editMenu {
     width: calc(100% - 5px);
 }
 
+#gridView, .k-grid-toolbar {
+    background-color: var(--coder-module-color);
+}
+
 #gridView .k-grid-toolbar .full-screen {
     order: 6;
 }
