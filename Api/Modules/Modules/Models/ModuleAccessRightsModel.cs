@@ -1,4 +1,7 @@
-﻿namespace Api.Modules.Modules.Models
+﻿using System;
+using Newtonsoft.Json.Linq;
+
+namespace Api.Modules.Modules.Models
 {
     /// <summary>
     /// A model for storing what the authenticated user can do with a module.
@@ -58,6 +61,11 @@
         public string Group { get; set; }
         
         /// <summary>
+        /// Gets or sets the group options.
+        /// </summary>
+        public JObject GroupOptions { get; set; }
+        
+        /// <summary>
         /// Gets or sets if the module is pinned by the user.
         /// </summary>
         public bool Pinned { get; set; }
@@ -92,5 +100,10 @@
         /// Whether the module is meant to be displayed in fullscreen.
         /// </summary>
         public bool IsFullscreen { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the ordering priority of the module within the module group.
+        /// </summary>
+        public uint Ordering { get; set; }
     }
 }

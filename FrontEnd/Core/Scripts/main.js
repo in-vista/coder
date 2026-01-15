@@ -15,9 +15,12 @@ import DatabasesService from "./shared/databases.service";
 import store from "./store/index";
 import login from "./components/login";
 import taskAlerts from "./components/task-alerts";
+import vhover from "./components/vhover";
 
 import {DropDownList} from "@progress/kendo-vue-dropdowns";
 import WiserDialog from "./components/wiser-dialog";
+
+import '@mdi/font/css/materialdesignicons.min.css';
 
 import "../Scss/main.scss";
 import "../Scss/task-alerts.scss";
@@ -387,7 +390,9 @@ class Main {
                     clearCacheSettings: {
                         areas: [],
                         url: null
-                    }
+                    },
+                    activePopout: null,
+                    hideTimeouts: new WeakMap()
                 };
             },
             async created() {
@@ -421,6 +426,26 @@ class Main {
                 },
                 moduleGroups() {
                     return this.$store.state.modules.moduleGroups;
+                },
+                pinnedModuleGroups() {
+                    return this.$store.state.modules.moduleGroups.flatMap(moduleGroup => moduleGroup.modules)
+                        .filter(module => module.pinned)
+                        .reduce((accumulator, module) => {
+                            let moduleGroup = accumulator.find(group => group.name === module.pinnedGroup);
+                            
+                            if(!moduleGroup) {
+                                moduleGroup = {
+                                    name: module.pinnedGroup,
+                                    icon: 'pin',
+                                    modules: []
+                                }
+                                accumulator.push(moduleGroup);
+                            }
+                            
+                            moduleGroup.modules.push(module);
+                            
+                            return accumulator;
+                        }, []);
                 },
                 openedModules() {
                     return this.$store.state.modules.openedModules;
@@ -624,7 +649,8 @@ class Main {
                 "WiserDialog": WiserDialog,
                 "tenantManagement": defineAsyncComponent(() => import(/* webpackChunkName: "tenant-management" */"./components/tenant-management")),
                 "login": login,
-                "taskAlerts": taskAlerts
+                "taskAlerts": taskAlerts,
+                "v-hover": vhover
             },
             watch: {
                 async loginStatus(newValue, oldValue) {
@@ -721,6 +747,9 @@ class Main {
                 },
 
                 openModule(module) {
+                    if(this.activePopout)
+                        this.hidePopout(this.activePopout);
+                    
                     if (typeof module === "number" || typeof module === "string") {
                         module = this.modules.find(m => m.moduleId === module);
                     }
@@ -1369,6 +1398,115 @@ class Main {
                             this.clearCacheSettings.areas.push("all");
                         }
                     }
+                },
+                showPopout(event) {
+                    // Retrieve the popout to display.
+                    const trigger = event.currentTarget;
+                    const popout = trigger.parentElement.querySelector('.coder-menu-item-popout');
+                    
+                    // If there is no popout, no reason to execute any further code.
+                    if (!popout)
+                        return;
+
+                    // Close the currently active popout if there is one.
+                    if (this.activePopout && this.activePopout !== popout) {
+                        this.hidePopout(this.activePopout);
+                    }
+                    
+                    // Set the currently active popout to this popout.
+                    this.activePopout = popout;
+                    
+                    // If there was a popout cancelling sequence registered, cancel it.
+                    if (this.hideTimeouts.has(popout)) {
+                        clearTimeout(this.hideTimeouts.get(popout));
+                    }
+                    
+                    // Show the popout.
+                    popout.style.display = 'block';
+                    popout.style.pointerEvents = 'auto';
+                    popout.style.opacity = '0';
+                    
+                    // Request frame rendering.
+                    requestAnimationFrame(() => {
+                        // Get basic spacing information of the trigger element and window.
+                        const boundingClient = trigger.getBoundingClientRect();
+                        const windowHeight = window.innerHeight;
+                        
+                        // Get the available space above and available space below.
+                        const spaceAbove = boundingClient.top - 8;
+                        const spaceBelow = windowHeight - boundingClient.bottom - 8;
+
+                        // Calculate the max height of the popout.
+                        const maxHeight = Math.max(spaceAbove + spaceBelow, 100);
+                        popout.style.maxHeight = `${maxHeight}px`;
+
+                        // Calculate the height to utilize for the popout.
+                        const popoutHeight = Math.min(popout.scrollHeight, maxHeight);
+
+                        // Calculate the offset from the left-side of the popout.
+                        popout.style.left = `${boundingClient.right + 8}px`;
+
+                        // Calculate the top property to position the popout in the center of the trigger.
+                        let top = boundingClient.top + boundingClient.height / 2 - popoutHeight / 2;
+
+                        // Force setting the bottom CSS property if the content falls outside the screen's boundaries.
+                        if (top + popoutHeight > windowHeight - 8) {
+                            popout.style.bottom = '8px';
+                            popout.style.top = 'auto';
+                        } else {
+                            popout.style.top = `${top}px`;
+                            popout.style.bottom = 'auto';
+                        }
+                        
+                        // Set the opacity to start showing the popout.
+                        popout.style.opacity = '1';
+                    });
+                },
+                scheduleHidePopout(event) {
+                    // Retrieve the popout.
+                    const popout =
+                        event.currentTarget.closest('.coder-menu-item')?.querySelector('.coder-menu-item-popout') ||
+                        event.currentTarget.closest('.coder-menu-item-popout');
+                    
+                    // If there is no popout, no reason to execute any further code.
+                    if (!popout)
+                        return;
+
+                    // Start a short delay before hiding the popout.
+                    const timeout = setTimeout(() => {
+                        this.hidePopout(popout);
+                        if (this.activePopout === popout) this.activePopout = null;
+                    }, 50);
+                    
+                    // Register the timeout for this popout.
+                    this.hideTimeouts.set(popout, timeout);
+                },
+                cancelHidePopout(event) {
+                    // Retrieve the popout.
+                    const popout =
+                        event.currentTarget.closest('.coder-menu-item')?.querySelector('.coder-menu-item-popout') ||
+                        event.currentTarget.closest('.coder-menu-item-popout');
+
+                    // If there is no popout, no reason to execute any further code.
+                    if (!popout)
+                        return;
+                    
+                    // If there is a popout closing sequence scheduled, cancel it.
+                    if (this.hideTimeouts.has(popout)) {
+                        clearTimeout(this.hideTimeouts.get(popout));
+                        this.hideTimeouts.delete(popout);
+                    }
+                },
+                hidePopout(popout) {
+                    // Hide the popout.
+                    popout.style.opacity = '0';
+                    popout.style.pointerEvents = 'none';
+                    
+                    // Change the display after the opacity transition has passed.
+                    setTimeout(() => {
+                        popout.style.display = 'none';
+                    },
+                    120);
                 }
             }
         });
