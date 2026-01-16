@@ -428,7 +428,20 @@ class Main {
                     return this.$store.state.modules.moduleGroups;
                 },
                 pinnedModuleGroups() {
-                    return this.$store.state.modules.moduleGroups.flatMap(moduleGroup => moduleGroup.modules)
+                    // Retrieve all the modules as a flat array.
+                    const moduleGroups = this.$store.state.modules.moduleGroups;
+                    const allModules = moduleGroups.flatMap(moduleGroup => moduleGroup.modules);
+                    
+                    // Retrieve the amount of modules and the amount of pinned modules.
+                    const allModulesAmount = allModules.length;
+                    const pinnedModulesAmount = allModules.filter(module => module.pinned).length;
+                    
+                    // Return no pinned module groups if the available modules is just as much as the amount of pinned modules.
+                    if(allModulesAmount === pinnedModulesAmount)
+                        return [];
+                    
+                    // Build pinned module groups based on pinned modules.
+                    return allModules
                         .filter(module => module.pinned)
                         .reduce((accumulator, module) => {
                             let moduleGroup = accumulator.find(group => group.name === module.pinnedGroup);

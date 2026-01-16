@@ -43,16 +43,10 @@
                     <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event)">
                         <p class="coder-menu-item-popout-title"><strong>Welkom</strong> <span class="coder-highlight">{{ user.name }}</span>.</p>
                         <div class="coder-menu-item-popout-items">
-                            <div class="coder-menu-item-popout-item" :class="{ 'disabled': !markerWidget }">
+                            <div v-if="!!markerWidget" class="coder-menu-item-popout-item">
                                 <div class="coder-menu-item-popout-item-content hover">
                                     <i class="mdi mdi-size-2 mdi-bug"></i>
-                                    <span @@click="!!markerWidget ? openMarkerIoScreen : null">Bug melden</span>
-                                </div>
-                            </div>
-                            <div class="coder-menu-item-popout-item">
-                                <div class="coder-menu-item-popout-item-content hover">
-                                    <i class="mdi mdi-size-2 mdi-cog"></i>
-                                    <span @@click="openConfigurationModule">Coder configuratie</span>
+                                    <span @@click="openMarkerIoScreen">Bug melden</span>
                                 </div>
                             </div>
                             <div class="coder-menu-item-popout-item">
