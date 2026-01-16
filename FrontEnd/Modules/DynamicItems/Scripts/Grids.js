@@ -1931,13 +1931,17 @@ export class Grids {
      * @param {boolean} readOnly - Whether the contextual item is read-only and should not show action buttons if they
      * are supposed to be hidden if the item is read-only.
      */
-    async onGridSelectionChange(event) {
+    async onGridSelectionChange(event, readOnly = undefined) {
         // Check based on given condition to hide.
         const conditionalButtons = event.sender.wrapper.find('.k-button.hide-when-no-selected-rows');
 
         // Retrieve the elements of the selected rows
         const grid = event.sender;
         const selectedData = grid.select().get().map(row => grid.dataItem(row).toJSON());
+        
+        // Determine whether any of the selected items are set to be readonly.
+        if(readOnly === undefined)
+            readOnly = selectedData.some(entry => !!entry[Object.keys(entry).find(key => key.toLowerCase() === 'readonly')]);
         
         // Store the context of this so it can be used in function scopes.
         const that = this;
@@ -1952,7 +1956,7 @@ export class Grids {
             const maximumRows = button.data('maximum-rows');
             
             // Determine whether the action button should be hidden or not.
-            const shouldHide = that.shouldHideActionButton(selectedData, condition, roles, showOnReadOnly, minimumRows, maximumRows);
+            const shouldHide = that.shouldHideActionButton(selectedData, condition, roles, showOnReadOnly, minimumRows, maximumRows, readOnly);
 
             // Show or hide the action button based on the evaluated condition or default value.
             button.toggleClass('hidden', shouldHide || event.sender.select().length === 0);
@@ -1969,7 +1973,7 @@ export class Grids {
     /**
      * 
      */
-    shouldHideActionButton(dataItems, condition = undefined, roles = undefined, showOnReadOnly = undefined, minimumRows = undefined, maximumRows = undefined) {
+    shouldHideActionButton(dataItems, condition = undefined, roles = undefined, showOnReadOnly = undefined, minimumRows = undefined, maximumRows = undefined, readOnly = false) {
         // Do not hide buttons by default.
         let shouldHide = false;
         
