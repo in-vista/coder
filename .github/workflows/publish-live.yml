@@ -19,7 +19,7 @@ jobs:
       id: datetime
       run: |
         $dateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-        echo "::set-output name=datetime::$dateTime"
+        echo "datetime=$dateTime" >> "$GITHHUB_OUTPUT"
     
     - name: Create backup folders
       run: |
