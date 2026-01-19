@@ -32,11 +32,12 @@ export class Grids {
     async initialize() {
         if (this.base.settings.gridViewMode && !this.base.settings.iframeMode) {
             this.base.settings.gridViewSettings = this.base.settings.gridViewSettings || {};
-
-            const hideGrid = await this.setupInformationBlock();
-            if (!hideGrid) {
-                this.setupGridViewMode();
+            
+            if (!this.base.settings.gridViewSettings.informationBlock.hideGrid) {
+                await this.setupGridViewMode();
             }
+            
+            await this.setupInformationBlock();
         }
     }
 
@@ -137,7 +138,14 @@ export class Grids {
                 });
             };
 
-            let itemId = informationBlockSettings.initialItem.itemId;
+            let itemId = 0;
+            
+            if(informationBlockSettings.initialItem.initialItemIsTopItem) {
+                itemId = this.mainGrid.dataSource.data()[0].encrypted_id;
+            } else{
+                itemId = informationBlockSettings.initialItem.itemId;
+            }
+           
             const entityType = informationBlockSettings.initialItem.entityType;
             
             if (!itemId) {
