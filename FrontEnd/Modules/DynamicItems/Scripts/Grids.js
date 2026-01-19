@@ -33,9 +33,15 @@ export class Grids {
         if (this.base.settings.gridViewMode && !this.base.settings.iframeMode) {
             this.base.settings.gridViewSettings = this.base.settings.gridViewSettings || {};
 
-            const hideGrid = await this.setupInformationBlock();
-            if (!hideGrid) {
-                this.setupGridViewMode();
+            if(this.base.settings.gridViewSettings.informationBlock?.initialItem?.initialItemIsTopItem) {                
+                await this.setupGridViewMode();                    
+                await this.setupInformationBlock();    
+            }
+            else {
+                const hideGrid = await this.setupInformationBlock();
+                if (!hideGrid) {
+                    this.setupGridViewMode();
+                }     
             }
         }
     }
@@ -137,7 +143,21 @@ export class Grids {
                 });
             };
 
-            let itemId = informationBlockSettings.initialItem.itemId;
+            let itemId = 0;
+            
+            if(informationBlockSettings.initialItem.initialItemIsTopItem) {
+                if (this.mainGrid.items().length > 0) {
+                    this.mainGrid.select(this.mainGrid.items()[0]);
+                    itemId = this.mainGrid.dataSource.data()[0].encrypted_id;    
+                }
+                else {
+                    window.processing.removeProcess(initialProcess);
+                    return false;
+                }
+            } else{
+                itemId = informationBlockSettings.initialItem.itemId;
+            }
+           
             const entityType = informationBlockSettings.initialItem.entityType;
             
             if (!itemId) {
@@ -471,7 +491,7 @@ export class Grids {
                                 if (this.mainGridFirstLoad) {
                                     transportOptions.success(gridDataResult);
                                     this.mainGridFirstLoad = false;
-                                    window.processing.removeProcess(initialProcess);
+                                    window.processing.addProcess(initialProcess);
                                     return;
                                 }
 
@@ -700,7 +720,9 @@ export class Grids {
 
             if (!disableOpeningOfItems) {
                 // const eventType = (options.singleClickOpen ?? false) ? 'click' : 'dblclick';
-                const eventType = this.informationBlockIframe ? 'click' : 'dblclick';
+                //const eventType = this.informationBlockIframe ? 'click' : 'dblclick';
+                const eventType = this.base.settings.gridViewSettings.informationBlock ? 'click' : 'dblclick';
+                
                 this.mainGrid.element.on(eventType, "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
             }
             this.mainGrid.element.find(".k-i-refresh").parent().click(this.base.onMainRefreshButtonClick.bind(this.base));
@@ -795,6 +817,7 @@ export class Grids {
             
             // Resize the height of the grid to fill with the remainder of the space.
             this.mainGrid.element.find('.k-grid-content').css('height', '100%');
+            window.processing.removeProcess(initialProcess);
         } catch (exception) {
             kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals.");
             console.error(exception);
