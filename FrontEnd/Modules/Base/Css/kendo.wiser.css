@@ -272,7 +272,9 @@
 }
 .k-button-icontext .k-i-refresh,
 .k-button-icontext .k-i-filter-clear,
-.k-button-icontext .k-i-wiser-maximize {
+.k-button-icontext .k-i-wiser-maximize,
+.k-button-icontext .k-i-eye,
+.k-button-icontext .k-i-eye-slash {
 	margin: 0;
 }
 #buttons > span,

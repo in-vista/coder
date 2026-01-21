@@ -350,6 +350,15 @@ export class Grids {
                 });
             }
 
+            const shouldShowToggleHiddenItemsButton = gridViewSettings?.toolbar?.hideToggleHiddenItemsButton === false;
+            if (shouldShowToggleHiddenItemsButton) {
+                toolbar.push({
+                    name: 'toggleHiddenItems',
+                    text: '',
+                    template: `<a class='k-button k-button-icontext toggle-hidden-items' title='Verborgen items tonen/verbergen' onclick='window.dynamicItems.grids.executeToolbarActionButton(event, () => window.dynamicItems.grids.onToggleHiddenItemsClick(event))'><span class='k-font-icon k-i-eye-slash'></span></a>`
+                });
+            }
+
             if (!gridViewSettings.toolbar || !gridViewSettings.toolbar.hideCount) {
                 toolbar.push({
                     name: "count",
@@ -512,6 +521,10 @@ export class Grids {
                                 transportOptions.data.pageSize = transportOptions.data.page_size || transportOptions.data.pageSize;
                                 previousFilters = currentFilters;
                                 this.mainGridForceRecount = false;
+                                
+                                // Retrieve the state of which to show/hide hidden elements.
+                                const showHiddenItems = this.mainGrid.element.data('showHiddenItems') ?? false;
+                                console.log(showHiddenItems);
 
                                 let newGridDataResult;
                                 if (usingDataSelector) {
@@ -1907,6 +1920,31 @@ export class Grids {
         grid.dataSource._filter = undefined;
         
         // Reload overview.
+        grid.dataSource.read();
+        grid.refresh();
+    }
+
+    async onToggleHiddenItemsClick(event) {
+        // Prevent default behavior of the clicked button.
+        event.preventDefault();
+        
+        // Retrieve the associated grid element of the grid.
+        const grid = $(event.target).closest(".k-grid").data("kendoGrid");
+        
+        // Validate the grid and throw an error if it was not found.
+        if (!grid) {
+            console.error("Grid not found, cannot toggle hidden items.", event, $(event.target).closest(".k-grid"));
+            return;
+        }
+        
+        // Retrieve the jQuery DOM element of the grid.
+        const gridElement = grid.element;
+        
+        // Toggle the state of the grid to mark it to show/hide hidden items.
+        const toggled = gridElement.data('showHiddenItems') ?? false;
+        gridElement.data('showHiddenItems', !toggled);
+
+        // Reload the grid overview.
         grid.dataSource.read();
         grid.refresh();
     }
