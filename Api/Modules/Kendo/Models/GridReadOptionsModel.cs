@@ -46,5 +46,10 @@ namespace Api.Modules.Kendo.Models
         /// Gets or sets whether this request is the first load in general, or the first load after changing filters.
         /// </summary>
         public bool FirstLoad { get; set; } = true;
+        
+        /// <summary>
+        /// Gets or sets whether to retrieve hidden items from the request.
+        /// </summary>
+        public bool ShowHiddenItems { get; set; }
     }
 }

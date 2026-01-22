@@ -1790,7 +1790,7 @@ namespace Api.Modules.Grids.Services
             else
             {
                 var whereClause = new List<(string, List<string>)>();
-
+                
                 int AddFiltersToQuery(int counter, GridFilterModel filter, StringBuilder filtersQuery, (string, List<string>) subWhereClause)
                 {
                     if (String.IsNullOrEmpty(filter.Field))
@@ -2047,6 +2047,16 @@ namespace Api.Modules.Grids.Services
 
                     selectQuery = selectQuery.Replace("{sort}", $"ORDER BY {String.Join(", ", options.Sort.Select(s => $"{(!shouldCreateJoinsForSorting || ItemColumns.Any(x => x.Equals(s.Field, StringComparison.OrdinalIgnoreCase)) ? $"`{s.Field.UnmakeJsonPropertyName().ToMySqlSafeValue(false)}`" : $"CONCAT_WS('', `{s.Field.UnmakeJsonPropertyName().ToMySqlSafeValue(false)}`.`value`, `{s.Field.UnmakeJsonPropertyName().ToMySqlSafeValue(false)}`.`long_value`)")} {s.Dir.ToMySqlSafeValue(false).ToUpperInvariant()}"))}", StringComparison.OrdinalIgnoreCase) ?? "";
                 }
+                
+                // Find "showHiddenItems" function and build a WHERE clause based on the parameter of the function.
+                // Example: "{showHiddenItems(product.published_environment)}", which could evaluate to "product.published_environment = ?showHiddenItemsValue".
+                Regex showHiddenItemsFunctionRegex = new Regex(@"{(?:showHiddenItems)\((.*?)\)}");
+                string replacement = options.ShowHiddenItems ? "1 = 1" : "$1 = ?showHiddenItemsValue";
+                selectQuery = showHiddenItemsFunctionRegex.Replace(selectQuery, replacement);
+                countQuery = showHiddenItemsFunctionRegex.Replace(countQuery, replacement);
+                
+                // Use parameters so in case of when a query consists of just a function call, this value can be passed to the function to be resolved in there.
+                clientDatabaseConnection.AddParameter("showHiddenItemsValue", options.ShowHiddenItems ? 1 : 0);
 
                 if (options.Filter?.Filters == null || !options.Filter.Filters.Any())
                 {

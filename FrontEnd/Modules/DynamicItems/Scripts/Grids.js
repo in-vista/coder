@@ -230,6 +230,9 @@ export class Grids {
                     previousFilters = JSON.stringify(options.filter);
                 }
 
+                // Set default state of showing hidden items to not show them.
+                options.showHiddenItems = false;
+
                 gridDataResult = await Wiser.api({
                     url: `${this.base.settings.wiserApiRoot}modules/${encodeURIComponent(this.base.settings.moduleId)}/overview-grid`,
                     method: "POST",
@@ -496,6 +499,9 @@ export class Grids {
                         read: async (transportOptions) => {
                             const process = `loadMainGrid_${Date.now()}`;
 
+                            // Retrieve and store the state of which to show/hide hidden elements in the transport data.
+                            transportOptions.data.showHiddenItems = this.mainGrid?.element.data('showHiddenItems') ?? false;
+                            
                             try {
                                 if (this.mainGridFirstLoad) {
                                     transportOptions.success(gridDataResult);
@@ -522,10 +528,6 @@ export class Grids {
                                 previousFilters = currentFilters;
                                 this.mainGridForceRecount = false;
                                 
-                                // Retrieve the state of which to show/hide hidden elements.
-                                const showHiddenItems = this.mainGrid.element.data('showHiddenItems') ?? false;
-                                console.log(showHiddenItems);
-
                                 let newGridDataResult;
                                 if (usingDataSelector) {
                                     newGridDataResult = {
@@ -1928,6 +1930,10 @@ export class Grids {
         // Prevent default behavior of the clicked button.
         event.preventDefault();
         
+        // Retrieve the elements associated to the event.
+        const button = $(event.target).closest('.k-button');
+        const buttonIcon = button.find('.k-font-icon');
+        
         // Retrieve the associated grid element of the grid.
         const grid = $(event.target).closest(".k-grid").data("kendoGrid");
         
@@ -1940,13 +1946,14 @@ export class Grids {
         // Retrieve the jQuery DOM element of the grid.
         const gridElement = grid.element;
         
-        // Toggle the state of the grid to mark it to show/hide hidden items.
-        const toggled = gridElement.data('showHiddenItems') ?? false;
-        gridElement.data('showHiddenItems', !toggled);
+        // Toggle the state of the grid and button to mark it to show/hide hidden items.
+        const showHiddenItems = gridElement.data('showHiddenItems') ?? false;
+        buttonIcon.toggleClass('k-i-eye-slash');
+        buttonIcon.toggleClass('k-i-eye');
+        gridElement.data('showHiddenItems', !showHiddenItems);
 
         // Reload the grid overview.
         grid.dataSource.read();
-        grid.refresh();
     }
 
     /**
