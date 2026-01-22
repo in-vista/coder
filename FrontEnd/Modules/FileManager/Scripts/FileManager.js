@@ -414,7 +414,7 @@ const moduleSettings = {
                     return;
                 }
 
-                const invalidFiles = selectedFiles.filter(file => allowedExtensions.filter(extension => file.name.indexOf(extension) === file.name.length - extension.length).length === 0);
+                const invalidFiles = selectedFiles.filter(file => allowedExtensions.filter(extension => file.name.toLowerCase().indexOf(extension) === file.name.length - extension.length).length === 0);
                 if (invalidFiles.length > 0) {
                     kendo.alert(`U heeft 1 of meer ongeldige bestanden toegevoegd. Alleen de volgende extensies worden toegestaan: ${allowedExtensions.join(", ")}`);
                     return;
