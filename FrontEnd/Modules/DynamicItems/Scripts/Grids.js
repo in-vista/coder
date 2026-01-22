@@ -230,8 +230,8 @@ export class Grids {
                     previousFilters = JSON.stringify(options.filter);
                 }
 
-                // Set default state of showing hidden items to not show them.
-                options.showHiddenItems = false;
+                if(gridViewSettings?.toolbar?.hideToggleHiddenItemsButton === false)
+                    options.showHiddenItems = false;
 
                 gridDataResult = await Wiser.api({
                     url: `${this.base.settings.wiserApiRoot}modules/${encodeURIComponent(this.base.settings.moduleId)}/overview-grid`,
@@ -500,7 +500,8 @@ export class Grids {
                             const process = `loadMainGrid_${Date.now()}`;
 
                             // Retrieve and store the state of which to show/hide hidden elements in the transport data.
-                            transportOptions.data.showHiddenItems = this.mainGrid?.element.data('showHiddenItems') ?? false;
+                            if(gridViewSettings?.toolbar?.hideToggleHiddenItemsButton === false)
+                                transportOptions.data.showHiddenItems = this.mainGrid?.element.data('showHiddenItems') ?? false;
                             
                             try {
                                 if (this.mainGridFirstLoad) {

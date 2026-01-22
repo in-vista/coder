@@ -50,6 +50,6 @@ namespace Api.Modules.Kendo.Models
         /// <summary>
         /// Gets or sets whether to retrieve hidden items from the request.
         /// </summary>
-        public bool ShowHiddenItems { get; set; }
+        public bool? ShowHiddenItems { get; set; }
     }
 }
