@@ -463,7 +463,7 @@ export class Windows {
                     let genericTabHasFields = false;
                     for (let i = htmlData.tabs.length - 1; i >= 0; i--) {
                         const tabData = htmlData.tabs[i];
-                        if (!tabData.name) {
+                        if (!tabData.name || tabData.name === 'Algemeen') {
                             genericTabHasFields = true;
                             const container = currentItemWindow.element.find(".right-pane-content-popup").html(tabData.htmlTemplate);
                             await this.base.loadKendoScripts(tabData.scriptTemplate);
