@@ -19,7 +19,7 @@ jobs:
       id: datetime
       run: |
         $dateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-        echo "datetime=$dateTime" >> "$GITHHUB_OUTPUT"
+        "datetime=$dateTime" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
     
     - name: Create backup folders
       run: |
@@ -28,26 +28,37 @@ jobs:
         $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
         $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
         
-        $folderPathApi = [IO.Path]::Combine($backupPath, "$baseApi", "${{ steps.datetime.outputs.datetime }}")
-        $folderPathFrontend = [IO.Path]::Combine($backupPath, "$baseFrontend", "${{ steps.datetime.outputs.datetime }}")
+        $folderPathApi = [IO.Path]::Combine(
+          $backupPath,
+          $baseApi,
+          "${{ steps.datetime.outputs.datetime }}"
+        )
+
+        $folderPathFrontend = [IO.Path]::Combine(
+          $backupPath,
+          $baseFrontend,
+          "${{ steps.datetime.outputs.datetime }}"
+        )
         
         New-Item -ItemType Directory -Path $folderPathApi -Force
         New-Item -ItemType Directory -Path $folderPathFrontend -Force
 
-        echo "FOLDER_PATH_API=$folderPathApi" >> $env:GITHUB_ENV
-        echo "FOLDER_PATH_FRONT_END=$folderPathFrontend" >> $env:GITHUB_ENV
+        "FOLDER_PATH_API=$folderPathApi" | Out-File -FilePath $env:GITHUB_ENV -Append
+        "FOLDER_PATH_FRONT_END=$folderPathFrontend" | Out-File -FilePath $env:GITHUB_ENV -Append
 
     - name: Copy contents to backup folder
+      shell: pwsh
       run: |
-        $sourcePathApi = "${{ secrets.PUBLISH_LOCATION_API }}\*"
-        $sourcePathFrontend = "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*"
-        
         if (Test-Path "${{ secrets.PUBLISH_LOCATION_API }}") {
-          Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\*" -Destination "$env:FOLDER_PATH_API" -Recurse
+          Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\*" `
+                    -Destination "$env:FOLDER_PATH_API" `
+                    -Recurse
         }
 
         if (Test-Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}") {
-            Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*" -Destination "$env:FOLDER_PATH_FRONT_END" -Recurse
+          Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*" `
+                    -Destination "$env:FOLDER_PATH_FRONT_END" `
+                    -Recurse
         }
   build-icl:
     strategy:
