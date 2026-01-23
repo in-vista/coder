@@ -44,18 +44,14 @@ jobs:
         "FOLDER_PATH_FRONT_END=$folderPathFrontend" | Out-File -FilePath $env:GITHUB_ENV -Append
 
     - name: Copy contents to backup folder
-      shell: pwsh
+      shell: powershell
       run: |
         if (Test-Path "${{ secrets.PUBLISH_LOCATION_API }}") {
-          Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\*" `
-                    -Destination "$env:FOLDER_PATH_API" `
-                    -Recurse
+          Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\*" -Destination "$env:FOLDER_PATH_API" -Recurse -Force
         }
 
         if (Test-Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}") {
-          Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*" `
-                    -Destination "$env:FOLDER_PATH_FRONT_END" `
-                    -Recurse
+          Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*" -Destination "$env:FOLDER_PATH_FRONT_END" -Recurse -Force
         }
   build-icl:
     runs-on: cluster1_transip
