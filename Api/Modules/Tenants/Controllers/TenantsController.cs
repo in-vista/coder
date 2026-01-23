@@ -38,6 +38,14 @@ namespace Api.Modules.Tenants.Controllers
         {
             return (await wiserTenantsService.GetTitleAsync(subDomain)).GetHttpResponseMessage();
         }
+        
+        [HttpGet]
+        [Route("{subDomain}/options")]
+        [ProducesResponseType(typeof(TenantOptions), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetTenantsOptions(string subDomain)
+        {
+            return (await wiserTenantsService.GetOptionsAsync(subDomain)).GetHttpResponseMessage();
+        }
 
         /// <summary>
         /// Method for getting information about a single tenant.

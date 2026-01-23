@@ -47,6 +47,7 @@ import {
     GET_ENTITIES_FOR_BRANCHES,
     GET_LINK_TYPES,
     GET_TENANT_TITLE,
+    GET_TENANT_OPTIONS,
     HANDLE_CONFLICT,
     HANDLE_MULTIPLE_CONFLICTS,
     IS_MAIN_BRANCH,
@@ -396,7 +397,10 @@ class Main {
                 };
             },
             async created() {
-                this.$store.dispatch(GET_TENANT_TITLE, this.appSettings.subDomain);
+                const subDomain = this.appSettings.subDomain;
+                this.$store.dispatch(GET_TENANT_TITLE, subDomain);
+                this.$store.dispatch(GET_TENANT_OPTIONS, subDomain);
+                
                 document.addEventListener("keydown", this.onAppKeyDown.bind(this));
                 
                 // Add an event for when the DOM is loaded.

@@ -62,6 +62,7 @@
                               \`encryption_key_test\` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
                               \`subdomain\` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
                               \`wiser_title\` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+                              \`options\` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
                               PRIMARY KEY (\`id\`) USING BTREE,
                               UNIQUE INDEX \`subdomain\`(\`subdomain\`) USING BTREE,
                               INDEX \`customerid\`(\`customerid\`) USING BTREE,

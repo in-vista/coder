@@ -99,6 +99,13 @@ namespace Api.Modules.Tenants.Interfaces
         Task<ServiceResult<string>> GetTitleAsync(string subDomain);
         
         /// <summary>
+        /// Gets the options for the tenant, based on the sub domain.
+        /// </summary>
+        /// <param name="subDomain">The sub domain of the tenant.</param>
+        /// <returns>An object containing the options of the tenant.</returns>
+        Task<ServiceResult<TenantOptions>> GetOptionsAsync(string subDomain);
+        
+        /// <summary>
         /// Get whether or not a sub domain is empty or the sub domain of the main Wiser database.
         /// </summary>
         bool IsMainDatabase(ClaimsIdentity identity);
