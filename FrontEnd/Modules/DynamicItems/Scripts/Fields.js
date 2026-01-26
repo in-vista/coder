@@ -3260,6 +3260,8 @@ export class Fields {
                                                         method: "POST",
                                                         contentType: "application/json",
                                                         data: JSON.stringify({
+                                                            itemId: currentEmailData.itemId,
+                                                            customerId: currentEmailData.customerId,
                                                             senderName: mailDialog.element.find("input[name=senderName]").val(),
                                                             sender: mailDialog.element.find("input[name=senderEmail]").val(),
                                                             receivers: receivers,
