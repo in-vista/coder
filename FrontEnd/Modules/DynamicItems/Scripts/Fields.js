@@ -1432,8 +1432,21 @@ export class Fields {
                                         {
                                             const comboBox = dialog.element.find("select").data("kendoComboBox");
                                             const dataItem = comboBox.dataItem();
+                                            
+                                            let encryptedId;
+                                            
+                                            if(dataItem === undefined) {
+                                                const createItemFromInput =  action.userParameters[0]?.createItemFromInput ?? false;
+                                                if(createItemFromInput){
+                                                    value = comboBox._old.length > 0 ? comboBox._old : "undefined";
+                                                    break;
+                                                }
+                                            } else{
+                                                encryptedId = dataItem?.encryptedId || dataItem?.encryptedid || dataItem?.encrypted_id || comboBox.value();
+                                            }
+                                           
                                             // Decode here to prevent duplicate encoding, because the JCL already encodes the value and then javascript will do it again later.
-                                            value = decodeURIComponent(dataItem.encryptedId || dataItem.encryptedid || dataItem.encrypted_id || comboBox.value());
+                                            value = decodeURIComponent(encryptedId);
                                             break;
                                         }
                                     case "dropdownlist":
