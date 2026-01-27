@@ -551,9 +551,21 @@ textarea.k-textbox:hover,
     color: var(--dark-txt);
 }
 
+.k-input > select[readonly],
+.item.readonly > .k-button[readonly]{
+    border: 1px solid var(--medium-color) !important;
+    background: var(--handle-bg-color) !important;
+    color: var(--lighter-txt) !important;
+    cursor: not-allowed;
+    pointer-events: none;
+}
 .k-input[readonly] {
     background-color: var(--white-color);
     color: var(--dark-txt);
+}
+.item.readonly .k-picker {
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .k-block,
