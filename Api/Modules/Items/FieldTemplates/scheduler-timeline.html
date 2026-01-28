@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
 
 <style>
     @keyframes spin {
@@ -370,7 +371,7 @@
         /*position: relative; /* nodig voor absolute centrering */
     }
     .date-selector button {
-        margin: 0 10px;
+        margin: 0;
         padding: 4px 8px;
         cursor: pointer;
     }
@@ -381,6 +382,13 @@
     
     .timeline-date-selector button {
         line-height: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .timeline-date-selector button i {
+        font-size: 20px;
     }
     
     #timeline-view-btn, #list-view-btn {
@@ -621,6 +629,8 @@
         width: 210px;
         text-align: center;
         display: inline-block;
+        position: relative;
+        bottom: 2px;
     }
     #calendar {
         position: absolute;
@@ -712,12 +722,13 @@
 <div id="timelineScheduler">
     <div class="date-selector">
         <div class="timeline-date-selector">
-            <button id="timeline-view-btn" class="active">▦</button>
-            <button id="list-view-btn">☰</button>
-            <button id="prev-day">&lt;</button>
+            <button id="timeline-view-btn" class="active"><i class="mdi mdi-size-2 mdi-chart-gantt"></i></button>
+            <button id="list-view-btn"><i class="mdi mdi-size-2 mdi-format-list-bulleted-square"></i></button>
+            <button id="prev-day"><i class="mdi mdi-size-2 mdi-chevron-left"></i></button>
             <span id="current-date" style="cursor:pointer;">Kies datum</span>
-            <button id="next-day">&gt;</button>
-            <button id="refresh-button">Verversen</button>
+            <button id="next-day"><i class="mdi mdi-size-2 mdi-chevron-right"></i></button>
+            <button id="today-button"><i class="mdi mdi-size-2 mdi-calendar-today"></i>Vandaag</button>
+            <button id="refresh-button"><i class="mdi mdi-size-2 mdi-refresh"></i>Verversen</button>
         </div>
         <div class="timeline-search">            
             <input type="text" placeholder="Begin met typen om te zoeken..." id="timeline-search" />            
