@@ -6,11 +6,6 @@
     let kendoComponent;
     let isFirstLoad = true;
     const height = "{height}" || undefined;
-    
-    let linkTypeParameter = "";
-    if (options.linkTypeNumber) {
-        linkTypeParameter = "?linkTypeNumber=" + encodeURIComponent(options.linkTypeNumber || "0");
-    }
 
     const readonly = {readonly};
     let rowIndex = null;
@@ -25,13 +20,27 @@
         gridMode = 6;
     }
 
-    let gridRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}${linkTypeParameter}`;
-
+    let gridRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}`;
+    
+    const requestUrlQueryParameters = {};
+    
+    let linkTypeParameter = "";
+    if (options.linkTypeNumber)
+        requestUrlQueryParameters.linkTypeNumber = options.linkTypeNumber || "0";
+    
     const queryId = options.queryId;
     const countQueryId = options.countQueryId;
     const usingQueryId = queryId && countQueryId;
-    if(usingQueryId)
-        gridRequestUrl += `?queryId=${encodeURIComponent(queryId)}&countQueryId=${encodeURIComponent(countQueryId)}`;
+    if(usingQueryId) {
+        requestUrlQueryParameters.queryId = queryId;
+        requestUrlQueryParameters.countQueryId = countQueryId;
+    }
+    
+    if(options.toolbar?.hideToggleHiddenItemsButton === false)
+        requestUrlQueryParameters.showHiddenItems = false;
+    
+    if(Object.keys(requestUrlQueryParameters).length > 0)
+        gridRequestUrl += `?${Object.entries(requestUrlQueryParameters).map(([ key, value ]) => `${key}=${encodeURIComponent(value)}`).join('&')}`
     
     async function generateGrid(data, model, columns) {
         var toolbar = [];
@@ -49,6 +58,15 @@
                 name: "clearAllFilters",
                 text: "",
                 template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event, ${clearFilterQueryIdEncoded})'><span class='k-font-icon k-i-filter-clear'></span></a>`
+            });
+        }
+
+        const shouldShowToggleHiddenItemsButton = options?.toolbar?.hideToggleHiddenItemsButton === false;
+        if (shouldShowToggleHiddenItemsButton) {
+            toolbar.push({
+                name: 'toggleHiddenItems',
+                text: '',
+                template: `<a class='k-button k-button-icontext toggle-hidden-items' title='Verborgen items tonen/verbergen' onclick='return window.dynamicItems.grids.onToggleHiddenItemsClick(event)'><span class='k-font-icon k-i-eye-slash'></span></a>`
             });
         }
     
@@ -158,6 +176,10 @@
                     read: function (transportOptions) {
                         try {
                             loader.addClass("loading");
+
+                            // Retrieve and store the state of which to show/hide hidden elements in the transport data.
+                            if(options?.toolbar?.hideToggleHiddenItemsButton === false)
+                                transportOptions.data.showHiddenItems = kendoComponent?.element.data('showHiddenItems') ?? false;
     
                             if (isFirstLoad) {
                                 transportOptions.success(data);

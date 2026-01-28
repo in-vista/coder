@@ -110,6 +110,8 @@ namespace Api.Modules.Grids.Services
             var userId = IdentityHelpers.GetWiserUserId(identity);
             var fieldsInformation = new List<(string Field, string InputType, Dictionary<string, object> Options)>();
 
+            options ??= new GridReadOptionsModel();
+            
             var forceAddColumns = false;
             var selectQuery = "";
             var countQuery = "";
@@ -245,9 +247,7 @@ namespace Api.Modules.Grids.Services
                         var countDataTable = await clientDatabaseConnection.GetAsync(countQuery);
                         results.TotalResults = Convert.ToInt32(countDataTable.Rows[0][0]);
                     }
-
-                    // Get the data.
-                    dataTable = await clientDatabaseConnection.GetAsync(selectQuery);
+                    
                     break;
                 }
                 case EntityGridModes.ChangeHistory:
@@ -325,9 +325,7 @@ namespace Api.Modules.Grids.Services
                         var countDataTable = await clientDatabaseConnection.GetAsync(countQuery);
                         results.TotalResults = Convert.ToInt32(countDataTable.Rows[0][0]);
                     }
-
-                    // Get the data.
-                    dataTable = await clientDatabaseConnection.GetAsync(selectQuery);
+                    
                     break;
                 }
                 case EntityGridModes.TaskHistory:
@@ -378,9 +376,7 @@ namespace Api.Modules.Grids.Services
                         var countDataTable = await clientDatabaseConnection.GetAsync(countQuery);
                         results.TotalResults = Convert.ToInt32(countDataTable.Rows[0][0]);
                     }
-
-                    // Get the data.
-                    dataTable = await clientDatabaseConnection.GetAsync(selectQuery);
+                    
                     break;
                 }
                 case EntityGridModes.CustomQuery:
@@ -444,15 +440,6 @@ namespace Api.Modules.Grids.Services
                         {
                             results.TotalResults = Convert.ToInt32(countDataTable.Rows[0][0]);
                         }
-                    }
-
-                    // Get the actual data for the grid.
-                    dataTable = await clientDatabaseConnection.GetAsync(selectQuery);
-
-                    // If we have no count query, just count the total rows of the select query.
-                    if (String.IsNullOrWhiteSpace(countQuery))
-                    {
-                        results.TotalResults = dataTable.Rows.Count;
                     }
 
                     break;
@@ -796,9 +783,7 @@ namespace Api.Modules.Grids.Services
                         var countDataTable = await clientDatabaseConnection.GetAsync(countQuery);
                         results.TotalResults = Convert.ToInt32(countDataTable.Rows[0][0]);
                     }
-
-                    // Get the data.
-                    dataTable = await clientDatabaseConnection.GetAsync(selectQuery);
+                    
                     break;
                 }
                 case EntityGridModes.ItemDetailsGroup when String.IsNullOrWhiteSpace(fieldGroupName):
@@ -873,9 +858,7 @@ namespace Api.Modules.Grids.Services
                         var countDataTable = await clientDatabaseConnection.GetAsync(countQuery);
                         results.TotalResults = Convert.ToInt32(countDataTable.Rows[0][0]);
                     }
-
-                    // Get the data.
-                    dataTable = await clientDatabaseConnection.GetAsync(selectQuery);
+                    
                     break;
                 }
                 default:
@@ -1140,7 +1123,7 @@ namespace Api.Modules.Grids.Services
 	                                            LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
 
                                                 WHERE i.entity_type = ?entityType
-                                                AND i.published_environment >= 0
+                                                AND ({(!options.ShowHiddenItems.HasValue ? "i.published_environment >= 0" : options.ShowHiddenItems.Value ? "1 = 1" : "i.published_environment = 15")})
                                                 AND i.original_item_id > 0
                                                 {versionWhereClause}
                                                 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
@@ -1160,7 +1143,7 @@ namespace Api.Modules.Grids.Services
 	                                            LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
 
                                                 WHERE i.entity_type = ?entityType
-                                                AND i.published_environment >= 0
+                                                AND ({(!options.ShowHiddenItems.HasValue ? "i.published_environment >= 0" : options.ShowHiddenItems.Value ? "1 = 1" : "i.published_environment = 15")})
                                                 AND i.original_item_id = 0
                                                 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
                                                 AND i.id <> ?itemId
@@ -1200,7 +1183,7 @@ namespace Api.Modules.Grids.Services
 	                                            LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
                                                 
                                                 WHERE i.entity_type = ?entityType
-                                                AND i.published_environment >= 0
+                                                AND ({(!options.ShowHiddenItems.HasValue ? "i.published_environment >= 0" : options.ShowHiddenItems.Value ? "1 = 1" : "i.published_environment = 15")})
                                                 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
                                                 AND i.id <> ?itemId
                                                 [if({{hasWhere}}=1)]AND ({{where}})[endif]
@@ -1242,6 +1225,7 @@ namespace Api.Modules.Grids.Services
 	                                            LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
 
                                                 WHERE i.parent_item_id = ?itemId
+                                                AND ({(!options.ShowHiddenItems.HasValue || options.ShowHiddenItems.Value ? "TRUE" : "i.published_environment = 15")})
                                                 {(String.IsNullOrEmpty(entityType) ? "" : "AND FIND_IN_SET(i.entity_type, ?entityType)")}
                                                 {(moduleId <= 0 ? "" : "AND i.moduleid = ?moduleId")}
                                                 {versionWhereClause}
@@ -1283,6 +1267,7 @@ namespace Api.Modules.Grids.Services
                                                 LEFT JOIN {tablePrefix}{WiserTableNames.WiserItemDetail} id ON id.item_id = i.id AND ((p.property_name IS NOT NULL AND p.property_name <> '' AND id.`key` IN(p.property_name, CONCAT(p.property_name, '_input'))) OR ((p.property_name IS NULL OR p.property_name = '') AND id.`key` IN(p.display_name, CONCAT(p.property_name, '_input'))))
 
                                                 WHERE i.parent_item_id = ?itemId
+                                                AND ({(!options.ShowHiddenItems.HasValue || options.ShowHiddenItems.Value ? "TRUE" : "i.published_environment = 15")})
                                                 {(String.IsNullOrEmpty(entityType) ? "" : "AND FIND_IN_SET(i.entity_type, ?entityType)")}
                                                 {(moduleId <= 0 ? "" : "AND i.moduleid = ?moduleId")}
                                                 {versionWhereClause}
@@ -1306,6 +1291,7 @@ namespace Api.Modules.Grids.Services
 	                                            LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
 
                                                 WHERE il.{(currentItemIsSourceId ? "item_id" : "destination_item_id")} = ?itemId
+                                                AND ({(!options.ShowHiddenItems.HasValue || options.ShowHiddenItems.Value ? "TRUE" : "i.published_environment = 15")})
                                                 {versionWhereClause}
                                                 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
                                                 {(linkTypeNumber <= 0 ? "" : "AND il.type = ?linkTypeNumber")}
@@ -1347,6 +1333,7 @@ namespace Api.Modules.Grids.Services
                                                 LEFT JOIN {tablePrefix}{WiserTableNames.WiserItemDetail} id ON id.item_id = il.item_id AND ((p.property_name IS NOT NULL AND p.property_name <> '' AND id.`key` IN(p.property_name, CONCAT(p.property_name, '_input'))) OR ((p.property_name IS NULL OR p.property_name = '') AND id.`key` IN(p.display_name, CONCAT(p.property_name, '_input'))))
 
                                                 WHERE il.{(currentItemIsSourceId ? "item_id" : "destination_item_id")} = ?itemId
+                                                AND ({(!options.ShowHiddenItems.HasValue || options.ShowHiddenItems.Value ? "TRUE" : "i.published_environment = 15")})
                                                 {versionWhereClause}
                                                 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
                                                 {(linkTypeNumber <= 0 ? "" : "AND il.type = ?linkTypeNumber")}
@@ -1391,6 +1378,7 @@ namespace Api.Modules.Grids.Services
                                                 JOIN {linkTablePrefix}{WiserTableNames.WiserItemLinkDetail} id ON id.itemlink_id = il.id AND ((p.property_name IS NOT NULL AND p.property_name <> '' AND id.`key` IN(p.property_name, CONCAT(p.property_name, '_input'))) OR ((p.property_name IS NULL OR p.property_name = '') AND id.`key` IN(p.display_name, CONCAT(p.property_name, '_input'))))
 
                                                 WHERE il.{(currentItemIsSourceId ? "item_id" : "destination_item_id")} = ?itemId
+                                                AND ({(!options.ShowHiddenItems.HasValue || options.ShowHiddenItems.Value ? "TRUE" : "i.published_environment = 15")})
                                                 {versionWhereClause}
                                                 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
                                                 {(linkTypeNumber <= 0 ? "" : "AND il.type = ?linkTypeNumber")}
@@ -1415,12 +1403,27 @@ namespace Api.Modules.Grids.Services
                         var countDataTable = await clientDatabaseConnection.GetAsync(countQuery);
                         results.TotalResults = Convert.ToInt32(countDataTable.Rows[0][0]);
                     }
-
-                    // Get the actual data for the grid.
-                    dataTable = await clientDatabaseConnection.GetAsync(selectQuery);
+                    
                     break;
                 }
             }
+            
+            // Find "showHiddenItems" function and build a WHERE clause based on the parameter of the function.
+            // Example: "{showHiddenItems(product.published_environment)}", which could evaluate to "product.published_environment = ?showHiddenItemsValue".
+            Regex showHiddenItemsFunctionRegex = new Regex(@"{(?:showHiddenItems)\((.*?)\)}");
+            string replacement = !options.ShowHiddenItems.HasValue || options.ShowHiddenItems.Value ? "1 = 1" : "$1 = ?showHiddenItemsValue";
+            selectQuery = showHiddenItemsFunctionRegex.Replace(selectQuery, replacement);
+            countQuery = showHiddenItemsFunctionRegex.Replace(countQuery, replacement);
+            
+            // Use parameters so in case of when a query consists of just a function call, this value can be passed to the function to be resolved in there.
+            clientDatabaseConnection.AddParameter("showHiddenItemsValue", options.ShowHiddenItems.HasValue && options.ShowHiddenItems.Value ? 1 : 0);
+            
+            // Get the actual data for the grid.
+            dataTable = await clientDatabaseConnection.GetAsync(selectQuery);
+            
+            // If we have no count query, just count the total rows of the select query.
+            if (string.IsNullOrWhiteSpace(countQuery))
+                results.TotalResults = dataTable.Rows.Count;
 
             if (!hasPredefinedSchema)
             {
@@ -1790,7 +1793,7 @@ namespace Api.Modules.Grids.Services
             else
             {
                 var whereClause = new List<(string, List<string>)>();
-
+                
                 int AddFiltersToQuery(int counter, GridFilterModel filter, StringBuilder filtersQuery, (string, List<string>) subWhereClause)
                 {
                     if (String.IsNullOrEmpty(filter.Field))
@@ -2047,6 +2050,16 @@ namespace Api.Modules.Grids.Services
 
                     selectQuery = selectQuery.Replace("{sort}", $"ORDER BY {String.Join(", ", options.Sort.Select(s => $"{(!shouldCreateJoinsForSorting || ItemColumns.Any(x => x.Equals(s.Field, StringComparison.OrdinalIgnoreCase)) ? $"`{s.Field.UnmakeJsonPropertyName().ToMySqlSafeValue(false)}`" : $"CONCAT_WS('', `{s.Field.UnmakeJsonPropertyName().ToMySqlSafeValue(false)}`.`value`, `{s.Field.UnmakeJsonPropertyName().ToMySqlSafeValue(false)}`.`long_value`)")} {s.Dir.ToMySqlSafeValue(false).ToUpperInvariant()}"))}", StringComparison.OrdinalIgnoreCase) ?? "";
                 }
+                
+                // Find "showHiddenItems" function and build a WHERE clause based on the parameter of the function.
+                // Example: "{showHiddenItems(product.published_environment)}", which could evaluate to "product.published_environment = ?showHiddenItemsValue".
+                Regex showHiddenItemsFunctionRegex = new Regex(@"{(?:showHiddenItems)\((.*?)\)}");
+                string replacement = !options.ShowHiddenItems.HasValue || options.ShowHiddenItems.Value ? "1 = 1" : "$1 = ?showHiddenItemsValue";
+                selectQuery = showHiddenItemsFunctionRegex.Replace(selectQuery, replacement);
+                countQuery = showHiddenItemsFunctionRegex.Replace(countQuery, replacement);
+                
+                // Use parameters so in case of when a query consists of just a function call, this value can be passed to the function to be resolved in there.
+                clientDatabaseConnection.AddParameter("showHiddenItemsValue", options.ShowHiddenItems.HasValue && options.ShowHiddenItems.Value ? 1 : 0);
 
                 if (options.Filter?.Filters == null || !options.Filter.Filters.Any())
                 {

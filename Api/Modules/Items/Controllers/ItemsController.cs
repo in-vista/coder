@@ -320,9 +320,9 @@ namespace Api.Modules.Items.Controllers
         [HttpGet]
         [Route("{encryptedId}/grids/{propertyId:int}")]
         [ProducesResponseType(typeof(GridSettingsAndDataModel), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetGridDataAsync(string encryptedId, int propertyId, [FromQuery]string queryId = null, [FromQuery]string countQueryId = null)
+        public async Task<IActionResult> GetGridDataAsync(string encryptedId, int propertyId, [FromQuery]string queryId = null, [FromQuery]string countQueryId = null, [FromQuery] bool? showHiddenItems = null)
         {
-            return (await gridsService.GetDataAsync(propertyId, encryptedId, new GridReadOptionsModel(), queryId, countQueryId, (ClaimsIdentity)User.Identity)).GetHttpResponseMessage();
+            return (await gridsService.GetDataAsync(propertyId, encryptedId, new GridReadOptionsModel { ShowHiddenItems = showHiddenItems }, queryId, countQueryId, (ClaimsIdentity)User.Identity)).GetHttpResponseMessage();
         }
 
         /// <summary>

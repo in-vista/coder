@@ -230,6 +230,9 @@ export class Grids {
                     previousFilters = JSON.stringify(options.filter);
                 }
 
+                if(gridViewSettings?.toolbar?.hideToggleHiddenItemsButton === false)
+                    options.showHiddenItems = false;
+
                 gridDataResult = await Wiser.api({
                     url: `${this.base.settings.wiserApiRoot}modules/${encodeURIComponent(this.base.settings.moduleId)}/overview-grid`,
                     method: "POST",
@@ -347,6 +350,15 @@ export class Grids {
                     name: "clearAllFilters",
                     text: "",
                     template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='window.dynamicItems.grids.executeToolbarActionButton(event, () => window.dynamicItems.grids.onClearAllFiltersClick(event, ${clearFilterQueryIdEncoded}))'><span class='k-font-icon k-i-filter-clear'></span></a>`
+                });
+            }
+
+            const shouldShowToggleHiddenItemsButton = gridViewSettings?.toolbar?.hideToggleHiddenItemsButton === false;
+            if (shouldShowToggleHiddenItemsButton) {
+                toolbar.push({
+                    name: 'toggleHiddenItems',
+                    text: '',
+                    template: `<a class='k-button k-button-icontext toggle-hidden-items' title='Verborgen items tonen/verbergen' onclick='window.dynamicItems.grids.executeToolbarActionButton(event, () => window.dynamicItems.grids.onToggleHiddenItemsClick(event))'><span class='k-font-icon k-i-eye-slash'></span></a>`
                 });
             }
 
@@ -487,6 +499,10 @@ export class Grids {
                         read: async (transportOptions) => {
                             const process = `loadMainGrid_${Date.now()}`;
 
+                            // Retrieve and store the state of which to show/hide hidden elements in the transport data.
+                            if(gridViewSettings?.toolbar?.hideToggleHiddenItemsButton === false)
+                                transportOptions.data.showHiddenItems = this.mainGrid?.element.data('showHiddenItems') ?? false;
+                            
                             try {
                                 if (this.mainGridFirstLoad) {
                                     transportOptions.success(gridDataResult);
@@ -512,7 +528,7 @@ export class Grids {
                                 transportOptions.data.pageSize = transportOptions.data.page_size || transportOptions.data.pageSize;
                                 previousFilters = currentFilters;
                                 this.mainGridForceRecount = false;
-
+                                
                                 let newGridDataResult;
                                 if (usingDataSelector) {
                                     newGridDataResult = {
@@ -1909,6 +1925,36 @@ export class Grids {
         // Reload overview.
         grid.dataSource.read();
         grid.refresh();
+    }
+
+    async onToggleHiddenItemsClick(event) {
+        // Prevent default behavior of the clicked button.
+        event.preventDefault();
+        
+        // Retrieve the elements associated to the event.
+        const button = $(event.target).closest('.k-button');
+        const buttonIcon = button.find('.k-font-icon');
+        
+        // Retrieve the associated grid element of the grid.
+        const grid = $(event.target).closest(".k-grid").data("kendoGrid");
+        
+        // Validate the grid and throw an error if it was not found.
+        if (!grid) {
+            console.error("Grid not found, cannot toggle hidden items.", event, $(event.target).closest(".k-grid"));
+            return;
+        }
+        
+        // Retrieve the jQuery DOM element of the grid.
+        const gridElement = grid.element;
+        
+        // Toggle the state of the grid and button to mark it to show/hide hidden items.
+        const showHiddenItems = gridElement.data('showHiddenItems') ?? false;
+        buttonIcon.toggleClass('k-i-eye-slash');
+        buttonIcon.toggleClass('k-i-eye');
+        gridElement.data('showHiddenItems', !showHiddenItems);
+
+        // Reload the grid overview.
+        grid.dataSource.read();
     }
 
     /**
