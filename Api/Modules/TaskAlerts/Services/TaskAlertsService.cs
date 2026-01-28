@@ -64,18 +64,18 @@ namespace Api.Modules.TaskAlerts.Services
     linkedItemEntityType.value AS linkedItemEntityType,
     placedBy.value AS placedBy,
     placedById.value AS placedById
-FROM {queryDatabasePart}{WiserTableNames.WiserItem} AS taskAlert
-JOIN {queryDatabasePart}{WiserTableNames.WiserItemDetail} AS userId ON userId.item_id = taskAlert.id AND userId.`key` = 'userid'{userJoinPart}
+FROM {queryDatabasePart}{WiserTableNames.AgendaWiserItem} AS taskAlert
+JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS userId ON userId.item_id = taskAlert.id AND userId.`key` = 'userid'{userJoinPart}
 JOIN {queryDatabasePart}{WiserTableNames.WiserItem} AS `user` ON `user`.id = userId.`value` AND `user`.entity_type = 'wiseruser'
-JOIN {queryDatabasePart}{WiserTableNames.WiserItemDetail} AS createdOn ON createdOn.item_id = taskAlert.id AND createdOn.`key` = 'agendering_date' AND createdOn.value <= ?now
-LEFT JOIN {queryDatabasePart}{WiserTableNames.WiserItemDetail} AS checkedOn ON checkedOn.item_id = taskAlert.id AND checkedOn.`key` = 'checkedon'
-LEFT JOIN {queryDatabasePart}{WiserTableNames.WiserItemDetail} AS content ON content.item_id = taskAlert.id AND content.`key` = 'content'
-LEFT JOIN {queryDatabasePart}{WiserTableNames.WiserItemDetail} AS status ON status.item_id = taskAlert.id AND status.`key` = 'status'
-LEFT JOIN {queryDatabasePart}{WiserTableNames.WiserItemDetail} AS linkedItemId ON linkedItemId.item_id = taskAlert.id AND linkedItemId.`key` = 'linked_item_id'
-LEFT JOIN {queryDatabasePart}{WiserTableNames.WiserItemDetail} AS linkedItemModuleId ON linkedItemModuleId.item_id = taskAlert.id AND linkedItemModuleId.`key` = 'linked_item_module_id'
-LEFT JOIN {queryDatabasePart}{WiserTableNames.WiserItemDetail} AS linkedItemEntityType ON linkedItemEntityType.item_id = taskAlert.id AND linkedItemEntityType.`key` = 'linked_item_entity_type'
-LEFT JOIN {queryDatabasePart}{WiserTableNames.WiserItemDetail} AS placedBy ON placedBy.item_id = taskAlert.id AND placedBy.`key` = 'placed_by'
-LEFT JOIN {queryDatabasePart}{WiserTableNames.WiserItemDetail} AS placedById ON placedById.item_id = taskAlert.id AND placedById.`key` = 'placed_by_id'
+JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS createdOn ON createdOn.item_id = taskAlert.id AND createdOn.`key` = 'agendering_date' AND createdOn.value <= ?now
+LEFT JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS checkedOn ON checkedOn.item_id = taskAlert.id AND checkedOn.`key` = 'checkedon'
+LEFT JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS content ON content.item_id = taskAlert.id AND content.`key` = 'content'
+LEFT JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS status ON status.item_id = taskAlert.id AND status.`key` = 'status'
+LEFT JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS linkedItemId ON linkedItemId.item_id = taskAlert.id AND linkedItemId.`key` = 'linked_item_id'
+LEFT JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS linkedItemModuleId ON linkedItemModuleId.item_id = taskAlert.id AND linkedItemModuleId.`key` = 'linked_item_module_id'
+LEFT JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS linkedItemEntityType ON linkedItemEntityType.item_id = taskAlert.id AND linkedItemEntityType.`key` = 'linked_item_entity_type'
+LEFT JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS placedBy ON placedBy.item_id = taskAlert.id AND placedBy.`key` = 'placed_by'
+LEFT JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS placedById ON placedById.item_id = taskAlert.id AND placedById.`key` = 'placed_by_id'
 WHERE taskAlert.entity_type = 'agendering'
 AND taskAlert.published_environment > 0
 AND (checkedOn.value IS NULL OR checkedOn.value = '')");

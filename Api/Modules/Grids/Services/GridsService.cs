@@ -339,13 +339,13 @@ namespace Api.Modules.Grids.Services
                     results.Columns.Add(new GridColumn {Field = "checkeddate", Title = "Afgevinkt op", Format = "{0:dd MMMM yyyy - HH:mm:ss}"});
 
                     countQuery = $@"SELECT COUNT(*)
-                                    FROM {WiserTableNames.WiserItem} i
+                                    FROM {WiserTableNames.AgendaWiserItem} i
 
-                                    JOIN {WiserTableNames.WiserItemDetail} AS dueDate ON dueDate.item_id = i.id AND dueDate.`key` = 'agendering_date' [if({{due_date}}!)]AND dueDate.`value` IS NOT NULL AND dueDate.`value` <> '' AND DATE(dueDate.`value`) {{due_date_filter}}[endif] 
-                                    [if({{checked_date_has_filter}}!1)]LEFT [endif]JOIN {WiserTableNames.WiserItemDetail} checkedDate ON checkedDate.item_id = i.id AND checkedDate.`key` = 'checkedon' [if({{checked_date_has_filter}}=1)]AND checkedDate.`value` IS NOT NULL AND checkedDate.`value` <> '' AND DATE(checkedDate.`value`) {{checked_date_filter}}[endif] 
-                                    [if({{sender_has_filter}}!1)]LEFT [endif]JOIN {WiserTableNames.WiserItemDetail} sender ON sender.item_id = i.id AND sender.`key` = 'placed_by_id' [if({{sender_has_filter}}=1)]AND sender.`value` {{sender_filter}}[endif] 
-                                    JOIN {WiserTableNames.WiserItemDetail} receiver ON receiver.item_id = i.id AND receiver.`key` = 'userid' [if({{receiver_has_filter}}=1)]AND receiver.`value` {{receiver_filter}}[endif] 
-                                    JOIN {WiserTableNames.WiserItemDetail} content ON content.item_id = i.id AND content.`key` = 'content' [if({{content_has_filter}}=1)]AND content.`value` {{content_filter}}[endif] 
+                                    JOIN {WiserTableNames.AgendaWiserItemDetail} AS dueDate ON dueDate.item_id = i.id AND dueDate.`key` = 'agendering_date' [if({{due_date}}!)]AND dueDate.`value` IS NOT NULL AND dueDate.`value` <> '' AND DATE(dueDate.`value`) {{due_date_filter}}[endif] 
+                                    [if({{checked_date_has_filter}}!1)]LEFT [endif]JOIN {WiserTableNames.AgendaWiserItemDetail} checkedDate ON checkedDate.item_id = i.id AND checkedDate.`key` = 'checkedon' [if({{checked_date_has_filter}}=1)]AND checkedDate.`value` IS NOT NULL AND checkedDate.`value` <> '' AND DATE(checkedDate.`value`) {{checked_date_filter}}[endif] 
+                                    [if({{sender_has_filter}}!1)]LEFT [endif]JOIN {WiserTableNames.AgendaWiserItemDetail} sender ON sender.item_id = i.id AND sender.`key` = 'placed_by_id' [if({{sender_has_filter}}=1)]AND sender.`value` {{sender_filter}}[endif] 
+                                    JOIN {WiserTableNames.AgendaWiserItemDetail} receiver ON receiver.item_id = i.id AND receiver.`key` = 'userid' [if({{receiver_has_filter}}=1)]AND receiver.`value` {{receiver_filter}}[endif] 
+                                    JOIN {WiserTableNames.AgendaWiserItemDetail} content ON content.item_id = i.id AND content.`key` = 'content' [if({{content_has_filter}}=1)]AND content.`value` {{content_filter}}[endif] 
 
                                     WHERE i.entity_type = 'agendering'";
 
@@ -357,13 +357,13 @@ namespace Api.Modules.Grids.Services
 	                                    IFNULL(sender.`value`, '') AS sender,
 	                                    receiver.`value` AS receiver,
 	                                    REPLACE(content.`value`,'\r\n','<br />') AS content
-                                    FROM {WiserTableNames.WiserItem} i
+                                    FROM {WiserTableNames.AgendaWiserItem} i
 
-                                    JOIN {WiserTableNames.WiserItemDetail} dueDate ON dueDate.item_id = i.id AND dueDate.`key` = 'agendering_date' [if({{dueDate}}!)]AND dueDate.`value` <> ''AND DATE(dueDate.`value`) {{dueDate_filter}}[endif] 
-                                    [if({{checkedDate}}=)]LEFT [endif]JOIN {WiserTableNames.WiserItemDetail} checkedDate ON checkedDate.item_id = i.id AND checkedDate.`key` = 'checkedon' [if({{checkedDate}}!)]AND dueDate.`value` IS NOT NULL AND checkedDate.`value` IS NOT NULL AND checkedDate.`value` <> '' AND DATE(checkedDate.`value`) {{checkedDate_filter}}[endif] 
-                                    [if({{sender}}=)]LEFT [endif]JOIN {WiserTableNames.WiserItemDetail} sender ON sender.item_id = i.id AND sender.`key` = 'placed_by_id' [if({{sender}}!)]AND sender.`value` {{sender_filter}}[endif] 
-                                    JOIN {WiserTableNames.WiserItemDetail} receiver ON receiver.item_id = i.id AND receiver.`key` = 'userid' [if({{receiver}}!)]AND receiver.`value` {{receiver_filter}}[endif] 
-                                    JOIN {WiserTableNames.WiserItemDetail} content ON content.item_id = i.id AND content.`key` = 'content' [if({{content}}!)]AND content.`value` {{content_filter}}[endif] 
+                                    JOIN {WiserTableNames.AgendaWiserItemDetail} dueDate ON dueDate.item_id = i.id AND dueDate.`key` = 'agendering_date' [if({{dueDate}}!)]AND dueDate.`value` <> ''AND DATE(dueDate.`value`) {{dueDate_filter}}[endif] 
+                                    [if({{checkedDate}}=)]LEFT [endif]JOIN {WiserTableNames.AgendaWiserItemDetail} checkedDate ON checkedDate.item_id = i.id AND checkedDate.`key` = 'checkedon' [if({{checkedDate}}!)]AND dueDate.`value` IS NOT NULL AND checkedDate.`value` IS NOT NULL AND checkedDate.`value` <> '' AND DATE(checkedDate.`value`) {{checkedDate_filter}}[endif] 
+                                    [if({{sender}}=)]LEFT [endif]JOIN {WiserTableNames.AgendaWiserItemDetail} sender ON sender.item_id = i.id AND sender.`key` = 'placed_by_id' [if({{sender}}!)]AND sender.`value` {{sender_filter}}[endif] 
+                                    JOIN {WiserTableNames.AgendaWiserItemDetail} receiver ON receiver.item_id = i.id AND receiver.`key` = 'userid' [if({{receiver}}!)]AND receiver.`value` {{receiver_filter}}[endif] 
+                                    JOIN {WiserTableNames.AgendaWiserItemDetail} content ON content.item_id = i.id AND content.`key` = 'content' [if({{content}}!)]AND content.`value` {{content_filter}}[endif] 
                                     JOIN wiser_item usr ON usr.id={userId}
                                                                                                                      
                                     WHERE i.entity_type = 'agendering' AND i.parent_item_id=usr.parent_item_id
