@@ -320,7 +320,7 @@ const moduleSettings = {
 
                     const entityContainer = target.closest(".entity-container");
                     if (entityContainer.length > 0) {
-                        entityContainer.find(".saveButton").first().click();
+                        entityContainer.find(".saveButton:not(.saveAndCloseBottomPopup)").first().click();
                     }
                 }
             });
