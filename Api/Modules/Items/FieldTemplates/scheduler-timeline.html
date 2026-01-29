@@ -376,6 +376,45 @@
         cursor: pointer;
     }
 
+    @media (max-width: 1525px) {
+        .timeline-search {
+            right: 10px !important;
+            left: unset !important;
+            transform: none !important;
+        }
+
+        .search-container {
+            right: -1px !important;
+            left: unset !important;
+            transform: none !important;
+        }
+    }
+
+    @media (max-width: 1070px) {
+        .date-selector {
+            gap: 8px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .timeline-date-selector {
+            flex-shrink: 0;
+        }
+
+        .timeline-search {
+            flex: 1;
+            margin-left: auto;
+            max-width: 300px;
+            position: relative !important;
+        }
+    }
+
+    @media (max-width: 772px) {   
+        .search-container {
+            width: 95vw !important;
+        }
+    }
+
     .timeline-date-selector {
         flex: 0 0 auto; /* links vast */
     }
@@ -560,13 +599,13 @@
         }
     }
     
-    /* Zoekbalk kleiner op kleinere schermen */
+    /* Zoekbalk kleiner op kleinere schermen
     @media (max-width: 844px) {
         .timeline-search {
             width: 150px;
             right: 10%;
         }
-    }
+    } */
     
     .timeline-search input {
         padding: 4px 8px;
@@ -583,7 +622,7 @@
         position: absolute;
         top: 30px;
         background-color: #FFFFFF;
-        width: 50vw;
+        width: 740px;
         border-left: 1px solid #F0F0F0;
         border-right: 1px solid #F0F0F0;
         border-bottom: 1px solid #F0F0F0;
@@ -598,16 +637,27 @@
         justify-content: space-between;
         align-items: center;
         padding: 5px 10px 5px 10px;
+        margin: 0 5px 0 5px;
         cursor: pointer;
         clear: both;
         font-size: larger;
         font-weight: bold;
-    }
+    }    
     .search-item-today-item:hover {
         background-color: var(--color-1);
         /* background-color: #00B0FF; */
         color: #FFFFFF;
-    } 
+    }
+    .cancelled {
+        background: linear-gradient(
+            to bottom,
+            transparent 48%,
+            #000 48%,
+            #000 50%,
+            transparent 50%
+        );        
+        color: darkgray;
+    }
     .reservation.highlight {
         background-color: #000000 !important;
         color: #FFFFFF !important;
@@ -739,16 +789,16 @@
             </div>
         </div> 
         <div id="search-item-template" style="display: none;">
-            <div class="search-item-today-item" data-reservation-id="{reservationId}" data-reservation-id-encrypted="{encryptedId}" data-date="{date}">
-                <div class="search-item-column" style="flex:1;">{dateformatted}</div>
-                <div class="search-item-column" style="flex:1;">{timeformatted}</div>
+            <div class="search-item-today-item {status}" data-reservation-id="{reservationId}" data-reservation-id-encrypted="{encryptedId}" data-date="{date}">
+                <div class="search-item-column" style="width:110px;">{dateformatted}</div>
+                <div class="search-item-column" style="width:57px;">{timeformatted}</div>
                 <div class="search-item-column" style="flex:3;">{name}</div>
-                <div class="search-item-column" style="flex:1;">{numberofpersons}</div>
-                <div class="search-item-column" style="flex:1;">{table}</div>
-                <!--<div class="search-item-column" style="flex:1;">{arrangement}</div>
-                <div class="search-item-column" style="flex:1;">{status}</div>-->
-            </div>
+                <div class="search-item-column" style="width:40px;">{numberofpersons}</div>
+                <div class="search-item-column" style="width:100px;">{table}</div>                
+            </div>            
         </div>
+        <!--<div class="search-item-column" style="flex:1;">{arrangement}</div>-->
+        <!--<div class="search-item-column" style="flex:1;color:darkorange;">{status}</div>-->
     </div>
     <div id="list-view" class="hidden"></div>
     <div class="scheduler">
