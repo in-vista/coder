@@ -911,6 +911,18 @@ input[type=search] + button {
 	text-overflow: ellipsis;
 }
 
+.k-input[type=password] + .icon-eye-visible,
+.k-input[type=text] +  .icon-eye-invisible {
+	position: absolute;
+	right: 0;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	cursor: pointer;
+	z-index: 10;
+	line-height: 1;
+	font-size: clamp(12px, 2.5vh, 28px);
+}
+
 .k-dropdown .k-input-button,
 .k-dropdownlist .k-input-button,
 .k-input .k-button,
