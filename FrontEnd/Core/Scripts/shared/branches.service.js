@@ -51,7 +51,7 @@ export default class BranchesService extends BaseService {
             } else if (error.response && error.response.statusText) {
                 errorMessage = error.response.statusText;
             }
-            result.message = `Er is iets fout gegaan tijdens het aanmaken van deze omgeving. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br>${errorMessage}`;
+            result.message = `Er is iets fout gegaan tijdens het aanmaken van deze omgeving. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br>${errorMessage}`;
             if (error.response) {
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
@@ -190,7 +190,7 @@ export default class BranchesService extends BaseService {
             } else if (error.response && error.response.statusText) {
                 errorMessage = error.response.statusText;
             }
-            result.message = `Er is iets fout gegaan tijdens het overzetten van de wijzigingen. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br>${errorMessage}`;
+            result.message = `Er is iets fout gegaan tijdens het overzetten van de wijzigingen. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br>${errorMessage}`;
             if (error.response) {
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
@@ -408,7 +408,7 @@ export default class BranchesService extends BaseService {
             } else if (error.response && error.response.statusText) {
                 errorMessage = error.response.statusText;
             }
-            result.message = `Er is iets fout gegaan tijdens het verwijderen van deze omgeving. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br>${errorMessage}`;
+            result.message = `Er is iets fout gegaan tijdens het verwijderen van deze omgeving. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br>${errorMessage}`;
             if (error.response) {
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx

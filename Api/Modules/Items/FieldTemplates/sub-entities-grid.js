@@ -24,220 +24,15 @@
     if (options.fieldGroupName) {
         gridMode = 6;
     }
-    
+
     let gridRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}${linkTypeParameter}`;
-    
+
     const queryId = options.queryId;
     const countQueryId = options.countQueryId;
     const usingQueryId = queryId && countQueryId;
     if(usingQueryId)
         gridRequestUrl += `?queryId=${encodeURIComponent(queryId)}&countQueryId=${encodeURIComponent(countQueryId)}`;
     
-    if (customQueryGrid || usingQueryId) {
-        Wiser.api({
-            url: gridRequestUrl
-        }).then(function(customQueryResults) {
-            if (customQueryResults.extraJavascript) {
-                jQuery.globalEval(customQueryResults.extraJavascript);
-            }
-            
-            if (!hideCheckboxColumn) {
-                customQueryResults.columns.splice(0, 0, {
-                    selectable: true,
-                    width: "30px"
-                });
-            }
-    
-            if (!options.disableOpeningOfItems) {
-                if (customQueryResults.schemaModel && customQueryResults.schemaModel.fields) {
-                    // If there is no field for encrypted ID, don't allow the user to open items, they'd just get an error.
-                    options.disableOpeningOfItems = !(customQueryResults.schemaModel.fields.encryptedId || customQueryResults.schemaModel.fields.encrypted_id || customQueryResults.schemaModel.fields.encryptedid || customQueryResults.schemaModel.fields.idencrypted);
-                }
-            }
-            
-            if (!options.hideCommandColumn) {
-                let commandColumnWidth = 0;
-                let commands = [];
-                
-                if (!options.disableOpeningOfItems) {
-                    commandColumnWidth += 60;
-                    
-                    commands.push({
-                        name: "openDetails",
-                        iconClass: "k-font-icon k-i-hyperlink-open",
-                        text: "",
-                        title: "Item openen",
-                        click: function(event) { window.dynamicItems.grids.onShowDetailsClick(event, kendoComponent, options, false); }
-                    });
-                    
-                    if (options.allowOpeningOfItemsInNewTab) {
-                        commandColumnWidth += 60;
-    
-                        commands.push({
-                            name: "openDetailsInNewTab",
-                            iconClass: "k-font-icon k-i-window",
-                            text: "",
-                            title: "Item openen in nieuwe tab",
-                            click: function(event) { window.dynamicItems.grids.onShowDetailsClick(event, kendoComponent, options, true); }
-                        });
-                    }
-                }
-    
-                if (!readonly && options.deletionOfItems && options.deletionOfItems.toLowerCase() !== "off") {
-                    commandColumnWidth += 60;
-                    
-                    commands.push({
-                        name: "remove",
-                        text: "",
-                        iconClass: "k-font-icon k-i-delete",
-                        click: function(event) { window.dynamicItems.grids.onDeleteItemClick(event, this, options.deletionOfItems, options); }
-                    });
-                } else if (!readonly && (customQueryGrid || usingQueryId) && options.hasCustomDeleteQuery) {
-                    commandColumnWidth += 120;
-                    
-                    commands.push("destroy");
-                }
-    
-                if (commands.length > 0) {
-                    customQueryResults.columns.push({
-                        title: "&nbsp;",
-                        width: commandColumnWidth,
-                        command: commands
-                    });
-                }
-            }
-            
-            generateGrid(customQueryResults.data, customQueryResults.schemaModel, customQueryResults.columns);
-        });
-    } else {
-        var done = function(gridSettings) {
-            if (usingDataSelector) {
-                gridSettings = {
-                    data: gridSettings,
-                    columns: options.columns
-                };
-            }
-            
-            if (gridSettings.extraJavascript) {
-                jQuery.globalEval(gridSettings.extraJavascript);
-            }
-            
-            // Add most columns here.
-            if (gridSettings.columns && gridSettings.columns.length) {
-                for (var i = 0; i < gridSettings.columns.length; i++) {
-                    var column = gridSettings.columns[i];
-                    
-                    switch ((column.field || "").toLowerCase()) {
-                        case "":
-                            column.hidden = hideCheckboxColumn;
-                            break;
-                        case "id":
-                            column.hidden = options.hideIdColumn || false;
-                            break;
-                        case "link_id":
-                        case "linkid":
-                            column.hidden = options.hideLinkIdColumn || false;
-                            break;
-                        case "entity_type":
-                        case "entitytype":
-                            column.hidden = options.hideTypeColumn || false;
-                            break;
-                        case "published_environment":
-                        case "publishedenvironment":
-                            column.hidden = options.hideEnvironmentColumn || false;
-                            break;
-                        case "title":
-                            column.hidden = options.hideTitleColumn || false;
-                            break;
-                        case "added_on":
-                        case "addedon":
-                            column.hidden = !options.showAddedOnColumn;
-                            break;
-                        case "added_by":
-                        case "addedby":
-                            column.hidden = !options.showAddedByColumn;
-                            break;
-                        case "changed_on":
-                        case "changedon":
-                            column.hidden = !options.showChangedOnColumn;
-                            break;
-                        case "changed_by":
-                        case "changedby":
-                            column.hidden = !options.showChangedByColumn;
-                            break;
-                    }
-                }
-            }
-    
-            if (!options.disableOpeningOfItems) {
-                if (gridSettings.schemaModel && gridSettings.schemaModel.fields) {
-                    // If there is no field for encrypted ID, don't allow the user to open items, they'd just get an error.
-                    options.disableOpeningOfItems = !(gridSettings.schemaModel.fields.encryptedId || gridSettings.schemaModel.fields.encrypted_id || gridSettings.schemaModel.fields.encryptedid || gridSettings.schemaModel.fields.idencrypted);
-                }
-            }
-            
-            // Add command columns separately, because of the click event that we can't do properly server-side.
-            if (!options.hideCommandColumn) {
-                let commandColumnWidth = 0;
-                let commands = [];
-                
-                if (!options.disableOpeningOfItems && !options.fieldGroupName) {
-                    commandColumnWidth += 60;
-                    commands.push({
-                        name: "openDetails",
-                        iconClass: "k-font-icon k-i-hyperlink-open",
-                        text: "",
-                        click: function(event) { window.dynamicItems.grids.onShowDetailsClick(event, kendoComponent, options, false); }
-                    });
-    
-                    if (options.allowOpeningOfItemsInNewTab) {
-                        commandColumnWidth += 60;
-    
-                        commands.push({
-                            name: "openDetailsInNewTab",
-                            iconClass: "k-font-icon k-i-window",
-                            text: "",
-                            click: function(event) { window.dynamicItems.grids.onShowDetailsClick(event, kendoComponent, options, true); }
-                        });
-                    }
-                }
-                
-                if (!readonly && options.deletionOfItems && options.deletionOfItems.toLowerCase() !== "off" && !options.fieldGroupName) {
-                    commandColumnWidth += 60;
-                    
-                    commands.push({
-                        name: "remove",
-                        text: "",
-                        iconClass: "k-font-icon k-i-delete",
-                        click: function(event) { window.dynamicItems.grids.onDeleteItemClick(event, this, options.deletionOfItems, options); }
-                    });
-                }
-                
-                if (gridSettings.columns && commands.length > 0) {
-                    gridSettings.columns.push({
-                        title: "&nbsp;",
-                        width: commandColumnWidth,
-                        command: commands
-                    });
-                }
-            }
-            
-            generateGrid(gridSettings.data, gridSettings.schemaModel, gridSettings.columns);
-        }
-        
-        if (usingDataSelector) {
-            Wiser.api({
-                url: `${window.dynamicItems.settings.getItemsUrl}?trace=false&encryptedDataSelectorId=${encodeURIComponent(options.dataSelectorId)}&itemId=${encodeURIComponent("{itemIdEncrypted}")}`,
-                contentType: "application/json"
-            }).then(done);
-        } else {
-            Wiser.api({
-                url: `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/entity-grids/${encodeURIComponent(options.entityType || "{entityType}")}?propertyId={propertyId}${linkTypeParameter.replace("?", "&")}&mode=${gridMode.toString()}&fieldGroupName=${encodeURIComponent(options.fieldGroupName || "")}&currentItemIsSourceId=${(options.currentItemIsSourceId || false).toString()}`,
-                method: "POST",
-                contentType: "application/json"
-            }).then(done);
-        }
-    }    
     async function generateGrid(data, model, columns) {
         var toolbar = [];
         if (!options.toolbar || !options.toolbar.hideExportButton) {
@@ -414,7 +209,7 @@
                         } catch (exception) {
                             console.error(exception);
                             loader.removeClass("loading");
-                            kendo.alert("Er is iets fout gegaan tijdens het laden van het veld '{title}'. Probeer het a.u.b. nogmaals door de pagina te verversen, of neem contact op met ons.");
+                            kendo.alert("Er is iets fout gegaan tijdens het laden van het veld '{title}'. Probeer het a.u.b. nogmaals door de pagina te verversen.");
                             transportOptions.error(exception);
                         }
                     },
@@ -445,7 +240,7 @@
                                     console.error("UPDATE FAIL", textStatus, errorThrown, jqXHR);
                                     loader.removeClass("loading");
                                     // notify the data source that the request failed
-                                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
+                                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals."));
                                     // notify the data source that the request failed
                                     transportOptions.error(jqXHR);
                                 });
@@ -581,13 +376,13 @@
                                 console.error("UPDATE FAIL", textStatus, errorThrown, jqXHR);
                                 loader.removeClass("loading");
                                 // notify the data source that the request failed
-                                kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
+                                kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals."));
                                 transportOptions.error(jqXHR);
                             });
                         } catch (exception) {
                             console.error(exception);
                             loader.removeClass("loading");
-                            kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'. Probeer het a.u.b. nogmaals, of neem contact op met ons.");
+                            kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'. Probeer het a.u.b. nogmaals.");
                             transportOptions.error(exception);
                         }
                     },
@@ -636,7 +431,7 @@
                                     console.error("UPDATE FAIL", textStatus, errorThrown, jqXHR);
                                     loader.removeClass("loading");
                                     // notify the data source that the request failed
-                                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
+                                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals."));
                                     transportOptions.error(jqXHR);
                                 });
                             } else if (customQueryGrid || usingQueryId) {
@@ -656,13 +451,13 @@
                                     // notify the data source that the request failed
                                     transportOptions.error(jqXHR);
                                     loader.removeClass("loading");
-                                    kendo.alert("Er is iets fout gegaan tijdens het aanmaken van een item.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
+                                    kendo.alert("Er is iets fout gegaan tijdens het aanmaken van een item.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals."));
                                 });
                             }
                         } catch (exception) {
                             console.error(exception);
                             loader.removeClass("loading");
-                            kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'. Probeer het a.u.b. nogmaals, of neem contact op met ons.");
+                            kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'. Probeer het a.u.b. nogmaals.");
                             transportOptions.error(exception);
                         }
                     },
@@ -712,7 +507,7 @@
                                     console.error("UPDATE FAIL", textStatus, errorThrown, jqXHR);
                                     loader.removeClass("loading");
                                     // notify the data source that the request failed
-                                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
+                                    kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals."));
                                     transportOptions.error(jqXHR);
                                 });
                             } else if (customQueryGrid || usingQueryId) {
@@ -732,13 +527,13 @@
                                     // notify the data source that the request failed
                                     transportOptions.error(jqXHR);
                                     loader.removeClass("loading");
-                                    kendo.alert("Er is iets fout gegaan tijdens het verwijderen van deze regel.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals, of neem contact op met ons."));
+                                    kendo.alert("Er is iets fout gegaan tijdens het verwijderen van deze regel.<br>" + (errorThrown ? errorThrown : "Probeer het a.u.b. nogmaals."));
                                 });
                             }
                         } catch (exception) {
                             console.error(exception);
                             loader.removeClass("loading");
-                            kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'. Probeer het a.u.b. nogmaals, of neem contact op met ons.");
+                            kendo.alert("Er is iets fout gegaan tijdens het opslaan van het veld '{title}'. Probeer het a.u.b. nogmaals.");
                             transportOptions.error(exception);
                         }
                     }
@@ -992,4 +787,226 @@
     
         {customScript}
     }
+
+    // Initialize an observer to start reading the content once the grid comes into view.
+    const dataSourceObserver = new IntersectionObserver((entries, localObserver) => {
+        entries.forEach(entry => {
+            // Skip this entry if the element was not observed.
+            if(!entry.isIntersecting)
+                return;
+
+            if (customQueryGrid || usingQueryId) {
+                Wiser.api({
+                    url: gridRequestUrl
+                }).then(function(customQueryResults) {
+                    if (customQueryResults.extraJavascript) {
+                        jQuery.globalEval(customQueryResults.extraJavascript);
+                    }
+
+                    if (!hideCheckboxColumn) {
+                        customQueryResults.columns.splice(0, 0, {
+                            selectable: true,
+                            width: "30px"
+                        });
+                    }
+
+                    if (!options.disableOpeningOfItems) {
+                        if (customQueryResults.schemaModel && customQueryResults.schemaModel.fields) {
+                            // If there is no field for encrypted ID, don't allow the user to open items, they'd just get an error.
+                            options.disableOpeningOfItems = !(customQueryResults.schemaModel.fields.encryptedId || customQueryResults.schemaModel.fields.encrypted_id || customQueryResults.schemaModel.fields.encryptedid || customQueryResults.schemaModel.fields.idencrypted);
+                        }
+                    }
+
+                    if (!options.hideCommandColumn) {
+                        let commandColumnWidth = 0;
+                        let commands = [];
+
+                        if (!options.disableOpeningOfItems) {
+                            commandColumnWidth += 60;
+
+                            commands.push({
+                                name: "openDetails",
+                                iconClass: "k-font-icon k-i-hyperlink-open",
+                                text: "",
+                                title: "Item openen",
+                                click: function(event) { window.dynamicItems.grids.onShowDetailsClick(event, kendoComponent, options, false); }
+                            });
+
+                            if (options.allowOpeningOfItemsInNewTab) {
+                                commandColumnWidth += 60;
+
+                                commands.push({
+                                    name: "openDetailsInNewTab",
+                                    iconClass: "k-font-icon k-i-window",
+                                    text: "",
+                                    title: "Item openen in nieuwe tab",
+                                    click: function(event) { window.dynamicItems.grids.onShowDetailsClick(event, kendoComponent, options, true); }
+                                });
+                            }
+                        }
+
+                        if (!readonly && options.deletionOfItems && options.deletionOfItems.toLowerCase() !== "off") {
+                            commandColumnWidth += 60;
+
+                            commands.push({
+                                name: "remove",
+                                text: "",
+                                iconClass: "k-font-icon k-i-delete",
+                                click: function(event) { window.dynamicItems.grids.onDeleteItemClick(event, this, options.deletionOfItems, options); }
+                            });
+                        } else if (!readonly && (customQueryGrid || usingQueryId) && options.hasCustomDeleteQuery) {
+                            commandColumnWidth += 120;
+
+                            commands.push("destroy");
+                        }
+
+                        if (commands.length > 0) {
+                            customQueryResults.columns.push({
+                                title: "&nbsp;",
+                                width: commandColumnWidth,
+                                command: commands
+                            });
+                        }
+                    }
+
+                    generateGrid(customQueryResults.data, customQueryResults.schemaModel, customQueryResults.columns);
+                });
+            } else {
+                var done = function(gridSettings) {
+                    if (usingDataSelector) {
+                        gridSettings = {
+                            data: gridSettings,
+                            columns: options.columns
+                        };
+                    }
+
+                    if (gridSettings.extraJavascript) {
+                        jQuery.globalEval(gridSettings.extraJavascript);
+                    }
+
+                    // Add most columns here.
+                    if (gridSettings.columns && gridSettings.columns.length) {
+                        for (var i = 0; i < gridSettings.columns.length; i++) {
+                            var column = gridSettings.columns[i];
+
+                            switch ((column.field || "").toLowerCase()) {
+                                case "":
+                                    column.hidden = hideCheckboxColumn;
+                                    break;
+                                case "id":
+                                    column.hidden = options.hideIdColumn || false;
+                                    break;
+                                case "link_id":
+                                case "linkid":
+                                    column.hidden = options.hideLinkIdColumn || false;
+                                    break;
+                                case "entity_type":
+                                case "entitytype":
+                                    column.hidden = options.hideTypeColumn || false;
+                                    break;
+                                case "published_environment":
+                                case "publishedenvironment":
+                                    column.hidden = options.hideEnvironmentColumn || false;
+                                    break;
+                                case "title":
+                                    column.hidden = options.hideTitleColumn || false;
+                                    break;
+                                case "added_on":
+                                case "addedon":
+                                    column.hidden = !options.showAddedOnColumn;
+                                    break;
+                                case "added_by":
+                                case "addedby":
+                                    column.hidden = !options.showAddedByColumn;
+                                    break;
+                                case "changed_on":
+                                case "changedon":
+                                    column.hidden = !options.showChangedOnColumn;
+                                    break;
+                                case "changed_by":
+                                case "changedby":
+                                    column.hidden = !options.showChangedByColumn;
+                                    break;
+                            }
+                        }
+                    }
+
+                    if (!options.disableOpeningOfItems) {
+                        if (gridSettings.schemaModel && gridSettings.schemaModel.fields) {
+                            // If there is no field for encrypted ID, don't allow the user to open items, they'd just get an error.
+                            options.disableOpeningOfItems = !(gridSettings.schemaModel.fields.encryptedId || gridSettings.schemaModel.fields.encrypted_id || gridSettings.schemaModel.fields.encryptedid || gridSettings.schemaModel.fields.idencrypted);
+                        }
+                    }
+
+                    // Add command columns separately, because of the click event that we can't do properly server-side.
+                    if (!options.hideCommandColumn) {
+                        let commandColumnWidth = 0;
+                        let commands = [];
+
+                        if (!options.disableOpeningOfItems && !options.fieldGroupName) {
+                            commandColumnWidth += 60;
+                            commands.push({
+                                name: "openDetails",
+                                iconClass: "k-font-icon k-i-hyperlink-open",
+                                text: "",
+                                click: function(event) { window.dynamicItems.grids.onShowDetailsClick(event, kendoComponent, options, false); }
+                            });
+
+                            if (options.allowOpeningOfItemsInNewTab) {
+                                commandColumnWidth += 60;
+
+                                commands.push({
+                                    name: "openDetailsInNewTab",
+                                    iconClass: "k-font-icon k-i-window",
+                                    text: "",
+                                    click: function(event) { window.dynamicItems.grids.onShowDetailsClick(event, kendoComponent, options, true); }
+                                });
+                            }
+                        }
+
+                        if (!readonly && options.deletionOfItems && options.deletionOfItems.toLowerCase() !== "off" && !options.fieldGroupName) {
+                            commandColumnWidth += 60;
+
+                            commands.push({
+                                name: "remove",
+                                text: "",
+                                iconClass: "k-font-icon k-i-delete",
+                                click: function(event) { window.dynamicItems.grids.onDeleteItemClick(event, this, options.deletionOfItems, options); }
+                            });
+                        }
+
+                        if (gridSettings.columns && commands.length > 0) {
+                            gridSettings.columns.push({
+                                title: "&nbsp;",
+                                width: commandColumnWidth,
+                                command: commands
+                            });
+                        }
+                    }
+
+                    generateGrid(gridSettings.data, gridSettings.schemaModel, gridSettings.columns);
+                }
+
+                if (usingDataSelector) {
+                    Wiser.api({
+                        url: `${window.dynamicItems.settings.getItemsUrl}?trace=false&encryptedDataSelectorId=${encodeURIComponent(options.dataSelectorId)}&itemId=${encodeURIComponent("{itemIdEncrypted}")}`,
+                        contentType: "application/json"
+                    }).then(done);
+                } else {
+                    Wiser.api({
+                        url: `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/entity-grids/${encodeURIComponent(options.entityType || "{entityType}")}?propertyId={propertyId}${linkTypeParameter.replace("?", "&")}&mode=${gridMode.toString()}&fieldGroupName=${encodeURIComponent(options.fieldGroupName || "")}&currentItemIsSourceId=${(options.currentItemIsSourceId || false).toString()}`,
+                        method: "POST",
+                        contentType: "application/json"
+                    }).then(done);
+                }
+            }
+
+            // Remove observer on this element to avoid calling the event multiple times.
+            localObserver.unobserve(entry.target);
+        });
+    }, {
+        threshold: 0.01
+    });
+
+    dataSourceObserver.observe(field[0]);
 })();

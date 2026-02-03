@@ -9,6 +9,7 @@
   "main": "main.js",
   "dependencies": {
     "@innovastudio/contentbox": "^1.6.101",
+    "@mdi/font": "^7.4.47",
     "@progress/kendo-licensing": "^1.6.0",
     "@progress/kendo-ui": "^2025.2.702",
     "@progress/kendo-vue-dropdowns": "^6.4.1",

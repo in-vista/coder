@@ -1,5 +1,5 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.21.12/dist/css/uikit.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
 
 <style>
     @keyframes spin {
@@ -110,7 +110,7 @@
         position: sticky;
         left: 0;
         z-index: 5;        /* boven timeline-cellen, maar onder scheduler-header */
-        background: #dfe6e9;
+        background: #ffffff;
         min-width: 80px;
         padding-left: 8px;
         font-weight: bold;
@@ -119,7 +119,7 @@
     }
 
     .group-header {
-        background: #dfe6e9;
+        background: #ffffff;
         padding: 4px 0;
         cursor: pointer;
         user-select: none;
@@ -336,6 +336,7 @@
         border-radius: 50%; /* maakt het rond */
         transition: background-color 0.2s ease, transform 0.2s ease;
         padding: 6px;
+        text-decoration: none;
     }
     .hover-icons a:hover{
         text-decoration: none;
@@ -370,23 +371,242 @@
         /*position: relative; /* nodig voor absolute centrering */
     }
     .date-selector button {
-        margin: 0 10px;
+        margin: 0;
         padding: 4px 8px;
         cursor: pointer;
+    }
+
+    @media (max-width: 1525px) {
+        .timeline-search {
+            right: 10px !important;
+            left: unset !important;
+            transform: none !important;
+        }
+
+        .search-container {
+            right: -1px !important;
+            left: unset !important;
+            transform: none !important;
+        }
+    }
+
+    @media (max-width: 1070px) {
+        .date-selector {
+            gap: 8px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .timeline-date-selector {
+            flex-shrink: 0;
+        }
+
+        .timeline-search {
+            flex: 1;
+            margin-left: auto;
+            max-width: 300px;
+            position: relative !important;
+        }
+    }
+
+    @media (max-width: 772px) {   
+        .search-container {
+            width: 95vw !important;
+        }
     }
 
     .timeline-date-selector {
         flex: 0 0 auto; /* links vast */
     }
-
-    .timeline-search {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%); /* echt in het midden */
-        display: flex;
+    
+    .timeline-date-selector button {
+        line-height: 20px;
+        display: inline-flex;
         align-items: center;
         gap: 6px;
     }
+
+    .timeline-date-selector button i {
+        font-size: 20px;
+    }
+    
+    #timeline-view-btn, #list-view-btn {
+        margin: 0;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    button.active {
+        background: #007bff;
+        color: #fff;
+    }
+
+    .list-accordion {
+        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+        padding: 6px 10px;
+        background: #f3f3f3;
+        font-weight: bold;
+    }
+
+    .list-accordion .activeTime {
+        padding: 2px 0 0 12px;
+        border-radius: 0 20px 20px 0;
+        font-size: 13px;
+        width: 60px;
+        background: #ff6565;
+        color: white;
+        display: inline-block;        
+    }
+    
+    .list-panel {
+        display: none;
+        padding: 8px 10px;
+        background: #fff;
+    }
+    
+    .list-reservation {
+        display: grid;
+        grid-template-columns:
+        20px     /* bol */
+        1.5fr    /* naam */
+        25px     /* ster */
+        40px     /* personen */
+        40px     /* tafel */
+        3fr      /* notities */
+        50px     /* arrangement */
+        35px     /* warning */
+        120px    /* status */
+        35px;     /* check-in and out */
+        /*35px      check-out */
+        /*35px;     message */
+
+        align-items: center;
+        gap: 8px;
+        padding: 6px 6px;
+        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+        transition: background-color 0.15s;
+    }
+
+    .active-row {
+        background-color: #e8f3ff !important;
+    }
+
+    .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    .customer-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .arrangement-badge {
+        padding: 3px 6px;
+        background: #000;
+        color: #fff;
+        border-radius: 4px;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .status-badge {
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .status-badge.checked-in {
+        background-color: #2ecc71;
+        color: #fff;
+    }
+
+    .status-badge.checked-out {
+        background-color: #999;
+        color: #fff;
+    }
+
+    /* Icon buttons */
+    .icon-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 22px;
+        margin-top: -6px;
+    }
+    .icon-btn:hover {
+        opacity: 0.7;
+    }
+
+    /* Responsive breakpoints */
+    @media (max-width: 1100px) {
+        .list-reservation {
+            grid-template-columns:
+            20px /* bol */
+            1.7fr /* naam */
+            25px /* ster */
+            40px /* personen */
+            40px /* tafel */
+            3fr /* notities */
+            50px /* arrangement */
+            35px /* warning */
+            95px /* status */
+            35px /* check-in and out */            
+        }
+    }
+
+    @media (max-width: 800px) {
+        .list-reservation {
+            grid-template-columns:
+            20px
+            2fr
+            40px
+            3fr
+            95px;
+        }
+        .table,
+        .arrangement-badge,
+        .notes,
+        .icon-btn,
+        .returning-star,
+        .warning-icon {
+            display: none;
+        }
+    }
+    
+    .timeline-search {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        right:3%;
+    }
+
+    /* Zoekbalk in het midden op groter scherm */
+    @media (min-width: 1316px) { 
+        .timeline-search {
+            right: unset;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    }
+    
+    /* Zoekbalk kleiner op kleinere schermen
+    @media (max-width: 844px) {
+        .timeline-search {
+            width: 150px;
+            right: 10%;
+        }
+    } */
+    
     .timeline-search input {
         padding: 4px 8px;
     }
@@ -402,7 +622,7 @@
         position: absolute;
         top: 30px;
         background-color: #FFFFFF;
-        width: 50vw;
+        width: 740px;
         border-left: 1px solid #F0F0F0;
         border-right: 1px solid #F0F0F0;
         border-bottom: 1px solid #F0F0F0;
@@ -417,16 +637,27 @@
         justify-content: space-between;
         align-items: center;
         padding: 5px 10px 5px 10px;
+        margin: 0 5px 0 5px;
         cursor: pointer;
         clear: both;
         font-size: larger;
         font-weight: bold;
-    }
+    }    
     .search-item-today-item:hover {
         background-color: var(--color-1);
         /* background-color: #00B0FF; */
         color: #FFFFFF;
-    } 
+    }
+    .cancelled {
+        background: linear-gradient(
+            to bottom,
+            transparent 48%,
+            #000 48%,
+            #000 50%,
+            transparent 50%
+        );        
+        color: darkgray;
+    }
     .reservation.highlight {
         background-color: #000000 !important;
         color: #FFFFFF !important;
@@ -445,6 +676,11 @@
     }
     #current-date {
         font-weight: bold;
+        width: 210px;
+        text-align: center;
+        display: inline-block;
+        position: relative;
+        bottom: 2px;
     }
     #calendar {
         position: absolute;
@@ -536,10 +772,13 @@
 <div id="timelineScheduler">
     <div class="date-selector">
         <div class="timeline-date-selector">
-            <button id="prev-day">&lt;</button>
+            <button id="timeline-view-btn" class="active"><i class="mdi mdi-size-2 mdi-chart-gantt"></i></button>
+            <button id="list-view-btn"><i class="mdi mdi-size-2 mdi-format-list-bulleted-square"></i></button>
+            <button id="prev-day"><i class="mdi mdi-size-2 mdi-chevron-left"></i></button>
             <span id="current-date" style="cursor:pointer;">Kies datum</span>
-            <button id="next-day">&gt;</button>
-            <button id="refresh-button">Verversen</button>
+            <button id="next-day"><i class="mdi mdi-size-2 mdi-chevron-right"></i></button>
+            <button id="today-button"><i class="mdi mdi-size-2 mdi-calendar-today"></i>Vandaag</button>
+            <button id="refresh-button"><i class="mdi mdi-size-2 mdi-refresh"></i>Verversen</button>
         </div>
         <div class="timeline-search">            
             <input type="text" placeholder="Begin met typen om te zoeken..." id="timeline-search" />            
@@ -550,24 +789,24 @@
             </div>
         </div> 
         <div id="search-item-template" style="display: none;">
-            <div class="search-item-today-item" data-reservation-id="{reservationId}" data-reservation-id-encrypted="{encryptedId}" data-date="{date}">
-                <div class="search-item-column" style="flex:1;">{dateformatted}</div>
-                <div class="search-item-column" style="flex:1;">{timeformatted}</div>
+            <div class="search-item-today-item {status}" data-reservation-id="{reservationId}" data-reservation-id-encrypted="{encryptedId}" data-date="{date}">
+                <div class="search-item-column" style="width:110px;">{dateformatted}</div>
+                <div class="search-item-column" style="width:57px;">{timeformatted}</div>
                 <div class="search-item-column" style="flex:3;">{name}</div>
-                <div class="search-item-column" style="flex:1;">{numberofpersons}</div>
-                <div class="search-item-column" style="flex:1;">{table}</div>
-                <!--<div class="search-item-column" style="flex:1;">{arrangement}</div>
-                <div class="search-item-column" style="flex:1;">{status}</div>-->
-            </div>
+                <div class="search-item-column" style="width:40px;">{numberofpersons}</div>
+                <div class="search-item-column" style="width:100px;">{table}</div>                
+            </div>            
         </div>
+        <!--<div class="search-item-column" style="flex:1;">{arrangement}</div>-->
+        <!--<div class="search-item-column" style="flex:1;color:darkorange;">{status}</div>-->
     </div>
+    <div id="list-view" class="hidden"></div>
     <div class="scheduler">
-        <div class="scheduler-header">
+        <div class="scheduler-header">            
             <div class="table-label" style="background:#f7f7f7;height:auto;"></div>
             <div class="timeline" id="header-timeline"></div>
-        </div>
-        <!-- <div class="scheduler-header" style="top:27px;"> --> 
-        <div class="scheduler-header">
+        </div>         
+        <div class="scheduler-header" style="top:24px;">
             <div class="table-label label-sum-persons">Zittend</div>
             <div class="timeline" id="header-sum-persons"></div>
         </div>

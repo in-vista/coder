@@ -10,41 +10,57 @@ export default class ModulesService extends BaseService {
     async getModules() {
         try {
             const modulesResult = await this.base.api.get(`/api/v3/modules`);
-            const result = this.parseList(modulesResult);
+            let result = this.parseList(modulesResult);
             for (let groupName in result) {
                 if (!result.hasOwnProperty(groupName)) {
                     continue;
                 }
+                
+                const modules = result[groupName];
+                
+                const icon = groupName === 'Vastgepind'
+                    ? 'pin'
+                    : modules.find(module => !!module.groupOptions?.icon)?.groupOptions.icon;
+                
+                result[groupName] = {
+                    ...modules.find(module => !!module.groupOptions)?.groupOptions,
+                    icon: icon,
+                    modules: modules.map(module => {
+                        switch (module.moduleId) {
+                            case 5004:
+                                module.fileName = `/Import`;
+                                break;
+                            case 5005:
+                                module.fileName = `/Export`;
+                                break;
+                            default:
+                                module.fileName = ``;
+                                break;
+                        }
 
-                result[groupName].map(module => {
-                    module.icon = `icon-${module.icon}`;
+                        if (this.dynamicItemsModules.indexOf(module.type) > -1) {
+                            module.iframeType = "DynamicItems";
+                            module.queryString = `?moduleId=${!module.itemId ? module.moduleId : 0}&iframe=${module.iframe || false}${(!module.itemId ? "" : `&itemId=${encodeURIComponent(module.itemId)}`)}${(!module.entityType? "" : `&entityType=${encodeURIComponent(module.entityType)}`)}`;
+                        } else if (module.type === "FileManager") {
+                            module.queryString = "?hideFields=true";
+                        } else {
+                            module.iframeType = module.type;
+                            module.queryString = "";
+                        }
+                        
+                        module.icon ??= icon;
 
-                    switch (module.moduleId) {
-                        case 5004:
-                            module.fileName = `/Import`;
-                            break;
-                        case 5005:
-                            module.fileName = `/Export`;
-                            break;
-                        default:
-                            module.fileName = ``;
-                            break;
-                    }
-
-                    if (this.dynamicItemsModules.indexOf(module.type) > -1) {
-                        module.iframeType = "DynamicItems";
-                        module.queryString = `?moduleId=${!module.itemId ? module.moduleId : 0}&iframe=${module.iframe || false}${(!module.itemId ? "" : `&itemId=${encodeURIComponent(module.itemId)}`)}${(!module.entityType? "" : `&entityType=${encodeURIComponent(module.entityType)}`)}`;
-                    } else if (module.type === "FileManager") {
-                        module.queryString = "?hideFields=true";
-                    } else {
-                        module.iframeType = module.type;
-                        module.queryString = "";
-                    }
-
-                    return module;
-                });
+                        return module;
+                    })
+                }
             }
-
+            
+            // Sort modules within a module group.
+            for(const groupName of Object.keys(result)) {
+                const moduleGroup = result[groupName];
+                moduleGroup.modules = moduleGroup.modules.sort((a, b) => (a.ordering ?? 0) - (b.ordering ?? 0));
+            }
+            
             return result;
         } catch (error) {
             console.error(error);

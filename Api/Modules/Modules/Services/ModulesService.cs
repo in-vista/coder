@@ -109,9 +109,11 @@ namespace Api.Modules.Modules.Services
         module.icon,
         module.type,
         module.group,
+        module.group_options,
         module.options,
         module.custom_query,        
-        module.is_fullscreen
+        module.is_fullscreen,
+        module.ordering
     FROM {WiserTableNames.WiserUserRoles} AS user_role
     JOIN {WiserTableNames.WiserRoles} AS role ON role.id = user_role.role_id
     JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = role.id AND permission.module_id > 0
@@ -133,9 +135,11 @@ UNION
         module.icon,
         module.type,
         module.group,
+        module.group_options,
         module.options,
         module.custom_query,
-        module.is_fullscreen
+        module.is_fullscreen,
+        module.ordering
     FROM {WiserTableNames.WiserModule} AS module
     WHERE module.id IN ({String.Join(",", modulesForAdmins)})
 )";
@@ -154,9 +158,7 @@ UNION
             {
                 var moduleId = dataRow.Field<int>("module_id");
                 var originalGroupName = dataRow.Field<string>("group");
-                var groupName = pinnedModules.Contains(moduleId)
-                    ? PinnedModulesGroupName
-                    : dataRow.Field<string>("group");
+                var groupName = dataRow.Field<string>("group");
                 var permissionsBitMask = (AccessRights) Convert.ToInt32(dataRow["permissions"]);
                 var options = dataRow.Field<string>("options");
 
@@ -203,6 +205,11 @@ UNION
                 rightsModel.PinnedGroup = PinnedModulesGroupName;
                 rightsModel.HasCustomQuery = hasCustomQuery;
                 rightsModel.IsFullscreen = dataRow["is_fullscreen"].ToString() == "1";
+                rightsModel.Ordering = uint.TryParse(dataRow["ordering"].ToString(), out uint ordering) ? ordering : 0;
+                
+                string groupOptionsJson = dataRow.Field<string>("group_options");
+                if (!string.IsNullOrEmpty(groupOptionsJson))
+                    rightsModel.GroupOptions = JObject.Parse(groupOptionsJson);
 
                 if (String.IsNullOrWhiteSpace(rightsModel.Icon))
                 {
@@ -265,247 +272,215 @@ UNION
             // Make sure that we add certain modules for admins, even if those modules don't exist in wiser_module for this tenant.
             if (isAdminAccount)
             {
+                const string adminGroupName = "Systeem";
+                
+                if (!results.ContainsKey(adminGroupName))
+                    results.Add(adminGroupName, new List<ModuleAccessRightsModel>());
+                
                 foreach (var moduleId in modulesForAdmins.Where(moduleId => !results.Any(g => g.Value.Any(m => m.ModuleId == moduleId))))
                 {
-                    string groupName;
-                    var isPinned = pinnedModules.Contains(moduleId);
+                    ModuleAccessRightsModel adminModule = null;
+                    bool isPinned = pinnedModules.Contains(moduleId);
+                    
                     switch (moduleId)
                     {
                         case Constants.DefaultMasterDataModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Instellingen";
-                            if (!results.ContainsKey(groupName))
+                            adminModule = new ModuleAccessRightsModel
                             {
-                                results.Add(groupName, new List<ModuleAccessRightsModel>());
-                            }
-
-                            results[groupName].Add(new ModuleAccessRightsModel
-                            {
-                                Group = "Instellingen",
+                                Group = adminGroupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
                                 CanWrite = true,
-                                Icon = "line-sliders",
+                                Icon = "table",
                                 ModuleId = moduleId,
                                 Name = "Stamgegevens",
                                 Type = "MasterData",
                                 Pinned = isPinned,
                                 PinnedGroup = PinnedModulesGroupName,
-                                IsFullscreen = false
-                            });
+                                IsFullscreen = false,
+                                Ordering = 102
+                            };
                             break;
                         case Constants.DefaultDataSelectorModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Contentbeheer";
-                            if (!results.ContainsKey(groupName))
+                            adminModule = new ModuleAccessRightsModel
                             {
-                                results.Add(groupName, new List<ModuleAccessRightsModel>());
-                            }
-
-                            results[groupName].Add(new ModuleAccessRightsModel
-                            {
-                                Group = "Contentbeheer",
+                                Group = adminGroupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
                                 CanWrite = true,
-                                Icon = "settings",
+                                Icon = "database-search",
                                 ModuleId = moduleId,
                                 Name = "Data selector",
                                 Type = "DataSelector",
                                 Pinned = isPinned,
                                 PinnedGroup = PinnedModulesGroupName,
-                                IsFullscreen = false
-                            });
+                                IsFullscreen = false,
+                                Ordering = 105
+                            };
                             break;
                         case Constants.DefaultSearchModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Contentbeheer";
-                            if (!results.ContainsKey(groupName))
+                            adminModule = new ModuleAccessRightsModel
                             {
-                                results.Add(groupName, new List<ModuleAccessRightsModel>());
-                            }
-
-                            results[groupName].Add(new ModuleAccessRightsModel
-                            {
-                                Group = "Contentbeheer",
+                                Group = adminGroupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
                                 CanWrite = true,
-                                Icon = "search",
+                                Icon = "magnify",
                                 ModuleId = moduleId,
                                 Name = "Zoeken",
                                 Type = "Search",
                                 Pinned = isPinned,
                                 PinnedGroup = PinnedModulesGroupName,
-                                IsFullscreen = false
-                            });
+                                IsFullscreen = false,
+                                Ordering = 106
+                            };
                             break;
                         case Constants.DefaultAdminModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Instellingen";
-                            if (!results.ContainsKey(groupName))
+                            adminModule = new ModuleAccessRightsModel
                             {
-                                results.Add(groupName, new List<ModuleAccessRightsModel>());
-                            }
-
-                            results[groupName].Add(new ModuleAccessRightsModel
-                            {
-                                Group = groupName,
+                                Group = adminGroupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
                                 CanWrite = true,
-                                Icon = "line-settings",
+                                Icon = "cog",
                                 ModuleId = moduleId,
                                 Name = "Coder beheer",
                                 Type = "Admin",
                                 Pinned = isPinned,
                                 PinnedGroup = PinnedModulesGroupName,
-                                IsFullscreen = false
-                            });
+                                IsFullscreen = false,
+                                Ordering = 103
+                            };
                             break;
                         case Constants.DefaultImportExportModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Contentbeheer";
-                            if (!results.ContainsKey(groupName))
+                            adminModule = new ModuleAccessRightsModel
                             {
-                                results.Add(groupName, new List<ModuleAccessRightsModel>());
-                            }
-
-                            results[groupName].Add(new ModuleAccessRightsModel
-                            {
-                                Group = "Contentbeheer",
+                                Group = adminGroupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
                                 CanWrite = true,
-                                Icon = "im-ex",
+                                Icon = "database-sync",
                                 ModuleId = moduleId,
                                 Name = "Import/export",
                                 Type = "ImportExport",
                                 Pinned = isPinned,
                                 PinnedGroup = PinnedModulesGroupName,
-                                IsFullscreen = false
-                            });
+                                IsFullscreen = false,
+                                Ordering = 107
+                            };
                             break;
                         case Constants.DefaultWiserUsersModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Instellingen";
-                            if (!results.ContainsKey(groupName))
+                            adminModule = new ModuleAccessRightsModel
                             {
-                                results.Add(groupName, new List<ModuleAccessRightsModel>());
-                            }
-
-                            results[groupName].Add(new ModuleAccessRightsModel
-                            {
-                                Group = "Gebruikers - Coder",
+                                Group = adminGroupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
                                 CanWrite = true,
-                                Icon = "users",
+                                Icon = "cog",
                                 ModuleId = moduleId,
                                 Name = "Coder beheer",
                                 Type = "Users",
                                 Pinned = isPinned,
                                 PinnedGroup = PinnedModulesGroupName,
-                                IsFullscreen = false
-                            });
+                                IsFullscreen = false,
+                                Ordering = 104
+                            };
                             break;
                         case Constants.DefaultWebpagesModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Contentbeheer";
-                            if (!results.ContainsKey(groupName))
+                            adminModule = new ModuleAccessRightsModel
                             {
-                                results.Add(groupName, new List<ModuleAccessRightsModel>());
-                            }
-
-                            results[groupName].Add(new ModuleAccessRightsModel
-                            {
-                                Group = "Contentbeheer",
+                                Group = adminGroupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
                                 CanWrite = true,
-                                Icon = "document-web",
+                                Icon = "web",
                                 ModuleId = moduleId,
                                 Name = "Webpagina's 2.0",
                                 Type = "DynamicItems",
                                 Pinned = isPinned,
                                 PinnedGroup = PinnedModulesGroupName,
-                                IsFullscreen = false
-                            });
+                                IsFullscreen = false,
+                                Ordering = 106
+                            };
                             break;
                         case Constants.DefaultVersionControlModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Systeem";
-                            if (!results.ContainsKey(groupName))
+                            adminModule = new ModuleAccessRightsModel
                             {
-                                results.Add(groupName, new List<ModuleAccessRightsModel>());
-                            }
-                            results[groupName].Add(new ModuleAccessRightsModel
-                            {
-                                Group = "Systeem",
+                                Group = adminGroupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
                                 CanWrite = true,
-                                Icon = "git",
+                                Icon = "source-branch",
                                 ModuleId = moduleId,
                                 Name = "Versiebeheer",
                                 Type = "VersionControl",
                                 Pinned = isPinned,
                                 PinnedGroup = PinnedModulesGroupName,
-                                IsFullscreen = false
-                            });
+                                IsFullscreen = false,
+                                Ordering = 103
+                            };
                             break;
                         case Constants.DefaultTemplatesModuleId:
-                            groupName = isPinned ? PinnedModulesGroupName : "Systeem";
-                            if (!results.ContainsKey(groupName))
+                            adminModule = new ModuleAccessRightsModel
                             {
-                                results.Add(groupName, new List<ModuleAccessRightsModel>());
-                            }
-                            results[groupName].Add(new ModuleAccessRightsModel
-                            {
-                                Group = "Systeem",
+                                Group = adminGroupName,
                                 CanCreate = true,
                                 CanDelete = true,
                                 CanRead = true,
                                 CanWrite = true,
-                                Icon = "document-fold",
+                                Icon = "file-document-edit",
                                 ModuleId = moduleId,
                                 Name = "Templates",
                                 Type = "Templates",
                                 Pinned = isPinned,
                                 PinnedGroup = PinnedModulesGroupName,
-                                IsFullscreen = false
-                            });
+                                IsFullscreen = false,
+                                Ordering = 101
+                            };
+                            break;
+                        case 0:
+                            adminModule = new ModuleAccessRightsModel
+                            {
+                                Group = adminGroupName,
+                                CanCreate = true,
+                                CanDelete = true,
+                                CanRead = true,
+                                CanWrite = true,
+                                Icon = "config",
+                                ModuleId = 0,
+                                Name = "Coder Configuratie",
+                                Type = "Configuration",
+                                Pinned = isPinned,
+                                PinnedGroup = PinnedModulesGroupName,
+                                IsFullscreen = false,
+                                Ordering = 108
+                            };
                             break;
                         default:
                             throw new NotImplementedException($"Trying to hard-code add module '{moduleId}' to list for admin account, but no case has been added for this module in the switch statement.");
                     }
+                    
+                    // If no admin module could be defined, skip adding it to the admin module group.
+                    if (adminModule == null)
+                        continue;
+                    
+                    // Set the default group options for the admin modules.
+                    JObject adminGroupOptions = new JObject();
+                    adminGroupOptions.Add("icon", "view-dashboard-edit-outline");
+                    adminGroupOptions.Add("ordering", uint.MaxValue);
+                    adminModule.GroupOptions = adminGroupOptions;
+                    
+                    // Add the admin module to the admin module group.
+                    results[adminGroupName].Add(adminModule);
                 }
-            }
-
-            // Everyone should always have the configuration module.
-            if (results.All(g => g.Value.All(m => m.Type != "Configuration")))
-            {
-                var isPinned = pinnedModules.Contains(0);
-                var groupName = isPinned ? PinnedModulesGroupName : "Systeem";
-                if (!results.ContainsKey(groupName))
-                {
-                    results.Add(groupName, new List<ModuleAccessRightsModel>());
-                }
-                results[groupName].Add(new ModuleAccessRightsModel
-                {
-                    Group = "Systeem",
-                    CanCreate = true,
-                    CanDelete = true,
-                    CanRead = true,
-                    CanWrite = true,
-                    Icon = "config",
-                    ModuleId = 0,
-                    Name = "Coder Configuratie",
-                    Type = "Configuration",
-                    Pinned = isPinned,
-                    PinnedGroup = PinnedModulesGroupName,
-                    IsFullscreen = false
-                });
             }
 
             // Sort all the groups.

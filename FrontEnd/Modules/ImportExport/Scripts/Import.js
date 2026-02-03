@@ -482,7 +482,7 @@ const importModuleSettings = {
 
                     Wiser.showMessage({
                         title: "Import gefaald",
-                        content: `De import kan niet uitgevoerd worden vanwege een fout. Controleer of alles goed is ingevuld en probeer het opnieuw, of neem contact met ons op.${userFriendlyErrors}`
+                        content: `De import kan niet uitgevoerd worden vanwege een fout. Controleer of alles goed is ingevuld en probeer het opnieuw. ${userFriendlyErrors}`
                     });
                 } else {
                     // Remove user settings from session storage if we just updated the email address, so that it will be up-to-date.
@@ -499,7 +499,7 @@ const importModuleSettings = {
                 console.error(exception);
                 Wiser.showMessage({
                     title: "Import gefaald",
-                    content: "De import kan niet uitgevoerd worden vanwege een fout. Controleer of alles goed is ingevuld en probeer het opnieuw, of neem contact met ons op."
+                    content: "De import kan niet uitgevoerd worden vanwege een fout. Controleer of alles goed is ingevuld en probeer het opnieuw."
                 });
             }
             

@@ -68,16 +68,30 @@
             if (this.isOpened) {
                 this.removeAlert();
             }
-            const taskContainer = document.getElementById("task");
+            
             const taskFrameElement = document.getElementById("taskFrame");
-            const newContainerWidth = window.innerWidth - taskContainer.getBoundingClientRect().x;
+            
+            const coderTabStrip = document.getElementById('coder-tab-strip');
+            const coderTabStripBounds = coderTabStrip.getBoundingClientRect();
+            const containerHeight = window.innerHeight - coderTabStripBounds.height;
+            
+            taskFrameElement.style.height = `${containerHeight}px`;
+            
+            const taskButton = document.getElementById("task");
+            
+            const taskButtonBounds = taskButton.getBoundingClientRect();
+            const taskFrameBounds = taskFrameElement.getBoundingClientRect();
+            
+            const containerX = -(taskFrameBounds.width / 2);
+            const containerY = (taskButtonBounds.height + taskFrameBounds.height) / 2;
 
-            taskFrameElement.setAttribute("style", `width: ${newContainerWidth}px`);
+            taskFrameElement.style.transform = `translate(${containerX}px, ${containerY}px)`;
         }
     },
-    template: `<div :class="{ 'ico-item': true, alert: unreadMessage, open: isOpened }" id="task" :data-alert="taskCount" @click="toggleOpen()">
-    <ins class="icon-clipboard"></ins>
-    <div class="taskAlert"><ins class="icon-bell"></ins><span>Open recente meldingen</span></div>
-    <iframe src="/Modules/TaskAlerts" id="taskFrame"></iframe>
-</div>`
+    template: `
+        <div class="tab-strip-button" id="task" :class="{ alert: unreadMessage, open: isOpened }" :data-alert="taskCount" @click="toggleOpen()">
+            <ins class="mdi mdi-size-2 mdi-message-text-outline"></ins>
+            <div class="taskAlert"><ins class="icon-bell"></ins><span>Open recente meldingen</span></div>
+            <iframe src="/Modules/TaskAlerts" id="taskFrame"></iframe>
+        </div>`
 };

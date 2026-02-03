@@ -153,7 +153,7 @@ const moduleSettings = {
                 this.changeComponent(this.selectedComponentData.component, this.selectedComponentData.componentMode);
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan met het laden van deze component. Probeer het opnieuw of neem contact op.");
+                kendo.alert("Er is iets fout gegaan met het laden van deze component. Probeer het opnieuw.");
             }
         }
 
@@ -624,7 +624,7 @@ const moduleSettings = {
 
                 this.bindHistoryButtons();
             } catch (exception) {
-                kendo.alert("Er is iets fout gegaan met het laden van de history. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan met het laden van de history. Probeer het a.u.b. opnieuw.");
                 console.error(exception);
             }
         }
@@ -662,7 +662,7 @@ const moduleSettings = {
                 window.Wiser.createHistoryDiffFields(document.querySelector("#left-pane div.historyContainer"));
                 this.lastLoadedHistoryPart++;
             } catch (exception) {
-                kendo.alert("Er is iets fout gegaan met het laden van de historie. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan met het laden van de historie. Probeer het a.u.b. opnieuw.");
                 console.error(exception);
             }
 
@@ -785,7 +785,7 @@ const moduleSettings = {
             const subGroupsContainer = mainContainer.find(".sub-groups");
             const templateFieldSet = subGroupsContainer.find("#subGroup__template");
             if (templateFieldSet.length === 0) {
-                kendo.alert("Er zijn geen subvelden gevonden voor dit veld. Sluit a.u.b. dit component en probeer het opnieuw, of neem contact op.");
+                kendo.alert("Er zijn geen subvelden gevonden voor dit veld. Sluit a.u.b. dit component en probeer het opnieuw.");
                 console.error("No sub fields template found for container", subGroupsContainer);
                 return;
             }

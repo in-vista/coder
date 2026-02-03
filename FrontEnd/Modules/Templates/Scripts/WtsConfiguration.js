@@ -67,7 +67,7 @@ export class WtsConfiguration {
         catch (e) {
             console.error(e);
             this.base.toggleMainLoader(false); // Hide the loader
-            kendo.alert("Er is iets fout gegaan. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+            kendo.alert("Er is iets fout gegaan. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
             return;
         }
 
@@ -87,7 +87,7 @@ export class WtsConfiguration {
         catch (e) {
             console.error(e);
             this.base.toggleMainLoader(false); // Hide the loader
-            kendo.alert("Er is iets fout gegaan. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw. Of neem contact op als dat niet werkt.");
+            kendo.alert("Er is iets fout gegaan. Sluit a.u.b. deze module, open deze daarna opnieuw en probeer het vervolgens opnieuw.");
         }
 
         this.initializeKendoComponents();

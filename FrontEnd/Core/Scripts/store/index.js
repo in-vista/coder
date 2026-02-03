@@ -388,26 +388,29 @@ const modulesModule = {
                 return;
             }
 
+            // Sort module groups.
+            const sortedGroupNames = Object.keys(modules).sort((a, b) => (modules[a].ordering ?? 0) - (modules[b].ordering ?? 0));
+
             let hasAutoload = false;
-            for (let groupName in modules) {
+            for (let groupName of sortedGroupNames) {
                 if (!modules.hasOwnProperty(groupName)) {
                     continue;
                 }
 
                 const moduleGroup = {
-                    name: groupName,
-                    modules: []
-                }
+                    ...modules[groupName],
+                    name: groupName
+                };
+                
                 state.moduleGroups.push(moduleGroup);
 
-                for (let module of modules[groupName]) {
+                for (let module of moduleGroup.modules) {
                     if (!module.name) {
                         console.warn("Found module without name, so skipping it", module);
                         continue;
                     }
 
                     state.allModules.push(module);
-                    moduleGroup.modules.push(module);
 
                     if (module.autoLoad) {
                         hasAutoload = true;
@@ -497,84 +500,20 @@ const modulesModule = {
             state.moduleGroups = [];
         },
         [TOGGLE_PIN_MODULE]: (state, moduleId) => {
-            const module = state.allModules.filter(m => m.moduleId === moduleId)[0];
+            const modules = state.allModules.filter(m => m.moduleId === moduleId);
 
-            // Toggle the pin status.
-            let pinnedChanged = true;
-            if (module.pinned && module.autoLoad) {
-                module.pinned = false;
-                module.autoLoad = false;
-            } else if (module.pinned && !module.autoLoad) {
-                module.autoLoad = true;
-                pinnedChanged = false;
-            } else {
-                module.pinned = true;
-            }
-
-            const removeFrom = module.pinned ? module.group : module.pinnedGroup;
-            const addTo = module.pinned ? module.pinnedGroup : module.group;
-
-            const removeFromGroup = state.moduleGroups.filter(g => g.name === removeFrom)[0];
-            let addToGroup = state.moduleGroups.filter(g => g.name === addTo)[0];
-
-            // Don't need to do the rest if only the auto load setting has been changed.
-            if (!pinnedChanged) {
-                return;
-            }
-
-            // It's possible that these groups don't exist yet, so create them if they don't.
-            if (!addToGroup) {
-                addToGroup = {
-                    name: addTo,
-                    modules: []
-                };
-                state.moduleGroups.push(addToGroup);
-            }
-
-            removeFromGroup.modules.splice(removeFromGroup.modules.indexOf(module), 1);
-            addToGroup.modules.push(module);
-
-            // If we just removed the last module from a group, remove the entire group.
-            if (removeFromGroup.modules.length === 0) {
-                state.moduleGroups.splice(state.moduleGroups.indexOf(removeFromGroup), 1);
-            }
-
-            // Order the groups.
-            state.moduleGroups = state.moduleGroups.sort((groupA, groupB) => {
-                // Make sure the pinned group is always first.
-                if (groupA.name === module.pinnedGroup) {
-                    return -1;
+            for(const module of modules) {
+                // Toggle the pin status.
+                let pinnedChanged = true;
+                if (module.pinned && module.autoLoad) {
+                    module.pinned = false;
+                    module.autoLoad = false;
+                } else if (module.pinned && !module.autoLoad) {
+                    module.autoLoad = true;
+                    pinnedChanged = false;
+                } else {
+                    module.pinned = true;
                 }
-
-                if (groupB.name === module.pinnedGroup) {
-                    return 1;
-                }
-
-                // Then sort the rest alphabetically.
-                if (groupA.name < groupB.name) {
-                    return -1;
-                }
-
-                if (groupA.name > groupB.name) {
-                    return 1;
-                }
-
-                return 0;
-            });
-
-            // Order the modules in each group.
-            for (let group of state.moduleGroups) {
-                group.modules = group.modules.sort((moduleA, moduleB) => {
-                    if (moduleA.name < moduleB.name) {
-                        return -1;
-                    }
-
-                    if (moduleA.name > moduleB.name) {
-                        return 1;
-                    }
-
-                    return 0;
-                });
             }
         }
     },
@@ -591,7 +530,7 @@ const modulesModule = {
                     continue;
                 }
 
-                for (let module of moduleGroups[group]) {
+                for (let module of moduleGroups[group].modules) {
                     if (!module.autoLoad) {
                         continue;
                     }

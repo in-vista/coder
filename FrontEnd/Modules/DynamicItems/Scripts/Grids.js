@@ -23,6 +23,7 @@ export class Grids {
         this.mainGrid = null;
         this.mainGridFirstLoad = true;
         this.mainGridForceRecount = false;
+        this.gridContextMenu = null;
     }
 
     /**
@@ -32,9 +33,15 @@ export class Grids {
         if (this.base.settings.gridViewMode && !this.base.settings.iframeMode) {
             this.base.settings.gridViewSettings = this.base.settings.gridViewSettings || {};
 
-            const hideGrid = await this.setupInformationBlock();
-            if (!hideGrid) {
-                this.setupGridViewMode();
+            if(this.base.settings.gridViewSettings.informationBlock?.initialItem?.initialItemIsTopItem) {                
+                await this.setupGridViewMode();                    
+                await this.setupInformationBlock();    
+            }
+            else {
+                const hideGrid = await this.setupInformationBlock();
+                if (!hideGrid) {
+                    this.setupGridViewMode();
+                }     
             }
         }
     }
@@ -120,23 +127,41 @@ export class Grids {
                         if (!(await this.informationBlockIframe[0].contentWindow.dynamicItems.onSaveButtonClick(event))) {
                             return false;
                         }
+                        
+                        const entityType = informationBlockSettings.initialItem.entityType;
 
-                        const createItemResult = await this.base.createItem(informationBlockSettings.initialItem.entityType, informationBlockSettings.initialItem.newItemParentId, "", null, [], true);
+                        const createItemResult = await this.base.createItem(entityType, informationBlockSettings.initialItem.newItemParentId, "", null, [], true);
                         if (!createItemResult) {
                             return hideGrid;
                         }
 
                         const itemId = createItemResult.itemId;
                         this.informationBlockIframe.attr("loading", "eager");
-                        this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
+                        this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&entityType=${entityType}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
                     },
                     icon: "save"
                 });
             };
 
-            let itemId = informationBlockSettings.initialItem.itemId;
+            let itemId = 0;
+            
+            if(informationBlockSettings.initialItem.initialItemIsTopItem) {
+                if (this.mainGrid.items().length > 0) {
+                    this.mainGrid.select(this.mainGrid.items()[0]);
+                    itemId = this.mainGrid.dataSource.data()[0].encrypted_id;    
+                }
+                else {
+                    window.processing.removeProcess(initialProcess);
+                    return false;
+                }
+            } else{
+                itemId = informationBlockSettings.initialItem.itemId;
+            }
+           
+            const entityType = informationBlockSettings.initialItem.entityType;
+            
             if (!itemId) {
-                const createItemResult = await this.base.createItem(informationBlockSettings.initialItem.entityType, informationBlockSettings.initialItem.newItemParentId, "", null, [], true);
+                const createItemResult = await this.base.createItem(entityType, informationBlockSettings.initialItem.newItemParentId, "", null, [], true);
                 if (!createItemResult) {
                     return hideGrid;
                 }
@@ -144,9 +169,9 @@ export class Grids {
             }
 
             this.informationBlockIframe.attr("loading", "eager");
-            this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
+            this.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${itemId}&entityType=${entityType}&moduleId=${this.base.settings.moduleId}&iframe=true&readonly=${!!informationBlockSettings.initialItem.readOnly}&hideFooter=${!!informationBlockSettings.initialItem.hideFooter}&hideHeader=${!!informationBlockSettings.initialItem.hideHeader}`);
         } catch (exception) {
-            kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals, of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals.");
             console.error(exception);
             window.processing.removeProcess(initialProcess);
         }
@@ -360,7 +385,7 @@ export class Grids {
             }
 
             if (gridViewSettings.toolbar && gridViewSettings.toolbar.customActions && gridViewSettings.toolbar.customActions.length > 0) {
-                this.addCustomActionsToToolbar("#gridView", 0, 0, toolbar, gridViewSettings.toolbar.customActions);
+                this.addCustomActionsToToolbar("#gridView", 0, 0, toolbar, gridViewSettings.toolbar.customActions, undefined);
             }
 
             let totalResults = gridDataResult.totalResults;
@@ -386,14 +411,24 @@ export class Grids {
                     isFalse: "<span>Nee</span>"
                 }
             };
-
+            
             if (gridViewSettings.filterable === true) {
                 filterable = defaultFilters;
             } else if (typeof gridViewSettings.filterable === "object") {
                 filterable = $.extend(true, {}, defaultFilters, gridViewSettings.filterable);
+                
+                // Overwrite an operator type if one was set in the grid view settings.
+                if(gridViewSettings?.filterable?.operators) {
+                    for(const operatorType of Object.keys(gridViewSettings.filterable.operators)) {
+                        filterable.operators[operatorType] = gridViewSettings.filterable.operators[operatorType];
+                    }
+                }
             } else if (gridViewSettings.clientSideFiltering === true) {
                 filterable = defaultFilters;
             }
+            
+            // Store the toolbar property before deleting it.
+            const toolbarSettings = gridViewSettings?.toolbar;
 
             // Delete properties that we have already defined, so that they won't be overwritten again by the $.extend below.
             delete gridViewSettings.filterable;
@@ -456,7 +491,7 @@ export class Grids {
                                 if (this.mainGridFirstLoad) {
                                     transportOptions.success(gridDataResult);
                                     this.mainGridFirstLoad = false;
-                                    window.processing.removeProcess(initialProcess);
+                                    window.processing.addProcess(initialProcess);
                                     return;
                                 }
 
@@ -507,7 +542,7 @@ export class Grids {
                             } catch (exception) {
                                 console.error(exception);
                                 transportOptions.error(exception);
-                                kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals, of neem contact op met ons.");
+                                kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals.");
                             }
 
                             window.processing.removeProcess(process);
@@ -635,7 +670,7 @@ export class Grids {
                     });
 
                     // To hide toolbar buttons that require a row to be selected.
-                    this.onGridSelectionChange(event, false);
+                    this.onGridSelectionChange(event);
 
                     if (gridViewSettings.keepFiltersState !== false && filtersChanged) {
                         await this.saveGridViewFiltersState(`main_grid_filters_${this.base.settings.moduleId}`, event.sender);
@@ -656,23 +691,8 @@ export class Grids {
                     }
                 },
                 change: (event) => {
-                    // Retrieve the elements of the selected rows
-                    const selectedRows = event.sender.wrapper.find('tr.k-selected');
-                    
-                    // Gather field data for each selected row in the grid.
-                    const selectedData = [];
-                    selectedRows.each(function() {
-                        const row = $(this);
-                        const grid = row.closest('.k-grid').data('kendoGrid');
-                        const rowData = grid.dataItem(row);
-                        selectedData.push(rowData);
-                    });
-                    
-                    // Determine whether any of the selected items is marked to be read-only.
-                    const readOnly = selectedData.some(row => row.read_only ?? false);
-                    
                     // Invoke the grid selection change event.
-                    this.onGridSelectionChange(event, readOnly);
+                    this.onGridSelectionChange(event);
                 },
                 resizable: true,
                 sortable: true,
@@ -699,11 +719,107 @@ export class Grids {
             this.mainGrid = $("#gridView").kendoGrid(finalGridViewSettings).data("kendoGrid");
 
             if (!disableOpeningOfItems) {
-                this.mainGrid.element.on("dblclick", "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
+                // const eventType = (options.singleClickOpen ?? false) ? 'click' : 'dblclick';
+                //const eventType = this.informationBlockIframe ? 'click' : 'dblclick';
+                const eventType = this.base.settings.gridViewSettings.informationBlock ? 'click' : 'dblclick';
+                
+                this.mainGrid.element.on(eventType, "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
             }
             this.mainGrid.element.find(".k-i-refresh").parent().click(this.base.onMainRefreshButtonClick.bind(this.base));
+            
+            if (toolbarSettings && toolbarSettings.customActions && toolbarSettings.customActions.length > 0) {
+                // Retrieve all custom actions of the grid.
+                const customActions = toolbarSettings.customActions;
+                
+                // Retrieve all custom actions in the grid.
+                const contextMenuActions = customActions
+                    // Filter out any actions that do not need a row to be selected, as those are irrelevant.
+                    .filter(action => !action.allowNoSelection)
+                    // Filter out any actions that are set to not be shown in a context menu.
+                    .filter(action => action.contextMenu ?? true);
+                
+                // Only allow a context menu in the grid if there are any actions that require a row to be selected.
+                if(contextMenuActions.length > 0) {
+                    this.gridContextMenu = $('#gridContextMenu').kendoContextMenu({
+                        target: '.k-table-tbody',
+                        filter: '.k-table-row',
+                        open: event => {
+                            if(!event.event || event.event.type !== 'contextmenu')
+                                return;
+                            
+                            this.mainGrid.clearSelection();
+                            this.mainGrid.select(event.target);
+                            
+                            const dataItem = this.mainGrid.dataItem(event.target);
+                            
+                            const groupedData = [];
+                            
+                            contextMenuActions
+                                .filter(action => {
+                                    // Retrieve data of the button.
+                                    const condition = action.condition;
+                                    const roles = action.roles;
+                                    const showOnReadOnly = action.showOnReadOnly;
+                                    const minimumRows = action.minimumRows;
+                                    const maximumRows = action.maximumRows;
+                                    
+                                    // Filter out if the action button should be hidden.
+                                    return !this.shouldHideActionButton([ dataItem ], condition, roles, showOnReadOnly, minimumRows, maximumRows);
+                                })
+                                .forEach(action => {
+                                    if (!action.groupName) {
+                                        groupedData.push(createMenuItem(action));
+                                        return;
+                                    }
+
+                                    let group = groupedData.find(i => i.isGroup && i.text === action.groupName);
+
+                                    if (!group) {
+                                        group = {
+                                            isGroup: true,
+                                            text: action.groupName,
+                                            encoded: false,
+                                            items: []
+                                        };
+                                        groupedData.push(group);
+                                    }
+                                    
+                                    group.items.push(createMenuItem(action));
+                                });
+                            
+                            this.gridContextMenu.setOptions({
+                                dataSource: groupedData
+                            });
+                        },
+                        select: async event => {
+                            const item = $(event.item);
+                            
+                            const actionData = item.attr('action');
+                            if(!actionData)
+                                return;
+                            
+                            const action = JSON.parse(atob(actionData));
+
+                            await window.dynamicItems.fields.onSubEntitiesGridToolbarActionClick('#gridView', 0, 0, action, event, undefined);
+                        }
+                    }).data("kendoContextMenu");
+                    
+                    // Prepare a local function to create an item in the context menu.
+                    const createMenuItem = (action) => ({
+                        text: action.text,
+                        icon: action.icon,
+                        attr: {
+                            'action': btoa(JSON.stringify(action))
+                        }
+                    });
+                }
+            }
+            
+            // Resize the height of the grid to fill with the remainder of the space.
+            this.mainGrid.element.find('.k-grid-content').css('height', '100%');
+            window.processing.removeProcess(initialProcess);
         } catch (exception) {
-            kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals, of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals.");
             console.error(exception);
             window.processing.removeProcess(initialProcess);
         }
@@ -721,7 +837,7 @@ export class Grids {
             const dataToSave = kendo.stringify(grid.getOptions().columns);
             await this.saveGridViewState(key, dataToSave);
         } catch (exception) {
-            kendo.alert("Er is iets fout gegaan tijdens het opslaan van de instellingen voor dit grid. Probeer het nogmaals, of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het opslaan van de instellingen voor dit grid. Probeer het nogmaals.");
             console.error(exception);
         }
     }
@@ -739,7 +855,7 @@ export class Grids {
             const dataToSave = !filter ? null : kendo.stringify(filter);
             await this.saveGridViewState(key, dataToSave);
         } catch (exception) {
-            kendo.alert("Er is iets fout gegaan tijdens het opslaan van de instellingen voor dit grid. Probeer het nogmaals, of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan tijdens het opslaan van de instellingen voor dit grid. Probeer het nogmaals.");
             console.error(exception);
         }
     }
@@ -1035,7 +1151,7 @@ export class Grids {
 
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan met het initialiseren van het overzicht. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+            kendo.alert("Er is iets fout gegaan met het initialiseren van het overzicht. Probeer het a.u.b. nogmaals.");
         }
     }
 
@@ -1139,7 +1255,7 @@ export class Grids {
                             if (loader) {
                                 loader.removeClass("loading");
                             }
-                            kendo.alert("Er is iets fout gegaan tijdens het laden van het veld '{title}'. Probeer het a.u.b. nogmaals door de pagina te verversen, of neem contact op met ons.");
+                            kendo.alert("Er is iets fout gegaan tijdens het laden van het veld '{title}'. Probeer het a.u.b. nogmaals door de pagina te verversen.");
                             transportOptions.error(exception);
                         }
                     }
@@ -1212,7 +1328,7 @@ export class Grids {
         });
 
         if (!options.disableOpeningOfItems) {
-            element.on("dblclick", "tbody tr[data-uid] td", (event) => { this.onShowDetailsClick(event, kendoGrid, options); });
+            element.on('dblclick', "tbody tr[data-uid] td", (event) => { this.onShowDetailsClick(event, kendoGrid, options); });
         }
 
         if (!options.allowMultipleRows) {
@@ -1384,7 +1500,7 @@ export class Grids {
 
         if (options.fromMainGrid && this.base.settings.openGridItemsInBlock) {
             this.base.grids.informationBlockIframe.attr("loading", "eager");
-            this.base.grids.informationBlockIframe.attr("src", `${"/Modules/DynamicItems"}?itemId=${encryptedId}&moduleId=${this.base.settings.moduleId}&iframe=true`);
+            this.base.grids.informationBlockIframe.attr("src", `/Modules/DynamicItems?itemId=${encryptedId}&entityType=${entityType}&moduleId=${this.base.settings.moduleId}&iframe=true`);
             return;
         }
 
@@ -1400,7 +1516,7 @@ export class Grids {
                 if (split.length < 2 && !entityType) {
                     if (!options.hideCommandColumn && (!this.base.settings.gridViewSettings || !this.base.settings.gridViewSettings.hideCommandColumn)) {
                         console.error(`Could not retrieve entity type from clicked column ('${column.field}')`);
-                        kendo.alert("Er is geen entiteittype gevonden voor de aangeklikte kolom. Neem a.u.b. contact op met ons.");
+                        kendo.alert("Er is geen entiteittype gevonden voor de aangeklikte kolom.");
                     }
 
                     return;
@@ -1444,7 +1560,7 @@ export class Grids {
 
             if (!encryptedId) {
                 if (!options.hideCommandColumn && (!this.base.settings.gridViewSettings || !this.base.settings.gridViewSettings.hideCommandColumn)) {
-                    kendo.alert("Er is geen encrypted ID gevonden. Neem a.u.b. contact op met ons.");
+                    kendo.alert("Er is geen encrypted ID gevonden.");
                 }
                 return;
             }
@@ -1452,7 +1568,7 @@ export class Grids {
             if (!title || !itemId || !entityType) {
                 const itemDetails = (await this.base.getItemDetails(encryptedId, entityType));
                 if (!itemDetails) {
-                    kendo.alert("Er is geen item gevonden met het id in de geselecteerde regel. Waarschijnlijk is dit geen geldig ID. Neem a.u.b. contact op met ons.");
+                    kendo.alert("Er is geen item gevonden met het id in de geselecteerde regel. Waarschijnlijk is dit geen geldig ID.");
                     return;
                 }
 
@@ -1463,7 +1579,7 @@ export class Grids {
         }
 
         if (!encryptedId) {
-            kendo.alert("Er is geen encrypted ID gevonden. Neem a.u.b. contact op met ons.");
+            kendo.alert("Er is geen encrypted ID gevonden.");
             return;
         }
 
@@ -1574,7 +1690,7 @@ export class Grids {
             } else if (exception.statusText) {
                 error = exception.statusText;
             }
-            kendo.alert(`Er is iets fout gegaan met het aanmaken van het item. Probeer het a.u.b. nogmaals of neem contact op met ons.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
+            kendo.alert(`Er is iets fout gegaan met het aanmaken van het item. Probeer het a.u.b. nogmaals.<br><br>De fout was:<br><pre>${kendo.htmlEncode(error)}</pre>`);
         }
 
         if (senderGrid) {
@@ -1607,7 +1723,7 @@ export class Grids {
             const itemId = dataItem[`ID_${options.entityType}`] || dataItem[`id_${options.entityType}`] || dataItem[`itemId_${options.entityType}`] || dataItem[`itemid_${options.entityType}`] || dataItem[`item_id_${options.entityType}`];
 
             if (!itemId) {
-                kendo.alert(`Er is geen encrypted ID gevonden voor dit item. Neem a.u.b. contact op met ons.`);
+                kendo.alert(`Er is geen encrypted ID gevonden voor dit item.`);
                 return;
             }
 
@@ -1645,12 +1761,16 @@ export class Grids {
                                         });
                                     } catch (exception) {
                                         console.error(exception);
-                                        if (exception.status === 409) {
-                                            const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
-                                            kendo.alert(message);
-                                        } else {
-                                            kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+
+                                        let message = exception.responseText;
+                                        if(!message) {
+                                            switch(exception.status) {
+                                                case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
+                                                default: message = "Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het nogmaals."; break;
+                                            }
                                         }
+
+                                        kendo.alert(message);
                                     }
                                 }
                             },
@@ -1680,12 +1800,16 @@ export class Grids {
                         await this.base.deleteItem(dataItem.encryptedId || dataItem.encrypted_id || dataItem.encryptedid, options.entityType);
                     } catch (exception) {
                         console.error(exception);
-                        if (exception.status === 409) {
-                            const message = exception.responseText || "Het is niet meer mogelijk om dit item te verwijderen.";
-                            kendo.alert(message);
-                        } else {
-                            kendo.alert("Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+
+                        let message = exception.responseText;
+                        if(!message) {
+                            switch(exception.status) {
+                                case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
+                                default: message = "Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het nogmaals."; break;
+                            }
                         }
+
+                        kendo.alert(message);
                     }
                     senderGrid.dataSource.read();
                     break;
@@ -1758,7 +1882,7 @@ export class Grids {
      */
     async onClearAllFiltersClick(event, queryId = null) {
         event.preventDefault();
-
+		
         const grid = $(event.target).closest(".k-grid").data("kendoGrid");
         if (!grid) {
             console.error("Grid not found, cannot clear filters.", event, $(event.target).closest(".k-grid"));
@@ -1781,9 +1905,6 @@ export class Grids {
 
         // Clear filters.
         grid.dataSource._filter = undefined;
-        
-        // Mark the grid to be first-load after changing filters.
-        this.mainGridFirstLoad = true;
         
         // Reload overview.
         grid.dataSource.read();
@@ -1833,70 +1954,32 @@ export class Grids {
      * @param {boolean} readOnly - Whether the contextual item is read-only and should not show action buttons if they
      * are supposed to be hidden if the item is read-only.
      */
-    async onGridSelectionChange(event, readOnly = false) {
+    async onGridSelectionChange(event, readOnly = undefined) {
         // Check based on given condition to hide.
         const conditionalButtons = event.sender.wrapper.find('.k-button.hide-when-no-selected-rows');
 
         // Retrieve the elements of the selected rows
-        const selectedRows = event.sender.wrapper.find('tr.k-table-row.k-selected');
-
-        // Gather field data for each selected row in the grid.
-        const selectedData = [];
-        selectedRows.each(function() {
-            const row = $(this);
-            const grid = row.closest('.k-grid').data('kendoGrid');
-            const rowData = grid.dataItem(row);
-            selectedData.push(rowData);
-        });
+        const grid = event.sender;
+        const selectedData = grid.select().get().map(row => grid.dataItem(row).toJSON());
         
-        conditionalButtons.each(async function () {
+        // Determine whether any of the selected items are set to be readonly.
+        if(readOnly === undefined)
+            readOnly = selectedData.some(entry => !!entry[Object.keys(entry).find(key => key.toLowerCase() === 'readonly')]);
+        
+        // Store the context of this so it can be used in function scopes.
+        const that = this;
+        
+        conditionalButtons.each(function() {
             // Retrieve data of the button.
             const button = $(this);
             const condition = button.data('condition');
             const roles = button.data('roles');
             const showOnReadOnly = button.data('show-on-read-only');
-            const minimumRows = button.data('minimum-rows') ?? 0;
-            const maximumRows = button.data('maximum-rows') ?? Number.MAX_VALUE;
+            const minimumRows = button.data('minimum-rows');
+            const maximumRows = button.data('maximum-rows');
             
-            // Do not hide buttons by default.
-            let shouldHide = false;
-            
-            // Conditional check.
-            if(condition) {
-                const decodedCondition = Misc.decodeHtml(condition);
-
-                // Evaluate the condition for every selected row in the grid.
-                shouldHide = !selectedData.every(function(element, index, array) {
-                    const parameterNames = Object.keys(element);
-                    const parameterValues = Object.values(element);
-
-                    const func = new Function(...parameterNames, `return ${decodedCondition}`);
-                    return func(...parameterValues);
-                });
-            }
-            
-            // Roles check.
-            if(!shouldHide && roles) {
-                // Retrieve the user data from the local storage.
-                const userDataString = localStorage.getItem('userData');
-                const userData = userDataString ? JSON.parse(userDataString) : [];
-                // Retrieve the role from the user data.
-                const userRole = userData.role;
-                
-                // Check whether the user's role is required by the action button.
-                const rolesArray = roles.split(',');
-                shouldHide = !rolesArray.includes(userRole);
-            }
-            
-            // Check whether any of the selected rows is set to be read-only and should be hidden.
-            if(!shouldHide)
-                shouldHide = !showOnReadOnly && readOnly;
-            
-            // Check whether the user has selected more or less than the allowed rows selected of the action button.
-            if(!shouldHide) {
-                const selectedRowsAmount = selectedRows.length;
-                shouldHide = selectedRowsAmount < minimumRows || selectedRowsAmount > maximumRows;
-            }
+            // Determine whether the action button should be hidden or not.
+            const shouldHide = that.shouldHideActionButton(selectedData, condition, roles, showOnReadOnly, minimumRows, maximumRows, readOnly);
 
             // Show or hide the action button based on the evaluated condition or default value.
             button.toggleClass('hidden', shouldHide || event.sender.select().length === 0);
@@ -1908,6 +1991,54 @@ export class Grids {
             const totalAmountOfButtons = buttonGroupElement.find("a.k-button:not(.hidden)").length;
             buttonGroupElement.toggleClass("hidden", totalAmountOfButtons === 0);
         }
+    }
+
+    /**
+     * 
+     */
+    shouldHideActionButton(dataItems, condition = undefined, roles = undefined, showOnReadOnly = undefined, minimumRows = undefined, maximumRows = undefined, readOnly = false) {
+        // Do not hide buttons by default.
+        let shouldHide = false;
+        
+        // Conditional check.
+        if(condition !== undefined) {
+            const decodedCondition = Misc.decodeHtml(condition);
+
+            // Evaluate the condition for every selected row in the grid.
+            shouldHide = !dataItems.every(function(element, index, array) {
+                const parameterNames = Object.keys(element);
+                const parameterValues = Object.values(element);
+
+                const func = new Function(...parameterNames, `return ${decodedCondition}`);
+                return func(...parameterValues);
+            });
+        }
+
+        // Roles check.
+        if(!shouldHide && roles !== undefined) {
+            // Retrieve the user data from the local storage.
+            const userDataString = localStorage.getItem('userData');
+            const userData = userDataString ? JSON.parse(userDataString) : [];
+            // Retrieve the role from the user data.
+            const userRole = userData.role;
+
+            // Check whether the user's role is required by the action button.
+            const rolesArray = roles.split(',');
+            shouldHide = !rolesArray.includes(userRole);
+        }
+
+        // Check whether any of the selected rows is set to be read-only and should be hidden.
+        if(!shouldHide && showOnReadOnly !== undefined)
+            shouldHide = !showOnReadOnly && readOnly;
+
+        // Check whether the user has selected more or less than the allowed rows selected of the action button.
+        if(!shouldHide && (minimumRows !== undefined || maximumRows !== undefined)) {
+            const selectedRowsAmount = dataItems.length;
+            shouldHide = selectedRowsAmount < minimumRows && selectedRowsAmount > maximumRows;
+        }
+        
+        // Return whether to hide the action button or not.
+        return shouldHide;
     }
 
     /**

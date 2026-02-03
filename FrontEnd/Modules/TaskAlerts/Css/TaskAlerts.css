@@ -19,6 +19,7 @@ html, body {
     overflow: hidden;
     padding: 10px;
     padding-top: 45px;
+    max-height: 100vh;
 }
 
     #taskList > li {

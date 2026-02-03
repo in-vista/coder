@@ -248,14 +248,27 @@ dd {
 	float: left;
 }
 .item-group {
+	/*
 	width: 100%;
 	display: flex;
 	flex-wrap: wrap;
 	padding: 20px 0;
 	border-bottom: 2px solid var(--white-color);
+	*/
+	width: 100%;
+	display: flex;
+	flex-wrap: wrap;
+	border-bottom: 3px solid var(--white-color);
+	margin: 10px 10px;
+	padding: 5px;
+	border: 1px solid rgba(0, 0, 0, .10);
+	border-radius: 12px;
+	background: #EAEDF0;
+	box-shadow: 0 1px 8px rgba(0, 0, 0, .06);
 }
 
 .item-group h3 {
+	/*
 	color: var(--primary-color);
 	display: block;
 	padding: 6px 8px;
@@ -264,6 +277,19 @@ dd {
 	font-weight: 500;
 	width: 100%;
 	margin-bottom: 10px;
+	 */
+	display: block;
+	color: var(--custom-color);
+	width: calc(100% + 11px);
+	border: 1px solid rgba(0, 0, 0, .08);
+	margin: -6px -5px 10px;
+	padding: 10px 10px;
+	font-size: 16px;
+	font-weight: 700;
+	line-height: 1.2;
+	border-bottom: 1px solid rgba(0, 0, 0, .10);
+	background: rgba(0, 0, 0, .03);
+	border-radius: 12px 12px 0 0;
 }
 .item {
 	border: none;
@@ -276,7 +302,6 @@ dd {
 }
 .item-window-actions {
 	display: flex;
-	width: 100%;
 	gap: 8px;
 	margin: 8px;
 }
@@ -552,7 +577,7 @@ dd {
 }
 .info-panel {
 	overflow-y: auto;
-	max-height: 100%;
+	max-height: calc(100% - 68px);
 	padding: 0 30px 20px 30px;
 }
 
@@ -802,6 +827,11 @@ dd {
 	width: 100%;
 	z-index: 10;
 	margin-top: 5px;
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding-right: 20px;
 }
 .item[data-label-style="float"] h4 + * {
 	width: 100%;
@@ -847,9 +877,12 @@ dd {
 	padding-top: 20px;
 }
 .item[data-label-style="float"] .readOnlyValue,
-.item[data-label-style="float"] .k-colorpicker,
+/*.item[data-label-style="float"] .k-colorpicker,*/
 .item[data-label-style="float"] .k-widget > textarea {
 	padding-top: 20px;
+}
+.item[data-label-style="float"] .k-colorpicker {
+	padding-top: 14px;
 }
 .item[data-label-style="float"] span.k-input .k-datetimepicker,
 .item[data-label-style="float"] span.k-input .k-numerictextbox,
@@ -1258,7 +1291,7 @@ footer input ~ .meta-data li.meta-toggle label span:last-child {
 		right: 0;
 		bottom: 0;
 	}
-	.formview.full .item, .item {
+	.formview.full :not(.item-window-actions) > .item, :not(.item-window-actions) > .item {
 		min-width: 50%;
 	}
 
@@ -1270,9 +1303,20 @@ footer input ~ .meta-data li.meta-toggle label span:last-child {
 	footer {
 		flex-wrap: wrap;
 	}
+	
+	.k-window.k-window-maximized {
+		margin-left: unset !important;
+		margin-right: unset !important;
+		top: 10px;
+		right: 10px;
+		bottom: 10px;
+		left: 10px;
+        width: unset !important;
+        max-width: unset !important;
+	}
 }
 @media screen and (max-width: 800px) {
-	.formview.full .item, .item {
+	.formview.full :not(.item-window-actions) > .item, :not(.item-window-actions) > .item {
 		min-width: 100%;
 	}
 }

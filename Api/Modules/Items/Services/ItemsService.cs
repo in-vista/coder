@@ -1164,7 +1164,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         "doesnotendwith" => !row[fieldName].ToString()?.EndsWith(fieldValue) ?? false,
                         "contains" => row[fieldName].ToString()?.Contains(fieldValue) ?? false,
                         "doesnotcontain" => !row[fieldName].ToString()?.Contains(fieldValue) ?? false,
-                        _ => false
+                        // Default to the "contains" filter functionality.
+                        _ => row[fieldName].ToString()?.Contains(fieldValue) ?? false
                     };
 
                     dataTableEnumerable = dataTableEnumerable.Where(row => filterPredicate(row)).ToList();
@@ -2108,6 +2109,10 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             result.ChangedBy = dataTable.Rows[0].Field<string>("changed_by");
             result.EnableMultipleEnvironments = Convert.ToBoolean(dataTable.Rows[0]["enable_multiple_environments"]);
             result.DeleteAction = dataTable.Rows[0].Field<string>("delete_action");
+            
+            // Fallback for entity type.
+            if (string.IsNullOrEmpty(result.EntityType))
+                result.EntityType = entityType;
 
             return new ServiceResult<ItemMetaDataModel>(result);
         }
@@ -2322,25 +2327,17 @@ SELECT entity_type FROM {tableName}_archive WHERE id = ?itemId";
             }
 
             // Fix ordering for wiser_item.
-            query = $@"SET @orderingNumber = 0;
-                    UPDATE {WiserTableNames.WiserItem} AS item
-                    JOIN (
-                        SELECT
-    	                    x.id,
-    	                    (@orderingNumber := @orderingNumber + 1) AS ordering
-                        FROM (
-                            SELECT
-                                item.id
-                            FROM {WiserTableNames.WiserItem} AS item
-                            WHERE item.parent_item_id = ?parentId
-                            {moduleIdClause}
-		                    GROUP BY IF(item.original_item_id > 0, item.original_item_id, item.id)
-                            ORDER BY item.ordering ASC
-                        ) AS x
-                    ) AS ordering ON ordering.id = item.id
-                    SET item.ordering = ordering.ordering
-                    WHERE item.parent_item_id = ?parentId
-                    {moduleIdClause}";
+            query = $@"
+SELECT
+    item.id,
+    ROW_NUMBER() OVER (ORDER BY item.ordering ASC) AS new_ordering
+FROM {WiserTableNames.WiserItem} AS item
+WHERE item.parent_item_id = ?parentId
+{moduleIdClause}
+GROUP BY 
+    IF(item.original_item_id > 0, item.original_item_id, item.id),
+    item.id
+ORDER BY item.ordering ASC";
             await clientDatabaseConnection.ExecuteAsync(query);
 
             query = $@"UPDATE {WiserTableNames.WiserItem} AS item 

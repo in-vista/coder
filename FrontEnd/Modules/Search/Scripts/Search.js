@@ -324,7 +324,7 @@ const moduleSettings = {
                 this.resultsGrid.setDataSource(searchResults.data);
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan tijdens het zoeken. Probeer het a.u.b. nogmaals of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan tijdens het zoeken. Probeer het a.u.b. nogmaals.");
                 container.removeClass("loading");
             }
         }

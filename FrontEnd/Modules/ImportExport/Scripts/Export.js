@@ -214,7 +214,7 @@ const exportModuleSettings = {
 
             if (result.status !== 200) {
                 const error = await result.text();
-                kendo.alert(`Er is iets fout gegaan met het exporteren. Probeer het a.u.b. nogmaals of neem contact op met ons.<br>De fout was:<br>${error}`);
+                kendo.alert(`Er is iets fout gegaan met het exporteren. Probeer het a.u.b. nogmaals.<br>De fout was:<br>${error}`);
             }
             else {
                 await Misc.downloadFile(result, fileName);
@@ -312,7 +312,7 @@ const exportModuleSettings = {
                 }
             } catch (exception) {
                 console.error(exception);
-                kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw of neem contact op met ons.");
+                kendo.alert("Er is iets fout gegaan. Probeer het a.u.b. opnieuw.");
             }
 
             window.processing.removeProcess(process);

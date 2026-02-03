@@ -1369,11 +1369,11 @@ div.k-filebrowser-dropzone em {
 
 .k-window.k-window-maximized {
     border-radius: var(--large-radius);
-    top: 10px !important;
-    left: 10px !important;
-    bottom: 10px !important;
-    width: calc(100% - 20px) !important;
-    height: auto !important;
+    top: 10px;
+    left: 10px;
+    bottom: 10px;
+    width: calc(100% - 20px);
+    height: auto;
 }
 
 .k-window-maximized .k-window-titlebar,

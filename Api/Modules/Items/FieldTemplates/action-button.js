@@ -40,10 +40,18 @@
     )
         field.closest('.item').hide();
     
+    // Retrieve the button container.
+    const item = field.closest('.item');
+    
+    // Set the width of the container.
+    const width = {width};
+    item.css({
+        width: width ? `${width}%` : 'fit-content'
+    });
+    
     // Move the action button to the header if set to be so.
     if(options.header) {
-        // Retrieve the button container, button and icon.
-        const item = field.closest('.item');
+        // Retrieve the button and icon.
         const button = item.find('.k-button');
         const icon = button.find('.k-icon');
         

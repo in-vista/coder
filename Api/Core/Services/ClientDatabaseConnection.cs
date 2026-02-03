@@ -105,6 +105,12 @@ namespace Api.Core.Services
         {
             return ConnectionForReading;
         }
+        
+        /// <inheritdoc />
+        public string GetConnectionStringForReading() => ConnectionForReading?.ConnectionString;
+        
+        /// <inheritdoc />
+        public string GetConnectionStringForWriting() => ConnectionForReading?.ConnectionString;
 
         /// <inheritdoc />
         public Task<int> BulkInsertAsync(DataTable dataTable, string tableName, bool useWritingConnectionIfAvailable = true, bool useInsertIgnore = false)
@@ -117,6 +123,15 @@ namespace Api.Core.Services
 
         /// <inheritdoc />
         public string ConnectedDatabaseForWriting { get; protected set; }
+        
+        /// <inheritdoc/>
+        public async Task<T> ExecuteScalarAsync<T>(string query)
+        {
+            DbDataReader reader = await GetReaderAsync(query);
+            T value = await reader.ReadAsync() ? reader.GetFieldValue<T>(0) : default;
+            await reader.CloseAsync();
+            return value;
+        }
 
         /// <summary>
         /// Get whether or not the current sub domain is empty or the sub domain of the main Wiser database.
