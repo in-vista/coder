@@ -313,12 +313,24 @@ const moduleSettings = {
 
             // Keyboard shortcuts
             $("body").on("keydown", async (event) => {
-                const target = $(event.target);
-
                 if ((event.ctrlKey || event.metaKey) && event.key.toUpperCase() === "S") {
                     event.preventDefault();
 
-                    const entityContainer = target.closest(".entity-container");
+                    const elements = $('#right-pane, .k-window').toArray();
+                    let target = null;
+
+                    elements.forEach(el => {
+                        const rect = el.getBoundingClientRect();
+                        const x = rect.left + rect.width / 2;
+                        const y = rect.top + rect.height / 2;
+
+                        const topAtPoint = document.elementFromPoint(x, y);
+
+                        if (topAtPoint === el || el.contains(topAtPoint))
+                            target = $(el);
+                    });
+
+                    const entityContainer = target.find(".entity-container");
                     if (entityContainer.length > 0) {
                         entityContainer.find(".saveButton:not(.saveAndCloseBottomPopup)").first().click();
                     }
