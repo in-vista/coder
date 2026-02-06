@@ -10,7 +10,7 @@ jobs:
   backup:
     strategy:
       matrix:
-        runner: [cluster1_transip, cluster3_transip]
+        runner: [cluster1_transip, cluster3_transip, cluster4_transip]
     runs-on: ${{ matrix.runner }}
     environment: Production
 
@@ -59,7 +59,7 @@ jobs:
   build-icl:
     strategy:
       matrix:
-        runner: [cluster1_transip, cluster3_transip]
+        runner: [cluster1_transip, cluster3_transip, cluster4_transip]
     runs-on: ${{ matrix.runner }}
     environment: Production
     needs: [ backup ]
@@ -94,7 +94,7 @@ jobs:
   build-coder:
     strategy:
       matrix:
-        runner: [cluster1_transip, cluster3_transip]
+        runner: [cluster1_transip, cluster3_transip, cluster4_transip]
     runs-on: ${{ matrix.runner }}
     environment: Production
     needs: [build-icl]
@@ -174,7 +174,7 @@ jobs:
   clear-backup:
     strategy:
       matrix:
-        runner: [cluster1_transip, cluster3_transip]
+        runner: [cluster1_transip, cluster3_transip, cluster4_transip]
     runs-on: ${{ matrix.runner }}
     environment: Production
     needs: [build-coder]

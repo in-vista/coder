@@ -8,7 +8,10 @@ on:
 
 jobs:
   backup:
-    runs-on: cluster1_transip
+    strategy:
+      matrix:
+        runner: [cluster1_transip, cluster3_transip, cluster4_transip]
+    runs-on: ${{ matrix.runner }}
     environment: Development
 
     steps:
@@ -54,7 +57,10 @@ jobs:
           Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*" -Destination "$env:FOLDER_PATH_FRONT_END" -Recurse -Force
         }
   build-icl:
-    runs-on: cluster1_transip
+    strategy:
+      matrix:
+        runner: [cluster1_transip, cluster3_transip, cluster4_transip]
+    runs-on: ${{ matrix.runner }}
     environment: Development
     needs: [ backup ]
 
@@ -85,7 +91,10 @@ jobs:
     - name: Copy files to destination folder
       run: Copy-Item -Path "${{ secrets.WORKER_LOCATION }}\coder\coder\invista-core-library\*" -Destination "C:\invista-core-library" -Recurse
   build-coder:
-    runs-on: cluster1_transip
+    strategy:
+      matrix:
+        runner: [cluster1_transip, cluster3_transip, cluster4_transip]
+    runs-on: ${{ matrix.runner }}
     environment: Development
     needs: [build-icl]
 
@@ -162,7 +171,10 @@ jobs:
         Remove-Item ([IO.Path]::Combine("${{ secrets.PUBLISH_LOCATION_FRONT_END }}", "App_Offline.htm"))
       
   clear-backup:
-    runs-on: cluster1_transip
+    strategy:
+      matrix:
+        runner: [cluster1_transip, cluster3_transip, cluster4_transip]
+    runs-on: ${{ matrix.runner }}
     environment: Development
     needs: [build-coder]
 

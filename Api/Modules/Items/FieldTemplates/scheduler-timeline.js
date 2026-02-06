@@ -83,6 +83,11 @@
                 this.currentDate.setDate(this.currentDate.getDate() + 1);
                 this.updateDateDisplay();
             });
+
+            document.getElementById("today-button").addEventListener("click", () => {
+                this.currentDate = new Date();
+                this.updateDateDisplay();
+            });
     
             document.getElementById("refresh-button").addEventListener("click", () => {
                 this.updateDateDisplay();
@@ -455,7 +460,7 @@
                 const quarter = Math.floor(minutes / 15); // Bereken het kwartier (0 = 00-14, 1 = 15-29, 2 = 30-44, 3 = 45-59)
                 const quarterLabel = `${now.getHours().toString().padStart(2,'0')}:${(quarter*15).toString().padStart(2,'0')}`; // bv. "13:00", "13:15"
                 const element = Array.from(document.querySelectorAll(".timeLabel")).find(el => el.innerText === quarterLabel);
-                element.classList.add("activeTime");
+                if (element) element.classList.add("activeTime");
             }
             else {
                 // For timeline view
