@@ -491,6 +491,9 @@ class Main {
                 tenantTitle() {
                     return this.$store.state.tenants.title;
                 },
+                tenantOptions() {
+                    return this.$store.state.tenants.options;
+                },
                 validSubDomain() {
                     return this.$store.state.tenants.validSubDomain;
                 },

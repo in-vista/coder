@@ -10,9 +10,15 @@ public class TenantOptions
     [JsonProperty("foreground_color")]
     public string ForegroundColor { get; set; } = "#2F2F2F";
     
+    [JsonProperty("background_color")]
+    public string BackgroundColor { get; set; } = "#F8F8F8";
+    
     [JsonProperty("primary_color")]
     public string PrimaryColor { get; set; } = "#031B53";
     
     [JsonProperty("secondary_color")]
     public string SecondaryColor { get; set; } = "#FFFFFF";
+    
+    [JsonProperty("icon_color")]
+    public string IconColor { get; set; } = "#FFFFFF";
 }

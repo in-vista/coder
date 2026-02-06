@@ -10,7 +10,7 @@
     <div :class="{ 'loading': mainLoader }">
         <div v-if="user.loggedIn" id="coder-menu">
             <div id="logo-container">
-                <img src="img/logo-coder.png" alt="logo"/>
+                <img v-if="tenantOptions" :src="tenantOptions.logo" alt="logo"/>
             </div>
             <div id="modules" class="coder-menu-group">
                 <template v-for="moduleGroup in [ ...pinnedModuleGroups, ...moduleGroups ]" :key="moduleGroup.name">
@@ -89,7 +89,7 @@
             </div>
             <main :class="{ login: !user.loggedIn || requirePasswordChange, 'scrollable': tenantManagementIsOpened }">
                 <div v-if="user.loggedIn && openedModules.length === 0" class="logo-ghost-container">
-                    <img class="logo-ghost" src="img/logo-coder.png" alt="logo"/>
+                    <img v-if="tenantOptions" class="logo-ghost" :src="tenantOptions.logo" alt="logo"/>
                 </div>
                 <p v-if="user.loggedIn && !mainLoader && !hasModules">Voor deze gebruiker zijn geen modules beschikbaar.</p>
                 <login v-bind:sub-domain="appSettings.subDomain" v-if="!user.loggedIn || requirePasswordChange" ref="login"></login>

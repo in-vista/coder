@@ -698,6 +698,13 @@ const tenantsModule = {
 
         [GET_TENANT_OPTIONS](state, options) {
             state.options = options;
+            
+            const documentStyle = document.documentElement.style;
+            documentStyle.setProperty('--coder-foreground-color', options.foreground_color);
+            documentStyle.setProperty('--coder-background-color', options.background_color);
+            documentStyle.setProperty('--coder-primary-color', options.primary_color);
+            documentStyle.setProperty('--coder-secondary-color', options.secondary_color);
+            documentStyle.setProperty('--coder-icon-color', options.icon_color);
         },
 
         [VALID_SUB_DOMAIN](state, valid) {
