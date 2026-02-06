@@ -44,15 +44,15 @@
                         <p class="coder-menu-item-popout-title"><strong>Welkom</strong> <span class="coder-highlight">{{ user.name }}</span>.</p>
                         <div class="coder-menu-item-popout-items">
                             <div v-if="!!markerWidget" class="coder-menu-item-popout-item">
-                                <div class="coder-menu-item-popout-item-content hover">
+                                <div @@click="openMarkerIoScreen" class="coder-menu-item-popout-item-content hover">
                                     <i class="mdi mdi-size-2 mdi-bug"></i>
-                                    <span @@click="openMarkerIoScreen">Bug melden</span>
+                                    <span >Bug melden</span>
                                 </div>
                             </div>
                             <div class="coder-menu-item-popout-item">
-                                <div class="coder-menu-item-popout-item-content hover">
+                                <div @@click="logout" class="coder-menu-item-popout-item-content hover">
                                     <i class="mdi mdi-size-2 mdi-logout"></i>
-                                    <span @@click="logout">Uitloggen</span>
+                                    <span>Uitloggen</span>
                                 </div>
                             </div>
                         </div>
