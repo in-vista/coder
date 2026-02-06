@@ -704,6 +704,7 @@ const tenantsModule = {
             documentStyle.setProperty('--coder-background-color', options.background_color);
             documentStyle.setProperty('--coder-primary-color', options.primary_color);
             documentStyle.setProperty('--coder-secondary-color', options.secondary_color);
+            documentStyle.setProperty('--coder-tertiary-color', options.tertiary_color);
             documentStyle.setProperty('--coder-icon-color', options.icon_color);
         },
 

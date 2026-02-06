@@ -19,6 +19,9 @@ public class TenantOptions
     [JsonProperty("secondary_color")]
     public string SecondaryColor { get; set; } = "#FFFFFF";
     
+    [JsonProperty("tertiary_color")]
+    public string TertiaryColor { get; set; } = "#23CAAB";
+    
     [JsonProperty("icon_color")]
     public string IconColor { get; set; } = "#FFFFFF";
 }
