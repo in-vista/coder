@@ -135,7 +135,7 @@
         var editable;
         if (readonly === true) {
             editable = false;
-        } else if (options.editable) {
+        } else if (options.editable !== undefined) {
             editable = options.editable;
         } else if (options.fieldGroupName) {
             editable = "incell";
