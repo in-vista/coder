@@ -83,8 +83,8 @@ jobs:
             run: |
                 $backupPath = "C:\backups"
 
-                $baseApi = Split-Path -Path $env:FOLDER_PATH_API -Leaf
-                $baseFrontend = Split-Path -Path $env:FOLDER_PATH_FRONT_END -Leaf
+                $baseApi = Split-Path -Path $env:PUBLISH_LOCATION_API -Leaf
+                $baseFrontend = Split-Path -Path $env:PUBLISH_LOCATION_FRONT_END -Leaf
                 
                 $folderPathApi = [IO.Path]::Combine(
                 $backupPath,
