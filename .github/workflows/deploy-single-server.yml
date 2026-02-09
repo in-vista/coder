@@ -77,11 +77,14 @@ jobs:
                 "datetime=$dateTime" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
             
           - name: Create backup folders
+            env:
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
             run: |
                 $backupPath = "C:\backups"
 
-                $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
-                $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
+                $baseApi = Split-Path -Path $env:FOLDER_PATH_API -Leaf
+                $baseFrontend = Split-Path -Path $env:FOLDER_PATH_FRONT_END -Leaf
                 
                 $folderPathApi = [IO.Path]::Combine(
                 $backupPath,
@@ -102,14 +105,17 @@ jobs:
                 "FOLDER_PATH_FRONT_END=$folderPathFrontend" | Out-File -FilePath $env:GITHUB_ENV -Append
 
           - name: Copy contents to backup folder
+            env:
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
             shell: powershell
             run: |
-                if (Test-Path "${{ secrets.PUBLISH_LOCATION_API }}") {
-                Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\*" -Destination "$env:FOLDER_PATH_API" -Recurse -Force
+                if (Test-Path $env:PUBLISH_LOCATION_API) {
+                Copy-Item -Path "$env:PUBLISH_LOCATION_API\*" -Destination $env:FOLDER_PATH_API -Recurse -Force
                 }
 
-                if (Test-Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}") {
-                Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*" -Destination "$env:FOLDER_PATH_FRONT_END" -Recurse -Force
+                if (Test-Path $env:PUBLISH_LOCATION_FRONT_END) {
+                Copy-Item -Path "$env:PUBLISH_LOCATION_FRONT_END\*" -Destination $env:FOLDER_PATH_FRONT_END -Recurse -Force
                 }
 
           - name: Checkout
@@ -136,7 +142,9 @@ jobs:
                 }
 
           - name: Copy files to destination folder
-            run: Copy-Item -Path "${{ secrets.WORKER_LOCATION }}\coder\coder\invista-core-library\*" -Destination "C:\invista-core-library" -Recurse
+            env:
+              WORKER_LOCATION: ${{ secrets.WORKER_LOCATION }}
+            run: Copy-Item -Path "$env:WORKER_LOCATION\coder\coder\invista-core-library\*" -Destination "C:\invista-core-library" -Recurse
 
           - name: Checkout
             uses: actions/checkout@v4
@@ -148,7 +156,10 @@ jobs:
             working-directory: coder
 
           - name: Copy partner styles
-            run: Copy-Item -Path "${{ secrets.PARTNER_STYLES_LOCATION }}\*" -Destination "${{ secrets.WORKER_LOCATION }}\coder\coder\coder\FrontEnd\Core\Css\partner" -Recurse
+            env:
+              PARTNER_STYLES_LOCATION: ${{ secrets.PARTNER_STYLES_LOCATION }}
+              WORKER_LOCATION: ${{ secrets.WORKER_LOCATION }}
+            run: Copy-Item -Path "$env:PARTNER_STYLES_LOCATION\*" -Destination "$env:WORKER_LOCATION\coder\coder\coder\FrontEnd\Core\Css\partner" -Recurse
 
           - name: Build
             run: dotnet build --no-restore
@@ -159,8 +170,10 @@ jobs:
             working-directory: 'coder/FrontEnd'
 
           - name: Write Kendo UI license to file
+            env:
+              KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
             run: |
-                [System.IO.File]::WriteAllText("telerik-license.txt", "${{ secrets.KENDO_UI_LICENSE }}", [System.Text.Encoding]::UTF8)
+                [System.IO.File]::WriteAllText("telerik-license.txt", $env:KENDO_UI_LICENSE, [System.Text.Encoding]::UTF8)
             shell: powershell
             working-directory: coder/FrontEnd
 
@@ -191,17 +204,24 @@ jobs:
             working-directory: coder
 
           - name: Copy API to IIS folder
-            run: Copy-Item -Path "${{ github.workspace }}\publish\API\*" -Destination "${{ secrets.PUBLISH_LOCATION_API }}" -Recurse -Force
+            env:
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+            run: Copy-Item -Path "${{ github.workspace }}\publish\API\*" -Destination $env:PUBLISH_LOCATION_API -Recurse -Force
 
           - name: Copy FrontEnd to IIS folder
-            run: Copy-Item -Path "${{ github.workspace }}\publish\FrontEnd\*" -Destination "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Recurse -Force
+            env:
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
+            run: Copy-Item -Path "${{ github.workspace }}\publish\FrontEnd\*" -Destination $env:PUBLISH_LOCATION_FRONT_END -Recurse -Force
 
           - name: Remove backups older than 30 days
+            env:
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
             run: |
                 $backupPath = "C:\backups"
 
-                $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
-                $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
+                $baseApi = Split-Path -Path $env:PUBLISH_LOCATION_API -Leaf
+                $baseFrontend = Split-Path -Path $env:PUBLISH_LOCATION_FRONT_END -Leaf
 
                 $projects = @($baseApi, $baseFrontend)
 
