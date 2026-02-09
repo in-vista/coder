@@ -31,22 +31,25 @@ jobs:
           - name: Disable Cloudflare origin
             shell: powershell
             env:
-              SELECTED_ORIGIN: ${{ inputs.cloudflare_origin_id }}
+              CLOUDFLARE_API_KEY: ${{ secrets.cloudflare_api_key }}
+              ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
+              POOL_ID: ${{ inputs.cloudflare_pool_id }}
+              ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
             run: |
               $headers = @{
-                "Authorization" = "Bearer ${{ secrets.cloudflare_api_key }}
-                "Content-Type"  = "application/json"
+                  Authorization = "Bearer $($env:CLOUDFLARE_API_KEY)"
+                  'Content-Type' = 'application/json'
               }
 
-              $uri = "https://api.cloudflare.com/client/v4/accounts/${{ inputs.cloudflare_account_id }}/load_balancers/pools/${{ inputs.cloudflare_pool_id }}"
+              $uri = "https://api.cloudflare.com/client/v4/accounts/$($env:ACCOUNT_ID)/load_balancers/pools/$($env:POOL_ID)"
 
-              Write-Host "Fetching pool configuration..."
+              Write-Host 'Fetching pool configuration...'
               $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
 
               $found = $false
 
               foreach ($origin in $pool.result.origins) {
-                  if ($origin.name -eq ${{ inputs.cloudflare_origin_id }}) {
+                  if ($origin.name -eq $env:ORIGIN_ID) {
                       Write-Host "Disabling origin: $($origin.name)"
                       $origin.enabled = $false
                       $found = $true
@@ -54,7 +57,7 @@ jobs:
               }
 
               if (-not $found) {
-                  Write-Error "Origin '${{ inputs.cloudflare_origin_id }}' not found."
+                  Write-Error "Origin '$($env:ORIGIN_ID)' not found."
                   exit 1
               }
 
@@ -62,10 +65,10 @@ jobs:
                   origins = $pool.result.origins
               } | ConvertTo-Json -Depth 10
 
-              Write-Host "Updating pool..."
+              Write-Host 'Updating pool...'
               Invoke-RestMethod -Uri $uri -Headers $headers -Method PATCH -Body $body
 
-              Write-Host "Done."
+              Write-Host 'Done.'
 
           - name: Retrieve the current date and time
             id: datetime
@@ -220,22 +223,25 @@ jobs:
           - name: Enable Cloudflare origin
             shell: powershell
             env:
-              SELECTED_ORIGIN: ${{ inputs.cloudflare_origin_id }}
+              CLOUDFLARE_API_KEY: ${{ secrets.cloudflare_api_key }}
+              ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
+              POOL_ID: ${{ inputs.cloudflare_pool_id }}
+              ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
             run: |
               $headers = @{
-                "Authorization" = "Bearer ${{ secrets.cloudflare_api_key }}
-                "Content-Type"  = "application/json"
+                  Authorization = "Bearer $($env:CLOUDFLARE_API_KEY)"
+                  'Content-Type' = 'application/json'
               }
-                
-              $uri = "https://api.cloudflare.com/client/v4/accounts/${{ inputs.cloudflare_account_id }}/load_balancers/pools/${{ inputs.cloudflare_pool_id }}"
 
-              Write-Host "Fetching pool configuration..."
+              $uri = "https://api.cloudflare.com/client/v4/accounts/$($env:ACCOUNT_ID)/load_balancers/pools/$($env:POOL_ID)"
+
+              Write-Host 'Fetching pool configuration...'
               $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
 
               $found = $false
 
               foreach ($origin in $pool.result.origins) {
-                  if ($origin.name -eq ${{ inputs.cloudflare_origin_id }}) {
+                  if ($origin.name -eq $env:ORIGIN_ID) {
                       Write-Host "Disabling origin: $($origin.name)"
                       $origin.enabled = $true
                       $found = $true
@@ -243,7 +249,7 @@ jobs:
               }
 
               if (-not $found) {
-                  Write-Error "Origin '${{ inputs.cloudflare_origin_id }}' not found."
+                  Write-Error "Origin '$($env:ORIGIN_ID)' not found."
                   exit 1
               }
 
@@ -251,7 +257,7 @@ jobs:
                   origins = $pool.result.origins
               } | ConvertTo-Json -Depth 10
 
-              Write-Host "Updating pool..."
+              Write-Host 'Updating pool...'
               Invoke-RestMethod -Uri $uri -Headers $headers -Method PATCH -Body $body
 
-              Write-Host "Done."
+              Write-Host 'Done.'
