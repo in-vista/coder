@@ -9,8 +9,7 @@ on:
 jobs:
   deploy-cluster1:
     uses: ./.github/workflows/deploy-single-server.yml
-    secrets:
-      cloudflare_api_key: ${{ secrets.CLOUDFLARE_API_KEY }}
+    secrets: inherit
     with:
       runner: cluster1_transip
       environment: Development
@@ -21,8 +20,7 @@ jobs:
   deploy-cluster3:
     needs: deploy-cluster1
     uses: ./.github/workflows/deploy-single-server.yml
-    secrets:
-      cloudflare_api_key: ${{ secrets.CLOUDFLARE_API_KEY }}
+    secrets: inherit
     with:
       runner: cluster3_transip
       environment: Development
@@ -33,8 +31,7 @@ jobs:
   deploy-cluster4:
     needs: deploy-cluster3
     uses: ./.github/workflows/deploy-single-server.yml
-    secrets:
-      cloudflare_api_key: ${{ secrets.CLOUDFLARE_API_KEY }}
+    secrets: inherit
     with:
       runner: cluster4_transip
       environment: Development

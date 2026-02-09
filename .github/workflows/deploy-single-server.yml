@@ -2,9 +2,6 @@ name: Deploy single server
 
 on:
   workflow_call:
-    secrets:
-      cloudflare_api_key:
-        required: true
     inputs:
       runner:
         required: true
@@ -31,7 +28,7 @@ jobs:
           - name: Disable Cloudflare origin
             shell: powershell
             env:
-              CLOUDFLARE_API_KEY: ${{ secrets.cloudflare_api_key }}
+              CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
               ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
               POOL_ID: ${{ inputs.cloudflare_pool_id }}
               ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
@@ -243,7 +240,7 @@ jobs:
           - name: Enable Cloudflare origin
             shell: powershell
             env:
-              CLOUDFLARE_API_KEY: ${{ secrets.cloudflare_api_key }}
+              CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
               ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
               POOL_ID: ${{ inputs.cloudflare_pool_id }}
               ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
