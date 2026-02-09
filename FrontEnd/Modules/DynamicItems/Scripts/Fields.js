@@ -3767,7 +3767,8 @@ export class Fields {
 
                             const queryString = {
                                 rel: dialogElement.find("#youTubeShowRelatedVideos").prop("checked"),
-                                autoplay: dialogElement.find("#youTubeAutoPlay").prop("checked")
+                                autoplay: dialogElement.find("#youTubeAutoPlay").prop("checked"),
+                                mute: dialogElement.find("#youTubeAutoPlay").prop("checked")
                             };
 
                             let fullScreenAttribute = "";
