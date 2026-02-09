@@ -29,7 +29,7 @@ jobs:
 
         steps:
           - name: Disable Cloudflare origin
-            shell: pwsh
+            shell: powershell
             env:
               SELECTED_ORIGIN: ${{ inputs.cloudflare_origin_id }}
             run: |
@@ -218,7 +218,7 @@ jobs:
                 }
 
           - name: Enable Cloudflare origin
-            shell: pwsh
+            shell: powershell
             env:
               SELECTED_ORIGIN: ${{ inputs.cloudflare_origin_id }}
             run: |
