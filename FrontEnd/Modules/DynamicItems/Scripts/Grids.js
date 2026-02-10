@@ -358,7 +358,7 @@ export class Grids {
                 toolbar.push({
                     name: 'toggleHiddenItems',
                     text: '',
-                    template: `<a class='k-button k-button-icontext toggle-hidden-items' title='Verborgen items tonen/verbergen' onclick='window.dynamicItems.grids.executeToolbarActionButton(event, () => window.dynamicItems.grids.onToggleHiddenItemsClick(event))'><span class='k-font-icon k-i-eye-slash'></span></a>`
+                    template: `<a class='k-button k-button-icontext toggle-hidden-items' title='Verborgen items tonen/verbergen' onclick='window.dynamicItems.grids.executeToolbarActionButton(event, () => window.dynamicItems.grids.onToggleHiddenItemsClick(event))'><span class='k-font-icon k-i-eye'></span></a>`
                 });
             }
 
