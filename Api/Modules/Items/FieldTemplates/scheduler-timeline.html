@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
 
 <style>
     @keyframes spin {
@@ -335,6 +336,7 @@
         border-radius: 50%; /* maakt het rond */
         transition: background-color 0.2s ease, transform 0.2s ease;
         padding: 6px;
+        text-decoration: none;
     }
     .hover-icons a:hover{
         text-decoration: none;
@@ -369,9 +371,48 @@
         /*position: relative; /* nodig voor absolute centrering */
     }
     .date-selector button {
-        margin: 0 10px;
+        margin: 0;
         padding: 4px 8px;
         cursor: pointer;
+    }
+
+    @media (max-width: 1525px) {
+        .timeline-search {
+            right: 10px !important;
+            left: unset !important;
+            transform: none !important;
+        }
+
+        .search-container {
+            right: -1px !important;
+            left: unset !important;
+            transform: none !important;
+        }
+    }
+
+    @media (max-width: 1070px) {
+        .date-selector {
+            gap: 8px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .timeline-date-selector {
+            flex-shrink: 0;
+        }
+
+        .timeline-search {
+            flex: 1;
+            margin-left: auto;
+            max-width: 300px;
+            position: relative !important;
+        }
+    }
+
+    @media (max-width: 772px) {   
+        .search-container {
+            width: 95vw !important;
+        }
     }
 
     .timeline-date-selector {
@@ -380,6 +421,13 @@
     
     .timeline-date-selector button {
         line-height: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .timeline-date-selector button i {
+        font-size: 20px;
     }
     
     #timeline-view-btn, #list-view-btn {
@@ -551,13 +599,13 @@
         }
     }
     
-    /* Zoekbalk kleiner op kleinere schermen */
+    /* Zoekbalk kleiner op kleinere schermen
     @media (max-width: 844px) {
         .timeline-search {
             width: 150px;
             right: 10%;
         }
-    }
+    } */
     
     .timeline-search input {
         padding: 4px 8px;
@@ -574,7 +622,7 @@
         position: absolute;
         top: 30px;
         background-color: #FFFFFF;
-        width: 50vw;
+        width: 740px;
         border-left: 1px solid #F0F0F0;
         border-right: 1px solid #F0F0F0;
         border-bottom: 1px solid #F0F0F0;
@@ -589,16 +637,27 @@
         justify-content: space-between;
         align-items: center;
         padding: 5px 10px 5px 10px;
+        margin: 0 5px 0 5px;
         cursor: pointer;
         clear: both;
         font-size: larger;
         font-weight: bold;
-    }
+    }    
     .search-item-today-item:hover {
         background-color: var(--color-1);
         /* background-color: #00B0FF; */
         color: #FFFFFF;
-    } 
+    }
+    .cancelled {
+        background: linear-gradient(
+            to bottom,
+            transparent 48%,
+            #000 48%,
+            #000 50%,
+            transparent 50%
+        );        
+        color: darkgray;
+    }
     .reservation.highlight {
         background-color: #000000 !important;
         color: #FFFFFF !important;
@@ -620,6 +679,8 @@
         width: 210px;
         text-align: center;
         display: inline-block;
+        position: relative;
+        bottom: 2px;
     }
     #calendar {
         position: absolute;
@@ -711,12 +772,13 @@
 <div id="timelineScheduler">
     <div class="date-selector">
         <div class="timeline-date-selector">
-            <button id="timeline-view-btn" class="active">▦</button>
-            <button id="list-view-btn">☰</button>
-            <button id="prev-day">&lt;</button>
+            <button id="timeline-view-btn" class="active"><i class="mdi mdi-size-2 mdi-chart-gantt"></i></button>
+            <button id="list-view-btn"><i class="mdi mdi-size-2 mdi-format-list-bulleted-square"></i></button>
+            <button id="prev-day"><i class="mdi mdi-size-2 mdi-chevron-left"></i></button>
             <span id="current-date" style="cursor:pointer;">Kies datum</span>
-            <button id="next-day">&gt;</button>
-            <button id="refresh-button">Verversen</button>
+            <button id="next-day"><i class="mdi mdi-size-2 mdi-chevron-right"></i></button>
+            <button id="today-button"><i class="mdi mdi-size-2 mdi-calendar-today"></i>Vandaag</button>
+            <button id="refresh-button"><i class="mdi mdi-size-2 mdi-refresh"></i>Verversen</button>
         </div>
         <div class="timeline-search">            
             <input type="text" placeholder="Begin met typen om te zoeken..." id="timeline-search" />            
@@ -727,16 +789,16 @@
             </div>
         </div> 
         <div id="search-item-template" style="display: none;">
-            <div class="search-item-today-item" data-reservation-id="{reservationId}" data-reservation-id-encrypted="{encryptedId}" data-date="{date}">
-                <div class="search-item-column" style="flex:1;">{dateformatted}</div>
-                <div class="search-item-column" style="flex:1;">{timeformatted}</div>
+            <div class="search-item-today-item {status}" data-reservation-id="{reservationId}" data-reservation-id-encrypted="{encryptedId}" data-date="{date}">
+                <div class="search-item-column" style="width:110px;">{dateformatted}</div>
+                <div class="search-item-column" style="width:57px;">{timeformatted}</div>
                 <div class="search-item-column" style="flex:3;">{name}</div>
-                <div class="search-item-column" style="flex:1;">{numberofpersons}</div>
-                <div class="search-item-column" style="flex:1;">{table}</div>
-                <!--<div class="search-item-column" style="flex:1;">{arrangement}</div>
-                <div class="search-item-column" style="flex:1;">{status}</div>-->
-            </div>
+                <div class="search-item-column" style="width:40px;">{numberofpersons}</div>
+                <div class="search-item-column" style="width:100px;">{table}</div>                
+            </div>            
         </div>
+        <!--<div class="search-item-column" style="flex:1;">{arrangement}</div>-->
+        <!--<div class="search-item-column" style="flex:1;color:darkorange;">{status}</div>-->
     </div>
     <div id="list-view" class="hidden"></div>
     <div class="scheduler">

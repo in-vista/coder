@@ -3260,6 +3260,8 @@ export class Fields {
                                                         method: "POST",
                                                         contentType: "application/json",
                                                         data: JSON.stringify({
+                                                            itemId: currentEmailData.itemId,
+                                                            customerId: currentEmailData.customerId,
                                                             senderName: mailDialog.element.find("input[name=senderName]").val(),
                                                             sender: mailDialog.element.find("input[name=senderEmail]").val(),
                                                             receivers: receivers,
@@ -3765,7 +3767,8 @@ export class Fields {
 
                             const queryString = {
                                 rel: dialogElement.find("#youTubeShowRelatedVideos").prop("checked"),
-                                autoplay: dialogElement.find("#youTubeAutoPlay").prop("checked")
+                                autoplay: dialogElement.find("#youTubeAutoPlay").prop("checked"),
+                                mute: dialogElement.find("#youTubeAutoPlay").prop("checked")
                             };
 
                             let fullScreenAttribute = "";

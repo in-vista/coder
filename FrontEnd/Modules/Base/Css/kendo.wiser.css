@@ -95,6 +95,54 @@
 	gap: 5px;
 	overflow-x: auto;
 }
+.image-carousel-root {
+	position: relative;
+}
+
+.image-zoom-container {
+	position: relative;
+	cursor: zoom-in;
+	overflow: hidden;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 600px;
+}
+
+.image-zoom-container.zoomed {
+	cursor: zoom-out;
+}
+
+.image-carousel-arrow {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 5;
+	padding: 8px 12px;
+	font-size: 28px;
+	line-height: 1;
+	border: 0;
+	background: rgba(0,0,0,.45);
+	color: white;
+	cursor: pointer;
+	user-select: none;
+}
+
+.image-carousel-arrow.left { left: 8px; }
+.image-carousel-arrow.right { right: 8px; }
+
+.image-carousel-counter {
+	position: absolute;
+	bottom: 8px;
+	right: 8px;
+	z-index: 5;
+	padding: 4px 8px;
+	background: rgba(0,0,0,.45);
+	color: white;
+	font-size: 12px;
+	border-radius: 6px;
+}
+
 .dropZoneElement {
 	position: relative;
 	display: inline-block;
@@ -911,6 +959,18 @@ input[type=search] + button {
 	padding: .5em 0;
 	text-indent: 10px;
 	text-overflow: ellipsis;
+}
+
+.k-input[type=password] + .icon-eye-visible,
+.k-input[type=text] +  .icon-eye-invisible {
+	position: absolute;
+	right: 0;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	cursor: pointer;
+	z-index: 10;
+	line-height: 1;
+	font-size: clamp(12px, 2.5vh, 28px);
 }
 
 .k-dropdown .k-input-button,

@@ -83,6 +83,11 @@
                 this.currentDate.setDate(this.currentDate.getDate() + 1);
                 this.updateDateDisplay();
             });
+
+            document.getElementById("today-button").addEventListener("click", () => {
+                this.currentDate = new Date();
+                this.updateDateDisplay();
+            });
     
             document.getElementById("refresh-button").addEventListener("click", () => {
                 this.updateDateDisplay();
@@ -455,7 +460,7 @@
                 const quarter = Math.floor(minutes / 15); // Bereken het kwartier (0 = 00-14, 1 = 15-29, 2 = 30-44, 3 = 45-59)
                 const quarterLabel = `${now.getHours().toString().padStart(2,'0')}:${(quarter*15).toString().padStart(2,'0')}`; // bv. "13:00", "13:15"
                 const element = Array.from(document.querySelectorAll(".timeLabel")).find(el => el.innerText === quarterLabel);
-                element.classList.add("activeTime");
+                if (element) element.classList.add("activeTime");
             }
             else {
                 // For timeline view
@@ -563,6 +568,46 @@
                     checkIn: r.check_in,
                     checkOut: r.check_out
                 }));
+                
+                // Zet warning bij reservation als er meer mensen zijn dan capaciteit                
+                
+                // Groepeer reserveringen per reservationId
+                const reservationsById = {};
+                timelineScheduler.reservations.forEach(reservation => {
+                    if (!reservationsById[reservation.reservationId]) {
+                        reservationsById[reservation.reservationId] = [];
+                    }
+                    reservationsById[reservation.reservationId].push(reservation);
+                });
+                // Loop over elke groep van dezelfde reservationId
+                Object.values(reservationsById).forEach(group => {
+                    // Pak het aantal personen uit de eerste reservering
+                    const numberOfPersons = group[0].numberOfPersons;
+
+                    // Bereken totale max capacity van alle tafels
+                    let totalCapacity = 0;
+
+                    group.forEach(reservation => {
+                        let tableFound = null;
+
+                        Object.values(timelineScheduler.tableGroups).some(areaTables => {
+                            tableFound = areaTables.find(t => t.id === reservation.table);
+                            return !!tableFound;
+                        });
+
+                        if (!tableFound) return; // tafel niet gevonden = skip
+
+                        totalCapacity += tableFound.capacity_max;
+                    });
+
+                    // Als aantal personen > totale capaciteit → warning toevoegen
+                    if (numberOfPersons > totalCapacity) {
+                        group.forEach(reservation => {
+                            if (reservation.warning !== '') reservation.warning += ' - ';
+                            reservation.warning = `Tafels bieden niet genoeg plaats voor het aantal personen (${numberOfPersons}/${totalCapacity})`;
+                        });
+                    }
+                });
 
                 timelineScheduler.renderReservations();
             } catch(exception) {
@@ -653,6 +698,7 @@
                         id: item.id,
                         text: item.table,
                         capacity: item.capacity,
+                        capacity_max: item.capacity_max,
                         roomActive: item.roomActive,
                         onlineState: item.onlineState
                     });
@@ -1163,7 +1209,6 @@
                 if (connectedIds.has(id)) {
                     el.classList.add('connected');
                 }
-
                 el.addEventListener('mouseenter', () => {
                     document.querySelectorAll(`.reservation[data-id="${id}"]`).forEach(el => {
                         el.classList.add('hovered');
@@ -1483,7 +1528,7 @@
                         <span class="notes">${res.notes || ""}</span>
                         ${arrangement ? `<span class="arrangement-badge">${arrangement}</span>` : `<span></span>`}
                         ${res.warning ? `
-                            <span class="warning-icon" title="${res.warning}">⚠️</span>
+                            <span class="warning-icon" title="${res.warning}">️</span>
                         ` : `<span></span>`}
                         <span class="status-badge${res.checkOut ? " checked-out" : res.checkIn ? " checked-in" : ""}">
                             ${res.checkOut ? "UITGECHECKT" : res.checkIn ? "INGECHECKT" : ""}
