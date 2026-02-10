@@ -28,8 +28,8 @@
     let gridRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}${linkTypeParameter}`;
 
     const queryId = options.queryId;
-    const countQueryId = options.countQueryId;
-    const usingQueryId = queryId && countQueryId;
+    const countQueryId = options.countQueryId ?? '';
+    const usingQueryId = !!queryId;
     if(usingQueryId)
         gridRequestUrl += `?queryId=${encodeURIComponent(queryId)}&countQueryId=${encodeURIComponent(countQueryId)}`;
     
