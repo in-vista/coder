@@ -1409,9 +1409,9 @@ namespace Api.Modules.Grids.Services
             }
             
             // Find "showHiddenItems" function and build a WHERE clause based on the parameter of the function.
-            // Example: "{showHiddenItems(product.published_environment)}", which could evaluate to "product.published_environment = ?showHiddenItemsValue".
+            // Example: "{showHiddenItems(product.published_environment)}", which could evaluate to "product.published_environment != 0".
             Regex showHiddenItemsFunctionRegex = new Regex(@"{(?:showHiddenItems)\((.*?)\)}");
-            string replacement = !options.ShowHiddenItems.HasValue || options.ShowHiddenItems.Value ? "1 = 1" : "$1 = ?showHiddenItemsValue";
+            string replacement = options.ShowHiddenItems.HasValue || !options.ShowHiddenItems.Value ? "$1 != 0" : "1 = 1";
             selectQuery = showHiddenItemsFunctionRegex.Replace(selectQuery, replacement);
             countQuery = showHiddenItemsFunctionRegex.Replace(countQuery, replacement);
             
@@ -2052,9 +2052,9 @@ namespace Api.Modules.Grids.Services
                 }
                 
                 // Find "showHiddenItems" function and build a WHERE clause based on the parameter of the function.
-                // Example: "{showHiddenItems(product.published_environment)}", which could evaluate to "product.published_environment = ?showHiddenItemsValue".
+                // Example: "{showHiddenItems(product.published_environment)}", which could evaluate to "product.published_environment != 0".
                 Regex showHiddenItemsFunctionRegex = new Regex(@"{(?:showHiddenItems)\((.*?)\)}");
-                string replacement = !options.ShowHiddenItems.HasValue || options.ShowHiddenItems.Value ? "1 = 1" : "$1 = ?showHiddenItemsValue";
+                string replacement = options.ShowHiddenItems.HasValue || !options.ShowHiddenItems.Value ? "$1 != 0" : "1 = 1";
                 selectQuery = showHiddenItemsFunctionRegex.Replace(selectQuery, replacement);
                 countQuery = showHiddenItemsFunctionRegex.Replace(countQuery, replacement);
                 
