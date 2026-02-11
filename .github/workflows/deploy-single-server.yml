@@ -9,6 +9,12 @@ on:
       environment:
         required: true
         type: string
+      IIS_APP_POOL_API:
+        required: true
+        type: string
+      IIS_APP_POOL_FRONT_END:
+        required: true
+        type: string
       cloudflare_account_id:
         required: true
         type: string
@@ -200,6 +206,15 @@ jobs:
                 dotnet publish FrontEnd -c Release -o $tempFrontend --self-contained true -r win-x64 /p:EnvironmentName=Development
             working-directory: coder
 
+          - name: Stop IIS App Pools
+            env:
+              IIS_APP_POOL_API: ${{ inputs.IIS_APP_POOL_API }}
+              IIS_APP_POOL_FRONT_END: ${{ inputs.IIS_APP_POOL_FRONT_END }}
+            run: |
+              Import-Module WebAdministration
+              Stop-WebAppPool -Name "$env:IS_APP_POOL_AP"
+              Stop-WebAppPool -Name "$env:IIS_APP_POOL_FRONT_END"
+
           - name: Copy API to IIS folder
             env:
               PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
@@ -209,6 +224,15 @@ jobs:
             env:
               PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
             run: Copy-Item -Path "${{ github.workspace }}\publish\FrontEnd\*" -Destination $env:PUBLISH_LOCATION_FRONT_END -Recurse -Force
+
+          - name: Start IIS App Pools
+            env:
+              IIS_APP_POOL_API: ${{ inputs.IIS_APP_POOL_API }}
+              IIS_APP_POOL_FRONT_END: ${{ inputs.IIS_APP_POOL_FRONT_END }}
+            run: |
+              Import-Module WebAdministration
+              Start-WebAppPool -Name "$env:IS_APP_POOL_AP"
+              Start-WebAppPool -Name "$env:IIS_APP_POOL_FRONT_END"
 
           - name: Remove backups older than 30 days
             env:
