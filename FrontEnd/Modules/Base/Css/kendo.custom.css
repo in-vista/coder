@@ -650,12 +650,14 @@ textarea.k-textbox:hover,
     content: "e118";
 }
 
-.k-i-loading {
-    background-image: url('https://kendo.cdn.telerik.com/2019.1.220/styles/Material/loading.gif');
-}
-
-.k-loading-image {
-    background-image: url('https://kendo.cdn.telerik.com/2019.1.220/styles/Material/loading-image.gif');
+@keyframes ld-cycle {
+    0% {
+        animation-timing-function: cubic-bezier(0.3333,0.3333,0.6667,0.6667);
+        transform: translate(-50%,-50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%,-50%) rotate(360deg);
+    }
 }
 
 .k-loading-color {
