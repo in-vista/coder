@@ -16,7 +16,6 @@ html, body {
     box-sizing: border-box;
     list-style: none;
     min-height: calc(100% - 80px);
-    overflow: hidden;
     padding: 10px;
     padding-top: 45px;
     max-height: 100vh;

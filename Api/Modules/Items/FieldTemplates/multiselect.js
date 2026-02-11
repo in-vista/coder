@@ -175,6 +175,9 @@ if (options.mode === "checkBoxGroup") {
 } else {
     kendoComponent = field.kendoMultiSelect(options).data("kendoMultiSelect");
     kendoComponent.readonly(readonly);
+    
+    if(readonly)
+        container.find('.k-multiselect').attr('readonly', 'readonly')
 }
 
 {customScript}

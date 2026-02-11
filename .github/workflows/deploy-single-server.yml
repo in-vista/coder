@@ -1,0 +1,280 @@
+name: Deploy single server
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      cloudflare_account_id:
+        required: true
+        type: string
+      cloudflare_pool_id:
+        required: true
+        type: string
+      cloudflare_origin_id:
+        required: true
+        type: string
+
+jobs:
+    deploy:
+        runs-on: ${{ inputs.runner }}
+        environment: ${{ inputs.environment }}
+
+        steps:
+          - name: Disable Cloudflare origin
+            shell: powershell
+            env:
+              CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+              ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
+              POOL_ID: ${{ inputs.cloudflare_pool_id }}
+              ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
+            run: |
+              $headers = @{
+                  Authorization = "Bearer $($env:CLOUDFLARE_API_KEY)"
+                  'Content-Type' = 'application/json'
+              }
+
+              $uri = "https://api.cloudflare.com/client/v4/accounts/$($env:ACCOUNT_ID)/load_balancers/pools/$($env:POOL_ID)"
+
+              Write-Host 'Fetching pool configuration...'
+              $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
+
+              $found = $false
+
+              foreach ($origin in $pool.result.origins) {
+                  if ($origin.name -eq $env:ORIGIN_ID) {
+                      Write-Host "Disabling origin: $($origin.name)"
+                      $origin.enabled = $false
+                      $found = $true
+                  }
+              }
+
+              if (-not $found) {
+                  Write-Error "Origin '$($env:ORIGIN_ID)' not found."
+                  exit 1
+              }
+
+              $body = @{
+                  origins = $pool.result.origins
+              } | ConvertTo-Json -Depth 10
+
+              Write-Host 'Updating pool...'
+              Invoke-RestMethod -Uri $uri -Headers $headers -Method PATCH -Body $body
+
+              Write-Host 'Done.'
+
+          - name: Retrieve the current date and time
+            id: datetime
+            run: |
+                $dateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+                "datetime=$dateTime" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            
+          - name: Create backup folders
+            env:
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
+            run: |
+                $backupPath = "C:\backups"
+
+                $baseApi = Split-Path -Path $env:PUBLISH_LOCATION_API -Leaf
+                $baseFrontend = Split-Path -Path $env:PUBLISH_LOCATION_FRONT_END -Leaf
+                
+                $folderPathApi = [IO.Path]::Combine(
+                $backupPath,
+                $baseApi,
+                "${{ steps.datetime.outputs.datetime }}"
+                )
+
+                $folderPathFrontend = [IO.Path]::Combine(
+                $backupPath,
+                $baseFrontend,
+                "${{ steps.datetime.outputs.datetime }}"
+                )
+                
+                New-Item -ItemType Directory -Path $folderPathApi -Force
+                New-Item -ItemType Directory -Path $folderPathFrontend -Force
+
+                "FOLDER_PATH_API=$folderPathApi" | Out-File -FilePath $env:GITHUB_ENV -Append
+                "FOLDER_PATH_FRONT_END=$folderPathFrontend" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          - name: Copy contents to backup folder
+            env:
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
+            shell: powershell
+            run: |
+                if (Test-Path $env:PUBLISH_LOCATION_API) {
+                Copy-Item -Path "$env:PUBLISH_LOCATION_API\*" -Destination $env:FOLDER_PATH_API -Recurse -Force
+                }
+
+                if (Test-Path $env:PUBLISH_LOCATION_FRONT_END) {
+                Copy-Item -Path "$env:PUBLISH_LOCATION_FRONT_END\*" -Destination $env:FOLDER_PATH_FRONT_END -Recurse -Force
+                }
+
+          - name: Checkout
+            uses: actions/checkout@v4
+            with:
+                repository: in-vista/invista-core-library
+                path: invista-core-library
+
+          - name: Restore dependencies
+            run: dotnet restore
+            working-directory: invista-core-library
+
+          - name: Build
+            run: dotnet build --no-restore
+            working-directory: invista-core-library
+
+          - name: Empty destination folder
+            run: |
+                $folderPath = "C:\invista-core-library"
+                if (-Not (Test-Path -Path $folderPath)) {
+                New-Item -ItemType Directory -Path $folderPath
+                } else {
+                Remove-Item -Path "$folderPath\*" -Force -Recurse
+                }
+
+          - name: Copy files to destination folder
+            env:
+              WORKER_LOCATION: ${{ secrets.WORKER_LOCATION }}
+            run: Copy-Item -Path "$env:WORKER_LOCATION\coder\coder\invista-core-library\*" -Destination "C:\invista-core-library" -Recurse
+
+          - name: Checkout
+            uses: actions/checkout@v4
+            with:
+                path: coder
+
+          - name: Restore dependencies
+            run: dotnet restore
+            working-directory: coder
+
+          - name: Copy partner styles
+            env:
+              PARTNER_STYLES_LOCATION: ${{ secrets.PARTNER_STYLES_LOCATION }}
+              WORKER_LOCATION: ${{ secrets.WORKER_LOCATION }}
+            run: Copy-Item -Path "$env:PARTNER_STYLES_LOCATION\*" -Destination "$env:WORKER_LOCATION\coder\coder\coder\FrontEnd\Core\Css\partner" -Recurse
+
+          - name: Build
+            run: dotnet build --no-restore
+            working-directory: coder
+
+          - name: Install NPM modules
+            run: npm install
+            working-directory: 'coder/FrontEnd'
+
+          - name: Write Kendo UI license to file
+            env:
+              KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
+            run: |
+                [System.IO.File]::WriteAllText("telerik-license.txt", $env:KENDO_UI_LICENSE, [System.Text.Encoding]::UTF8)
+            shell: powershell
+            working-directory: coder/FrontEnd
+
+          - name: Activate Kendo UI License
+            run: npx kendo-ui-license activate
+            working-directory: 'coder/FrontEnd'
+
+          - name: Compile scripts and styles with webpack
+            run: node_modules\.bin\webpack --mode=development
+            working-directory: 'coder/FrontEnd'
+
+          - name: dotnet publish API to temp folder
+            run: |
+                $tempApi = "${{ github.workspace }}\publish\API"
+                Remove-Item $tempApi -Recurse -Force -ErrorAction SilentlyContinue
+                New-Item -ItemType Directory -Path $tempApi -Force
+
+                dotnet publish API -c Release -o $tempApi --self-contained true -r win-x64 /p:EnvironmentName=Development
+            working-directory: coder
+
+          - name: dotnet publish FrontEnd to temp folder
+            run: |
+                $tempFrontend = "${{ github.workspace }}\publish\FrontEnd"
+                Remove-Item $tempFrontend -Recurse -Force -ErrorAction SilentlyContinue
+                New-Item -ItemType Directory -Path $tempFrontend -Force
+
+                dotnet publish FrontEnd -c Release -o $tempFrontend --self-contained true -r win-x64 /p:EnvironmentName=Development
+            working-directory: coder
+
+          - name: Copy API to IIS folder
+            env:
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+            run: Copy-Item -Path "${{ github.workspace }}\publish\API\*" -Destination $env:PUBLISH_LOCATION_API -Recurse -Force
+
+          - name: Copy FrontEnd to IIS folder
+            env:
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
+            run: Copy-Item -Path "${{ github.workspace }}\publish\FrontEnd\*" -Destination $env:PUBLISH_LOCATION_FRONT_END -Recurse -Force
+
+          - name: Remove backups older than 30 days
+            env:
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
+            run: |
+                $backupPath = "C:\backups"
+
+                $baseApi = Split-Path -Path $env:PUBLISH_LOCATION_API -Leaf
+                $baseFrontend = Split-Path -Path $env:PUBLISH_LOCATION_FRONT_END -Leaf
+
+                $projects = @($baseApi, $baseFrontend)
+
+                foreach ($project in $projects) {
+                $projectFolder = Join-Path $backupPath $project
+
+                if (Test-Path $projectFolder) {
+                    $backups = Get-ChildItem -Path $projectFolder -Directory | Sort-Object CreationTime -Descending
+
+                    $oldBackups = $backups | Select-Object -Skip 2
+
+                    foreach ($old in $oldBackups) {
+                    Write-Host "Deleting backup $($old.FullName)"
+                    Remove-Item -Path $old.FullName -Recurse -Force
+                    }
+                }
+                }
+
+          - name: Enable Cloudflare origin
+            shell: powershell
+            env:
+              CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+              ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
+              POOL_ID: ${{ inputs.cloudflare_pool_id }}
+              ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
+            run: |
+              $headers = @{
+                  Authorization = "Bearer $($env:CLOUDFLARE_API_KEY)"
+                  'Content-Type' = 'application/json'
+              }
+
+              $uri = "https://api.cloudflare.com/client/v4/accounts/$($env:ACCOUNT_ID)/load_balancers/pools/$($env:POOL_ID)"
+
+              Write-Host 'Fetching pool configuration...'
+              $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
+
+              $found = $false
+
+              foreach ($origin in $pool.result.origins) {
+                  if ($origin.name -eq $env:ORIGIN_ID) {
+                      Write-Host "Disabling origin: $($origin.name)"
+                      $origin.enabled = $true
+                      $found = $true
+                  }
+              }
+
+              if (-not $found) {
+                  Write-Error "Origin '$($env:ORIGIN_ID)' not found."
+                  exit 1
+              }
+
+              $body = @{
+                  origins = $pool.result.origins
+              } | ConvertTo-Json -Depth 10
+
+              Write-Host 'Updating pool...'
+              Invoke-RestMethod -Uri $uri -Headers $headers -Method PATCH -Body $body
+
+              Write-Host 'Done.'

@@ -106,7 +106,7 @@ AND (checkedOn.value IS NULL OR checkedOn.value = '')");
                     EncryptedId = id.ToString().EncryptWithAesWithSalt(tenant.EncryptionKey, true),
                     Id = id,
                     LinkedItemEntityType = dataRow.Field<string>("linkedItemEntityType") ?? "",
-                    LinkedItemId = linkedItemId.EncryptWithAesWithSalt(tenant.EncryptionKey, true),
+                    LinkedItemId = linkedItemId == null ? "0" : linkedItemId.EncryptWithAesWithSalt(tenant.EncryptionKey, true),
                     LinkedItemModuleId = !Int32.TryParse(linkedItemModuleId, out var parsedLinkedItemModuleId) ? (int?)null : parsedLinkedItemModuleId,
                     ModuleId = dataRow.Field<int>("moduleid"),
                     PlacedBy = dataRow.Field<string>("placedBy") ?? "",
