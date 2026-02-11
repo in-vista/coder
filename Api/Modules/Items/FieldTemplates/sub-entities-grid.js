@@ -306,7 +306,13 @@
                                     "changed_on",
                                     "changedon",
                                     "changed_by",
-                                    "changedby"
+                                    "changedby",
+                                    "moduleid",
+                                    "ordering",
+                                    "original_item_id",
+                                    "parent_entity_type",
+                                    "parent_item_id",
+                                    "readonly"
                                 ];
                                 for (const key in transportOptions.data) {
                                     if (!transportOptions.data.hasOwnProperty(key) || nonFieldProperties.indexOf(key.toLowerCase()) > -1) {
