@@ -1416,7 +1416,7 @@ namespace Api.Modules.Grids.Services
             countQuery = showHiddenItemsFunctionRegex.Replace(countQuery, replacement);
             
             // Use parameters so in case of when a query consists of just a function call, this value can be passed to the function to be resolved in there.
-            clientDatabaseConnection.AddParameter("showHiddenItemsValue", options.ShowHiddenItems.HasValue && options.ShowHiddenItems.Value ? 1 : 0);
+            clientDatabaseConnection.AddParameter("showHiddenItemsValue", !options.ShowHiddenItems.HasValue || !options.ShowHiddenItems.Value ? 0 : 1);
             
             // Get the actual data for the grid.
             dataTable = await clientDatabaseConnection.GetAsync(selectQuery);
@@ -2059,7 +2059,7 @@ namespace Api.Modules.Grids.Services
                 countQuery = showHiddenItemsFunctionRegex.Replace(countQuery, replacement);
                 
                 // Use parameters so in case of when a query consists of just a function call, this value can be passed to the function to be resolved in there.
-                clientDatabaseConnection.AddParameter("showHiddenItemsValue", options.ShowHiddenItems.HasValue && options.ShowHiddenItems.Value ? 1 : 0);
+                clientDatabaseConnection.AddParameter("showHiddenItemsValue", !options.ShowHiddenItems.HasValue || !options.ShowHiddenItems.Value ? 0 : 1);
 
                 if (options.Filter?.Filters == null || !options.Filter.Filters.Any())
                 {

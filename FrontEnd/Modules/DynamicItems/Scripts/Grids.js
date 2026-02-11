@@ -500,7 +500,7 @@ export class Grids {
                             const process = `loadMainGrid_${Date.now()}`;
 
                             // Retrieve and store the state of which to show/hide hidden elements in the transport data.
-                            if(gridViewSettings?.toolbar?.hideToggleHiddenItemsButton === false)
+                            if(toolbarSettings?.hideToggleHiddenItemsButton === false)
                                 transportOptions.data.showHiddenItems = this.mainGrid?.element.data('showHiddenItems') ?? false;
                             
                             try {
