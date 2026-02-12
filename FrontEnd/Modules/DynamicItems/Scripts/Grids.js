@@ -397,7 +397,11 @@ export class Grids {
             }
 
             if (gridViewSettings.toolbar && gridViewSettings.toolbar.customActions && gridViewSettings.toolbar.customActions.length > 0) {
-                this.addCustomActionsToToolbar("#gridView", 0, 0, toolbar, gridViewSettings.toolbar.customActions, undefined);
+                // Retrieve all custom actions that are set to be shown in the toolbar.
+                const filteredCustomActions = gridViewSettings.toolbar.customActions
+                    .filter(action => (action.hideInToolbar ?? false) === false);
+                
+                this.addCustomActionsToToolbar("#gridView", 0, 0, toolbar, filteredCustomActions, undefined);
             }
 
             let totalResults = gridDataResult.totalResults;
@@ -752,7 +756,7 @@ export class Grids {
                     // Filter out any actions that do not need a row to be selected, as those are irrelevant.
                     .filter(action => !action.allowNoSelection)
                     // Filter out any actions that are set to not be shown in a context menu.
-                    .filter(action => action.contextMenu ?? true);
+                    .filter(action => (action.hideInContextMenu ?? false) === false);
                 
                 // Only allow a context menu in the grid if there are any actions that require a row to be selected.
                 if(contextMenuActions.length > 0) {
