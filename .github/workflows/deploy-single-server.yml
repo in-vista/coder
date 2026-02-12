@@ -31,48 +31,6 @@ jobs:
         environment: ${{ inputs.environment }}
 
         steps:
-          - name: Disable Cloudflare origin
-            shell: powershell
-            env:
-              CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
-              ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
-              POOL_ID: ${{ inputs.cloudflare_pool_id }}
-              ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
-            run: |
-              $headers = @{
-                  Authorization = "Bearer $($env:CLOUDFLARE_API_KEY)"
-                  'Content-Type' = 'application/json'
-              }
-
-              $uri = "https://api.cloudflare.com/client/v4/accounts/$($env:ACCOUNT_ID)/load_balancers/pools/$($env:POOL_ID)"
-
-              Write-Host 'Fetching pool configuration...'
-              $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
-
-              $found = $false
-
-              foreach ($origin in $pool.result.origins) {
-                  if ($origin.name -eq $env:ORIGIN_ID) {
-                      Write-Host "Disabling origin: $($origin.name)"
-                      $origin.enabled = $false
-                      $found = $true
-                  }
-              }
-
-              if (-not $found) {
-                  Write-Error "Origin '$($env:ORIGIN_ID)' not found."
-                  exit 1
-              }
-
-              $body = @{
-                  origins = $pool.result.origins
-              } | ConvertTo-Json -Depth 10
-
-              Write-Host 'Updating pool...'
-              Invoke-RestMethod -Uri $uri -Headers $headers -Method PATCH -Body $body
-
-              Write-Host 'Done.'
-
           - name: Retrieve the current date and time
             id: datetime
             run: |
@@ -206,6 +164,48 @@ jobs:
                 dotnet publish FrontEnd -c Release -o $tempFrontend --self-contained true -r win-x64 /p:EnvironmentName=Development
             working-directory: coder
 
+          - name: Disable Cloudflare origin
+            shell: powershell
+            env:
+              CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+              ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
+              POOL_ID: ${{ inputs.cloudflare_pool_id }}
+              ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
+            run: |
+              $headers = @{
+                  Authorization = "Bearer $($env:CLOUDFLARE_API_KEY)"
+                  'Content-Type' = 'application/json'
+              }
+
+              $uri = "https://api.cloudflare.com/client/v4/accounts/$($env:ACCOUNT_ID)/load_balancers/pools/$($env:POOL_ID)"
+
+              Write-Host 'Fetching pool configuration...'
+              $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
+
+              $found = $false
+
+              foreach ($origin in $pool.result.origins) {
+                  if ($origin.name -eq $env:ORIGIN_ID) {
+                      Write-Host "Disabling origin: $($origin.name)"
+                      $origin.enabled = $false
+                      $found = $true
+                  }
+              }
+
+              if (-not $found) {
+                  Write-Error "Origin '$($env:ORIGIN_ID)' not found."
+                  exit 1
+              }
+
+              $body = @{
+                  origins = $pool.result.origins
+              } | ConvertTo-Json -Depth 10
+
+              Write-Host 'Updating pool...'
+              Invoke-RestMethod -Uri $uri -Headers $headers -Method PATCH -Body $body
+
+              Write-Host 'Done.'
+
           - name: Stop IIS App Pools
             env:
               IIS_APP_POOL_API: ${{ inputs.IIS_APP_POOL_API }}
@@ -229,37 +229,11 @@ jobs:
             env:
               IIS_APP_POOL_API: ${{ inputs.IIS_APP_POOL_API }}
               IIS_APP_POOL_FRONT_END: ${{ inputs.IIS_APP_POOL_FRONT_END }}
+            if: always()
             run: |
               Import-Module WebAdministration
               Start-WebAppPool -Name "$env:IIS_APP_POOL_API"
               Start-WebAppPool -Name "$env:IIS_APP_POOL_FRONT_END"
-
-          - name: Remove backups older than 30 days
-            env:
-              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
-              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
-            run: |
-                $backupPath = "C:\backups"
-
-                $baseApi = Split-Path -Path $env:PUBLISH_LOCATION_API -Leaf
-                $baseFrontend = Split-Path -Path $env:PUBLISH_LOCATION_FRONT_END -Leaf
-
-                $projects = @($baseApi, $baseFrontend)
-
-                foreach ($project in $projects) {
-                $projectFolder = Join-Path $backupPath $project
-
-                if (Test-Path $projectFolder) {
-                    $backups = Get-ChildItem -Path $projectFolder -Directory | Sort-Object CreationTime -Descending
-
-                    $oldBackups = $backups | Select-Object -Skip 2
-
-                    foreach ($old in $oldBackups) {
-                    Write-Host "Deleting backup $($old.FullName)"
-                    Remove-Item -Path $old.FullName -Recurse -Force
-                    }
-                }
-                }
 
           - name: Enable Cloudflare origin
             shell: powershell
@@ -268,6 +242,7 @@ jobs:
               ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
               POOL_ID: ${{ inputs.cloudflare_pool_id }}
               ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
+            if: always()
             run: |
               $headers = @{
                   Authorization = "Bearer $($env:CLOUDFLARE_API_KEY)"
@@ -302,3 +277,30 @@ jobs:
               Invoke-RestMethod -Uri $uri -Headers $headers -Method PATCH -Body $body
 
               Write-Host 'Done.'
+
+          - name: Remove backups older than 30 days
+            env:
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
+            run: |
+                $backupPath = "C:\backups"
+
+                $baseApi = Split-Path -Path $env:PUBLISH_LOCATION_API -Leaf
+                $baseFrontend = Split-Path -Path $env:PUBLISH_LOCATION_FRONT_END -Leaf
+
+                $projects = @($baseApi, $baseFrontend)
+
+                foreach ($project in $projects) {
+                $projectFolder = Join-Path $backupPath $project
+
+                if (Test-Path $projectFolder) {
+                    $backups = Get-ChildItem -Path $projectFolder -Directory | Sort-Object CreationTime -Descending
+
+                    $oldBackups = $backups | Select-Object -Skip 2
+
+                    foreach ($old in $oldBackups) {
+                    Write-Host "Deleting backup $($old.FullName)"
+                    Remove-Item -Path $old.FullName -Recurse -Force
+                    }
+                  }
+                }
