@@ -7,6 +7,11 @@
     let isFirstLoad = true;
     const height = "{height}" || undefined;
 
+    let linkTypeParameter = "";
+    if (options.linkTypeNumber) {
+        linkTypeParameter = "?linkTypeNumber=" + encodeURIComponent(options.linkTypeNumber || "0");
+    }
+  
     const readonly = {readonly};
     let rowIndex = null;
     let cellIndex = null;
@@ -20,27 +25,29 @@
         gridMode = 6;
     }
 
-    let gridRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}`;
+    //let gridRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}`;
+    let gridRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}${linkTypeParameter}`;
     
-    const requestUrlQueryParameters = {};
+   /* const requestUrlQueryParameters = {};
     
     let linkTypeParameter = "";
     if (options.linkTypeNumber)
-        requestUrlQueryParameters.linkTypeNumber = options.linkTypeNumber || "0";
+        requestUrlQueryParameters.linkTypeNumber = options.linkTypeNumber || "0";*/
     
     const queryId = options.queryId;
     const countQueryId = options.countQueryId;
     const usingQueryId = !!queryId;
     if(usingQueryId) {
-        requestUrlQueryParameters.queryId = queryId;
-        requestUrlQueryParameters.countQueryId = countQueryId;
+        //requestUrlQueryParameters.queryId = queryId;
+        //requestUrlQueryParameters.countQueryId = countQueryId;
+        gridRequestUrl += `?queryId=${encodeURIComponent(queryId)}&countQueryId=${encodeURIComponent(countQueryId)}`;
     }
     
-    if(options.toolbar?.hideToggleHiddenItemsButton === false)
+   /* if(options.toolbar?.hideToggleHiddenItemsButton === false)
         requestUrlQueryParameters.showHiddenItems = false;
     
     if(Object.keys(requestUrlQueryParameters).length > 0)
-        gridRequestUrl += `?${Object.entries(requestUrlQueryParameters).map(([ key, value ]) => `${key}=${encodeURIComponent(value)}`).join('&')}`
+        gridRequestUrl += `?${Object.entries(requestUrlQueryParameters).map(([ key, value ]) => `${key}=${encodeURIComponent(value)}`).join('&')}`*/
     
     async function generateGrid(data, model, columns) {
         var toolbar = [];
