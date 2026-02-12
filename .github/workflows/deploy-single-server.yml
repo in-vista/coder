@@ -212,8 +212,17 @@ jobs:
               IIS_APP_POOL_FRONT_END: ${{ inputs.IIS_APP_POOL_FRONT_END }}
             run: |
               Import-Module WebAdministration
-              Stop-WebAppPool -Name "$env:IIS_APP_POOL_API"
-              Stop-WebAppPool -Name "$env:IIS_APP_POOL_FRONT_END"
+
+              $appPools = @(
+                $env:IIS_APP_POOL_API,
+                $env:IIS_APP_POOL_FRONT_END
+              )
+
+              foreach ($pool in $appPools) {
+                if ((Get-WebAppPoolState -Name $pool).Value -ne "Stopped") {
+                  Stop-WebAppPool -Name $pool
+                }
+              }
 
           - name: Copy API to IIS folder
             env:
@@ -232,8 +241,17 @@ jobs:
             if: always()
             run: |
               Import-Module WebAdministration
-              Start-WebAppPool -Name "$env:IIS_APP_POOL_API"
-              Start-WebAppPool -Name "$env:IIS_APP_POOL_FRONT_END"
+              
+              $appPools = @(
+                $env:IIS_APP_POOL_API,
+                $env:IIS_APP_POOL_FRONT_END
+              )
+
+              foreach ($pool in $appPools) {
+                if ((Get-WebAppPoolState -Name $pool).Value -ne "Started") {
+                  Start-WebAppPool -Name $pool
+                }
+              }
 
           - name: Enable Cloudflare origin
             shell: powershell
