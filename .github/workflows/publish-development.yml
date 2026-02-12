@@ -13,8 +13,6 @@ jobs:
     with:
       runner: cluster1_transip
       environment: Development
-      IIS_APP_POOL_API: Coder API - Development
-      IIS_APP_POOL_FRONT_END: Coder Frontend - Development
       cloudflare_account_id: 737e9d9233ff99af2b322ea397547391
       cloudflare_pool_id: 3f96a062515e3396be07b9ed88499c7b
       cloudflare_origin_id: cluster_1
@@ -26,8 +24,6 @@ jobs:
     with:
       runner: cluster3_transip
       environment: Development
-      IIS_APP_POOL_API: Coder API - Development
-      IIS_APP_POOL_FRONT_END: Coder Frontend - Development
       cloudflare_account_id: 737e9d9233ff99af2b322ea397547391
       cloudflare_pool_id: 3f96a062515e3396be07b9ed88499c7b
       cloudflare_origin_id: cluster_3
@@ -39,8 +35,6 @@ jobs:
     with:
       runner: cluster4_transip
       environment: Development
-      IIS_APP_POOL_API: Coder API - Development
-      IIS_APP_POOL_FRONT_END: Coder Frontend - Development
       cloudflare_account_id: 737e9d9233ff99af2b322ea397547391
       cloudflare_pool_id: 3f96a062515e3396be07b9ed88499c7b
       cloudflare_origin_id: cluster_4

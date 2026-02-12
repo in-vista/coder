@@ -9,12 +9,6 @@ on:
       environment:
         required: true
         type: string
-      IIS_APP_POOL_API:
-        required: true
-        type: string
-      IIS_APP_POOL_FRONT_END:
-        required: true
-        type: string
       cloudflare_account_id:
         required: true
         type: string
@@ -206,23 +200,15 @@ jobs:
 
               Write-Host 'Done.'
 
-          - name: Stop IIS App Pools
+          - name: Place app_offline.htm
+            shell: powershell
             env:
-              IIS_APP_POOL_API: ${{ inputs.IIS_APP_POOL_API }}
-              IIS_APP_POOL_FRONT_END: ${{ inputs.IIS_APP_POOL_FRONT_END }}
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
             run: |
-              Import-Module WebAdministration
-
-              $appPools = @(
-                $env:IIS_APP_POOL_API,
-                $env:IIS_APP_POOL_FRONT_END
-              )
-
-              foreach ($pool in $appPools) {
-                if ((Get-WebAppPoolState -Name $pool).Value -ne "Stopped") {
-                  Stop-WebAppPool -Name $pool
-                }
-              }
+              New-Item -Path (Join-Path $env:PUBLISH_LOCATION_API "app_offline.htm") -ItemType File -Force
+              New-Item -Path (Join-Path $env:PUBLISH_LOCATION_FRONT_END "app_offline.htm") -ItemType File -Force
+              Start-Sleep -Seconds 3
 
           - name: Copy API to IIS folder
             env:
@@ -234,24 +220,15 @@ jobs:
               PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
             run: Copy-Item -Path "${{ github.workspace }}\publish\FrontEnd\*" -Destination $env:PUBLISH_LOCATION_FRONT_END -Recurse -Force
 
-          - name: Start IIS App Pools
-            env:
-              IIS_APP_POOL_API: ${{ inputs.IIS_APP_POOL_API }}
-              IIS_APP_POOL_FRONT_END: ${{ inputs.IIS_APP_POOL_FRONT_END }}
+          - name: Remove app_offline.htm
             if: always()
+            shell: powershell
+            env:
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
             run: |
-              Import-Module WebAdministration
-              
-              $appPools = @(
-                $env:IIS_APP_POOL_API,
-                $env:IIS_APP_POOL_FRONT_END
-              )
-
-              foreach ($pool in $appPools) {
-                if ((Get-WebAppPoolState -Name $pool).Value -ne "Started") {
-                  Start-WebAppPool -Name $pool
-                }
-              }
+              Remove-Item (Join-Path $env:PUBLISH_LOCATION_API "app_offline.htm") -ErrorAction SilentlyContinue
+              Remove-Item (Join-Path $env:PUBLISH_LOCATION_FRONT_END "app_offline.htm") -ErrorAction SilentlyContinue
 
           - name: Enable Cloudflare origin
             shell: powershell
