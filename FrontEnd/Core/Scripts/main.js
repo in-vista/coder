@@ -747,7 +747,16 @@ class Main {
                         this.quickSearchDialogVisible = false;
                     }
                 },
+                
+                handleQuickSearchEnter() {
+                    if(!this.quickSearchResults?.length)
+                        return;
 
+                    const entry = this.quickSearchResults[0];
+                    this.openModule(entry.moduleId);
+                    this.quickSearchDialogVisible = false;
+                },
+                
                 handleBodyClick(event) {
                     if (event.target.id !== "side-menu" && !event.target.closest("#side-menu")) {
                         this.toggleMenuActive(false);

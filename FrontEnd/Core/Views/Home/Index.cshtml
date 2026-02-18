@@ -870,7 +870,11 @@
                 <div id="invista-qs-dialog">
                     <div id="invista-qs-search">
                         <i class="mdi mdi-size-3 mdi-magnify"></i>
-                        <input v-model="quickSearchInput" class="invista-qs-search-input" placeholder="Waar bent u naar opzoek?"/>
+                        <input
+                            v-model="quickSearchInput"
+                            class="invista-qs-search-input"
+                            placeholder="Waar bent u naar opzoek?"
+                            @@keydown.enter.prevent="handleQuickSearchEnter"/>
                         <div v-if="quickSearchInput?.length" class="icon-container hover" @@click="quickSearchInput = undefined">
                             <i class="mdi mdi-size-2 mdi-close"></i>
                         </div>
