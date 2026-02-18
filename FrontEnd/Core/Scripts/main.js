@@ -700,13 +700,13 @@ class Main {
                         });
                 },
                 quickSearchInput(newValue, oldValue) {
-                    this.quickSearchResults = undefined;
-                    
                     if(this.quickSearchInputDebounceTimerId)
                         clearTimeout(this.quickSearchInputDebounceTimerId);
                     
-                    if(!newValue?.length)
+                    if(!newValue?.length) {
+                        this.quickSearchResults = undefined;
                         return;
+                    }
                     
                     this.quickSearchInputDebounceTimerId = setTimeout(() => {
                         this.quickSearchResults = this.modules

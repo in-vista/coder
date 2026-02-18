@@ -1533,9 +1533,9 @@ body {
 }
 
 #invista-qs-results {
-    height: 500px;
+    max-height: 500px;
     width: 100%;
-    overflow-y: scroll;
+    overflow-y: auto;
     
     display: flex;
     flex-direction: column;
@@ -1573,6 +1573,10 @@ body {
     z-index: 50000;
 }
 
+#invista-qs-results, .invista-qs-no-results {
+    transition: max-height 0.25s ease, opacity 0.2s ease;
+}
+
 .invista-qs-dialog-enter-active,
 .invista-qs-dialog-leave-active {
     transition: all 0.18s ease;
@@ -1590,17 +1594,14 @@ body {
     opacity: 1;
 }
 
-.invista-qs-dialog-results-enter-active,
-.invista-qs-dialog-results-leave-active {
-    transition: all 0.3s ease;
-}
-
 .invista-qs-dialog-results-enter-from,
 .invista-qs-dialog-results-leave-to {
-    bottom: 100%;
+    max-height: 0;
+    opacity: 0;
 }
 
 .invista-qs-dialog-results-enter-to,
 .invista-qs-dialog-results-leave-from {
-    bottom: 0;
+    max-height: 500px;
+    opacity: 1;
 }
