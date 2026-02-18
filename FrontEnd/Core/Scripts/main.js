@@ -393,7 +393,14 @@ class Main {
                         url: null
                     },
                     activePopout: null,
-                    hideTimeouts: new WeakMap()
+                    hideTimeouts: new WeakMap(),
+                    quickSearchDialogVisible: false,
+                    quickSearchDialogOpenDelta: undefined,
+                    quickSearchDialogOpenDeltaDelay: 200,
+                    quickSearchInput: undefined,
+                    quickSearchInputDebounceTimerId: undefined,
+                    quickSearchInputDebounceDelay: 200,
+                    quickSearchResults: undefined
                 };
             },
             async created() {
@@ -679,6 +686,33 @@ class Main {
                         this.openGenerateTotpBackupCodesPrompt();
                         await this.generateNewTotpBackupCodes();
                     }
+                },
+                quickSearchDialogVisible(newValue, oldValue) {
+                    if(newValue === false)
+                        this.quickSearchInput = undefined;
+                    
+                    if(newValue === true)
+                        this.$nextTick(() => {
+                            document
+                                .getElementById('invista-qs-dialog')
+                                .querySelector('.invista-qs-search-input')
+                                .focus();
+                        });
+                },
+                quickSearchInput(newValue, oldValue) {
+                    this.quickSearchResults = undefined;
+                    
+                    if(this.quickSearchInputDebounceTimerId)
+                        clearTimeout(this.quickSearchInputDebounceTimerId);
+                    
+                    if(!newValue?.length)
+                        return;
+                    
+                    this.quickSearchInputDebounceTimerId = setTimeout(() => {
+                        this.quickSearchResults = this.modules
+                            .filter(m => m.name.toLowerCase().includes(newValue.toLowerCase()))
+                            .sort(m => m.name);
+                    }, this.quickSearchInputDebounceDelay);
                 }
             },
             methods: {
@@ -695,6 +729,22 @@ class Main {
                     if (event.ctrlKey && event.key === "b") {
                         event.preventDefault();
                         this.openMarkerIoScreen();
+                    }
+                    
+                    // Get the current timestamp used to detect quickly double pressing a key.
+                    const now = Date.now();
+
+                    // Detect double shift for quick search dialog.
+                    if (event.key === "Shift") {
+                        if (now - this.quickSearchDialogOpenDelta < this.quickSearchDialogOpenDeltaDelay) {
+                            this.quickSearchDialogVisible = true;
+                        }
+                        this.quickSearchDialogOpenDelta = now;
+                    }
+
+                    // Detect escape for closing the quick search dialog.
+                    if (event.key === "Escape" && this.quickSearchDialogVisible) {
+                        this.quickSearchDialogVisible = false;
                     }
                 },
 
