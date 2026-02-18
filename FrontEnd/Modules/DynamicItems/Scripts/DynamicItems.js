@@ -313,12 +313,24 @@ const moduleSettings = {
 
             // Keyboard shortcuts
             $("body").on("keydown", async (event) => {
-                const target = $(event.target);
-
                 if ((event.ctrlKey || event.metaKey) && event.key.toUpperCase() === "S") {
                     event.preventDefault();
 
-                    const entityContainer = target.closest(".entity-container");
+                    const elements = $('#right-pane, .k-window').toArray();
+                    let target = null;
+
+                    elements.forEach(el => {
+                        const rect = el.getBoundingClientRect();
+                        const x = rect.left + rect.width / 2;
+                        const y = rect.top + rect.height / 2;
+
+                        const topAtPoint = document.elementFromPoint(x, y);
+
+                        if (topAtPoint === el || el.contains(topAtPoint))
+                            target = $(el);
+                    });
+
+                    const entityContainer = target.find(".entity-container");
                     if (entityContainer.length > 0) {
                         entityContainer.find(".saveButton:not(.saveAndCloseBottomPopup)").first().click();
                     }
@@ -435,8 +447,26 @@ const moduleSettings = {
                 }
             });
 
-            $("body").on("click", ".imgZoom", (event) => {
-                const image = $(event.currentTarget).parents(".product").find("img");
+            $("body").on("click", ".imgZoom", (clickEvent) => {
+                const clickedButton = $(clickEvent.currentTarget);
+                const clickedProductElement = clickedButton.closest(".product");
+                const productsContainer = clickedProductElement.closest(".imagesContainer"); // parent that contains multiple .product siblings
+
+                // Collect all images in the sibling .product
+                const productImageElements = productsContainer
+                    .find(".product img")
+                    .filter(function () {
+                        const source = $(this).attr("src");
+                        return typeof source === "string" && source.length > 0;
+                    });
+
+                if (productImageElements.length === 0) return;
+
+                // Figure out which image index was clicked
+                const clickedImageElement = clickedProductElement.find("img").first();
+                let currentImageIndex = productImageElements.index(clickedImageElement);
+                if (currentImageIndex < 0) currentImageIndex = 0;
+
                 const dialogElement = $("#imageDialog");
                 let dialog = dialogElement.data("kendoDialog");
                 if (!dialog) {
@@ -444,51 +474,136 @@ const moduleSettings = {
                         title: "Afbeelding",
                         closable: true,
                         modal: true,
-                        resizable: true
+                        resizable: true,
+                        close: () => {
+                            $(document).off("keydown.imageCarousel");
+                        }
                     }).data("kendoDialog");
+                } else {
+                    // If dialog already existed, ensure stack handlers don't stack
+                    $(document).off("keydown.imageCarousel");
                 }
                 
-                // Make a clone of the image element for the popup window.
-                const imageClone = image.clone();
+                const carouselRoot = $(`<div class="image-carousel-root"></div>`);
+
+                const leftArrowButton = $(`<button type="button" class="image-carousel-arrow left" aria-label="Vorige">‹</button>`);
+                const rightArrowButton = $(`<button type="button" class="image-carousel-arrow right" aria-label="Volgende">›</button>`);
+
+                const imageZoomContainer = $(`<div class="image-zoom-container"></div>`);
+                const counterElement = $(`<div class="image-carousel-counter"></div>`);
+
+                carouselRoot.append(leftArrowButton, imageZoomContainer, rightArrowButton, counterElement);
                 
-                // Create a zoom container element.
-                const imageZoomContainer = $('<div class="image-zoom-container"></div>');
-                imageZoomContainer.append(imageClone);
-                
-                // Keep a state of the zoom.
                 let imageZoomed = false;
+                let currentImageClone = null;
+
+                function setZoomOff() {
+                    imageZoomed = false;
+                    imageZoomContainer.removeClass("zoomed");
+                    if (currentImageClone) {
+                        currentImageClone.css({
+                            transform: "scale(1)",
+                            "transform-origin": "center center"
+                        });
+                    }
+                }
+
+                function renderCurrentImage() {
+                    // Reset zoom when switching images
+                    setZoomOff();
+                    
+                    imageZoomContainer.empty();
+
+                    const sourceImageElement = $(productImageElements.get(currentImageIndex));
+                    
+                    currentImageClone = sourceImageElement.clone();
+                    imageZoomContainer.append(currentImageClone);
+                    
+                    const hasMultipleImages = productImageElements.length > 1;
+                    leftArrowButton.prop("hidden", !hasMultipleImages);
+                    rightArrowButton.prop("hidden", !hasMultipleImages);
+                    
+                    counterElement.text(`${currentImageIndex + 1} / ${productImageElements.length}`);
+                }
+
+                function goToPreviousImage() {
+                    if (productImageElements.length <= 1) return;
+                    currentImageIndex = (currentImageIndex - 1 + productImageElements.length) % productImageElements.length;
+                    renderCurrentImage();
+                }
+
+                function goToNextImage() {
+                    if (productImageElements.length <= 1) return;
+                    currentImageIndex = (currentImageIndex + 1) % productImageElements.length;
+                    renderCurrentImage();
+                }
                 
-                // Add a click event on the image clone to zoom in/out on the image.
-                imageZoomContainer.click(() => {
+                leftArrowButton.on("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    goToPreviousImage();
+                });
+
+                rightArrowButton.on("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    goToNextImage();
+                });
+                
+                imageZoomContainer.on("click", () => {
                     imageZoomed = !imageZoomed;
-                    
-                    imageZoomContainer.toggleClass('zoomed');
-                    
-                    if(!imageZoomed) {
-                        imageClone.css({
-                            transform: 'scale(1)',
-                            'transform-origin': 'center center'
+                    imageZoomContainer.toggleClass("zoomed", imageZoomed);
+
+                    if (!imageZoomed) {
+                        setZoomOff();
+                    } else if (currentImageClone) {
+                        currentImageClone.css({
+                            transform: "scale(2)",
+                            "transform-origin": "center center"
                         });
                     }
                 });
-                
-                // Add a mouse over event for handling the offset of the zoomed image.
-                imageZoomContainer.on('mousemove', function(event) {
-                    if(!imageZoomed)
-                        return;
 
-                    const offset = imageZoomContainer.offset();
-                    const x = ((event.pageX - offset.left) / imageZoomContainer.width()) * 100;
-                    const y = ((event.pageY - offset.top) / imageZoomContainer.height()) * 100;
+                // Mousemove pan while zoomed
+                imageZoomContainer.on("mousemove", function (moveEvent) {
+                    if (!imageZoomed || !currentImageClone) return;
 
-                    imageClone.css({
-                        transform: 'scale(2)',
-                        'transform-origin': `${x}% ${y}%`,
+                    const containerOffset = imageZoomContainer.offset();
+                    const xPercentage = ((moveEvent.pageX - containerOffset.left) / imageZoomContainer.width()) * 100;
+                    const yPercentage = ((moveEvent.pageY - containerOffset.top) / imageZoomContainer.height()) * 100;
+
+                    currentImageClone.css({
+                        transform: "scale(2)",
+                        "transform-origin": `${xPercentage}% ${yPercentage}%`
                     });
                 });
+
+                // Image carrousel keyboard navigation 
+                $(document).on("keydown.imageCarousel", (keyEvent) => {
+                    const targetTagName = (keyEvent.target && keyEvent.target.tagName) ? keyEvent.target.tagName.toLowerCase() : "";
+                    const isTypingTarget = targetTagName === "input" || targetTagName === "textarea" || targetTagName === "select";
+                    if (isTypingTarget) return;
+
+                    if (keyEvent.key === "ArrowLeft" || keyEvent.key === "a" || keyEvent.key === "A") {
+                        keyEvent.preventDefault();
+                        goToPreviousImage();
+                        return;
+                    }
+
+                    if (keyEvent.key === "ArrowRight" || keyEvent.key === "d" || keyEvent.key === "D") {
+                        keyEvent.preventDefault();
+                        goToNextImage();
+                        return;
+                    }
+
+                    if (keyEvent.key === "Escape") {
+                        keyEvent.preventDefault();
+                        dialog.close();
+                    }
+                });
                 
-                // Set the content of the dialog and open it.
-                dialog.content(imageZoomContainer.get());
+                renderCurrentImage();
+                dialog.content(carouselRoot.get(0));
                 dialog.open();
             });
 

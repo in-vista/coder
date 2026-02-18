@@ -39,6 +39,7 @@ import {
     GET_ENTITIES_FOR_BRANCHES,
     GET_LINK_TYPES,
     GET_TENANT_TITLE,
+    GET_TENANT_OPTIONS,
     HANDLE_CONFLICT,
     HANDLE_MULTIPLE_CONFLICTS,
     IS_MAIN_BRANCH,
@@ -695,6 +696,18 @@ const tenantsModule = {
             document.title = `${title} - Coder 3.0`;
         },
 
+        [GET_TENANT_OPTIONS](state, options) {
+            state.options = options;
+            
+            const documentStyle = document.documentElement.style;
+            documentStyle.setProperty('--coder-foreground-color', options.foreground_color);
+            documentStyle.setProperty('--coder-background-color', options.background_color);
+            documentStyle.setProperty('--coder-primary-color', options.primary_color);
+            documentStyle.setProperty('--coder-secondary-color', options.secondary_color);
+            documentStyle.setProperty('--coder-tertiary-color', options.tertiary_color);
+            documentStyle.setProperty('--coder-icon-color', options.icon_color);
+        },
+
         [VALID_SUB_DOMAIN](state, valid) {
             state.validSubDomain = valid;
         }
@@ -706,6 +719,13 @@ const tenantsModule = {
             const titleResponse = await main.tenantsService.getTitle(subDomain);
             commit(GET_TENANT_TITLE, titleResponse.data);
             commit(VALID_SUB_DOMAIN, titleResponse.statusCode !== 404);
+            commit(END_REQUEST);
+        },
+        async [GET_TENANT_OPTIONS]({ commit }, subDomain) {
+            commit(START_REQUEST);
+            const optionsResponse = await main.tenantsService.getOptions(subDomain);
+            commit(GET_TENANT_OPTIONS, optionsResponse.data);
+            commit(VALID_SUB_DOMAIN, optionsResponse.statusCode !== 404);
             commit(END_REQUEST);
         }
     },

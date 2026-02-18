@@ -75,6 +75,43 @@ export default class TenantsService extends BaseService {
     }
 
     /**
+     * Gets the options of the tenant.
+     * @param {string} subDomain The sub domain of the tenant.
+     * @returns {any} An array with all available modules.
+     */
+    async getOptions(subDomain) {
+        const result = {};
+
+        try {
+            const response = await this.base.api.get(`/api/v3/wiser-tenants/${encodeURIComponent(subDomain)}/options`);
+            result.success = true;
+            result.statusCode = 200;
+            result.data = response.data;
+        } catch (error) {
+            result.success = false;
+            console.error("Error tenant get options", typeof(error.toJSON) === "function" ? error.toJSON() : error);
+            result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van de instellingen van deze klant.";
+
+            if (error.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                console.warn(error.response);
+                result.statusCode = error.response.status;
+            } else if (error.request) {
+                // The request was made but no response was received
+                // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+                // http.ClientRequest in node.js
+                console.warn(error.request);
+            } else {
+                // Something happened in setting up the request that triggered an Error
+                console.warn(error.message);
+            }
+        }
+
+        return result;
+    }
+
+    /**
      * Creates a new tenant / tenant in Wiser.
      * @param {any} data The data for the new tenant.
      * @param {boolean} isWebShop: Whether or not this tenant is getting a web shop.

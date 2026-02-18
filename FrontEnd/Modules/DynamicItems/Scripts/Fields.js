@@ -193,7 +193,13 @@ export class Fields {
         }
         this.dependencies[entityType][tabName] = {};
 
-        const allControls = container.find(".item");
+        // Retrieve the item window actions with optional action buttons.
+        const itemWindowActions = container.closest('.k-window').find('.item-window-actions');
+
+        // Combine all containers to look for controls in.
+        const $containers = container.add(itemWindowActions);
+        
+        const allControls = $containers.find(".item");
 
         allControls.each((index, element) => {
             const controlContainer = $(element);
@@ -223,8 +229,14 @@ export class Fields {
     handleAllDependenciesOfContainer(container, entityType, tabName, windowId) {
         this.originalItemValues[windowId] = {};
         this.unsavedItemValues[windowId] = {};
-
-        const allControls = container.find("select, input, [data-kendo-control], textarea");
+        
+        // Retrieve the item window actions with optional action buttons.
+        const itemWindowActions = container.closest('.k-window').find('.item-window-actions');
+        
+        // Combine all containers to look for controls in.
+        const $containers = container.add(itemWindowActions);
+        
+        const allControls = $containers.find("select, input, [data-kendo-control], textarea, .action-button");
         allControls.each((index, element) => {
             const field = $(element);
             const container = field.closest(".item");
@@ -444,7 +456,7 @@ export class Fields {
             switch (dependency.dependsOnAction || this.base.dependencyActionsEnum.toggleVisibility) {
                 case this.base.dependencyActionsEnum.refresh: {
                     if (typeof event.preventDefault === "function") { // Only refresh when input changes, not when item is loaded
-                        let itemElement = container.closest(".k-tabstrip").find(`[data-property-id='${dependency.propertyId}'].item`);
+                        const itemElement = container.closest(".k-window").find(`[data-property-id='${dependency.propertyId}'].item`);
     
                         if (itemElement.hasClass("emptyItem")) {
                             // Refresh empty item
@@ -455,7 +467,7 @@ export class Fields {
                                 method: "GET"
                             }).then(function(results) {
                                 // Set HTML from server call to 'empty' property
-                               itemElement.replaceWith(results.tabs[0].htmlTemplate);                            
+                               itemElement.replaceWith(results.tabs[0].htmlTemplate);
                             });                        
                         }
                         else {
@@ -500,8 +512,9 @@ export class Fields {
 
                 case this.base.dependencyActionsEnum.toggleVisibility: {
                     let showElement = checkIfDependencyIsMet(dependency, parsedValues);
-
-                    container.closest(".k-tabstrip").find(`[data-property-id='${dependency.propertyId}'].item`).toggleClass("dependency-hidden", !showElement);
+                    
+                    const itemElement = container.closest(".k-window").find(`[data-property-id='${dependency.propertyId}'].item`);
+                    itemElement.toggleClass("dependency-hidden", !showElement);
 
                     for (let tab of tabStrip.items()) {
                         if (tab.classList.contains("overview-tab")) {
@@ -3767,7 +3780,8 @@ export class Fields {
 
                             const queryString = {
                                 rel: dialogElement.find("#youTubeShowRelatedVideos").prop("checked"),
-                                autoplay: dialogElement.find("#youTubeAutoPlay").prop("checked")
+                                autoplay: dialogElement.find("#youTubeAutoPlay").prop("checked"),
+                                mute: dialogElement.find("#youTubeAutoPlay").prop("checked")
                             };
 
                             let fullScreenAttribute = "";

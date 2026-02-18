@@ -33,6 +33,7 @@ export const LOAD_ENTITY_TYPES_OF_ITEM_ID = "loadEntityTypesOfItemId";
 
 // Tenants module.
 export const GET_TENANT_TITLE = "getTenantTitle";
+export const GET_TENANT_OPTIONS = "getTenantOptions";
 export const VALID_SUB_DOMAIN = "validSubDomain";
 
 // Users module.

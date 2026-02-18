@@ -20,6 +20,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Api.Modules.Tenants.Services
 {
@@ -435,6 +437,53 @@ namespace Api.Modules.Tenants.Services
                 {
                     return new ServiceResult<string>(null);
                 }
+
+                throw;
+            }
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<TenantOptions>> GetOptionsAsync(string subDomain)
+        {
+            if (string.IsNullOrWhiteSpace(subDomain))
+                return new ServiceResult<TenantOptions>
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    ErrorMessage = "No sub domain given"
+                };
+            
+            try
+            {
+                if (httpContextAccessor.HttpContext != null)
+                {
+                    // Set sub domain to main and then make sure the database connection log table in the main database is up-to-date.
+                    httpContextAccessor.HttpContext.Items[HttpContextConstants.SubDomainKey] = apiSettings.MainSubDomain;
+                    await databaseHelpersService.CheckAndUpdateTablesAsync(new List<string> { GeeksCoreLibrary.Modules.Databases.Models.Constants.DatabaseConnectionLogTableName });
+                }
+
+                wiserDatabaseConnection.ClearParameters();
+                wiserDatabaseConnection.AddParameter("subDomain", subDomain);
+
+                var dataTable = await wiserDatabaseConnection.GetAsync($"SELECT `options` FROM {ApiTableNames.WiserTenants} WHERE subdomain = ?subdomain");
+                if (dataTable.Rows.Count == 0)
+                    return new ServiceResult<TenantOptions>
+                    {
+                        StatusCode = HttpStatusCode.NotFound,
+                        ErrorMessage = "No tenant found with this sub domain"
+                    };
+
+                string optionsJsonString = dataTable.Rows[0].Field<string>("options");
+                if (string.IsNullOrWhiteSpace(optionsJsonString))
+                    return new ServiceResult<TenantOptions>(new TenantOptions());
+                
+                TenantOptions optionsJson = JsonConvert.DeserializeObject<TenantOptions>(optionsJsonString);
+                return  new ServiceResult<TenantOptions>(optionsJson);
+            }
+            catch (MySqlException mySqlException)
+            {
+                // If easy_customers does not exist, just return null.
+                if (mySqlException.ErrorCode is MySqlErrorCode.UnknownTable or MySqlErrorCode.NoSuchTable)
+                    return new ServiceResult<TenantOptions>(null);
 
                 throw;
             }

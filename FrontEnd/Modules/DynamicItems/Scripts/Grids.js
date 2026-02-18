@@ -230,6 +230,9 @@ export class Grids {
                     previousFilters = JSON.stringify(options.filter);
                 }
 
+                if(gridViewSettings?.toolbar?.hideToggleHiddenItemsButton === false)
+                    options.showHiddenItems = false;
+
                 gridDataResult = await Wiser.api({
                     url: `${this.base.settings.wiserApiRoot}modules/${encodeURIComponent(this.base.settings.moduleId)}/overview-grid`,
                     method: "POST",
@@ -350,6 +353,15 @@ export class Grids {
                 });
             }
 
+            const shouldShowToggleHiddenItemsButton = gridViewSettings?.toolbar?.hideToggleHiddenItemsButton === false;
+            if (shouldShowToggleHiddenItemsButton) {
+                toolbar.push({
+                    name: 'toggleHiddenItems',
+                    text: '',
+                    template: `<a class='k-button k-button-icontext toggle-hidden-items' title='Verborgen items tonen/verbergen' onclick='window.dynamicItems.grids.executeToolbarActionButton(event, () => window.dynamicItems.grids.onToggleHiddenItemsClick(event))'><span class='k-font-icon k-i-eye'></span></a>`
+                });
+            }
+
             if (!gridViewSettings.toolbar || !gridViewSettings.toolbar.hideCount) {
                 toolbar.push({
                     name: "count",
@@ -385,7 +397,11 @@ export class Grids {
             }
 
             if (gridViewSettings.toolbar && gridViewSettings.toolbar.customActions && gridViewSettings.toolbar.customActions.length > 0) {
-                this.addCustomActionsToToolbar("#gridView", 0, 0, toolbar, gridViewSettings.toolbar.customActions, undefined);
+                // Retrieve all custom actions that are set to be shown in the toolbar.
+                const filteredCustomActions = gridViewSettings.toolbar.customActions
+                    .filter(action => (action.hideInToolbar ?? false) === false);
+                
+                this.addCustomActionsToToolbar("#gridView", 0, 0, toolbar, filteredCustomActions, undefined);
             }
 
             let totalResults = gridDataResult.totalResults;
@@ -487,6 +503,10 @@ export class Grids {
                         read: async (transportOptions) => {
                             const process = `loadMainGrid_${Date.now()}`;
 
+                            // Retrieve and store the state of which to show/hide hidden elements in the transport data.
+                            if(toolbarSettings?.hideToggleHiddenItemsButton === false)
+                                transportOptions.data.showHiddenItems = this.mainGrid?.element.data('showHiddenItems') ?? false;
+                            
                             try {
                                 if (this.mainGridFirstLoad) {
                                     transportOptions.success(gridDataResult);
@@ -512,7 +532,7 @@ export class Grids {
                                 transportOptions.data.pageSize = transportOptions.data.page_size || transportOptions.data.pageSize;
                                 previousFilters = currentFilters;
                                 this.mainGridForceRecount = false;
-
+                                
                                 let newGridDataResult;
                                 if (usingDataSelector) {
                                     newGridDataResult = {
@@ -736,7 +756,7 @@ export class Grids {
                     // Filter out any actions that do not need a row to be selected, as those are irrelevant.
                     .filter(action => !action.allowNoSelection)
                     // Filter out any actions that are set to not be shown in a context menu.
-                    .filter(action => action.contextMenu ?? true);
+                    .filter(action => (action.hideInContextMenu ?? false) === false);
                 
                 // Only allow a context menu in the grid if there are any actions that require a row to be selected.
                 if(contextMenuActions.length > 0) {
@@ -1909,6 +1929,36 @@ export class Grids {
         // Reload overview.
         grid.dataSource.read();
         grid.refresh();
+    }
+
+    async onToggleHiddenItemsClick(event) {
+        // Prevent default behavior of the clicked button.
+        event.preventDefault();
+        
+        // Retrieve the elements associated to the event.
+        const button = $(event.target).closest('.k-button');
+        const buttonIcon = button.find('.k-font-icon');
+        
+        // Retrieve the associated grid element of the grid.
+        const grid = $(event.target).closest(".k-grid").data("kendoGrid");
+        
+        // Validate the grid and throw an error if it was not found.
+        if (!grid) {
+            console.error("Grid not found, cannot toggle hidden items.", event, $(event.target).closest(".k-grid"));
+            return;
+        }
+        
+        // Retrieve the jQuery DOM element of the grid.
+        const gridElement = grid.element;
+        
+        // Toggle the state of the grid and button to mark it to show/hide hidden items.
+        const showHiddenItems = gridElement.data('showHiddenItems') ?? false;
+        buttonIcon.toggleClass('k-i-eye-slash');
+        buttonIcon.toggleClass('k-i-eye');
+        gridElement.data('showHiddenItems', !showHiddenItems);
+
+        // Reload the grid overview.
+        grid.dataSource.read();
     }
 
     /**

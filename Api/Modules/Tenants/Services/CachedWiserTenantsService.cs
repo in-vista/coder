@@ -123,6 +123,12 @@ namespace Api.Modules.Tenants.Services
                     return await wiserTenantsService.GetTitleAsync(subDomain);
                 }, cacheService.CreateMemoryCacheEntryOptions(CacheAreas.WiserItems));
         }
+        
+        /// <inheritdoc />
+        public async Task<ServiceResult<TenantOptions>> GetOptionsAsync(string subDomain)
+        {
+            return await wiserTenantsService.GetOptionsAsync(subDomain);
+        }
 
         /// <inheritdoc />
         public bool IsMainDatabase(ClaimsIdentity identity)
