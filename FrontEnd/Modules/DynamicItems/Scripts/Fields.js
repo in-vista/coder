@@ -513,7 +513,10 @@ export class Fields {
                 case this.base.dependencyActionsEnum.toggleVisibility: {
                     let showElement = checkIfDependencyIsMet(dependency, parsedValues);
                     
-                    const windowElement = container.closest(".k-window") && container.closest("#window");
+                    const windowElement =
+                        container.closest(".k-window").length
+                            ? container.closest(".k-window")
+                            : container.closest("#window");
                     
                     const itemElement = windowElement.find(`[data-property-id='${dependency.propertyId}'].item`);
                     itemElement.toggleClass("dependency-hidden", !showElement);
