@@ -1852,7 +1852,7 @@ const moduleSettings = {
         async onUndeleteItemClick(event, encryptedItemId, popupWindowContainer = undefined) {
             event.preventDefault();
 
-            const title = popupWindowContainer.data('title');
+            const title = popupWindowContainer?.data('title') ?? "dit item";
             
             await Wiser.showConfirmDialog(`Weet u zeker dat u het verwijderen ongedaan wilt maken voor '${title}'?`, "Verwijderen ongedaan maken", "Annuleren", "Terugzetten");
 
