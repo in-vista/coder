@@ -2913,7 +2913,7 @@ ORDER BY {orderByClause}";
                                 INSERT IGNORE INTO {linkTablePrefix}{WiserTableNames.WiserItemLink} (item_id, destination_item_id, type, ordering)                                
                                 SELECT source.id, destination.id, ?linkType, (@ordering:=IF(@ordering=0,IFNULL(MAX(link.ordering),0),0) + @ordering + 1)
                                 FROM {tablePrefix}{WiserTableNames.WiserItem} AS source
-                                JOIN {tablePrefix}{WiserTableNames.WiserItem} AS destination ON destination.id = {destinationId.ToString()}
+                                JOIN {destinationTablePrefix}{WiserTableNames.WiserItem} AS destination ON destination.id = {destinationId.ToString()}
                                 LEFT JOIN {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link ON link.destination_item_id = {destinationId.ToString()} AND link.type = ?linkType
                                 WHERE source.id IN ({String.Join(",", sourceIds)})
                                 GROUP BY source.id;";
