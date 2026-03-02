@@ -1338,7 +1338,7 @@ $mdi-sizes: (
     border-radius: 8px;
     cursor: pointer;
     
-    &:hover {
+    &:not(.active):hover {
         background-color: rgba(100, 100, 100, 0.08) !important;
     }
 }
@@ -1550,6 +1550,11 @@ body {
     
     &:nth-child(even) {
         background-color: #f9f9f9;
+    }
+    
+    &.active {
+        color: var(--coder-icon-color);
+        background-color: var(--coder-primary-color);
     }
 }
 

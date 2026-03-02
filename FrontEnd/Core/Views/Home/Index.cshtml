@@ -866,7 +866,7 @@
         </wiser-dialog>
         
         <transition name="invista-qs-dialog">
-            <div v-if="quickSearchDialogVisible" id="invista-qs-container">
+            <div v-if="quickSearchDialogVisible" id="invista-qs-container" @@keydown="handleQuickSearchDialogKeyDown">
                 <div id="invista-qs-dialog">
                     <div id="invista-qs-search">
                         <i class="mdi mdi-size-3 mdi-magnify"></i>
@@ -882,8 +882,10 @@
                     <transition name="invista-qs-dialog-results">
                         <div v-if="quickSearchResults?.length" id="invista-qs-results">
                             <div
-                                v-for="quickSearchEntry of quickSearchResults"
+                                v-for="(quickSearchEntry, quickSearchEntryIndex) in quickSearchResults"
+                                :ref="'invista-qs-result-entry-' + quickSearchEntryIndex"
                                 class="invista-qs-result-entry hover"
+                                :class="{ active: quickSearchEntryIndex === quickSearchDialogActiveIndex }"
                                 @@click="openModule(quickSearchEntry.moduleId); quickSearchDialogVisible = false">
                                 <ins class="mdi mdi-size-3" :class="[ `mdi-${quickSearchEntry.icon}` ]"></ins>
                                 <p class="invista-qs-result-entry-title">

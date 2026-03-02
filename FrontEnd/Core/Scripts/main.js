@@ -400,7 +400,8 @@ class Main {
                     quickSearchInput: undefined,
                     quickSearchInputDebounceTimerId: undefined,
                     quickSearchInputDebounceDelay: 200,
-                    quickSearchResults: undefined
+                    quickSearchResults: undefined,
+                    quickSearchDialogActiveIndex: 0
                 };
             },
             async created() {
@@ -691,13 +692,16 @@ class Main {
                     if(newValue === false)
                         this.quickSearchInput = undefined;
                     
-                    if(newValue === true)
+                    if(newValue === true) {
+                        this.quickSearchDialogActiveIndex = 0;
+                        
                         this.$nextTick(() => {
                             document
                                 .getElementById('invista-qs-dialog')
                                 .querySelector('.invista-qs-search-input')
                                 .focus();
                         });
+                    }
                 },
                 quickSearchInput(newValue, oldValue) {
                     if(this.quickSearchInputDebounceTimerId)
@@ -713,6 +717,21 @@ class Main {
                             .filter(m => m.name.toLowerCase().includes(newValue.toLowerCase()))
                             .sort(m => m.name);
                     }, this.quickSearchInputDebounceDelay);
+                },
+                quickSearchResults(newValue, oldValue) {
+                    this.quickSearchDialogActiveIndex = 0;
+                },
+                quickSearchDialogActiveIndex(newValue, oldValue) {
+                    this.$nextTick(() => {
+                        const activeElement = this.$refs[`invista-qs-result-entry-${newValue}`]?.[0];
+                        if(!activeElement)
+                            return;
+                        
+                        activeElement.scrollIntoView({
+                            block: 'nearest',
+                            behavior: 'auto'
+                        });
+                    });
                 }
             },
             methods: {
@@ -752,9 +771,31 @@ class Main {
                     if(!this.quickSearchResults?.length)
                         return;
 
-                    const entry = this.quickSearchResults[0];
+                    const entry = this.quickSearchResults[this.quickSearchDialogActiveIndex];
                     this.openModule(entry.moduleId);
                     this.quickSearchDialogVisible = false;
+                },
+
+                handleQuickSearchDialogKeyDown(event) {
+                    let newIndex = this.quickSearchDialogActiveIndex;
+                    
+                    if(!['ArrowDown', 'ArrowUp'].includes(event.key))
+                        return;
+                    
+                    switch(event.key) {
+                        case 'ArrowDown':
+                            newIndex++;
+                            break;
+                        case 'ArrowUp':
+                            newIndex--;
+                            break;
+                    }
+                    
+                    const lowerBound = 0;
+                    const upperBound = this.quickSearchResults?.length - 1 ?? lowerBound;
+                    newIndex = Math.max(Math.min(newIndex, upperBound), lowerBound);
+                    
+                    this.quickSearchDialogActiveIndex = newIndex;
                 },
                 
                 handleBodyClick(event) {
