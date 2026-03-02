@@ -713,8 +713,14 @@ class Main {
                     }
                     
                     this.quickSearchInputDebounceTimerId = setTimeout(() => {
+                        const normalisedInput = newValue.toLowerCase().trim();
+                        const normalisedInputSegments = normalisedInput.split(' ');
+                        
                         this.quickSearchResults = this.modules
-                            .filter(m => m.name.toLowerCase().includes(newValue.toLowerCase()))
+                            .filter(m => {
+                                const entryName = m.name;
+                                return normalisedInputSegments.every(inputSegment => new RegExp(RegExp.escape(inputSegment), 'i').test(entryName));
+                            })
                             .sort(m => m.name);
                     }, this.quickSearchInputDebounceDelay);
                 },
