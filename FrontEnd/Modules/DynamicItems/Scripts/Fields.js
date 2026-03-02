@@ -513,7 +513,12 @@ export class Fields {
                 case this.base.dependencyActionsEnum.toggleVisibility: {
                     let showElement = checkIfDependencyIsMet(dependency, parsedValues);
                     
-                    const itemElement = container.closest(".k-window").find(`[data-property-id='${dependency.propertyId}'].item`);
+                    const windowElement =
+                        container.closest(".k-window").length
+                            ? container.closest(".k-window")
+                            : container.closest("#window");
+                    
+                    const itemElement = windowElement.find(`[data-property-id='${dependency.propertyId}'].item`);
                     itemElement.toggleClass("dependency-hidden", !showElement);
 
                     for (let tab of tabStrip.items()) {
