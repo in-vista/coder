@@ -873,6 +873,9 @@ const moduleSettings = {
                 await Misc.loadExternalScript('https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js');
                 await Misc.loadExternalScript('https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors');
             }
+            if(scriptTemplate.indexOf("TopolPlugin") > -1) {
+                await Misc.loadExternalScript('/customscripts/topol.js');
+            }
             if (scriptTemplate.indexOf("bryntum.calendar.Calendar") > -1) {
                 // These scripts have to be loaded as script tags due to how the library works.
                 await Misc.loadExternalScript('/customscripts/bryntum/calendar/locales/calendar.locale.Nl.js', {
@@ -1166,7 +1169,7 @@ const moduleSettings = {
             window.processing.addProcess(process);
             
             // Check if the item has a Topol instance running.
-            if(TopolPlugin.iframe && document.body.contains(TopolPlugin.iframe)) {
+            if(TopolPlugin !== undefined && TopolPlugin.iframe && document.body.contains(TopolPlugin.iframe)) {
                 // Since manually saving the Topol instance runs async, but the 'save' function does not have the ability to wait,
                 // we wait manually by waiting for a success message that comes back from the iframe of the Topol instance.
                 await new Promise(resolve => {
