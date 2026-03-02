@@ -2106,16 +2106,21 @@ const moduleSettings = {
                 const translateButton = entityContainer.find(".editMenu .translateItem").closest("li");
                 translateButton.toggle(this.allLanguages.length > 1 && entityContainer.find(".item[data-language-code]:not([data-language-code=''])").length > 0);
 
-                // Setup dependencies for all tabs.
+                let tabNames = [];
+
+                // Setup dependencies for all tabs and store the tab name's in an array.
                 for (let i = itemHtmlResult.tabs.length - 1; i >= 0; i--) {
                     const tabData = itemHtmlResult.tabs[i];
                     const container = this.mainTabStrip.contentHolder(i);
+                    tabNames.push(tabData.name || "Gegevens")
                     this.base.fields.setupDependencies(container, itemMetaData.entityType, tabData.name || "Gegevens");
                 }
-
-                // Handle dependencies for the first tab, to make sure all the correct fields are hidden/shown on the first tab. The other tabs will be done once they are opened.
-                this.base.fields.handleAllDependenciesOfContainer(this.mainTabStrip.contentHolder(0), itemMetaData.entityType, "Gegevens", "mainScreen");
-
+               
+                // Handle dependencies for all tabs, this is to make sure every field's dependency is doing what it's set to do.
+                tabNames.forEach((tabName, index) => {
+                    this.base.fields.handleAllDependenciesOfContainer(this.mainTabStrip.contentHolder(index), itemMetaData.entityType, tabName, "mainScreen");
+                });
+                
                 $(this.mainTabStrip.items()[0]).toggle(genericTabHasFields || itemTitleFieldContainer.is(":visible"));
 
                 // Figure our which tab to select (don't select hidden or empty tabs).
