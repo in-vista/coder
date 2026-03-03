@@ -1169,7 +1169,7 @@ const moduleSettings = {
             window.processing.addProcess(process);
             
             // Check if the item has a Topol instance running.
-            if(TopolPlugin !== undefined && TopolPlugin.iframe && document.body.contains(TopolPlugin.iframe)) {
+            if(window.TopolPlugin !== undefined && TopolPlugin.iframe && document.body.contains(TopolPlugin.iframe)) {
                 // Since manually saving the Topol instance runs async, but the 'save' function does not have the ability to wait,
                 // we wait manually by waiting for a success message that comes back from the iframe of the Topol instance.
                 await new Promise(resolve => {
@@ -1189,7 +1189,7 @@ const moduleSettings = {
                     window.addEventListener('message', messageHandler);
 
                     // Release the JSON and HTML of the Topol mail editor iframe into their respective input fields.
-                    TopolPlugin.save();
+                    window.TopolPlugin?.save();
                 });
             }
 
