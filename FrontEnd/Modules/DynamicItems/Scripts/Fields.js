@@ -800,7 +800,7 @@ export class Fields {
             const selectedItems = [ selectedItem ].filter(item => !!item);
             
             // Execute the actions with the given information of the combobox.
-            this.executeActionButtonActions(options.actions, extraValues, itemDetails, propertyId, entityType, selectedItems, element, $(event.target));
+            this.executeActionButtonActions(options.actions, extraValues, itemDetails, propertyId, entityType, selectedItems, element, $(event.currentTarget));
         }
     }
 
@@ -899,7 +899,7 @@ export class Fields {
         const itemDetails = !itemId ? { encryptedId: this.base.settings.zeroEncrypted } : (await this.base.getItemDetails(itemId, entityType));
 
         const userParametersWithValues = {};
-        const success = await this.executeActionButtonActions(actionDetails.actions, userParametersWithValues, itemDetails, propertyId, entityType, selectedItems, senderGrid.element, $(event.target));
+        const success = await this.executeActionButtonActions(actionDetails.actions, userParametersWithValues, itemDetails, propertyId, entityType, selectedItems, senderGrid.element, $(event.currentTarget));
 
         if (senderGrid && senderGrid.element) {
             senderGrid.element.siblings(".grid-loader").removeClass("loading");
@@ -988,7 +988,7 @@ export class Fields {
 
             // Execute all actions that are configured for this button.
             const userParametersWithValues = {};
-            const success = await this.executeActionButtonActions(options.actions, userParametersWithValues, itemDetails, propertyId, entityType, [], button, $(event.target));
+            const success = await this.executeActionButtonActions(options.actions, userParametersWithValues, itemDetails, propertyId, entityType, [], button, $(event.currentTarget));
             event.sender.element.removeClass("loading");
             if (success && !options.disableSuccessMessages) {
                 this.base.notification.show({ message: `Alle acties zijn uitgevoerd.` }, "success");
