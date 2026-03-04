@@ -2043,6 +2043,12 @@ export class Fields {
                         });
                     };
 
+                    if (!selectedItems || !selectedItems.length)
+                        await logAction(action.type);
+                    else
+                        for (const selectedItem of selectedItems)
+                            await logAction(action.type, selectedItem);
+
                     switch (action.type) {
                         // Opens a new tab/window in the browser of the user with the given URL. A tab will be opened for every selected item.
                         case "openUrl": {
@@ -2170,13 +2176,6 @@ export class Fields {
 
                         // Executes a query that is saved in the action_query column of wiser_entityproperty. This query will be executed separately for every selected item.
                         case "executeQuery": {
-                            const logActionName = 'executeQuery';
-                            if (!selectedItems || !selectedItems.length)
-                                await logAction(logActionName);
-                            else
-                                for (const selectedItem of selectedItems)
-                                    await logAction(logActionName, selectedItem);
-                            
                             if (!selectedItems || !selectedItems.length) {
                                 // No selected items, which means that this is an action from a stand-alone action button and we only need to execute the action once.
                                 queryActionResult = await executeQuery();
