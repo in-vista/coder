@@ -81,7 +81,8 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="identity">The identity of the authenticated user.</param>
         /// <param name="undelete">Optional: Whether to undelete the item instead of deleting it.</param>
         /// <param name="entityType">Optional: The entity type of the item to duplicate. This is needed when the item is saved in a different table than wiser_item. We can only look up the name of that table if we know the entity type beforehand.</param>
-        Task<ServiceResult<bool>> DeleteAsync(string encryptedId, ClaimsIdentity identity, bool undelete = false, string entityType = null);
+        /// <param name="isNew">Optional: Indication whether the item is considered new. If so, the default delete behaviour will be performed.</param>
+        Task<ServiceResult<bool>> DeleteAsync(string encryptedId, ClaimsIdentity identity, bool undelete = false, string entityType = null, bool isNew = false);
 
         /// <summary>
         /// Executes the workflow for an item. In wiser_entity you can set queries that need to be executed after an item has been created or updated.

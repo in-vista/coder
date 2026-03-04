@@ -474,7 +474,7 @@ const moduleSettings = {
                             case "delete":
                                 if (selectedItem.isDirectory) {
                                     Wiser.showConfirmDialog(`Weet u zeker dat u de map '${selectedItem.name}' wilt verwijderen? Alle afbeeldingen in deze map zullen dan ook verwijderd worden.`).then(() => {
-                                        Wiser.deleteItem(this.settings, selectedItem.id, "filedirectory").then(() => {
+                                        Wiser.deleteItem(this.settings, selectedItem.id, "filedirectory", false).then(() => {
                                             this.imagesUploaderWindowTreeView.remove(this.imagesUploaderWindowTreeViewContextMenuTarget);
                                             this.notification.show({ message: "Map succesvol verwijderd" }, "success");
                                             loader.removeClass("loading");
@@ -696,7 +696,7 @@ const moduleSettings = {
                             case "delete":
                                 if (selectedItem.isDirectory) {
                                     Wiser.showConfirmDialog(`Weet u zeker dat u de map '${selectedItem.name}' wilt verwijderen? Alle bestanden in deze map zullen dan ook verwijderd worden.`).then(() => {
-                                        Wiser.deleteItem(this.settings, selectedItem.id, "filedirectory").then(() => {
+                                        Wiser.deleteItem(this.settings, selectedItem.id, "filedirectory", false).then(() => {
                                             this.filesUploaderWindowTreeView.remove(this.filesUploaderWindowTreeViewContextMenuTarget);
                                             this.notification.show({ message: "Map succesvol verwijderd" }, "success");
                                             loader.removeClass("loading");

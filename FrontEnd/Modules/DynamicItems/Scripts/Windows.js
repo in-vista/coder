@@ -157,7 +157,7 @@ export class Windows {
                                     }
     
                                     if (canDelete) {
-                                        this.base.deleteItem(encryptedItemId, entityType);
+                                        this.base.deleteItem(encryptedItemId, entityType, isNewItem);
                                     }
                                 }
                             } catch (exception) {
@@ -545,7 +545,7 @@ export class Windows {
             });
 
             currentItemWindow.wrapper.find(".k-i-verwijderen").parent().click(async (event) => {
-                await this.onDeleteItemPopupClick(event, kendoComponent);
+                await this.onDeleteItemPopupClick(event, kendoComponent, isNewItem);
             });
             
             currentItemWindow.wrapper.find(".k-i-terugzetten").parent().click(async (event) => {
@@ -591,7 +591,7 @@ export class Windows {
      * The click event for the delete button of item popups.
      * @param {any} event The click event.
      */
-    async onDeleteItemPopupClick(event, kendoComponent) {
+    async onDeleteItemPopupClick(event, kendoComponent, isNew) {
         event.preventDefault();
 
         const popupWindowContainer = $(event.currentTarget).closest(".k-window").find(".popup-container");
@@ -611,7 +611,7 @@ export class Windows {
             const data = kendoWindow.element.data();
             const encryptedItemId = data.itemId;
 
-            await this.base.deleteItem(encryptedItemId, entityType);
+            await this.base.deleteItem(encryptedItemId, entityType, isNew);
 
             popupWindowContainer.find(".popup-loader").removeClass("loading");
 

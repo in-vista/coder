@@ -279,8 +279,11 @@ const moduleSettings = {
 
                     var promises = [];
                     for (let element of kendoWindows) {
+                        // Retrieve the existence state of the opened item.
+                        const isNew = $(element).data("isNewItem");
+                        
                         // If the current item is a new item and it's not being saved at the moment, then delete it because it was a temporary item.
-                        if (!$(element).data("isNewItem") || $(element).data("saving")) {
+                        if (!isNew || $(element).data("saving")) {
                             continue;
                         }
 
@@ -298,7 +301,7 @@ const moduleSettings = {
                         }
 
                         if (canDelete) {
-                            promises.push(this.base.deleteItem($(element).data("itemId"), $(element).data("entityType")));
+                            promises.push(this.base.deleteItem($(element).data("itemId"), $(element).data("entityType"), isNew));
                         }
                     }
 
@@ -1066,7 +1069,7 @@ const moduleSettings = {
                     {
                         Wiser.showConfirmDialog(`Weet u zeker dat u het item '${dataItem.title}' wilt verwijderen?`).then(async () => {
                             try {
-                                await this.base.deleteItem(itemId, entityType);
+                                await this.base.deleteItem(itemId, entityType, false);
                                 this.base.mainTreeView.remove(selectedNode);
                             } catch (exception) {
                                 console.error(exception);
@@ -1819,7 +1822,7 @@ const moduleSettings = {
             }
 
             try {
-                await this.deleteItem(encryptedItemId, entityType);
+                await this.deleteItem(encryptedItemId, entityType, false);
 
                 if (!this.settings.iframeMode) {
                     // Close the opened item.
@@ -2410,10 +2413,11 @@ const moduleSettings = {
          * Marks an item as deleted.
          * @param {string} encryptedItemId The encrypted item ID.
          * @param {string} entityType The entity type of the item to delete. This is required for workflows.
+         * @param {boolean} isNew Indication whether the item is considered new. If so, the default delete behavior will be performed.
          * @returns {Promise} A promise with the result of the AJAX call.
          */
-        async deleteItem(encryptedItemId, entityType) {
-            return Wiser.deleteItem(this.settings, encryptedItemId, entityType);
+        async deleteItem(encryptedItemId, entityType, isNew) {
+            return Wiser.deleteItem(this.settings, encryptedItemId, entityType, isNew);
         }
 
         /**

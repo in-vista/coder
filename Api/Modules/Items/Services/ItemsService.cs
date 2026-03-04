@@ -847,7 +847,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<bool>> DeleteAsync(string encryptedId, ClaimsIdentity identity, bool undelete = false, string entityType = null)
+        public async Task<ServiceResult<bool>> DeleteAsync(string encryptedId, ClaimsIdentity identity, bool undelete = false, string entityType = null, bool isNew = false)
         {
             if (String.IsNullOrWhiteSpace(encryptedId))
             {
@@ -865,7 +865,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
 
             try
             {
-                await wiserItemsService.DeleteAsync(itemId, undelete, username, userId, entityType: entityType);
+                await wiserItemsService.DeleteAsync(itemId, undelete, username, userId, entityType: entityType, isNew: isNew);
             }
             catch (InvalidAccessPermissionsException exception)
             {

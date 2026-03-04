@@ -1208,9 +1208,10 @@ export class Wiser {
      * @param {any} moduleSettings The settings of the module that calls this method. This needs to contain at least the "wiserApiRoot" property.
      * @param {string} encryptedItemId The encrypted item ID.
      * @param {string} entityType The entity type of the item to delete. This is required for workflows.
+     * @param {boolean} isNew Indication whether the item is considered new. If so, the default delete behavior will be performed.
      * @returns {Promise} A promise with the result of the AJAX call.
      */
-    static async deleteItem(moduleSettings, encryptedItemId, entityType) {
+    static async deleteItem(moduleSettings, encryptedItemId, entityType, isNew) {
         try {
             const apiActionId = await Wiser.getApiAction(moduleSettings, "before_delete", entityType);
             if (apiActionId) {
@@ -1225,7 +1226,7 @@ export class Wiser {
         }
 
         return Wiser.api({
-            url: `${moduleSettings.wiserApiRoot}items/${encodeURIComponent(encryptedItemId)}?entityType=${entityType || ""}`,
+            url: `${moduleSettings.wiserApiRoot}items/${encodeURIComponent(encryptedItemId)}?entityType=${entityType || ""}&isNew=${isNew}`,
             method: "DELETE",
             contentType: "application/json",
             dataType: "JSON"
