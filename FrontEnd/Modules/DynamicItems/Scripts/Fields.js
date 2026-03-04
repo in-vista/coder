@@ -1380,6 +1380,31 @@ export class Fields {
 
             // Retrieve the module ID from the current DOM context.
             const moduleId = Number($('body').attr('data-module-id')) ?? null;
+            
+            // Prepare a function to log the executed action.
+            const logAction = async (action, item = null) => {
+                const itemDetails = !!item
+                    ? (await this.base.getItemDetails(item.dataItem.encrypted_id || item.dataItem.encryptedid || item.dataItem.encryptedId, item.dataItem.entity_type || item.dataItem.entitytype || item.dataItem.entityType)) || mainItemDetails
+                    : mainItemDetails;
+                
+                try {
+                    await Wiser.api({
+                        url: `${window.dynamicItems.settings.wiserApiRoot}items/log-action`,
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            item_id: itemDetails.encryptedId || null,
+                            entity_type: itemDetails.entityType || null,
+                            action_button: action,
+                            module_id: moduleId || null,
+                            property_id: propertyId || null
+                        })
+                    });
+                } catch(exception) {
+                    console.error(exception);
+                    kendo.alert(`Er is een fout opgetreden bij het schrijven van een log van de action button voor actie '${action}'.`);
+                }
+            }
 
             const getSuffixFromSelectedColumn = (selectedItem) => {
                 let suffixToUse = "";
@@ -2145,6 +2170,13 @@ export class Fields {
 
                         // Executes a query that is saved in the action_query column of wiser_entityproperty. This query will be executed separately for every selected item.
                         case "executeQuery": {
+                            const logActionName = 'executeQuery';
+                            if (!selectedItems || !selectedItems.length)
+                                await logAction(logActionName);
+                            else
+                                for (const selectedItem of selectedItems)
+                                    await logAction(logActionName, selectedItem);
+                            
                             if (!selectedItems || !selectedItems.length) {
                                 // No selected items, which means that this is an action from a stand-alone action button and we only need to execute the action once.
                                 queryActionResult = await executeQuery();

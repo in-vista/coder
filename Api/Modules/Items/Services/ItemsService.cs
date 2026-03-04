@@ -3323,6 +3323,32 @@ ORDER BY link.ordering ASC, item.title ASC";
 
             return new ServiceResult<List<ContextMenuItem>>(menuItems);
         }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<bool>> LogActionAsync(ClaimsIdentity identity, string encryptedItemId, string entityType, string actionButton, ulong? moduleId, ulong? propertyId)
+        {
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            ulong? itemId = !string.IsNullOrEmpty(encryptedItemId) ? await wiserTenantsService.DecryptValue<ulong>(encryptedItemId, identity) : null;
+            ulong userId = IdentityHelpers.GetWiserUserId(identity);
+
+            await clientDatabaseConnection.EnsureOpenConnectionForWritingAsync();
+
+            string query = @$"
+INSERT INTO {WiserTableNames.WiserActionButtonLog}(item_id, entity_type, action_button, user_id, module_id, property_id)
+VALUES(?itemId, ?entityType, ?actionButton, ?userId, ?moduleId, ?propertyId)";
+            
+            clientDatabaseConnection.ClearParameters();
+            clientDatabaseConnection.AddParameter("itemId", itemId);
+            clientDatabaseConnection.AddParameter("entityType", entityType);
+            clientDatabaseConnection.AddParameter("actionButton", actionButton);
+            clientDatabaseConnection.AddParameter("userId", userId);
+            clientDatabaseConnection.AddParameter("moduleId", moduleId);
+            clientDatabaseConnection.AddParameter("propertyId", propertyId);
+
+            await clientDatabaseConnection.ExecuteAsync(query);
+            
+            return new ServiceResult<bool>(true);
+        }
 
         /// <summary>
         /// Saves a translated field in a <see cref="WiserItemModel"/>. It will only do this if it doesn't have a value for that language yet.

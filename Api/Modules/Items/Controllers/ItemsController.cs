@@ -515,5 +515,15 @@ namespace Api.Modules.Items.Controllers
         {
             return (await itemsService.SearchAsync((ClaimsIdentity)User.Identity, parentId, data)).GetHttpResponseMessage();
         }
+
+        [HttpPost]
+        [Route("log-action")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> LogActionAsync([FromBody] LogActionRequest logActionRequest)
+        {
+            return (await itemsService.LogActionAsync((ClaimsIdentity)User.Identity, logActionRequest.EncryptedItemId,
+                    logActionRequest.EntityType, logActionRequest.ActionButton, logActionRequest.ModuleId, logActionRequest.PropertyId))
+                .GetHttpResponseMessage();
+        }
     }
 }

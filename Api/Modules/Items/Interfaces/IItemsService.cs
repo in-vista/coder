@@ -289,5 +289,17 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="entityType">The entity type of item to get menu items for.</param>
         /// <returns></returns>
         Task<ServiceResult<List<ContextMenuItem>>> GetContextMenuAsync(ClaimsIdentity identity, int moduleId, string encryptedItemId, string entityType);
+        
+        /// <summary>
+        /// Logs a performed action by an action button.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <param name="encryptedItemId">The encrypted ID of the item that had an action performed on.</param>
+        /// <param name="entityType">The entity type of the item that had an action performed on.</param>
+        /// <param name="actionButton">The name of the action button that was performed.</param>
+        /// <param name="moduleId">The ID of the module that the action was performed in.</param>
+        /// <param name="propertyId">The ID of the entity property that the action was performed in.</param>
+        /// <returns>True if the action was logged in the database.</returns>
+        Task<ServiceResult<bool>> LogActionAsync(ClaimsIdentity identity, string encryptedItemId, string entityType, string actionButton, ulong? moduleId, ulong? propertyId);
     }
 }
