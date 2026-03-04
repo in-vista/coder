@@ -711,16 +711,33 @@ export class Fields {
         const currentTarget = $(event.currentTarget);
         const fieldContainer = currentTarget.closest(".item");
         const splitContainer = currentTarget.closest("#right-pane");
+        const entityContainer = currentTarget.closest(".entity-container");
         const infoText = fieldContainer.find(".form-hint").html();
         const fieldName = fieldContainer.find("h4").text();
-
+        
+        // Remember the current scroll position
+        const scrollContainer = currentTarget.closest(".k-tabstrip-content.k-active");
+        
+        let previousScrollTop = 0;
+        if(scrollContainer.length > 0)
+            previousScrollTop = splitContainer.hasClass("info-active")
+                ? scrollContainer.scrollTop() 
+                : splitContainer.scrollTop();
+        
         if (splitContainer.length <= 0) {
-            currentTarget.closest(".entity-container").addClass("info-active");
+            entityContainer.addClass("info-active");
         } else {
-            currentTarget.closest("#right-pane").addClass("info-active");
+            splitContainer.addClass("info-active");
         }
+        
         infoPanel.find(".info-title").text(fieldName);
         infoPanel.find(".info-content").html(infoText);
+
+        // Restore the scroll position
+        if(scrollContainer.length > 0)
+            requestAnimationFrame(() => {
+                scrollContainer.scrollTop(previousScrollTop);
+            });
     }
 
     /**
