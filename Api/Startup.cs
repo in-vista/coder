@@ -18,8 +18,6 @@ using Api.Modules.Templates.Interfaces;
 using Api.Modules.Templates.Services;
 using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Tenants.Services;
-using Api.Modules.Topol;
-using Api.Modules.Topol.Interfaces;
 using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using GeeksCoreLibrary.Modules.Databases.Services;
