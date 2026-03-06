@@ -782,9 +782,14 @@ class Main {
                 },
                 
                 handleQuickSearchShortcut(event) {
+                    // Ignore repeat events to avoid the shortcut being detected when holding the shortcut key.
+                    if(event.repeat)
+                        return;
+                    
                     // Get the current timestamp used to detect quickly double pressing a key.
                     const now = Date.now();
-
+                    
+                    // Open the dialog when shift is quickly pressed.
                     if (now - this.quickSearchDialogOpenDelta < this.quickSearchDialogOpenDeltaDelay) {
                         this.quickSearchDialogVisible = true;
                     }
