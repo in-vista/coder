@@ -720,6 +720,8 @@ class Main {
 
                     this.quickSearchResults = this.modules
                         .filter(moduleFilter)
+                        .sort(m => m.groupOptions?.ordering ?? Number.MAX_VALUE)
+                        .sort(m => m.ordering)
                         .sort(m => m.name);
                 },
                 quickSearchResults(newValue, oldValue) {
