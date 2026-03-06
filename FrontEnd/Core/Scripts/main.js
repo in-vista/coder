@@ -398,8 +398,6 @@ class Main {
                     quickSearchDialogOpenDelta: undefined,
                     quickSearchDialogOpenDeltaDelay: 200,
                     quickSearchInput: undefined,
-                    quickSearchInputDebounceTimerId: undefined,
-                    quickSearchInputDebounceDelay: 200,
                     quickSearchResults: undefined,
                     quickSearchDialogActiveIndex: 0
                 };
@@ -695,6 +693,9 @@ class Main {
                     if(newValue === true) {
                         this.quickSearchDialogActiveIndex = 0;
                         
+                        // Trigger the dialog to fetch results.
+                        this.quickSearchInput = '';
+                        
                         this.$nextTick(() => {
                             document
                                 .getElementById('invista-qs-dialog')
@@ -704,25 +705,21 @@ class Main {
                     }
                 },
                 quickSearchInput(newValue, oldValue) {
-                    if(this.quickSearchInputDebounceTimerId)
-                        clearTimeout(this.quickSearchInputDebounceTimerId);
+                    let moduleFilter = _ => true;
                     
-                    if(!newValue?.length) {
-                        this.quickSearchResults = undefined;
-                        return;
-                    }
-                    
-                    this.quickSearchInputDebounceTimerId = setTimeout(() => {
+                    if(newValue?.length) {
                         const normalisedInput = newValue.toLowerCase().trim();
                         const normalisedInputSegments = normalisedInput.split(' ');
                         
-                        this.quickSearchResults = this.modules
-                            .filter(m => {
-                                const entryName = m.name;
-                                return normalisedInputSegments.every(inputSegment => new RegExp(RegExp.escape(inputSegment), 'i').test(entryName));
-                            })
-                            .sort(m => m.name);
-                    }, this.quickSearchInputDebounceDelay);
+                        moduleFilter = m => {
+                            const entryName = m.name;
+                            return normalisedInputSegments.every(inputSegment => new RegExp(RegExp.escape(inputSegment), 'i').test(entryName));
+                        };
+                    }
+
+                    this.quickSearchResults = this.modules
+                        .filter(moduleFilter)
+                        .sort(m => m.name);
                 },
                 quickSearchResults(newValue, oldValue) {
                     this.quickSearchDialogActiveIndex = 0;
