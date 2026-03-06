@@ -1606,7 +1606,7 @@ export class Fields {
                                     },
                                     close: (event) => { event.sender.destroy(); }
                                 }).data("kendoDialog");
-
+                                
                                 dialog.element.on("dblclick", ".k-grid tr", (event) => {
                                     if ($(event.target).closest(".k-grid-header").length || event.target.tagName === "TEXTAREA") {
                                         return;
@@ -1617,44 +1617,45 @@ export class Fields {
                                 });
 
                                 const allowKeyAction = (event) => {
-                                    // array of class names to ignore
+                                    // Array of class names to ignore.
                                     const ignoreClasses = [
                                         "k-filter-menu-container"
                                     ];
 
-                                    // check if any of these elements are visible
+                                    // Check if any of the ignored elements are visible.
                                     const ignoreVisible = ignoreClasses.some(cls => $(`.${cls}:visible`).length);
-                                    if (ignoreVisible) return false;
+                                    if (ignoreVisible)
+                                        return false;
 
-                                    // ignore textarea and inputs
-                                    return !(event.target.tagName === "TEXTAREA" || event.target.nodeName === "INPUT");
+                                    // Allow input.
+                                    return true;
                                 };
 
                                 // Close the dialog when the user presses escape in the dialog.
-                                dialog.element.on("keyup", function(event) {
-                                    if (!event.key || event.key.toLowerCase() !== "escape") return;
+                                dialog.element.on('keydown', function(event) {
+                                    if (!event.key || event.key.toLowerCase() !== 'escape')
+                                        return;
 
-                                    if(!allowKeyAction(event)) return;
+                                    if(!allowKeyAction(event))
+                                        return;
 
                                     reject({ userPressedCancel: true })
                                     dialog.close(event);
                                 });
 
                                 // Trigger the OK button click when the user presses enter in the dialog.
-                                dialog.element.on("keyup", function(event) {
-                                    if (!event.key || event.key.toLowerCase() !== "enter") return;
+                                dialog.element.on('keydown', function(event) {
+                                    if (!event.key || event.key.toLowerCase() !== 'enter')
+                                        return;
 
-                                    if(!allowKeyAction(event)) return;
+                                    if(!allowKeyAction(event))
+                                        return;
 
-                                    // trigger the OK button
-                                    $(event.currentTarget)
-                                        .next()
-                                        .find(".k-primary, .k-button-solid-primary")
-                                        .trigger("click");
+                                    // Trigger the OK button.
+                                    okButtonAction(parameter, event);
+                                    dialog.close(event);
                                 });
-
-
-
+                                
                                 // Build the options object for the kendo component.
                                 const options = $.extend({ culture: "nl-NL" }, parameter);
 

@@ -1788,7 +1788,7 @@ export class Grids {
                                 text: "Gehele item",
                                 action: (e) => {
                                     try {
-                                        this.base.deleteItem(encryptedId, options.entityType).then(() => {
+                                        this.base.deleteItem(encryptedId, options.entityType, false).then(() => {
                                             senderGrid.dataSource.read();
                                         });
                                     } catch (exception) {
@@ -1829,7 +1829,7 @@ export class Grids {
                     }
 
                     try {
-                        await this.base.deleteItem(dataItem.encryptedId || dataItem.encrypted_id || dataItem.encryptedid, options.entityType);
+                        await this.base.deleteItem(dataItem.encryptedId || dataItem.encrypted_id || dataItem.encryptedid, options.entityType, false);
                     } catch (exception) {
                         console.error(exception);
 
