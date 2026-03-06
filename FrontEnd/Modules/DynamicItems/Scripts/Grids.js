@@ -319,7 +319,7 @@ export class Grids {
                             name: "remove",
                             iconClass: "k-font-icon k-i-delete",
                             text: "",
-                            click: this.base.grids.executeToolbarActionButton(event, () => onDeleteClick.bind(this))
+                            click: event => this.base.grids.executeToolbarActionButton(event, () => onDeleteClick.bind(this))
                         });
                     }
                     else if (gridViewSettings.showDeleteButton === true) {
