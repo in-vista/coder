@@ -2871,16 +2871,14 @@ ORDER BY {orderByClause}";
         public async Task<ServiceResult<bool>> AddMultipleLinksAsync(ClaimsIdentity identity, List<string> encryptedSourceIds, List<string> encryptedDestinationIds, int linkType, string sourceEntityType = null, bool setOrdering = false)
         {
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
-            var tenant  = (await wiserTenantsService.GetSingleAsync(identity)).ModelObject;
+            var tenant = (await wiserTenantsService.GetSingleAsync(identity)).ModelObject;
             var destinationIds = encryptedDestinationIds.Select(x => wiserTenantsService.DecryptValue<ulong>(x, tenant)).ToList();
             var sourceIds = encryptedSourceIds.Select(x => wiserTenantsService.DecryptValue<ulong>(x, tenant)).ToList();
             var linkTypeSettings = await wiserItemsService.GetLinkTypeSettingsAsync(linkType, sourceEntityType);
             var linkTablePrefix = wiserItemsService.GetTablePrefixForLink(linkTypeSettings);
 
-            if (String.IsNullOrWhiteSpace(sourceEntityType))
-            {
+            if (string.IsNullOrWhiteSpace(sourceEntityType))
                 sourceEntityType = linkTypeSettings.SourceEntityType;
-            }
 
             var tablePrefix = String.IsNullOrWhiteSpace(sourceEntityType) ? "" : await wiserItemsService.GetTablePrefixForEntityAsync(sourceEntityType);
             var destinationTablePrefix = await wiserItemsService.GetTablePrefixForEntityAsync(linkTypeSettings.DestinationEntityType);
@@ -2946,12 +2944,21 @@ ORDER BY {orderByClause}";
             var sourceIds = encryptedSourceIds.Select(x => wiserTenantsService.DecryptValue<ulong>(x, tenant)).ToList();
             var linkTypeSettings = await wiserItemsService.GetLinkTypeSettingsAsync(linkType, sourceEntityType);
             var linkTablePrefix = wiserItemsService.GetTablePrefixForLink(linkTypeSettings);
+            ulong userId = IdentityHelpers.GetWiserUserId(identity);
 
-            if (String.IsNullOrWhiteSpace(sourceEntityType))
-            {
+            if (string.IsNullOrWhiteSpace(sourceEntityType))
                 sourceEntityType = linkTypeSettings.SourceEntityType;
+            
+            // Check access rights and execute query_before_delete actions for each item. 
+            for(int i = sourceIds.Count - 1; i >= 0; i--)
+            {
+                ulong sourceId = sourceIds[i];
+                
+                var isPossible = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(sourceId, EntityActions.Delete, userId, entityType: sourceEntityType);
+                if (!isPossible.ok)
+                    sourceIds.RemoveAt(i);
             }
-
+            
             var tablePrefix = String.IsNullOrWhiteSpace(sourceEntityType) ? "" : await wiserItemsService.GetTablePrefixForEntityAsync(sourceEntityType);
 
             clientDatabaseConnection.ClearParameters();
