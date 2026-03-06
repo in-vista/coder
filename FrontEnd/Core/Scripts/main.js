@@ -400,7 +400,8 @@ class Main {
                     quickSearchInput: undefined,
                     quickSearchResults: undefined,
                     quickSearchDialogActiveIndex: 0,
-                    quickSearchDialogHandleClickToClose: undefined
+                    quickSearchDialogHandleClickToClose: undefined,
+                    quickSearchShortcutMessageName: 'QUICK_SEARCH_SHORTCUT_PRESSED'
                 };
             },
             async created() {
@@ -409,6 +410,7 @@ class Main {
                 this.$store.dispatch(GET_TENANT_OPTIONS, subDomain);
                 
                 document.addEventListener("keydown", this.onAppKeyDown.bind(this));
+                window.addEventListener('message', this.handleKeydownFromIframe.bind(this));
                 
                 // Add an event for when the DOM is loaded.
                 document.addEventListener('DOMContentLoaded', async function() {
@@ -755,22 +757,38 @@ class Main {
                         event.preventDefault();
                         this.openMarkerIoScreen();
                     }
-                    
+
+                    // Detect double shift for quick search dialog.
+                    if(event.key === 'Shift')
+                        this.handleQuickSearchShortcut(event);
+
+                    // Detect escape for closing the quick search dialog.
+                    if (event.key === 'Escape' && this.quickSearchDialogVisible) {
+                        this.quickSearchDialogVisible = false;
+                    }
+                },
+                
+                handleKeydownFromIframe(event) {
+                    if (event.data.type === this.quickSearchShortcutMessageName)
+                        this.handleQuickSearchShortcut(event.data.event);
+                },
+                
+                onIframeLoaded(event) {
+                    const iframe = event.target;
+                    iframe.contentWindow.addEventListener('keydown', event => {
+                        if(event.key === 'Shift')
+                            window.postMessage({ type: this.quickSearchShortcutMessageName }, '*');
+                    });
+                },
+                
+                handleQuickSearchShortcut(event) {
                     // Get the current timestamp used to detect quickly double pressing a key.
                     const now = Date.now();
 
-                    // Detect double shift for quick search dialog.
-                    if (event.key === "Shift") {
-                        if (now - this.quickSearchDialogOpenDelta < this.quickSearchDialogOpenDeltaDelay) {
-                            this.quickSearchDialogVisible = true;
-                        }
-                        this.quickSearchDialogOpenDelta = now;
+                    if (now - this.quickSearchDialogOpenDelta < this.quickSearchDialogOpenDeltaDelay) {
+                        this.quickSearchDialogVisible = true;
                     }
-
-                    // Detect escape for closing the quick search dialog.
-                    if (event.key === "Escape" && this.quickSearchDialogVisible) {
-                        this.quickSearchDialogVisible = false;
-                    }
+                    this.quickSearchDialogOpenDelta = now;
                 },
                 
                 handleQuickSearchEnter() {

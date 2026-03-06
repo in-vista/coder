@@ -24,12 +24,18 @@ export class Grids {
         this.mainGridFirstLoad = true;
         this.mainGridForceRecount = false;
         this.gridContextMenu = null;
+        
+        this.quickSearchShortcutMessageName = 'QUICK_SEARCH_SHORTCUT_PRESSED';
     }
 
     /**
      * Do all initializations for the Grids class, such as adding bindings.
      */
     async initialize() {
+        window.addEventListener('message', event => {
+            window.parent?.postMessage(event.data, '*');
+        });
+        
         if (this.base.settings.gridViewMode && !this.base.settings.iframeMode) {
             this.base.settings.gridViewSettings = this.base.settings.gridViewSettings || {};
 
@@ -100,11 +106,17 @@ export class Grids {
 
             this.informationBlockIframe = $(`<iframe />`).appendTo(informationBlockContainer);
             this.informationBlockIframe[0].onload = (event) => {
-                if (event.target.contentDocument.URL === "about:blank") {
+                const iframe = event.target;
+                
+                if (iframe.contentDocument.URL === "about:blank")
                     return;
-                }
 
                 window.processing.removeProcess(initialProcess);
+
+                iframe.contentWindow.addEventListener('keydown', event => {
+                    if(event.key === 'Shift')
+                        window.postMessage({ type: this.quickSearchShortcutMessageName }, '*');
+                });
 
                 dynamicItems.grids.informationBlockIframe[0].contentDocument.addEventListener("dynamicItems.onSaveButtonClick", () => {
                     if (!this.mainGrid || !this.mainGrid.dataSource) {
