@@ -399,7 +399,8 @@ class Main {
                     quickSearchDialogOpenDeltaDelay: 200,
                     quickSearchInput: undefined,
                     quickSearchResults: undefined,
-                    quickSearchDialogActiveIndex: 0
+                    quickSearchDialogActiveIndex: 0,
+                    quickSearchDialogHandleClickToClose: undefined
                 };
             },
             async created() {
@@ -1628,6 +1629,17 @@ class Main {
                     },
                     120);
                 }
+            },
+            mounted() {
+                this.quickSearchDialogHandleClickToClose = event => {
+                    if (!$(event.target).closest($('#invista-qs-dialog')).length)
+                        this.quickSearchDialogVisible = false;
+                }
+                
+                $(document).on('click', this.quickSearchDialogHandleClickToClose);
+            },
+            beforeUnmount() {
+                $(document).off('click', this.quickSearchDialogHandleClickToClose);
             }
         });
 
