@@ -1,5 +1,5 @@
 (async () => {
-    function loadScript(src) {
+    async function loadScript(src) {
         return new Promise((resolve, reject) => {
             const s = document.createElement('script');
             s.src = src;
@@ -8,20 +8,11 @@
             document.head.appendChild(s);
         });
     }
-    
-    const scripts = [        
-        "https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js",
-        "https://cdn.jsdelivr.net/npm/flatpickr",
-        "https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/nl.js"
-    ];
-    
-    // Laad alles parallel, en wacht tot alle scripts klaar zijn
-    Promise.all(scripts.map(loadScript)).then(() => {
-        window.timelineScheduler = new TimelineScheduler();
-    }).catch(err => {
-        console.error("Fout bij laden van script:", err);
-    });
-    
+
+    await loadScript("https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js");
+    await loadScript("https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js");
+    await loadScript("https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/nl.js");   
+       
     class TimelineScheduler {
     
         // ---------- INSTELLINGEN ----------
@@ -1660,6 +1651,8 @@
             }
         }
     }
+
+    window.timelineScheduler = new TimelineScheduler();
 
     // Inject custom Javascript code from the entity property's settings.
     {customScript}
