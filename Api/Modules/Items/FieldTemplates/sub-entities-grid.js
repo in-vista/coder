@@ -39,11 +39,11 @@
         requestUrlQueryParameters.countQueryId = countQueryId;
     }
     
-   /* if(options.toolbar?.hideToggleHiddenItemsButton === false)
+    if(options.toolbar?.hideToggleHiddenItemsButton === false)
         requestUrlQueryParameters.showHiddenItems = false;
     
     if(Object.keys(requestUrlQueryParameters).length > 0)
-        gridRequestUrl += `?${Object.entries(requestUrlQueryParameters).map(([ key, value ]) => `${key}=${encodeURIComponent(value)}`).join('&')}`*/
+        gridRequestUrl += `?${Object.entries(requestUrlQueryParameters).map(([ key, value ]) => `${key}=${encodeURIComponent(value)}`).join('&')}`
     
     async function generateGrid(data, model, columns) {
         var toolbar = [];
