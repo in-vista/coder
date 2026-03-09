@@ -438,7 +438,17 @@ const moduleSettings = {
                 
                 // Find the closest k-window instance.
                 const kWindow = target.closest('.k-window');
+
+                const splitContainer = target.closest("#right-pane");
                 
+                // Remember the current scroll position
+                const scrollContainer = splitContainer.find(".k-tabstrip-content.k-active");
+                let previousScrollTop = 0;
+                if(scrollContainer.length > 0) 
+                    previousScrollTop = splitContainer.hasClass("info-active")
+                        ? scrollContainer.scrollTop()
+                        : splitContainer.scrollTop();
+                    
                 // Check if the context of this button lives in a k-window instance.
                 if(kWindow.length > 0) {
                     kWindow.find(".entity-container").removeClass("info-active");
@@ -448,6 +458,12 @@ const moduleSettings = {
                     const window = target.closest('#window');
                     window.find('#right-pane').removeClass('info-active');
                 }
+                
+                // Restore the scroll position
+                if(scrollContainer.length > 0)
+                    requestAnimationFrame(() => {
+                        splitContainer.scrollTop(previousScrollTop);
+                    });
             });
 
             $("body").on("click", ".imgZoom", (clickEvent) => {
