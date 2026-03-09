@@ -770,7 +770,7 @@ class Main {
                 
                 handleKeydownFromIframe(event) {
                     if (event.data.type === this.quickSearchShortcutMessageName)
-                        this.handleQuickSearchShortcut(event.data.event);
+                        this.handleQuickSearchShortcut(event.data.event ?? event);
                 },
                 
                 onIframeLoaded(event) {

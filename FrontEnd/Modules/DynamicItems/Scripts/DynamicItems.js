@@ -2050,6 +2050,12 @@ const moduleSettings = {
 
                 // Set the HTML of the fields tab.
                 const itemHtmlResult = await this.getItemHtml(itemId, itemMetaData.entityType, isNew);
+                
+                // Check whether a valid item HTML was given.
+                if(!itemHtmlResult) {
+                    kendo.alert("Het opgevraagde item bestaat niet of is ongeldig.");
+                    return;
+                }
 
                 this.mainTabStrip.element.find("> .k-tabstrip-items-wrapper > ul > li .addedFromDatabase").each((index, element) => {
                     this.mainTabStrip.remove($(element).closest("li.k-item"));
@@ -2158,9 +2164,9 @@ const moduleSettings = {
                 } else {
                     kendo.alert("Er is iets fout gegaan met het laden van dit item. Probeer het a.u.b. nogmaals.");
                 }
+            } finally {
+                window.processing.removeProcess(process);
             }
-
-            window.processing.removeProcess(process);
         }
 
         /**
@@ -2463,6 +2469,9 @@ const moduleSettings = {
          * @returns {Promise} A promise with the results.
          */
         async getTitle(itemId) {
+            if(!itemId)
+                return null;
+            
             return Wiser.api({ url: `${this.settings.serviceRoot}/GET_TITLE?itemId=${encodeURIComponent(itemId)}` });
         }
 
@@ -2477,6 +2486,9 @@ const moduleSettings = {
          * @returns {Promise} A promise with the results.
          */
         async getItemHtml(itemId, entityType, isNew, propertyIdSuffix = "", linkId = 0, linkType = 0) {
+            if(!itemId)
+                return null;
+            
             let url = `${this.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}?entityType=${encodeURIComponent(entityType)}&isNew=${encodeURIComponent(isNew)}&encryptedModuleId=${encodeURIComponent(this.base.settings.encryptedModuleId)}`;
             if (propertyIdSuffix) {
                 url += `&propertyIdSuffix=${encodeURIComponent(propertyIdSuffix)}`;
@@ -2528,6 +2540,10 @@ const moduleSettings = {
          * @returns {Promise} A promise, which will return an array with 1 item. That item will contain it's basic properties and a property called "property_" which contains an object with all fields and their values.
          */
         async getItemMetaData(itemId, entityType) {
+            // Validate item ID.
+            if(!itemId)
+                return null;
+            
             const entityTypeUrlPart = entityType ? `?entityType=${encodeURIComponent(entityType)}` : "";
             return Wiser.api({ url: `${this.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}/meta${entityTypeUrlPart}` });
         }
