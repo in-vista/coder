@@ -782,6 +782,10 @@ class Main {
                 },
                 
                 handleQuickSearchShortcut(event) {
+                    // Only handle the shortcut if the user is logged in and there are modules to be searched for.
+                    if(!this.user.loggedIn || !this.modules?.length)
+                        return;
+                    
                     // Ignore repeat events to avoid the shortcut being detected when holding the shortcut key.
                     if(event.repeat)
                         return;
@@ -893,6 +897,9 @@ class Main {
                     
                     // Remove the system styling.
                     Misc.removeSystemStyling();
+                    
+                    // Close the quick search dialog.
+                    this.quickSearchDialogVisible = true;
                 },
 
                 openModule(module) {
