@@ -2018,7 +2018,7 @@ export class Grids {
      */
     async onGridSelectionChange(event, readOnly = undefined) {
         // Check based on given condition to hide.
-        const conditionalButtons = event.sender.wrapper.find('.k-button.hide-when-no-selected-rows');
+        const conditionalButtons = event.sender.wrapper.find('.k-button');
 
         // Retrieve the elements of the selected rows
         const grid = event.sender;
