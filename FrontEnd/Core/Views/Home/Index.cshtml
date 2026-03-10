@@ -8,7 +8,7 @@
 </style>
 <div id="app" v-cloak>
     <div :class="{ 'loading': mainLoader }">
-        <div v-if="user.loggedIn" id="coder-menu">
+        <div v-if="user.loggedIn && !requirePasswordChange" id="coder-menu">
             <div id="logo-container">
                 <img v-if="tenantOptions" :src="tenantOptions.logo" alt="logo"/>
             </div>
@@ -61,7 +61,7 @@
             </div>
         </div>
         <div id="coder-container">
-            <div v-if="user.loggedIn" id="coder-tab-strip">
+            <div v-if="user.loggedIn && !requirePasswordChange" id="coder-tab-strip">
                 <div id="modules-strip">
                     <div
                         v-for="module in openedModules"
@@ -88,7 +88,7 @@
                 </div>
             </div>
             <main :class="{ login: !user.loggedIn || requirePasswordChange, 'scrollable': tenantManagementIsOpened }">
-                <div v-if="user.loggedIn && openedModules.length === 0" class="logo-ghost-container">
+                <div v-if="user.loggedIn && !requirePasswordChange && openedModules.length === 0" class="logo-ghost-container">
                     <img v-if="tenantOptions" class="logo-ghost" :src="tenantOptions.logo" alt="logo"/>
                 </div>
                 <p v-if="user.loggedIn && !mainLoader && !hasModules">Voor deze gebruiker zijn geen modules beschikbaar.</p>
