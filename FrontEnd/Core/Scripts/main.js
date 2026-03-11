@@ -899,7 +899,7 @@ class Main {
                     Misc.removeSystemStyling();
                     
                     // Close the quick search dialog.
-                    this.quickSearchDialogVisible = true;
+                    this.quickSearchDialogVisible = false;
                 },
 
                 openModule(module) {
