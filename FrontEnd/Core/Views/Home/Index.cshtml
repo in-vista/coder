@@ -64,12 +64,14 @@
             <div v-if="user.loggedIn && !requirePasswordChange" id="coder-tab-strip">
                 <div id="modules-strip">
                     <div
-                        v-for="module in openedModules"
+                        v-for="(module, tabIndex) in openedModules"
                         :key="module.id"
                         class="modules-strip-tab"
                         :class="{ 'active': module.id === activeModule }"
+                        :style="tabDragIndex === tabIndex ? tabDragStyle : {}"
                         :title="module.name"
-                        @@click="setActiveModule($event, module.id)">
+                        @@mousedown.prevent="startTabDrag($event, tabIndex)"
+                        @@click="!isTabDragging ? setActiveModule($event, module.id) : null">
                         <ins class="mdi mdi-size-2" :class="[ `mdi-${module.icon}` ]"></ins>
                         <span class="modules-strip-tab-title">{{ module.name }}</span>
                         <div class="tab-strip-button" @@click.stop="closeModule(module)">

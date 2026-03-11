@@ -58,7 +58,7 @@ import {
     RESET_BRANCH_CHANGES,
     TOGGLE_PIN_MODULE,
     UPDATE_ACTIVE_TIME,
-    USER_BACKUP_CODES_GENERATED
+    USER_BACKUP_CODES_GENERATED, UPDATE_TAB_STRIP_MODULES
 } from "./store/mutation-types";
 
 class Main {
@@ -394,6 +394,7 @@ class Main {
                     },
                     activePopout: null,
                     hideTimeouts: new WeakMap(),
+                    // Quick search.
                     quickSearchDialogVisible: false,
                     quickSearchDialogOpenDelta: undefined,
                     quickSearchDialogOpenDeltaDelay: 200,
@@ -401,7 +402,15 @@ class Main {
                     quickSearchResults: undefined,
                     quickSearchDialogActiveIndex: 0,
                     quickSearchDialogHandleClickToClose: undefined,
-                    quickSearchShortcutMessageName: 'QUICK_SEARCH_SHORTCUT_PRESSED'
+                    quickSearchShortcutMessageName: 'QUICK_SEARCH_SHORTCUT_PRESSED',
+                    // Module tab strip dragging.
+                    tabDragIndex: null,
+                    tabDragX: 0,
+                    tabInitialDragX: 0,
+                    tabWidths: [],
+                    tabStartX: 0,
+                    isTabDragging: false,
+                    tabDragThreshold: 5
                 };
             },
             async created() {
@@ -477,13 +486,17 @@ class Main {
                     return this.$store.state.modules.openedModules;
                 },
                 openedModulesWithBackend() {
-                    return this.$store.state.modules.openedModules.filter(m => !m.javascriptOnly && m.type !== "Wiser1");
+                    return this.$store.state.modules.openedModules
+                        .filter(m => !m.javascriptOnly && m.type !== "Wiser1")
+                        .sort((a, b) => a.id.localeCompare(b.id));
                 },
                 openedDynamicItemsModules() {
                     return this.$store.state.modules.openedModules.filter(m => m.type === "DynamicItems");
                 },
                 openedWiser1Modules() {
-                    return this.$store.state.modules.openedModules.filter(m => m.type === "Wiser1");
+                    return this.$store.state.modules.openedModules
+                        .filter(m => m.type === "Wiser1")
+                        .sort((a, b) => a.id.localeCompare(b.id));
                 },
                 activeModule() {
                     return this.$store.state.modules.activeModule;
@@ -671,6 +684,14 @@ class Main {
                 },
                 totpBackupCodes() {
                     return this.$store.state.users.totpBackupCodes;
+                },
+                tabDragStyle() {
+                    return {
+                        transform: `translateX(${this.tabDragX}px)`,
+                        zIndex: 1000,
+                        cursor: 'grabbing',
+                        opacity: 0.5
+                    };
                 }
             },
             components: {
@@ -962,9 +983,8 @@ class Main {
                 },
 
                 setActiveModule(event, moduleId) {
-                    if (event.target && event.target.classList.contains("close-module")) {
+                    if (event.target && event.target.classList.contains("close-module"))
                         return;
-                    }
 
                     this.$store.dispatch(ACTIVATE_MODULE, moduleId);
                 },
@@ -1660,6 +1680,78 @@ class Main {
                         popout.style.display = 'none';
                     },
                     120);
+                },
+                
+                startTabDrag(event, index) {
+                    this.tabDragIndex = index;
+                    this.tabInitialDragX = event.clientX;
+                    this.isTabDragging = false;
+                    this.tabDragX = 0;
+
+                    document.querySelectorAll("iframe").forEach(iframe => {
+                        iframe.style.pointerEvents = "none";
+                    });
+
+                    const container = this.$el.querySelector('#modules-strip');
+                    const containerBounds = container.getBoundingClientRect();
+                    
+                    const element = event.currentTarget;
+                    const bounds = element.getBoundingClientRect();
+
+                    this.tabStartX = bounds.left - containerBounds.left;
+                    
+                    this.tabWidths = this.$el.querySelectorAll('.modules-strip-tab');
+                    this.tabWidths = Array.from(this.tabWidths).map(el => el.offsetWidth);
+                    
+                    document.addEventListener('mousemove', this.onTabDrag);
+                    document.addEventListener('mouseup', this.onTabEndDrag);
+                },
+                onTabDrag(event) {
+                    const delta = event.clientX - this.tabInitialDragX;
+                    
+                    if (Math.abs(delta) > this.tabDragThreshold)
+                        this.isTabDragging = true;
+
+                    if (this.isTabDragging)
+                        this.tabDragX = delta;
+                },
+                onTabEndDrag() {
+                    if(this.isTabDragging) {
+                        const newIndex = this.calculateNewTabIndex();
+                        const newTabs = [...this.openedModules];
+                        const [ draggedTab ] = newTabs.splice(this.tabDragIndex, 1);
+                        newTabs.splice(newIndex, 0, draggedTab);
+
+                        this.$store.dispatch(UPDATE_TAB_STRIP_MODULES, newTabs);
+                    }
+                    
+                    this.tabDragIndex = null;
+                    this.tabDragX = 0;
+                    
+                    setTimeout(() => {
+                        this.isTabDragging = false;
+                    }, 50);
+
+                    document.querySelectorAll("iframe").forEach(iframe => {
+                        iframe.style.pointerEvents = "";
+                    });
+                    
+                    document.removeEventListener('mousemove', this.onTabDrag);
+                    document.removeEventListener('mouseup', this.onTabEndDrag);
+                },
+                calculateNewTabIndex() {
+                    const draggedX = this.tabStartX + this.tabDragX;
+                    
+                    let cumulative = 0;
+                    for (let i = 0; i < this.tabWidths.length; i++) {
+                        cumulative += this.tabWidths[i] / 2;
+                        
+                        if (draggedX < cumulative)
+                            return i;
+                        
+                        cumulative += this.tabWidths[i] / 2;
+                    }
+                    return this.openedModules.length - 1;
                 }
             },
             mounted() {

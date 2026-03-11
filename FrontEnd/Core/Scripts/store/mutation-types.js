@@ -80,3 +80,6 @@ export const CLEAR_CACHE_ERROR = "clearCacheError";
 
 // Database modules.
 export const DO_TENANT_MIGRATIONS = "doTenantMigrations";
+
+// Module tab strip dragging.
+export const UPDATE_TAB_STRIP_MODULES = "updateTabStripModules";
