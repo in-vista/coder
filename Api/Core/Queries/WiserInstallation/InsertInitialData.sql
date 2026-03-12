@@ -97,7 +97,7 @@ INSERT INTO `wiser_entity`(`name`, `module_id`, `accepted_childtypes`, `icon`, `
 INSERT INTO `wiser_entity`(`name`, `module_id`, `accepted_childtypes`, `icon`, `icon_add`, icon_expanded, `save_title_as_seo`) VALUES ('map', 5505, 'webpagina,map', 'icon-folder-closed', 'icon-folder-add', 'icon-folder', 1);
 INSERT INTO `wiser_entity`(`name`, `module_id`, `accepted_childtypes`, `icon`, `icon_expanded`, `icon_add`, `save_title_as_seo`) VALUES ('webpagina', 5505, '', 'icon-document-web', 'icon-document-web', '', 1);
 # Task alerts.
-INSERT INTO `wiser_entity`(`name`, `module_id`, `accepted_childtypes`, `icon`, `icon_expanded`, `icon_add`) VALUES ('agendering', 708, '', 'icon-bell', 'icon-bell', '');
+INSERT INTO `wiser_entity`(`name`, `module_id`, `accepted_childtypes`, `icon`, `icon_expanded`, `icon_add`, `dedicated_table_prefix`) VALUES ('agendering', 708, '', 'icon-bell', 'icon-bell', '', 'agendering');
 # SEO.
 INSERT INTO `wiser_entity`(`name`, `module_id`, `accepted_childtypes`, `icon`, `icon_add`) VALUES ('', 5533, 'seo,map', '', '');
 INSERT INTO `wiser_entity`(`name`, `module_id`, `accepted_childtypes`, `icon`, `icon_add`, `icon_expanded`) VALUES ('map', 5533, 'seo,map', 'icon-folder-closed', 'icon-folder-add', 'icon-folder');
@@ -225,7 +225,7 @@ INSERT INTO `wiser_entityproperty` (`module_id`, `entity_name`, `link_type`, `vi
 # Admin user.
 INSERT INTO `wiser_item`(`id`, `unique_uuid`, `entity_type`, `moduleid`, `published_environment`, `readonly`, `title`, `added_on`, `added_by`, `changed_on`, `changed_by`) VALUES (1, '', 'wiseruser', 806, 15, 0, 'Admin', NOW(), 'Systeem', NULL, '');
 # Welcome task alert.
-INSERT INTO `wiser_item`(`id`, `unique_uuid`, `entity_type`, `moduleid`, `published_environment`, `readonly`, `title`, `added_on`, `added_by`, `changed_on`, `changed_by`) VALUES (2, '', 'agendering', 708, 15, 0, 'Admin', NOW(), 'Systeem', NULL, '');
+INSERT INTO `agendering_wiser_item`(`id`, `unique_uuid`, `entity_type`, `moduleid`, `published_environment`, `readonly`, `title`, `added_on`, `added_by`, `changed_on`, `changed_by`) VALUES (2, '', 'agendering', 708, 15, 0, 'Admin', NOW(), 'Systeem', NULL, '');
 # Root directory for images
 INSERT INTO `wiser_item`(`id`, `unique_uuid`, `entity_type`, `moduleid`, `published_environment`, `readonly`, `title`, `added_on`, `added_by`, `changed_on`, `changed_by`) VALUES (3, '', 'filedirectory', 5531, 15, 0, 'Hoofdmap afbeeldingen', NOW(), 'Systeem', NULL, '');
 # Root directory for files
@@ -253,12 +253,12 @@ INSERT INTO `wiser_itemdetail`(`id`, `language_code`, `item_id`, `groupname`, `k
 INSERT INTO `wiser_itemdetail`(`id`, `language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES (5, '', 1, '', 'require_password_change', '0', '');
 INSERT INTO `wiser_itemdetail`(`id`, `language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES (6, '', 1, '', 'username', 'Admin', '');
 # Welcome task alert.
-INSERT INTO `wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 2, '', 'agendering_date', CURDATE(), '');
-INSERT INTO `wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 2, '', 'content', 'Welkom bij Coder!', '');
-INSERT INTO `wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 2, '', 'placed_by', 'Admin', '');
-INSERT INTO `wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 2, '', 'placed_by_id', '1', '');
-INSERT INTO `wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 2, '', 'userid', '1', '');
-INSERT INTO `wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 2, '', 'username', 'Admin', '');
+INSERT INTO `agendering_wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 2, '', 'agendering_date', CURDATE(), '');
+INSERT INTO `agendering_wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 2, '', 'content', 'Welkom bij Coder!', '');
+INSERT INTO `Agendering_wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 2, '', 'placed_by', 'Admin', '');
+INSERT INTO `agendering_wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 2, '', 'placed_by_id', '1', '');
+INSERT INTO `agendering_wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 2, '', 'userid', '1', '');
+INSERT INTO `agendering_wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 2, '', 'username', 'Admin', '');
 # Data selector template
 INSERT INTO `wiser_itemdetail`(`language_code`, `item_id`, `groupname`, `key`, `value`, `long_value`) VALUES ('', 7, '', 'template', '<ul>{repeat}<li>{itemtitle} ({id})</li>{/repeat} </ul>', '');
 

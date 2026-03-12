@@ -71,6 +71,13 @@ namespace Api.Modules.Pusher.Services
         /// <inheritdoc />
         public async Task<ServiceResult<bool>> SendMessageToUserAsync(string subDomain, PusherMessageRequestModel data)
         {
+            if (string.IsNullOrEmpty(apiSettings.PusherSalt))
+                return new ServiceResult<bool>(false)
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    ErrorMessage = "PusherSalt must be provided in the app settings"
+                };
+            
             if (data == null || (data.UserId == 0 && !data.IsGlobalMessage))
             {
                 return new ServiceResult<bool>(false)
