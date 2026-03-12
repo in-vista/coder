@@ -62,7 +62,7 @@ import {
     USE_TOTP_BACKUP_CODE,
     USE_TOTP_BACKUP_CODE_ERROR,
     USER_BACKUP_CODES_GENERATED,
-    VALID_SUB_DOMAIN, UPDATE_TAB_STRIP_MODULES
+    VALID_SUB_DOMAIN, UPDATE_TAB_STRIP_MODULES, UPDATE_TAB_STRIP_TITLE_ALIAS
 } from "./mutation-types";
 
 const baseModule = {
@@ -519,6 +519,10 @@ const modulesModule = {
         },
         [UPDATE_TAB_STRIP_MODULES]: (state, newTabs) => {
             state.openedModules = newTabs;
+        },
+        [UPDATE_TAB_STRIP_TITLE_ALIAS]: (state, data) => {
+            const { module, value } = data;
+            module.alias = value;
         }
     },
 
@@ -574,8 +578,12 @@ const modulesModule = {
             await main.usersService.saveAutoLoadModules(autoLoadModuleIds);
         },
         
-        [UPDATE_TAB_STRIP_MODULES]({ commit, state}, newTabs) {
+        [UPDATE_TAB_STRIP_MODULES]({ commit, state }, newTabs) {
             commit(UPDATE_TAB_STRIP_MODULES, newTabs);
+        },
+        
+        [UPDATE_TAB_STRIP_TITLE_ALIAS]({ commit, state }, data) {
+            commit(UPDATE_TAB_STRIP_TITLE_ALIAS, data);
         }
     },
 

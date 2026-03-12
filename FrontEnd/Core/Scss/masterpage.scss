@@ -1391,9 +1391,14 @@ $mdi-sizes: (
     
     background-color: #031B53;
     color: #C7D0E5;
-    
-    & > *:not(.tab-strip-button) {
-        pointer-events: none;
+
+    & > .modules-strip-tab-title,
+    & > ins {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }       
 
     & > .modules-strip-tab-title {
@@ -1404,6 +1409,16 @@ $mdi-sizes: (
         white-space: nowrap;
         overflow: hidden;
         color: #C7D0E5;
+    }
+
+    & > span.modules-strip-tab-title {
+        cursor: text;
+    }
+    
+    & > input.modules-strip-tab-title {
+        border: none;
+        background-color: transparent;
+        field-sizing: content;
     }
     
     &.active {
@@ -1417,18 +1432,6 @@ $mdi-sizes: (
             font-weight: 600;
             color: currentColor;
         }
-
-        /*&:after { --> streep onderin actieve tab
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60%;
-            height: 3px;
-            background-color: #23caab;
-            border-radius: 2px;
-        }*/
     }
     
     &:not(.active) {

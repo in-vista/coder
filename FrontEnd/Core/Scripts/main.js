@@ -58,7 +58,7 @@ import {
     RESET_BRANCH_CHANGES,
     TOGGLE_PIN_MODULE,
     UPDATE_ACTIVE_TIME,
-    USER_BACKUP_CODES_GENERATED, UPDATE_TAB_STRIP_MODULES
+    USER_BACKUP_CODES_GENERATED, UPDATE_TAB_STRIP_MODULES, UPDATE_TAB_STRIP_TITLE_ALIAS
 } from "./store/mutation-types";
 
 class Main {
@@ -410,7 +410,10 @@ class Main {
                     tabWidths: [],
                     tabStartX: 0,
                     isTabDragging: false,
-                    tabDragThreshold: 5
+                    tabDragThreshold: 5,
+                    // Module tab strip title editing.
+                    editingModuleTitleId: undefined,
+                    editingModuleTitleInput: undefined
                 };
             },
             async created() {
@@ -761,6 +764,16 @@ class Main {
                             behavior: 'auto'
                         });
                     });
+                },
+                editingModuleTitleInput(newValue, oldValue) {
+                    const module = this.openedModules.find(m => m.id === this.editingModuleTitleId);
+                    if(!module)
+                        return;
+
+                    this.$store.dispatch(UPDATE_TAB_STRIP_TITLE_ALIAS, {
+                        module: module,
+                        value: newValue
+                    });
                 }
             },
             methods: {
@@ -985,6 +998,9 @@ class Main {
                 setActiveModule(event, moduleId) {
                     if (event.target && event.target.classList.contains("close-module"))
                         return;
+                    
+                    if(moduleId !== this.editingModuleTitleId)
+                        this.stopEditModuleTitle();
 
                     this.$store.dispatch(ACTIVATE_MODULE, moduleId);
                 },
@@ -1752,6 +1768,20 @@ class Main {
                         cumulative += this.tabWidths[i] / 2;
                     }
                     return this.openedModules.length - 1;
+                },
+
+                startEditModuleTitle(module) {
+                    this.editingModuleTitleId = module.id;
+                    this.editingModuleTitleInput = module.alias ?? module.name;
+                    
+                    this.$nextTick(() => {
+                        $(`.modules-strip-tab-title[name="module_title_${module.id}"]`).focus();
+                    });
+                },
+                
+                stopEditModuleTitle() {
+                    this.editingModuleTitleId = undefined;
+                    this.editingModuleTitleInput = undefined;
                 }
             },
             mounted() {

@@ -69,11 +69,25 @@
                         class="modules-strip-tab"
                         :class="{ 'active': module.id === activeModule }"
                         :style="tabDragIndex === tabIndex ? tabDragStyle : {}"
-                        :title="module.name"
+                        :title="module.alias ? module.alias + ' (' + module.name + ')' : module.name"
                         @@mousedown.prevent="startTabDrag($event, tabIndex)"
                         @@click="!isTabDragging ? setActiveModule($event, module.id) : null">
                         <ins class="mdi mdi-size-2" :class="[ `mdi-${module.icon}` ]"></ins>
-                        <span class="modules-strip-tab-title">{{ module.name }}</span>
+                        <template v-if="editingModuleTitleId !== module.id">
+                            <p
+                                class="modules-strip-tab-title"
+                                @@mouseup="!isTabDragging && module.id === activeModule ? startEditModuleTitle(module) : null">
+                                {{ module.alias ?? module.name }}
+                            </p>
+                        </template>
+                        <template v-else>
+                            <input
+                                v-model="editingModuleTitleInput"
+                                class="modules-strip-tab-title"
+                                @@blur="stopEditModuleTitle()"
+                                @@keydown.enter="stopEditModuleTitle()"
+                                :name="'module_title_' + module.id"/>
+                        </template>
                         <div class="tab-strip-button" @@click.stop="closeModule(module)">
                             <ins class="mdi mdi-close"></ins>
                         </div>

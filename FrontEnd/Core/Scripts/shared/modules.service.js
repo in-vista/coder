@@ -49,6 +49,8 @@ export default class ModulesService extends BaseService {
                         }
                         
                         module.icon ??= icon;
+                        
+                        module.alias = module.name;
 
                         return module;
                     })
