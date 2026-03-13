@@ -17,6 +17,47 @@ jobs:
       cloudflare_pool_id: 3f96a062515e3396be07b9ed88499c7b
       cloudflare_origin_id: cluster_1
 
+  disable-remaining-load-balancer-origins:
+    runs-on: cluster1_transip
+    steps:
+      - name: Disable Cloudflare origin
+        shell: powershell
+        env:
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          ACCOUNT_ID: 737e9d9233ff99af2b322ea397547391
+          POOL_ID: 3f96a062515e3396be07b9ed88499c7b
+          ORIGIN_IDS: '["cluster_3", "cluster4"]'
+        run: |
+          $headers = @{
+              Authorization = "Bearer $($env:CLOUDFLARE_API_KEY)"
+              'Content-Type' = 'application/json'
+          }
+
+          $uri = "https://api.cloudflare.com/client/v4/accounts/$($env:ACCOUNT_ID)/load_balancers/pools/$($env:POOL_ID)"
+
+          Write-Host 'Fetching pool configuration...'
+          $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
+
+          $found = $false
+
+          $originIds = $env:ORIGIN_IDS | ConvertFrom-Json
+
+          foreach ($origin in $pool.result.origins) {
+              if ($originIds -contains $origin.name) {
+                  Write-Host "Disabling origin: $($origin.name), due to being outdated"
+                  $origin.enabled = $false
+              }
+          }
+
+          $body = @{
+              origins = $pool.result.origins
+          } | ConvertTo-Json -Depth 10 -Compress
+
+          Write-Host 'Updating pool...'
+          Invoke-RestMethod -Uri $uri -Headers $headers -Method PATCH -Body $body
+
+          Write-Host 'Done.'
+
   deploy-cluster3:
     needs: deploy-cluster1
     uses: ./.github/workflows/deploy-single-server.yml

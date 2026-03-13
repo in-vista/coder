@@ -179,7 +179,7 @@ jobs:
               $found = $false
 
               foreach ($origin in $pool.result.origins) {
-                  if ($origin.name -eq $env:ORIGIN_ID) {
+                  if ($origin.name -eq $env:ORIGIN_ID -and $origin.enabled) {
                       Write-Host "Disabling origin: $($origin.name)"
                       $origin.enabled = $false
                       $found = $true
@@ -252,7 +252,7 @@ jobs:
               $found = $false
 
               foreach ($origin in $pool.result.origins) {
-                  if ($origin.name -eq $env:ORIGIN_ID) {
+                  if ($origin.name -eq $env:ORIGIN_ID -and -not $origin.enabled) {
                       Write-Host "Disabling origin: $($origin.name)"
                       $origin.enabled = $true
                       $found = $true
