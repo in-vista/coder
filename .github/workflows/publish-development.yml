@@ -18,7 +18,9 @@ jobs:
       cloudflare_origin_id: cluster_1
 
   disable-remaining-load-balancer-origins:
+    needs: deploy-cluster1
     runs-on: cluster1_transip
+    environment: Development
     steps:
       - name: Disable Cloudflare origin
         shell: powershell
@@ -59,7 +61,7 @@ jobs:
           Write-Host 'Done.'
 
   deploy-cluster3:
-    needs: deploy-cluster1
+    needs: [ deploy-cluster1, disable-remaining-load-balancer-origins ]
     uses: ./.github/workflows/deploy-single-server.yml
     secrets: inherit
     with:
