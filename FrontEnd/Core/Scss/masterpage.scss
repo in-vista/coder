@@ -1338,8 +1338,8 @@ $mdi-sizes: (
     border-radius: 8px;
     cursor: pointer;
     
-    &:hover {
-        background-color: rgba(100, 100, 100, 0.08);
+    &:not(.active):hover {
+        background-color: rgba(100, 100, 100, 0.08) !important;
     }
 }
 
@@ -1471,4 +1471,142 @@ $mdi-sizes: (
 
 .coder-highlight {
     color: var(--coder-tertiary-color);
+}
+
+body {
+    background-color: #c1c1c1;
+}
+
+#invista-qs-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 50001;
+}
+
+#invista-qs-dialog {
+    width: 650px;
+    max-width: 90%;
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    
+    font-family: 'Coder', sans-serif;
+}
+
+#invista-qs-search, #invista-qs-results, .invista-qs-no-results {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+#invista-qs-search {
+    width: 100%;
+    height: 64px;
+
+    display: flex;
+    align-items: center;
+    column-gap: 8px;
+
+    & > input.qs-search-input {
+        flex-grow: 1;
+        
+        &:focus {
+            border-color: var(--coder-tertiary-color);
+        }
+    }
+}
+
+.invista-qs-search-input {
+    border: none;
+    font-size: 18px;
+    flex-grow: 1;
+}
+
+#invista-qs-results {
+    max-height: 500px;
+    width: 100%;
+    overflow-y: auto;
+    
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.invista-qs-result-entry {
+    display: flex;
+    gap: 12px;
+    padding: 8px;
+    font-weight: 600;
+    
+    &:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    
+    &.active {
+        color: var(--coder-icon-color);
+        background-color: var(--coder-primary-color);
+    }
+}
+
+.invista-qs-result-entry-title {
+    flex-grow: 1;
+}
+
+.invista-qs-no-results {
+    width: 100%;
+    text-align: center;
+    color: #8d8d8d;
+}
+
+#invista-qs-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-color: rgba(36, 36, 39, 0.3);
+    z-index: 50000;
+}
+
+#invista-qs-results, .invista-qs-no-results {
+    transition: max-height 0.25s ease, opacity 0.2s ease;
+}
+
+.invista-qs-dialog-enter-active,
+.invista-qs-dialog-leave-active {
+    transition: all 0.18s ease;
+}
+
+.invista-qs-dialog-enter-from,
+.invista-qs-dialog-leave-to {
+    transform: scale(0.85);
+    opacity: 0;
+}
+
+.invista-qs-dialog-enter-to,
+.invista-qs-dialog-leave-from {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.invista-qs-dialog-results-enter-from,
+.invista-qs-dialog-results-leave-to {
+    max-height: 0;
+    opacity: 0;
+}
+
+.invista-qs-dialog-results-enter-to,
+.invista-qs-dialog-results-leave-from {
+    max-height: 500px;
+    opacity: 1;
 }

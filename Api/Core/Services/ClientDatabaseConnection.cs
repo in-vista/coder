@@ -707,6 +707,34 @@ namespace Api.Core.Services
 
             ConnectionForReading = null;
         }
+        
+        /// <inheritdoc/>
+        public async Task ChangeConnectionStringsInContextAsync(Func<Task> context, string newConnectionStringForReading, string newConnectionStringForWriting = null, SshSettings sshSettingsForReading = null, SshSettings sshSettingsForWriting = null)
+        {
+            if (string.IsNullOrEmpty(newConnectionStringForReading))
+            {
+                await context();
+                return;
+            }
+            
+            // Store the currently used main connection strings.
+            string currentConnectionStringForReading = GetConnectionStringForReading();
+            string currentConnectionStringForWriting = GetConnectionStringForWriting();
+            
+            // Change the connection string.
+            await ChangeConnectionStringsAsync(newConnectionStringForReading, newConnectionStringForWriting, sshSettingsForReading, sshSettingsForWriting);
+            
+            // Invoke the action.
+            try
+            {
+                await context();
+            }
+            finally
+            {
+                // If anything, revert the database connection back to the original.
+                await ChangeConnectionStringsAsync(currentConnectionStringForReading, currentConnectionStringForWriting, sshSettingsForReading, sshSettingsForWriting);
+            }
+        }
 
         /// <inheritdoc />
         public string GetDatabaseNameForCaching(bool writeDatabase = false)

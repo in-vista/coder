@@ -279,8 +279,11 @@ const moduleSettings = {
 
                     var promises = [];
                     for (let element of kendoWindows) {
+                        // Retrieve the existence state of the opened item.
+                        const isNew = $(element).data("isNewItem");
+                        
                         // If the current item is a new item and it's not being saved at the moment, then delete it because it was a temporary item.
-                        if (!$(element).data("isNewItem") || $(element).data("saving")) {
+                        if (!isNew || $(element).data("saving")) {
                             continue;
                         }
 
@@ -298,7 +301,7 @@ const moduleSettings = {
                         }
 
                         if (canDelete) {
-                            promises.push(this.base.deleteItem($(element).data("itemId"), $(element).data("entityType")));
+                            promises.push(this.base.deleteItem($(element).data("itemId"), $(element).data("entityType"), isNew));
                         }
                     }
 
@@ -435,7 +438,17 @@ const moduleSettings = {
                 
                 // Find the closest k-window instance.
                 const kWindow = target.closest('.k-window');
+
+                const splitContainer = target.closest("#right-pane");
                 
+                // Remember the current scroll position
+                const scrollContainer = splitContainer.find(".k-tabstrip-content.k-active");
+                let previousScrollTop = 0;
+                if(scrollContainer.length > 0) 
+                    previousScrollTop = splitContainer.hasClass("info-active")
+                        ? scrollContainer.scrollTop()
+                        : splitContainer.scrollTop();
+                    
                 // Check if the context of this button lives in a k-window instance.
                 if(kWindow.length > 0) {
                     kWindow.find(".entity-container").removeClass("info-active");
@@ -445,6 +458,12 @@ const moduleSettings = {
                     const window = target.closest('#window');
                     window.find('#right-pane').removeClass('info-active');
                 }
+                
+                // Restore the scroll position
+                if(scrollContainer.length > 0)
+                    requestAnimationFrame(() => {
+                        splitContainer.scrollTop(previousScrollTop);
+                    });
             });
 
             $("body").on("click", ".imgZoom", (clickEvent) => {
@@ -873,6 +892,9 @@ const moduleSettings = {
                 await Misc.loadExternalScript('https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js');
                 await Misc.loadExternalScript('https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors');
             }
+            if(scriptTemplate.indexOf("TopolPlugin") > -1) {
+                await Misc.loadExternalScript('/customscripts/topol.js');
+            }
             if (scriptTemplate.indexOf("bryntum.calendar.Calendar") > -1) {
                 // These scripts have to be loaded as script tags due to how the library works.
                 await Misc.loadExternalScript('/customscripts/bryntum/calendar/locales/calendar.locale.Nl.js', {
@@ -1063,7 +1085,7 @@ const moduleSettings = {
                     {
                         Wiser.showConfirmDialog(`Weet u zeker dat u het item '${dataItem.title}' wilt verwijderen?`).then(async () => {
                             try {
-                                await this.base.deleteItem(itemId, entityType);
+                                await this.base.deleteItem(itemId, entityType, false);
                                 this.base.mainTreeView.remove(selectedNode);
                             } catch (exception) {
                                 console.error(exception);
@@ -1166,7 +1188,7 @@ const moduleSettings = {
             window.processing.addProcess(process);
             
             // Check if the item has a Topol instance running.
-            if(TopolPlugin.iframe && document.body.contains(TopolPlugin.iframe)) {
+            if(window.TopolPlugin !== undefined && TopolPlugin.iframe && document.body.contains(TopolPlugin.iframe)) {
                 // Since manually saving the Topol instance runs async, but the 'save' function does not have the ability to wait,
                 // we wait manually by waiting for a success message that comes back from the iframe of the Topol instance.
                 await new Promise(resolve => {
@@ -1186,7 +1208,7 @@ const moduleSettings = {
                     window.addEventListener('message', messageHandler);
 
                     // Release the JSON and HTML of the Topol mail editor iframe into their respective input fields.
-                    TopolPlugin.save();
+                    window.TopolPlugin?.save();
                 });
             }
 
@@ -1816,7 +1838,7 @@ const moduleSettings = {
             }
 
             try {
-                await this.deleteItem(encryptedItemId, entityType);
+                await this.deleteItem(encryptedItemId, entityType, false);
 
                 if (!this.settings.iframeMode) {
                     // Close the opened item.
@@ -2044,6 +2066,12 @@ const moduleSettings = {
 
                 // Set the HTML of the fields tab.
                 const itemHtmlResult = await this.getItemHtml(itemId, itemMetaData.entityType, isNew);
+                
+                // Check whether a valid item HTML was given.
+                if(!itemHtmlResult) {
+                    kendo.alert("Het opgevraagde item bestaat niet of is ongeldig.");
+                    return;
+                }
 
                 this.mainTabStrip.element.find("> .k-tabstrip-items-wrapper > ul > li .addedFromDatabase").each((index, element) => {
                     this.mainTabStrip.remove($(element).closest("li.k-item"));
@@ -2106,16 +2134,21 @@ const moduleSettings = {
                 const translateButton = entityContainer.find(".editMenu .translateItem").closest("li");
                 translateButton.toggle(this.allLanguages.length > 1 && entityContainer.find(".item[data-language-code]:not([data-language-code=''])").length > 0);
 
-                // Setup dependencies for all tabs.
+                let tabNames = [];
+
+                // Setup dependencies for all tabs and store the tab name's in an array.
                 for (let i = itemHtmlResult.tabs.length - 1; i >= 0; i--) {
                     const tabData = itemHtmlResult.tabs[i];
                     const container = this.mainTabStrip.contentHolder(i);
+                    tabNames.push(tabData.name || "Gegevens")
                     this.base.fields.setupDependencies(container, itemMetaData.entityType, tabData.name || "Gegevens");
                 }
-
-                // Handle dependencies for the first tab, to make sure all the correct fields are hidden/shown on the first tab. The other tabs will be done once they are opened.
-                this.base.fields.handleAllDependenciesOfContainer(this.mainTabStrip.contentHolder(0), itemMetaData.entityType, "Gegevens", "mainScreen");
-
+               
+                // Handle dependencies for all tabs, this is to make sure every field's dependency is doing what it's set to do.
+                tabNames.forEach((tabName, index) => {
+                    this.base.fields.handleAllDependenciesOfContainer(this.mainTabStrip.contentHolder(index), itemMetaData.entityType, tabName, "mainScreen");
+                });
+                
                 $(this.mainTabStrip.items()[0]).toggle(genericTabHasFields || itemTitleFieldContainer.is(":visible"));
 
                 // Figure our which tab to select (don't select hidden or empty tabs).
@@ -2147,9 +2180,9 @@ const moduleSettings = {
                 } else {
                     kendo.alert("Er is iets fout gegaan met het laden van dit item. Probeer het a.u.b. nogmaals.");
                 }
+            } finally {
+                window.processing.removeProcess(process);
             }
-
-            window.processing.removeProcess(process);
         }
 
         /**
@@ -2402,10 +2435,11 @@ const moduleSettings = {
          * Marks an item as deleted.
          * @param {string} encryptedItemId The encrypted item ID.
          * @param {string} entityType The entity type of the item to delete. This is required for workflows.
+         * @param {boolean} isNew Indication whether the item is considered new. If so, the default delete behavior will be performed.
          * @returns {Promise} A promise with the result of the AJAX call.
          */
-        async deleteItem(encryptedItemId, entityType) {
-            return Wiser.deleteItem(this.settings, encryptedItemId, entityType);
+        async deleteItem(encryptedItemId, entityType, isNew) {
+            return Wiser.deleteItem(this.settings, encryptedItemId, entityType, isNew);
         }
 
         /**
@@ -2451,6 +2485,9 @@ const moduleSettings = {
          * @returns {Promise} A promise with the results.
          */
         async getTitle(itemId) {
+            if(!itemId)
+                return null;
+            
             return Wiser.api({ url: `${this.settings.serviceRoot}/GET_TITLE?itemId=${encodeURIComponent(itemId)}` });
         }
 
@@ -2465,6 +2502,9 @@ const moduleSettings = {
          * @returns {Promise} A promise with the results.
          */
         async getItemHtml(itemId, entityType, isNew, propertyIdSuffix = "", linkId = 0, linkType = 0) {
+            if(!itemId)
+                return null;
+            
             let url = `${this.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}?entityType=${encodeURIComponent(entityType)}&isNew=${encodeURIComponent(isNew)}&encryptedModuleId=${encodeURIComponent(this.base.settings.encryptedModuleId)}`;
             if (propertyIdSuffix) {
                 url += `&propertyIdSuffix=${encodeURIComponent(propertyIdSuffix)}`;
@@ -2516,6 +2556,10 @@ const moduleSettings = {
          * @returns {Promise} A promise, which will return an array with 1 item. That item will contain it's basic properties and a property called "property_" which contains an object with all fields and their values.
          */
         async getItemMetaData(itemId, entityType) {
+            // Validate item ID.
+            if(!itemId)
+                return null;
+            
             const entityTypeUrlPart = entityType ? `?entityType=${encodeURIComponent(entityType)}` : "";
             return Wiser.api({ url: `${this.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}/meta${entityTypeUrlPart}` });
         }

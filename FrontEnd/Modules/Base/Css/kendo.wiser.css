@@ -388,13 +388,6 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
-.actions button.button-left,
-.k-button {
-	margin: 0 4px 0 0;
-}
-.actions .k-button {
-	margin: 0 0 0 4px;
-}
 #treeview + button {
 	position: -webkit-sticky;
 	position: sticky;
@@ -1442,6 +1435,24 @@ k-filter-menu .k-autocomplete,
 
 .k-toolbar-item:has(>.hidden) {
     display: none;
+}
+
+.k-button.progress {
+	position: relative;
+	
+	&:after {
+		content: '';
+		display: unset;
+		opacity: 1;
+		position: absolute;
+		top: unset;
+		right: unset;
+		left: 0;
+		bottom: 0;
+		height: 3px;
+		background-color: var(--kendo-color-primary);
+		width: calc(var(--progress, 0) * 1%);
+	}
 }
 
 /* Grid in an iframe / full window */

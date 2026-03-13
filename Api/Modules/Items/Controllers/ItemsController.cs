@@ -239,13 +239,14 @@ namespace Api.Modules.Items.Controllers
         /// <param name="encryptedId">The encrypted ID of the item to delete.</param>
         /// <param name="undelete">Optional: Whether to undelete the item instead of deleting it.</param>
         /// <param name="entityType">Optional: The entity type of the item. This is needed if the item is saved in a different table than wiser_item.</param>
+        /// <param name="isNew">Optional: Indication whether the item is considered new. If so, the default delete behaviour will be performed.</param>
         [HttpDelete]
         [Route("{encryptedId}")]
         [ProducesResponseType(typeof(WiserItemModel), StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> DeleteAsync(string encryptedId, [FromQuery]bool undelete = false, [FromQuery]string entityType = null)
+        public async Task<IActionResult> DeleteAsync(string encryptedId, [FromQuery]bool undelete = false, [FromQuery]string entityType = null, [FromQuery] bool isNew = false)
         {
-            return (await itemsService.DeleteAsync(encryptedId, (ClaimsIdentity)User.Identity, undelete, entityType)).GetHttpResponseMessage();
+            return (await itemsService.DeleteAsync(encryptedId, (ClaimsIdentity)User.Identity, undelete, entityType, isNew)).GetHttpResponseMessage();
         }
 
         /// <summary>
@@ -516,6 +517,16 @@ namespace Api.Modules.Items.Controllers
         public async Task<IActionResult> SearchAsync(ulong parentId, [FromQuery]SearchRequestModel data)
         {
             return (await itemsService.SearchAsync((ClaimsIdentity)User.Identity, parentId, data)).GetHttpResponseMessage();
+        }
+
+        [HttpPost]
+        [Route("log-action")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> LogActionAsync([FromBody] LogActionRequest logActionRequest)
+        {
+            return (await itemsService.LogActionAsync((ClaimsIdentity)User.Identity, logActionRequest.EncryptedItemId,
+                    logActionRequest.EntityType, logActionRequest.ActionButton, logActionRequest.ModuleId, logActionRequest.PropertyId))
+                .GetHttpResponseMessage();
         }
     }
 }

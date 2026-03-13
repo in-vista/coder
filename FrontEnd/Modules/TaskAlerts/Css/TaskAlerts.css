@@ -153,10 +153,9 @@ html, body {
 #taskList ~ .actions {
     background: transparent;
     margin: 0;
-    position: -webkit-sticky;
-    position: sticky;
+    position: fixed;
     bottom: 0;
-    width: 100%;
+    justify-self: end;
 }
 
     #taskList ~ .actions:after {

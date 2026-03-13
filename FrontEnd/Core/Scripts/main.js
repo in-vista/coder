@@ -393,7 +393,15 @@ class Main {
                         url: null
                     },
                     activePopout: null,
-                    hideTimeouts: new WeakMap()
+                    hideTimeouts: new WeakMap(),
+                    quickSearchDialogVisible: false,
+                    quickSearchDialogOpenDelta: undefined,
+                    quickSearchDialogOpenDeltaDelay: 200,
+                    quickSearchInput: undefined,
+                    quickSearchResults: undefined,
+                    quickSearchDialogActiveIndex: 0,
+                    quickSearchDialogHandleClickToClose: undefined,
+                    quickSearchShortcutMessageName: 'QUICK_SEARCH_SHORTCUT_PRESSED'
                 };
             },
             async created() {
@@ -402,6 +410,7 @@ class Main {
                 this.$store.dispatch(GET_TENANT_OPTIONS, subDomain);
                 
                 document.addEventListener("keydown", this.onAppKeyDown.bind(this));
+                window.addEventListener('message', this.handleKeydownFromIframe.bind(this));
                 
                 // Add an event for when the DOM is loaded.
                 document.addEventListener('DOMContentLoaded', async function() {
@@ -679,6 +688,58 @@ class Main {
                         this.openGenerateTotpBackupCodesPrompt();
                         await this.generateNewTotpBackupCodes();
                     }
+                },
+                quickSearchDialogVisible(newValue, oldValue) {
+                    if(newValue === false)
+                        this.quickSearchInput = undefined;
+                    
+                    if(newValue === true) {
+                        this.quickSearchDialogActiveIndex = 0;
+                        
+                        // Trigger the dialog to fetch results.
+                        this.quickSearchInput = '';
+                        
+                        this.$nextTick(() => {
+                            document
+                                .getElementById('invista-qs-dialog')
+                                .querySelector('.invista-qs-search-input')
+                                .focus();
+                        });
+                    }
+                },
+                quickSearchInput(newValue, oldValue) {
+                    let moduleFilter = _ => true;
+                    
+                    if(newValue?.length) {
+                        const normalisedInput = newValue.toLowerCase().trim();
+                        const normalisedInputSegments = normalisedInput.split(' ');
+                        
+                        moduleFilter = m => {
+                            const entryName = m.name;
+                            return normalisedInputSegments.every(inputSegment => new RegExp(RegExp.escape(inputSegment), 'i').test(entryName));
+                        };
+                    }
+
+                    this.quickSearchResults = this.modules
+                        .filter(moduleFilter)
+                        .sort(m => m.groupOptions?.ordering ?? Number.MAX_VALUE)
+                        .sort(m => m.ordering)
+                        .sort(m => m.name);
+                },
+                quickSearchResults(newValue, oldValue) {
+                    this.quickSearchDialogActiveIndex = 0;
+                },
+                quickSearchDialogActiveIndex(newValue, oldValue) {
+                    this.$nextTick(() => {
+                        const activeElement = this.$refs[`invista-qs-result-entry-${newValue}`]?.[0];
+                        if(!activeElement)
+                            return;
+                        
+                        activeElement.scrollIntoView({
+                            block: 'nearest',
+                            behavior: 'auto'
+                        });
+                    });
                 }
             },
             methods: {
@@ -696,8 +757,80 @@ class Main {
                         event.preventDefault();
                         this.openMarkerIoScreen();
                     }
+
+                    // Detect double shift for quick search dialog.
+                    if(event.key === 'Shift')
+                        this.handleQuickSearchShortcut(event);
+
+                    // Detect escape for closing the quick search dialog.
+                    if (event.key === 'Escape' && this.quickSearchDialogVisible) {
+                        this.quickSearchDialogVisible = false;
+                    }
+                },
+                
+                handleKeydownFromIframe(event) {
+                    if (event.data.type === this.quickSearchShortcutMessageName)
+                        this.handleQuickSearchShortcut(event.data.event ?? event);
+                },
+                
+                onIframeLoaded(event) {
+                    const iframe = event.target;
+                    iframe.contentWindow.addEventListener('keydown', event => {
+                        if(event.key === 'Shift')
+                            window.postMessage({ type: this.quickSearchShortcutMessageName }, '*');
+                    });
+                },
+                
+                handleQuickSearchShortcut(event) {
+                    // Only handle the shortcut if the user is logged in and there are modules to be searched for.
+                    if(!this.user.loggedIn || !this.modules?.length)
+                        return;
+                    
+                    // Ignore repeat events to avoid the shortcut being detected when holding the shortcut key.
+                    if(event.repeat)
+                        return;
+                    
+                    // Get the current timestamp used to detect quickly double pressing a key.
+                    const now = Date.now();
+                    
+                    // Open the dialog when shift is quickly pressed.
+                    if (now - this.quickSearchDialogOpenDelta < this.quickSearchDialogOpenDeltaDelay) {
+                        this.quickSearchDialogVisible = true;
+                    }
+                    this.quickSearchDialogOpenDelta = now;
+                },
+                
+                handleQuickSearchEnter() {
+                    if(!this.quickSearchResults?.length)
+                        return;
+
+                    const entry = this.quickSearchResults[this.quickSearchDialogActiveIndex];
+                    this.openModule(entry.moduleId);
+                    this.quickSearchDialogVisible = false;
                 },
 
+                handleQuickSearchDialogKeyDown(event) {
+                    let newIndex = this.quickSearchDialogActiveIndex;
+                    
+                    if(!['ArrowDown', 'ArrowUp'].includes(event.key))
+                        return;
+                    
+                    switch(event.key) {
+                        case 'ArrowDown':
+                            newIndex++;
+                            break;
+                        case 'ArrowUp':
+                            newIndex--;
+                            break;
+                    }
+                    
+                    const lowerBound = 0;
+                    const upperBound = this.quickSearchResults?.length - 1 ?? lowerBound;
+                    newIndex = Math.max(Math.min(newIndex, upperBound), lowerBound);
+                    
+                    this.quickSearchDialogActiveIndex = newIndex;
+                },
+                
                 handleBodyClick(event) {
                     if (event.target.id !== "side-menu" && !event.target.closest("#side-menu")) {
                         this.toggleMenuActive(false);
@@ -764,6 +897,9 @@ class Main {
                     
                     // Remove the system styling.
                     Misc.removeSystemStyling();
+                    
+                    // Close the quick search dialog.
+                    this.quickSearchDialogVisible = false;
                 },
 
                 openModule(module) {
@@ -1525,6 +1661,17 @@ class Main {
                     },
                     120);
                 }
+            },
+            mounted() {
+                this.quickSearchDialogHandleClickToClose = event => {
+                    if (!$(event.target).closest($('#invista-qs-dialog')).length)
+                        this.quickSearchDialogVisible = false;
+                }
+                
+                $(document).on('click', this.quickSearchDialogHandleClickToClose);
+            },
+            beforeUnmount() {
+                $(document).off('click', this.quickSearchDialogHandleClickToClose);
             }
         });
 
