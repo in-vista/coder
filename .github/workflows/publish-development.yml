@@ -28,7 +28,7 @@ jobs:
           CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
           ACCOUNT_ID: 737e9d9233ff99af2b322ea397547391
           POOL_ID: 3f96a062515e3396be07b9ed88499c7b
-          ORIGIN_IDS: '["cluster_3", "cluster4"]'
+          ORIGIN_IDS: '["cluster_3", "cluster_4"]'
         run: |
           $headers = @{
               Authorization = "Bearer $($env:CLOUDFLARE_API_KEY)"
