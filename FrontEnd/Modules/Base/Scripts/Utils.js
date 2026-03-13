@@ -1198,7 +1198,13 @@ export class Wiser {
             return updateResult;
         } catch (exception) {
             console.error(exception);
-            kendo.alert("Er is iets fout gegaan tijdens opslaan van de wijzigingen. Probeer het a.u.b. nogmaals.");
+
+            // If the action isn't forbidden or the exception doesn't have a response text display the default message
+            let message = exception.responseText;
+            if(!message || exception.status !== 403) 
+                message = "Er is iets fout gegaan tijdens opslaan van de wijzigingen. Probeer het a.u.b. nogmaals.";
+            
+            kendo.alert(message);
             return false;
         }
     }
