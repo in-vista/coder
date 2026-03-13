@@ -40,8 +40,6 @@ jobs:
           Write-Host 'Fetching pool configuration...'
           $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
 
-          $found = $false
-
           $originIds = $env:ORIGIN_IDS | ConvertFrom-Json
 
           foreach ($origin in $pool.result.origins) {
