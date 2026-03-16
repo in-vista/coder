@@ -112,6 +112,7 @@ namespace Api.Modules.Modules.Services
         module.group_options,
         module.options,
         module.custom_query,        
+        module.pending_actions_query,
         module.is_fullscreen,
         module.ordering
     FROM {WiserTableNames.WiserUserRoles} AS user_role
@@ -138,6 +139,7 @@ UNION
         module.group_options,
         module.options,
         module.custom_query,
+        module.pending_actions_query,
         module.is_fullscreen,
         module.ordering
     FROM {WiserTableNames.WiserModule} AS module
@@ -206,6 +208,7 @@ UNION
                 rightsModel.HasCustomQuery = hasCustomQuery;
                 rightsModel.IsFullscreen = dataRow["is_fullscreen"].ToString() == "1";
                 rightsModel.Ordering = uint.TryParse(dataRow["ordering"].ToString(), out uint ordering) ? ordering : 0;
+                rightsModel.PendingActionCount = 0;
                 
                 string groupOptionsJson = dataRow.Field<string>("group_options");
                 if (!string.IsNullOrEmpty(groupOptionsJson))
@@ -265,7 +268,36 @@ UNION
                         rightsModel.IframeUrl = url;
                     }
                 }
+                
+                var pendingActionQuery = dataRow.Field<string>("pending_actions_query");
 
+                if (!String.IsNullOrWhiteSpace(pendingActionQuery))
+                {
+                    var modulePendingActionQuery = pendingActionQuery;
+                    try
+                    {
+                     modulePendingActionQuery = modulePendingActionQuery.Replace("{userId}", IdentityHelpers.GetWiserUserId(identity).ToString(), StringComparison.OrdinalIgnoreCase);
+                     modulePendingActionQuery = modulePendingActionQuery.Replace("{username}", IdentityHelpers.GetUserName(identity) ?? "", StringComparison.OrdinalIgnoreCase);
+                     modulePendingActionQuery = modulePendingActionQuery.Replace("{userEmailAddress}", IdentityHelpers.GetEmailAddress(identity) ?? "", StringComparison.OrdinalIgnoreCase);
+                     modulePendingActionQuery = modulePendingActionQuery.Replace("{userType}", IdentityHelpers.GetRoles(identity) ?? "", StringComparison.OrdinalIgnoreCase);
+                     modulePendingActionQuery = modulePendingActionQuery.Replace("{userId_encrypt}", HttpUtility.UrlEncode(IdentityHelpers.GetWiserUserId(identity).ToString().Encrypt()), StringComparison.OrdinalIgnoreCase);
+                     modulePendingActionQuery = modulePendingActionQuery.Replace("{userId_encrypt_withdate}", (string)HttpUtility.UrlEncode(IdentityHelpers.GetWiserUserId(identity).ToString().Encrypt(true)), StringComparison.OrdinalIgnoreCase);
+                     var moduleDataTable = await clientDatabaseConnection.GetAsync(modulePendingActionQuery);
+                     if (moduleDataTable.Rows.Count > 0)
+                     {
+                        // Get the first value from the result as that is the amount of pending actions
+                        var pendingActionValue = moduleDataTable.Rows[0][0];
+                        rightsModel.PendingActionCount = pendingActionValue != DBNull.Value
+                        ? Convert.ToInt32(pendingActionValue)
+                        : 0;
+                     }
+                    }
+                    catch (Exception exception)
+                    {
+                        logger.LogWarning(exception, $"An error occurred while executing the pending actions query of module {rightsModel.ModuleId}");
+                    }
+                }
+                
                 results[groupName].Add(rightsModel);
             }
 
@@ -567,7 +599,7 @@ UNION
             clientDatabaseConnection.ClearParameters();
             clientDatabaseConnection.AddParameter("id", id);
 
-            var query = $@"SELECT id, custom_query, count_query, `options`, `name`, icon, type, `group`, `custom_script` FROM {WiserTableNames.WiserModule} WHERE id = ?id";
+            var query = $@"SELECT id, custom_query, count_query, pending_actions_query, `options`, `name`, icon, type, `group`, `custom_script` FROM {WiserTableNames.WiserModule} WHERE id = ?id";
             var dataTable = await clientDatabaseConnection.GetAsync(query);
 
             if (dataTable.Rows.Count == 0)
@@ -580,6 +612,7 @@ UNION
 
             result.CustomQuery = dataTable.Rows[0].Field<string>("custom_query");
             result.CountQuery = dataTable.Rows[0].Field<string>("count_query");
+            result.PendingActionsQuery = dataTable.Rows[0].Field<string>("pending_actions_query");
             result.Name = dataTable.Rows[0].Field<string>("name");
             result.Icon = dataTable.Rows[0].Field<string>("icon");
             result.Type = dataTable.Rows[0].Field<string>("type");
@@ -740,6 +773,7 @@ DELETE FROM {WiserTableNames.WiserPermission} WHERE module_id = ?id;";
             clientDatabaseConnection.AddParameter("id", id);
             clientDatabaseConnection.AddParameter("custom_query", moduleSettingsModel.CustomQuery);
             clientDatabaseConnection.AddParameter("count_query", moduleSettingsModel.CountQuery);
+            clientDatabaseConnection.AddParameter("pending_actions_query", moduleSettingsModel.PendingActionsQuery);
             clientDatabaseConnection.AddParameter("options", moduleSettingsModel.Options.ToString());
             clientDatabaseConnection.AddParameter("name", moduleSettingsModel.Name);
             clientDatabaseConnection.AddParameter("icon", moduleSettingsModel.Icon);
@@ -749,6 +783,7 @@ DELETE FROM {WiserTableNames.WiserPermission} WHERE module_id = ?id;";
             var query = $@"UPDATE {WiserTableNames.WiserModule}
 SET `custom_query` = ?custom_query,
     `count_query` = ?count_query,
+    `pending_actions_query` = ?pending_actions_query,
     `options` = IF(?options != '' AND ?options IS NOT NULL AND JSON_VALID(?options), ?options, ''),
     `name` = ?name,
     `icon` = ?icon,

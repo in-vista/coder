@@ -22,6 +22,12 @@ namespace Api.Modules.Modules.Models
         /// Gets or sets the icon of the module.
         /// </summary>
         public string Icon { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the amount of pending actions of the module. The amount of pending
+        /// actions is set with the pending_actions_query
+        /// </summary>
+        public int PendingActionCount { get; set; }
 
         /// <summary>
         /// Gets or sets the main color of the module.

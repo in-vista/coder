@@ -28,6 +28,11 @@ namespace Api.Modules.Modules.Models
         /// Gets or sets the count query of the module.
         /// </summary>
         public string CountQuery { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the pending actions query of the module.
+        /// </summary>
+        public string PendingActionsQuery { get; set; }
 
         /// <summary>
         /// Gets or sets the options / settings.

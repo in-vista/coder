@@ -830,6 +830,37 @@ class Main {
                     
                     this.quickSearchDialogActiveIndex = newIndex;
                 },
+
+                startPendingActionsRefreshTimer() {
+                    this.stopPendingActionsRefreshTimer();
+
+                    this.pendingActionsRefreshIntervalId = setInterval(() => {
+                        this.refreshPendingActions();
+                    }, 60 * 10 * 1000);
+                },
+
+                stopPendingActionsRefreshTimer() {
+                    if (this.pendingActionsRefreshIntervalId !== null) {
+                        clearInterval(this.pendingActionsRefreshIntervalId);
+                        this.pendingActionsRefreshIntervalId = null;
+                    }
+                },
+                // This method is called every 10min, upon load and when opening modules
+                // It will refresh the amount of pending action is being shown
+                async refreshPendingActions() {
+                    try {
+                        await this.reloadModules();
+                    } catch (exception) {
+                        console.error("Failed to refresh pending actions.", exception);
+                    }
+                },
+
+                getTotalPendingActions(modules) {
+                    return (modules ?? []).reduce((totalPendingActions, module) => {
+                        const pendingActionCount = Number(module?.pendingActionCount ?? 0);
+                        return totalPendingActions + (Number.isNaN(pendingActionCount) ? 0 : pendingActionCount);
+                    }, 0);
+                },
                 
                 handleBodyClick(event) {
                     if (event.target.id !== "side-menu" && !event.target.closest("#side-menu")) {
@@ -1347,6 +1378,8 @@ class Main {
 
                 onOpenModuleClick(event, module) {
                     event.preventDefault();
+                    // Refresh pending actions when opening a module
+                    this.refreshPendingActions();
                     this.openModule(module);
                 },
 
@@ -1663,6 +1696,8 @@ class Main {
                 }
             },
             mounted() {
+                this.refreshPendingActions();
+                this.startPendingActionsRefreshTimer();
                 this.quickSearchDialogHandleClickToClose = event => {
                     if (!$(event.target).closest($('#invista-qs-dialog')).length)
                         this.quickSearchDialogVisible = false;
@@ -1671,6 +1706,7 @@ class Main {
                 $(document).on('click', this.quickSearchDialogHandleClickToClose);
             },
             beforeUnmount() {
+                this.stopPendingActionsRefreshTimer();
                 $(document).off('click', this.quickSearchDialogHandleClickToClose);
             }
         });
