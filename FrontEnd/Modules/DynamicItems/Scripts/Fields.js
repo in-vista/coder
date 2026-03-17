@@ -3459,7 +3459,7 @@ export class Fields {
                                     const textArea = dialogElement.find("textarea.editor");
                                     const parent = textArea.closest("span.k-input");
                                     parent.append(textArea);
-                                    parent.find("table.k-editor").remove();
+                                    parent.find("div.k-editor").remove();
                                 }
 
                                 await require("@progress/kendo-ui/js/kendo.editor.js");
