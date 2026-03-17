@@ -2017,10 +2017,10 @@ export class Grids {
      * are supposed to be hidden if the item is read-only.
      */
     async onGridSelectionChange(event, readOnly = undefined) {
-        // Check based on given condition to hide.
-        const conditionalButtons = event.sender.wrapper.find('.k-button');
+        // Retrieve all buttons to check the condition for.
+        let conditionalButtons = event.sender.wrapper.find('.k-button');
 
-        // Retrieve the elements of the selected rows
+        // Retrieve the elements of the selected rows.
         const grid = event.sender;
         const selectedData = grid.select().get().map(row => grid.dataItem(row).toJSON());
         
@@ -2042,9 +2042,13 @@ export class Grids {
             
             // Determine whether the action button should be hidden or not.
             const shouldHide = that.shouldHideActionButton(selectedData, condition, roles, showOnReadOnly, minimumRows, maximumRows, readOnly);
-
+            
+            // Retrieve the amount of selected rows and determine whether it should be considered for this conditional button.
+            const selectedRows = event.sender.select().length;
+            const shouldHideWhenNoRowsSelected = button.hasClass('hide-when-no-selected-rows');
+            
             // Show or hide the action button based on the evaluated condition or default value.
-            button.toggleClass('hidden', shouldHide || event.sender.select().length === 0);
+            button.toggleClass('hidden', shouldHide || (shouldHideWhenNoRowsSelected && selectedRows === 0));
         });
         
         // Check whether to hide a button group when no buttons are visible in the group.
