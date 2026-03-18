@@ -62,7 +62,9 @@ import {
     USE_TOTP_BACKUP_CODE,
     USE_TOTP_BACKUP_CODE_ERROR,
     USER_BACKUP_CODES_GENERATED,
-    VALID_SUB_DOMAIN
+    VALID_SUB_DOMAIN, 
+    MODULES_PENDING_ACTIONS_REQUEST,
+    MODULES_PENDING_ACTIONS_LOADED
 } from "./mutation-types";
 
 const baseModule = {
@@ -432,6 +434,29 @@ const modulesModule = {
             }
         },
 
+        [MODULES_PENDING_ACTIONS_LOADED](state, pendingActionPairs) {
+            const pendingActionsByModuleId = (pendingActionPairs ?? []).reduce((result, item) => {
+                result[item.moduleId] = Number(item.pendingActionCount ?? 0);
+                return result;
+            }, {});
+
+            for (const moduleGroup of state.moduleGroups ?? []) {
+                for (const module of moduleGroup.modules ?? []) {
+                    module.pendingActionCount = pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0);
+                }
+            }
+
+            for (const pinnedModuleGroup of state.pinnedModuleGroups ?? []) {
+                for (const module of pinnedModuleGroup.modules ?? []) {
+                    module.pendingActionCount = pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0);
+                }
+            }
+
+            for (const module of state.allModules ?? []) {
+                module.pendingActionCount = pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0);
+            }
+        },
+
         [OPEN_MODULE]: (state, module) => {
             // Check if this module is already open, if the user is not allowed to have multiple instances of this module open at once.
             let activeModule = !module.onlyOneInstanceAllowed ? null : state.openedModules.filter(m => m.moduleId === module.moduleId)[0];
@@ -520,11 +545,14 @@ const modulesModule = {
     },
 
     actions: {
-        async [MODULES_REQUEST]({ commit }) {
+        async [MODULES_REQUEST]({ commit, dispatch }) {
             commit(START_REQUEST);
             const moduleGroups = await main.modulesService.getModules();
             commit(MODULES_LOADED, moduleGroups);
-
+            
+            // Get all pending actions and attach them to their respective module 
+            await dispatch(MODULES_PENDING_ACTIONS_REQUEST);
+            
             // Automatically open pinned modules when the modules are first loaded.
             for (let group in moduleGroups) {
                 if (!moduleGroups.hasOwnProperty(group)) {
@@ -540,6 +568,15 @@ const modulesModule = {
                 }
             }
             commit(END_REQUEST);
+        },
+
+        async [MODULES_PENDING_ACTIONS_REQUEST]({ commit }) {
+            try {
+                const pendingActionPairs = await main.modulesService.getModulePendingActions();
+                commit(MODULES_PENDING_ACTIONS_LOADED, pendingActionPairs);
+            } catch (error) {
+                console.error("Failed to refresh pending actions.", error);
+            }
         },
 
         [OPEN_MODULE]({ commit }, module) {

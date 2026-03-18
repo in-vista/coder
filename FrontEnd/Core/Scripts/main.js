@@ -58,7 +58,8 @@ import {
     RESET_BRANCH_CHANGES,
     TOGGLE_PIN_MODULE,
     UPDATE_ACTIVE_TIME,
-    USER_BACKUP_CODES_GENERATED
+    USER_BACKUP_CODES_GENERATED,
+    MODULES_PENDING_ACTIONS_REQUEST
 } from "./store/mutation-types";
 
 class Main {
@@ -829,6 +830,40 @@ class Main {
                     newIndex = Math.max(Math.min(newIndex, upperBound), lowerBound);
                     
                     this.quickSearchDialogActiveIndex = newIndex;
+                },
+
+                startPendingActionsRefreshTimer() {
+                    this.stopPendingActionsRefreshTimer();
+
+                    this.pendingActionsRefreshIntervalId = setInterval(() => {
+                        this.refreshPendingActions();
+                    }, 60 * 10 * 1000);
+                },
+
+                stopPendingActionsRefreshTimer() {
+                    if (this.pendingActionsRefreshIntervalId !== null) {
+                        clearInterval(this.pendingActionsRefreshIntervalId);
+                        this.pendingActionsRefreshIntervalId = null;
+                    }
+                },
+                // This method is called every 10min, upon load and when opening modules
+                // It will refresh the amount of pending action is being shown
+                async refreshPendingActions() {
+                    try {
+                        if(!this.user.loggedIn || !this.modules?.length)
+                            return;
+                        
+                        await this.$store.dispatch(MODULES_PENDING_ACTIONS_REQUEST);
+                    } catch (exception) {
+                        console.error("Failed to refresh pending actions.", exception);
+                    }
+                },
+
+                getTotalPendingActions(modules) {
+                    return (modules ?? []).reduce((totalPendingActions, module) => {
+                        const pendingActionCount = Number(module?.pendingActionCount ?? 0);
+                        return totalPendingActions + (Number.isNaN(pendingActionCount) ? 0 : pendingActionCount);
+                    }, 0);
                 },
                 
                 handleBodyClick(event) {
@@ -1663,6 +1698,8 @@ class Main {
                 }
             },
             mounted() {
+                this.refreshPendingActions();
+                this.startPendingActionsRefreshTimer();
                 this.quickSearchDialogHandleClickToClose = event => {
                     if (!$(event.target).closest($('#invista-qs-dialog')).length)
                         this.quickSearchDialogVisible = false;
@@ -1671,6 +1708,7 @@ class Main {
                 $(document).on('click', this.quickSearchDialogHandleClickToClose);
             },
             beforeUnmount() {
+                this.stopPendingActionsRefreshTimer();
                 $(document).off('click', this.quickSearchDialogHandleClickToClose);
             }
         });

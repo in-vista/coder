@@ -47,6 +47,17 @@ namespace Api.Modules.Modules.Controllers
         {
             return (await modulesService.GetAsync((ClaimsIdentity)User.Identity)).GetHttpResponseMessage();
         }
+        
+        /// <summary>
+        /// Gets all the pending actions from a Wiser module.
+        /// </summary>
+        [HttpGet]
+        [Route("pending-actions")]
+        [ProducesResponseType(typeof(List<ModulePendingActionsModel>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetPendingActionsAsync()
+        {
+            return (await modulesService.GetPendingActionsAsync((ClaimsIdentity)User.Identity)).GetHttpResponseMessage();
+        }
 
         /// <summary>
         /// Gets the data and settings for a module with grid view mode enabled.

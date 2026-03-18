@@ -77,6 +77,11 @@ export class ModuleTab {
             lineNumbers: true
         });
 
+        this.modulePendingActionsQuery = window.CodeMirror.fromTextArea(document.getElementById("modulePendingActionsQuery"), {
+            mode: "text/x-mysql",
+            lineNumbers: true
+        });
+        
         this.moduleOptions = window.CodeMirror.fromTextArea(document.getElementById("moduleOptions"), {
             mode: "application/x-json",
             lineNumbers: true,
@@ -459,6 +464,7 @@ export class ModuleTab {
 
         this.moduleCustomQuery.setValue("");
         this.moduleCountQuery.setValue("");
+        this.modulePendingActionsQuery.setValue("");
         this.moduleOptions.setValue("");
     }
 
@@ -620,6 +626,7 @@ export class ModuleTab {
 
         this.moduleCustomQuery.setValue("");
         this.moduleCountQuery.setValue("");
+        this.modulePendingActionsQuery.setValue("");
         this.moduleOptions.setValue("");
     }
 
@@ -636,6 +643,7 @@ export class ModuleTab {
 
         this.setCodeMirrorFields(this.moduleCustomQuery, typeof (resultSet.customQuery) === "undefined" ? "" : resultSet.customQuery);
         this.setCodeMirrorFields(this.moduleCountQuery, typeof (resultSet.countQuery) === "undefined" ? "" : resultSet.countQuery);
+        this.setCodeMirrorFields(this.modulePendingActionsQuery, typeof (resultSet.pendingActionsQuery) === "undefined" ? "" : resultSet.pendingActionsQuery);
 
         const moduleOptions = resultSet.options || {};
         document.getElementById("moduleOnlyOneInstanceAllowed").checked = moduleOptions.onlyOneInstanceAllowed || false;
@@ -698,6 +706,7 @@ export class ModuleTab {
             moduleId,
             this.moduleCustomQuery.getValue(),
             this.moduleCountQuery.getValue(),
+            this.modulePendingActionsQuery.getValue(),
             JSON.stringify(moduleOptions, null, 4),
             document.getElementById("moduleName").value,
             this.moduleIcon.value(),
