@@ -1651,6 +1651,11 @@ export class Fields {
                                     if (ignoreVisible)
                                         return false;
 
+                                    // Disallow key action if the user is currently focused in a text area.
+                                    const disallowedFocusedElements = [ 'INPUT', 'TEXTAREA' ];
+                                    if (disallowedFocusedElements.includes(event.target.tagName))
+                                        return false;
+
                                     // Allow input.
                                     return true;
                                 };
