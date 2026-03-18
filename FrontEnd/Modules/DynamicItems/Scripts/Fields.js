@@ -1400,8 +1400,11 @@ export class Fields {
             
             // Prepare a function to log the executed action.
             const logAction = async (action, item = null) => {
-                const itemDetails = !!item
-                    ? (await this.base.getItemDetails(item.dataItem.encrypted_id || item.dataItem.encryptedid || item.dataItem.encryptedId, item.dataItem.entity_type || item.dataItem.entitytype || item.dataItem.entityType)) || mainItemDetails
+                const itemEncryptedId = item.dataItem.encrypted_id || item.dataItem.encryptedid || item.dataItem.encryptedId;
+                const itemEntityType =item.dataItem.entity_type || item.dataItem.entitytype || item.dataItem.entityType;
+                
+                const itemDetails = itemEncryptedId && itemEntityType
+                    ? (await this.base.getItemDetails(itemEncryptedId, itemEntityType)) || mainItemDetails
                     : mainItemDetails;
                 
                 try {
