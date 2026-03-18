@@ -545,7 +545,7 @@ UNION
         )";
             }
 
-            var dataTable = await clientDatabaseConnection.GetAsync(query);
+            var dataTable = await clientDatabaseConnection.GetAsync(query, cachingMinutes: 60);
             var results = new List<ModulePendingActionsModel>();
 
             foreach (DataRow dataRow in dataTable.Rows)
@@ -575,7 +575,7 @@ UNION
                             HttpUtility.UrlEncode(IdentityHelpers.GetWiserUserId(identity).ToString().Encrypt(true)),
                             StringComparison.OrdinalIgnoreCase);
 
-                        var moduleDataTable = await clientDatabaseConnection.GetAsync(modulePendingActionQuery);
+                        var moduleDataTable = await clientDatabaseConnection.GetAsync(modulePendingActionQuery, skipCache: true);
 
                         if (moduleDataTable.Rows.Count > 0 && moduleDataTable.Columns.Count > 0)
                         {

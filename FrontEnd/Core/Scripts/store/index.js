@@ -440,18 +440,21 @@ const modulesModule = {
                 return result;
             }, {});
 
-            state.moduleGroups = (state.moduleGroups ?? []).map(moduleGroup => ({
-                ...moduleGroup,
-                modules: (moduleGroup.modules ?? []).map(module => ({
-                    ...module,
-                    pendingActionCount: pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0)
-                }))
-            }));
+            for (const moduleGroup of state.moduleGroups ?? []) {
+                for (const module of moduleGroup.modules ?? []) {
+                    module.pendingActionCount = pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0);
+                }
+            }
 
-            state.allModules = (state.allModules ?? []).map(module => ({
-                ...module,
-                pendingActionCount: pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0)
-            }));
+            for (const pinnedModuleGroup of state.pinnedModuleGroups ?? []) {
+                for (const module of pinnedModuleGroup.modules ?? []) {
+                    module.pendingActionCount = pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0);
+                }
+            }
+
+            for (const module of state.allModules ?? []) {
+                module.pendingActionCount = pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0);
+            }
         },
 
         [OPEN_MODULE]: (state, module) => {

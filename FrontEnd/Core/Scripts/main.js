@@ -1382,8 +1382,6 @@ class Main {
 
                 onOpenModuleClick(event, module) {
                     event.preventDefault();
-                    // Refresh pending actions when opening a module
-                    this.refreshPendingActions();
                     this.openModule(module);
                 },
 
