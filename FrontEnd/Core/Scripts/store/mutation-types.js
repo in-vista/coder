@@ -27,6 +27,8 @@ export const CLOSE_ALL_MODULES = "closeAllModules";
 export const CLEAR_ALL_MODULES = "clearAllModules";
 export const ACTIVATE_MODULE = "activateModule";
 export const TOGGLE_PIN_MODULE = "togglePinModule";
+export const MODULES_PENDING_ACTIONS_REQUEST = "modulesPendingActionsRequest";
+export const MODULES_PENDING_ACTIONS_LOADED = "modulesPendingActionsLoaded";
 
 // Items module.
 export const LOAD_ENTITY_TYPES_OF_ITEM_ID = "loadEntityTypesOfItemId";

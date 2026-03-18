@@ -269,35 +269,6 @@ UNION
                     }
                 }
                 
-                var pendingActionQuery = dataRow.Field<string>("pending_actions_query");
-
-                if (!String.IsNullOrWhiteSpace(pendingActionQuery))
-                {
-                    var modulePendingActionQuery = pendingActionQuery;
-                    try
-                    {
-                     modulePendingActionQuery = modulePendingActionQuery.Replace("{userId}", IdentityHelpers.GetWiserUserId(identity).ToString(), StringComparison.OrdinalIgnoreCase);
-                     modulePendingActionQuery = modulePendingActionQuery.Replace("{username}", IdentityHelpers.GetUserName(identity) ?? "", StringComparison.OrdinalIgnoreCase);
-                     modulePendingActionQuery = modulePendingActionQuery.Replace("{userEmailAddress}", IdentityHelpers.GetEmailAddress(identity) ?? "", StringComparison.OrdinalIgnoreCase);
-                     modulePendingActionQuery = modulePendingActionQuery.Replace("{userType}", IdentityHelpers.GetRoles(identity) ?? "", StringComparison.OrdinalIgnoreCase);
-                     modulePendingActionQuery = modulePendingActionQuery.Replace("{userId_encrypt}", HttpUtility.UrlEncode(IdentityHelpers.GetWiserUserId(identity).ToString().Encrypt()), StringComparison.OrdinalIgnoreCase);
-                     modulePendingActionQuery = modulePendingActionQuery.Replace("{userId_encrypt_withdate}", (string)HttpUtility.UrlEncode(IdentityHelpers.GetWiserUserId(identity).ToString().Encrypt(true)), StringComparison.OrdinalIgnoreCase);
-                     var moduleDataTable = await clientDatabaseConnection.GetAsync(modulePendingActionQuery);
-                     if (moduleDataTable.Rows.Count > 0)
-                     {
-                        // Get the first value from the result as that is the amount of pending actions
-                        var pendingActionValue = moduleDataTable.Rows[0][0];
-                        rightsModel.PendingActionCount = pendingActionValue != DBNull.Value
-                        ? Convert.ToInt32(pendingActionValue)
-                        : 0;
-                     }
-                    }
-                    catch (Exception exception)
-                    {
-                        logger.LogWarning(exception, $"An error occurred while executing the pending actions query of module {rightsModel.ModuleId}");
-                    }
-                }
-                
                 results[groupName].Add(rightsModel);
             }
 
@@ -525,6 +496,111 @@ UNION
             results = results.OrderBy(g => g.Key == PinnedModulesGroupName ? "-" : g.Key).ToDictionary(g => g.Key, g => g.Value);
 
             return new ServiceResult<Dictionary<string, List<ModuleAccessRightsModel>>>(results);
+        }
+        
+        /// <inheritdoc />
+        public async Task<ServiceResult<List<ModulePendingActionsModel>>> GetPendingActionsAsync(
+            ClaimsIdentity identity)
+        {
+            var modulesForAdmins = new List<int>
+            {
+                Constants.DefaultMasterDataModuleId,
+                Constants.DefaultDataSelectorModuleId,
+                Constants.DefaultSearchModuleId,
+                Constants.DefaultAdminModuleId,
+                Constants.DefaultImportExportModuleId,
+                Constants.DefaultWiserUsersModuleId,
+                Constants.DefaultWebpagesModuleId,
+                Constants.DefaultTemplatesModuleId,
+                Constants.DefaultVersionControlModuleId
+            };
+
+            var isAdminAccount = IdentityHelpers.IsAdminAccount(identity);
+
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            clientDatabaseConnection.AddParameter("userId", IdentityHelpers.GetWiserUserId(identity));
+
+            var query = $@"(
+        SELECT
+            permission.module_id,
+            module.pending_actions_query
+        FROM {WiserTableNames.WiserUserRoles} AS user_role
+        JOIN {WiserTableNames.WiserRoles} AS role ON role.id = user_role.role_id
+        JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = role.id AND permission.module_id > 0
+        JOIN {WiserTableNames.WiserModule} AS module ON module.id = permission.module_id AND module.pending_actions_query IS NOT NULL
+        WHERE user_role.user_id = ?userId
+        GROUP BY permission.module_id, module.pending_actions_query
+    )";
+
+            if (isAdminAccount)
+            {
+                query += $@"
+        UNION
+        (
+            SELECT
+                module.id AS module_id,
+                module.pending_actions_query
+            FROM {WiserTableNames.WiserModule} AS module
+            WHERE module.id IN ({String.Join(",", modulesForAdmins)}) AND module.pending_actions_query IS NOT NULL
+        )";
+            }
+
+            var dataTable = await clientDatabaseConnection.GetAsync(query);
+            var results = new List<ModulePendingActionsModel>();
+
+            foreach (DataRow dataRow in dataTable.Rows)
+            {
+                var moduleId = dataRow.Field<int>("module_id");
+                var pendingActionQuery = dataRow.Field<string>("pending_actions_query");
+                var pendingActionCount = 0;
+
+                if (!String.IsNullOrWhiteSpace(pendingActionQuery))
+                {
+                    var modulePendingActionQuery = pendingActionQuery;
+
+                    try
+                    {
+                        modulePendingActionQuery = modulePendingActionQuery.Replace("{userId}",
+                            IdentityHelpers.GetWiserUserId(identity).ToString(), StringComparison.OrdinalIgnoreCase);
+                        modulePendingActionQuery = modulePendingActionQuery.Replace("{username}",
+                            IdentityHelpers.GetUserName(identity) ?? "", StringComparison.OrdinalIgnoreCase);
+                        modulePendingActionQuery = modulePendingActionQuery.Replace("{userEmailAddress}",
+                            IdentityHelpers.GetEmailAddress(identity) ?? "", StringComparison.OrdinalIgnoreCase);
+                        modulePendingActionQuery = modulePendingActionQuery.Replace("{userType}",
+                            IdentityHelpers.GetRoles(identity) ?? "", StringComparison.OrdinalIgnoreCase);
+                        modulePendingActionQuery = modulePendingActionQuery.Replace("{userId_encrypt}",
+                            HttpUtility.UrlEncode(IdentityHelpers.GetWiserUserId(identity).ToString().Encrypt()),
+                            StringComparison.OrdinalIgnoreCase);
+                        modulePendingActionQuery = modulePendingActionQuery.Replace("{userId_encrypt_withdate}",
+                            HttpUtility.UrlEncode(IdentityHelpers.GetWiserUserId(identity).ToString().Encrypt(true)),
+                            StringComparison.OrdinalIgnoreCase);
+
+                        var moduleDataTable = await clientDatabaseConnection.GetAsync(modulePendingActionQuery);
+
+                        if (moduleDataTable.Rows.Count > 0 && moduleDataTable.Columns.Count > 0)
+                        {
+                            var pendingActionValue = moduleDataTable.Rows[0][0];
+                            pendingActionCount = pendingActionValue != DBNull.Value
+                                ? Convert.ToInt32(pendingActionValue)
+                                : 0;
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        logger.LogWarning(exception,
+                            "An error occurred while executing the pending actions query of module {ModuleId}",
+                            moduleId);
+                    }
+                }
+
+                results.Add(new ModulePendingActionsModel
+                {
+                    ModuleId = moduleId,
+                    PendingActionCount = pendingActionCount
+                });
+            }
+
+            return new ServiceResult<List<ModulePendingActionsModel>>(results);
         }
 
         /// <inheritdoc />

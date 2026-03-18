@@ -58,7 +58,8 @@ import {
     RESET_BRANCH_CHANGES,
     TOGGLE_PIN_MODULE,
     UPDATE_ACTIVE_TIME,
-    USER_BACKUP_CODES_GENERATED
+    USER_BACKUP_CODES_GENERATED,
+    MODULES_PENDING_ACTIONS_REQUEST
 } from "./store/mutation-types";
 
 class Main {
@@ -849,7 +850,10 @@ class Main {
                 // It will refresh the amount of pending action is being shown
                 async refreshPendingActions() {
                     try {
-                        await this.reloadModules();
+                        if(!this.user.loggedIn || !this.modules?.length)
+                            return;
+                        
+                        await this.$store.dispatch(MODULES_PENDING_ACTIONS_REQUEST);
                     } catch (exception) {
                         console.error("Failed to refresh pending actions.", exception);
                     }
