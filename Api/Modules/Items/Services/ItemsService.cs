@@ -1279,7 +1279,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             var itemIsFromArchive = false;
             var query = $@"SET SESSION group_concat_max_len = 1000000;
                                 SELECT e.tab_name, e.tab_html, e.group_name, e.inputtype AS field_type, t.html_template, e.display_name, e.property_name, e.options, e.module_id,
-    	                            e.explanation, d.long_value, d.`value`, e.default_value, e.id, e.width, e.height, e.css, e.extended_explanation, e.label_style, e.label_width, e.access_key,
+    	                            e.explanation, e.default_value, e.id, e.width, e.height, e.css, e.extended_explanation, e.label_style, e.label_width, e.access_key,
     	                            e.depends_on_field, e.depends_on_operator, e.depends_on_value, IFNULL(e.depends_on_action, 'toggle-visibility') AS depends_on_action, e.ordering, t.script_template,
     	                            e.save_on_change, files.JSON AS filesJSON, 0 AS itemLinkId, e.regex_validation, e.mandatory, e.language_code,
     	                            # A user can have multiple roles. So we need to check if they have at least one role that has update rights. If it doesn't, then the field should be readonly.
@@ -1288,7 +1288,6 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 FROM {WiserTableNames.WiserEntityProperty} e
                                 JOIN {tablePrefix}{WiserTableNames.WiserItem}{{0}} i ON i.id = ?itemId AND i.entity_type = e.entity_name
                                 LEFT JOIN {WiserTableNames.WiserFieldTemplates} t ON t.field_type = e.inputtype
-                                LEFT JOIN {tablePrefix}{WiserTableNames.WiserItemDetail}{{0}} d ON d.item_id = ?itemId AND ((e.property_name IS NOT NULL AND e.property_name <> '' AND d.`key` = e.property_name) OR ((e.property_name IS NULL OR e.property_name = '') AND d.`key` = e.display_name)) AND d.language_code = e.language_code
                                 # TODO: Find a more efficient way to load images and files?
                                 LEFT JOIN (
                                     SELECT item_id, property_name, CONCAT('[', GROUP_CONCAT(JSON_OBJECT('itemId', item_id, 'itemLinkId', itemlink_id, 'fileId', id, 'name', REPLACE(file_name, '/', '-'), 'title', title, 'extension', extension, 'size', IFNULL(OCTET_LENGTH(content), 0), 'addedOn', added_on, 'contentUrl', IFNULL(content_url, ''), 'extraData', extra_data) ORDER BY ordering ASC), ']') AS json
@@ -1314,7 +1313,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 UNION ALL
                                 
                                 SELECT 'Velden vanuit koppeling' AS tab_name, e.tab_html, e.group_name, e.inputtype AS field_type, t.html_template, e.display_name, e.property_name, e.options, e.module_id,
-    	                            e.explanation, d.long_value, d.`value`, e.default_value, e.id, e.width, e.height, e.css, e.extended_explanation, e.label_style, e.label_width, e.access_key,
+    	                            e.explanation, e.default_value, e.id, e.width, e.height, e.css, e.extended_explanation, e.label_style, e.label_width, e.access_key,
     	                            e.depends_on_field, e.depends_on_operator, e.depends_on_value, IFNULL(e.depends_on_action, 'toggle-visibility') AS depends_on_action, e.ordering, t.script_template,
     	                            e.save_on_change, files.JSON AS filesJSON, il.id AS itemLinkId, e.regex_validation, e.mandatory, e.language_code,
     	                            # A user can have multiple roles. So we need to check if they have at least one role that has update rights. If it doesn't, then the field should be readonly.
@@ -1324,7 +1323,6 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 JOIN {tablePrefix}{WiserTableNames.WiserItem}{{0}} i ON i.id = ?itemId
                                 JOIN {linkTablePrefix}{WiserTableNames.WiserItemLink}{{0}} il ON il.id = ?itemLinkId AND il.type = e.link_type
                                 LEFT JOIN {WiserTableNames.WiserFieldTemplates} t ON t.field_type = e.inputtype
-                                LEFT JOIN {linkTablePrefix}{WiserTableNames.WiserItemLinkDetail}{{0}} d ON d.itemlink_id = ?itemLinkId AND ((e.property_name IS NOT NULL AND e.property_name <> '' AND d.`key` = e.property_name) OR ((e.property_name IS NULL OR e.property_name = '') AND d.`key` = e.display_name)) AND d.language_code = e.language_code
                                 # TODO: Find a more efficient way to load images and files?
                                 LEFT JOIN (
                                     SELECT itemlink_id, property_name, CONCAT('[', GROUP_CONCAT(JSON_OBJECT('itemId', item_id, 'itemLinkId', itemlink_id, 'fileId', id, 'name', REPLACE(file_name, '/', '-'), 'title', title, 'extension', extension, 'size', IFNULL(OCTET_LENGTH(content), 0), 'addedOn', added_on, 'contentUrl', IFNULL(content_url, ''), 'extraData', extra_data) ORDER BY ordering ASC), ']') AS json
@@ -1350,13 +1348,20 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 ORDER BY ordering";
 
             // First check the normal wiser_item table.
-            var dataTable = await clientDatabaseConnection.GetAsync(String.Format(query, ""));
+            DataTable dataTable = await clientDatabaseConnection.GetAsync(string.Format(query, string.Empty));
+            
+            // Add additional empty value and long_value columns to the data table, as they are not added by default.
+            dataTable.Columns.AddRange(new DataColumn[]
+            {
+                new DataColumn("value", typeof(string)),
+                new DataColumn("long_value", typeof(string))
+            });
 
             if (dataTable.Rows.Count == 0)
             {
                 // If the item was not found in the normal table, check the archive table.
                 dataTable = await clientDatabaseConnection.GetAsync(String.Format(query, WiserTableNames.ArchiveSuffix));
-
+                
                 if (dataTable.Rows.Count == 0)
                 {
                     // If the item still isn't found, return an empty result.
@@ -1375,28 +1380,114 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
 
             var tenant = await wiserTenantsService.GetSingleAsync(identity);
             var encryptionKey = tenant.ModelObject.EncryptionKey;
-
-            // New aggregation method, check if any of the fields are aggregated, if so fill the values from the item table
-            if (dataTable.AsEnumerable().Any(row => Convert.ToInt32(row["enable_aggregation"]) == 2))
+            
+            // Convert the dataTable to an enumerable format.
+            IEnumerable<DataRow> enumerableDataTable = dataTable.AsEnumerable();
+            
+            // Retrieve a collection of aggregated rows and rows coming from details.
+            IEnumerable<DataRow> aggregatedRows = enumerableDataTable.Where(row => Convert.ToInt32(row["enable_aggregation"]) == 2).ToArray();
+            IEnumerable<DataRow> detailRows = enumerableDataTable.Except(aggregatedRows).ToArray();
+            
+            // Populate the data rows' value with the aggregated value.
+            if (aggregatedRows.Any())
             {
-                //TODO:get only the selection of fields in this query
+                // Build a SQL clause for the selection of aggregated columns.
+                string[] aggregatedColumnNamesSecure = aggregatedRows.Select(row => $"`i`.`{row.Field<string>("property_name")}`").ToArray();
+                string joinedAggregatedColumnNamesSecure = string.Join(", ", aggregatedColumnNamesSecure);
+                
+                // Prepare SQL parameters.
                 clientDatabaseConnection.ClearParameters();
                 clientDatabaseConnection.AddParameter("itemId", itemId);
-                var itemQuery = $@"SET SESSION group_concat_max_len = 1000000;
-                                SELECT *
+                
+                // Prepare and execute a query to retrieve the values for the aggregated columns.
+                string itemQuery = $@"SET SESSION group_concat_max_len = 1000000;
+                                SELECT {joinedAggregatedColumnNamesSecure}
                                 FROM {tablePrefix}{WiserTableNames.WiserItem}{{0}} i
                                 WHERE i.id = ?itemId";
-                var aggregatedFieldsTable = await clientDatabaseConnection.GetAsync(String.Format(itemQuery, (itemIsFromArchive ? WiserTableNames.ArchiveSuffix : "")), skipCache:true);
+                DataTable aggregatedFieldsTable = await clientDatabaseConnection.GetAsync(string.Format(itemQuery, itemIsFromArchive ? WiserTableNames.ArchiveSuffix : string.Empty), skipCache:true);
                 
-                //Neem velden over
-                var rowsToUpdate = dataTable.AsEnumerable()
-                    .Where(row => Convert.ToInt32(row["enable_aggregation"]) == 2)
-                    .Where(row => aggregatedFieldsTable.Columns.Contains(row.Field<string>("property_name")));
-                
-                foreach (var row in rowsToUpdate)
+                // Go over all aggregated rows and populate the value with the value from the aggregated columns from the database.
+                foreach (DataRow row in aggregatedRows)
                 {
-                    var fieldName = row.Field<string>("property_name");
-                    row["value"] = aggregatedFieldsTable.Rows[0][fieldName]; //TODO:check gaat dit goed bij grote velden > 1000 tekens?
+                    string fieldName = row.Field<string>("property_name");
+                    object fieldValue = aggregatedFieldsTable.Rows[0][fieldName];
+                    string targetFieldName = fieldValue.ToString()?.Length > 1000 ? "long_value" : "value";
+                    row[targetFieldName] = fieldValue;
+                }
+            }
+            
+            // Populate the data rows' value with the detail value.
+            if (detailRows.Any())
+            {
+                // Prepare a collection of property names to retrieve detail values for.
+                string[] detailProperties = detailRows.Select(row => row.Field<string>("property_name")).ToArray();
+                
+                // Prepare SQL parameters.
+                clientDatabaseConnection.ClearParameters();
+                clientDatabaseConnection.AddParameter("itemId", itemId);
+                clientDatabaseConnection.AddParameter("userId", userId);
+                clientDatabaseConnection.AddParameter("itemLinkId", itemLinkId);
+                
+                // Prepare query to retrieve data from details.
+                string detailsQuery = @$"
+                    SELECT e.property_name, d.long_value, d.`value`
+                    FROM {WiserTableNames.WiserEntityProperty} e
+                    JOIN {tablePrefix}{WiserTableNames.WiserItemDetail}{{0}} d ON d.item_id = ?itemId AND ((e.property_name IS NOT NULL AND e.property_name <> '' AND d.`key` = e.property_name) OR ((e.property_name IS NULL OR e.property_name = '') AND d.`key` = e.display_name)) AND d.language_code = e.language_code
+                    
+                    # Check permissions
+                    LEFT JOIN (
+                        SELECT permission.permissions, permission.entity_property_id
+                        FROM {WiserTableNames.WiserUserRoles} userRole
+                        JOIN {WiserTableNames.WiserRoles} role ON role.id = userRole.role_id
+                        JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = role.id AND permission.entity_property_id > 0
+                        WHERE userRole.user_id = ?userId
+                    ) permission ON permission.entity_property_id = e.id OR permission.entity_property_id IS NULL
+
+                    WHERE
+                        d.`key` IN {clientDatabaseConnection.AddInParameters("property_name", detailProperties)} AND
+                        (permission.permissions IS NULL OR permission.permissions > 0)
+                        {(propertyId > 0 ? $"AND e.id={propertyId.ToString()}" : "")}
+                    
+                    UNION ALL
+                    
+                    SELECT e.property_name, d.long_value, d.`value`
+                    FROM {WiserTableNames.WiserEntityProperty} e
+                    JOIN {linkTablePrefix}{WiserTableNames.WiserItemLink}{{0}} il ON il.id = ?itemLinkId AND il.type = e.link_type
+                    JOIN {linkTablePrefix}{WiserTableNames.WiserItemLinkDetail}{{0}} d ON d.itemlink_id = ?itemLinkId AND ((e.property_name IS NOT NULL AND e.property_name <> '' AND d.`key` = e.property_name) OR ((e.property_name IS NULL OR e.property_name = '') AND d.`key` = e.display_name)) AND d.language_code = e.language_code
+                    
+                    # Check permissions
+                    LEFT JOIN (
+                        SELECT permission.permissions, permission.entity_property_id
+                        FROM {WiserTableNames.WiserUserRoles} userRole
+                        JOIN {WiserTableNames.WiserRoles} role ON role.id = userRole.role_id
+                        JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = role.id AND permission.entity_property_id > 0
+                        WHERE userRole.user_id = ?userId
+                    ) permission ON permission.entity_property_id = e.id OR permission.entity_property_id IS NULL
+
+                    WHERE
+                        d.`key` IN {clientDatabaseConnection.AddInParameters("property_link_name", detailProperties)} AND
+                        e.link_type > 0 AND (permission.permissions IS NULL OR permission.permissions > 0)
+                        {(propertyId > 0 ? $"AND e.id={propertyId.ToString()}" : "")}";
+                
+                // Retrieve the detail values for the relevant data rows.
+                DataTable fetchedDetails = await clientDatabaseConnection.GetAsync(string.Format(detailsQuery, itemIsFromArchive ? WiserTableNames.ArchiveSuffix : string.Empty), skipCache:true);
+                
+                // Go over all values and populate their corresponding data row from the properties.
+                foreach (DataRow fetchedRow in fetchedDetails.Rows)
+                {
+                    // Retrieve the property name of the current fetched detail value.
+                    string propertyName = fetchedRow.Field<string>("property_name");
+                    
+                    // Retrieve the detail row to populate by matching based on the property name.
+                    DataRow detailRow = detailRows.FirstOrDefault(r => r.Field<string>("property_name").Equals(propertyName));
+                    
+                    // Skip populating the row if there was no existing entity property to be found.
+                    if (detailRow == null)
+                        continue;
+                    
+                    // Populate both the value and long_value fields.
+                    foreach (string targetField in new string[] { "value", "long_value" })
+                        detailRow[targetField] = fetchedRow[targetField];
                 }
             }
             
