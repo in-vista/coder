@@ -69,4 +69,20 @@ export default class ModulesService extends BaseService {
             return [];
         } 
     }
+    
+    /**
+     * Gets all the pending actions of all the modules the user has
+     * access to.
+     * @returns {any} An array with all available modules their ID 
+     * and a count of pending actions.
+     */
+    async getModulePendingActions() {
+        try {
+            const pendingActionsResult = await this.base.api.get(`/api/v3/modules/pending-actions`);
+            return this.parseList(pendingActionsResult) ?? [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        }
+    }
 }

@@ -176,19 +176,11 @@ jobs:
               Write-Host 'Fetching pool configuration...'
               $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
 
-              $found = $false
-
               foreach ($origin in $pool.result.origins) {
-                  if ($origin.name -eq $env:ORIGIN_ID) {
+                  if ($origin.name -eq $env:ORIGIN_ID -and $origin.enabled) {
                       Write-Host "Disabling origin: $($origin.name)"
                       $origin.enabled = $false
-                      $found = $true
                   }
-              }
-
-              if (-not $found) {
-                  Write-Error "Origin '$($env:ORIGIN_ID)' not found."
-                  exit 1
               }
 
               $body = @{
@@ -249,19 +241,11 @@ jobs:
               Write-Host 'Fetching pool configuration...'
               $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
 
-              $found = $false
-
               foreach ($origin in $pool.result.origins) {
-                  if ($origin.name -eq $env:ORIGIN_ID) {
+                  if ($origin.name -eq $env:ORIGIN_ID -and -not $origin.enabled) {
                       Write-Host "Disabling origin: $($origin.name)"
                       $origin.enabled = $true
-                      $found = $true
                   }
-              }
-
-              if (-not $found) {
-                  Write-Error "Origin '$($env:ORIGIN_ID)' not found."
-                  exit 1
               }
 
               $body = @{

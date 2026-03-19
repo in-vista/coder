@@ -1400,8 +1400,15 @@ export class Fields {
             
             // Prepare a function to log the executed action.
             const logAction = async (action, item = null) => {
-                const itemDetails = !!item
-                    ? (await this.base.getItemDetails(item.dataItem.encrypted_id || item.dataItem.encryptedid || item.dataItem.encryptedId, item.dataItem.entity_type || item.dataItem.entitytype || item.dataItem.entityType)) || mainItemDetails
+                const itemEncryptedId = item?.dataItem
+                    ? (item.dataItem.encrypted_id || item.dataItem.encryptedid || item.dataItem.encryptedId)
+                    : null;
+                const itemEntityType = item?.dataItem
+                    ? (item.dataItem.entity_type || item.dataItem.entitytype || item.dataItem.entityType)
+                    : null;
+                
+                const itemDetails = itemEncryptedId && itemEntityType
+                    ? (await this.base.getItemDetails(itemEncryptedId, itemEntityType)) || mainItemDetails
                     : mainItemDetails;
                 
                 try {
@@ -1642,6 +1649,11 @@ export class Fields {
                                     // Check if any of the ignored elements are visible.
                                     const ignoreVisible = ignoreClasses.some(cls => $(`.${cls}:visible`).length);
                                     if (ignoreVisible)
+                                        return false;
+
+                                    // Disallow key action if the user is currently focused in a text area.
+                                    const disallowedFocusedElements = [ 'INPUT', 'TEXTAREA' ];
+                                    if (disallowedFocusedElements.includes(event.target.tagName))
                                         return false;
 
                                     // Allow input.
@@ -3459,7 +3471,7 @@ export class Fields {
                                     const textArea = dialogElement.find("textarea.editor");
                                     const parent = textArea.closest("span.k-input");
                                     parent.append(textArea);
-                                    parent.find("table.k-editor").remove();
+                                    parent.find("div.k-editor").remove();
                                 }
 
                                 await require("@progress/kendo-ui/js/kendo.editor.js");
