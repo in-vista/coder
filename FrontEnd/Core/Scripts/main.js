@@ -771,14 +771,25 @@ class Main {
                 
                 handleKeydownFromIframe(event) {
                     if (event.data.type === this.quickSearchShortcutMessageName)
-                        this.handleQuickSearchShortcut(event.data.event ?? event);
+                        this.handleQuickSearchShortcut(event.data.event);
                 },
                 
                 onIframeLoaded(event) {
                     const iframe = event.target;
                     iframe.contentWindow.addEventListener('keydown', event => {
                         if(event.key === 'Shift')
-                            window.postMessage({ type: this.quickSearchShortcutMessageName }, '*');
+                            window.postMessage({
+                                type: this.quickSearchShortcutMessageName,
+                                event: {
+                                    type: 'keydown',
+                                    key: event.key,
+                                    code: event.code,
+                                    altKey: event.altKey,
+                                    ctrlKey: event.ctrlKey,
+                                    shiftKey: event.shiftKey,
+                                    repeat: event.repeat
+                                }
+                            }, '*');
                     });
                 },
                 
