@@ -39,14 +39,15 @@ namespace Api.Modules.EntityTypes.Controllers
         /// <param name="onlyEntityTypesWithDisplayName">Optional: Set to false to get all entity types, or true to get only entity types that have a display name.</param>
         /// <param name="includeCount">Optional: Whether to count how many items of each entity type exist in the database.</param>
         /// <param name="skipEntitiesWithoutItems">Optional: Whether to skip entities that have no items. Only works when includeCount is set to true.</param>
+        /// <param name="isForSearch">Optional: Whether to only get entities meant for the search (show_in_search must be set to true in the entity's setting)</param>
         /// <param name="moduleId">Optional: If you only want entity types from a specific module, enter the ID of that module here.</param>
         /// <param name="branchId">Optional: If getting entity types for a branch, enter the ID of that branch here.</param>
         /// <returns>A list of all available entity types.</returns>
         [HttpGet]
         [ProducesResponseType(typeof(List<EntityTypeModel>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAsync(bool onlyEntityTypesWithDisplayName = false, bool includeCount = false, bool skipEntitiesWithoutItems = false, int moduleId = 0, int branchId = 0)
+        public async Task<IActionResult> GetAsync(bool onlyEntityTypesWithDisplayName = false, bool includeCount = false, bool skipEntitiesWithoutItems = false, bool isForSearch = false, int moduleId = 0, int branchId = 0)
         {
-            return (await entityTypesService.GetAsync((ClaimsIdentity)User.Identity, onlyEntityTypesWithDisplayName, includeCount, skipEntitiesWithoutItems, moduleId, branchId)).GetHttpResponseMessage();
+            return (await entityTypesService.GetAsync((ClaimsIdentity)User.Identity, onlyEntityTypesWithDisplayName, includeCount, skipEntitiesWithoutItems, isForSearch, moduleId, branchId)).GetHttpResponseMessage();
         }
 
         /// <summary>
