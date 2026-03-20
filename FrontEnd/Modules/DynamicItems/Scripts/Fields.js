@@ -2716,9 +2716,9 @@ export class Fields {
                                 const hasItemsSelected = selectedItems && selectedItems.length > 0;
 
                                 if(isIterative && hasItemsSelected) {
-                                    // Loop over all of the selected items from the grid.
+                                    // Loop over all the selected items from the grid.
                                     for(const selectedItem of selectedItems) {
-                                        const selectedItemIndex = selectedItems.indexOf(item);
+                                        const selectedItemIndex = selectedItems.indexOf(selectedItem);
                                         const progress = selectedItemIndex > 0 ? selectedItemIndex / selectedItems.length * 100 : 0;
                                         setActionProgress(progress, 2);
                                         
