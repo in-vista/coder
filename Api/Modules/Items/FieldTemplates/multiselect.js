@@ -180,5 +180,63 @@ if (options.mode === "checkBoxGroup") {
         container.find('.k-multiselect').attr('readonly', 'readonly')
 }
 
+if (options.createItemFromInput && options.entityType) {
+    const $input = field
+        .closest(".flex-container")
+        .find(".k-multiselect .k-input-inner");
+
+    const $fieldList = $(`#${$input.attr("aria-controls")}`);
+
+    const openCreateDialog = (itemName) => window.dynamicItems.dialogs.openCreateItemDialog.bind(
+        window.dynamicItems.dialogs,
+        options.parentId,
+        null,
+        options.entityType,
+        false,
+        true,
+        options.linkTypeNumber,
+        window.dynamicItems.settings.moduleId,
+        kendoComponent,
+        "",
+        itemName
+    );
+
+    let isCreateDialogOpening = false;
+    
+    $input.off("keydown.createItemFromInput");
+    $input.on("keydown.createItemFromInput", function (event) {
+        if (event.key !== "Enter" || isCreateDialogOpening || event.repeat)
+            return;
+
+        const typedValue = $(this).val().trim();
+
+        if (!typedValue)
+            return;
+
+        const fieldListIsExpanded = $input.attr("aria-expanded") === "true";
+        const activeDescendantId = $input.attr("aria-activedescendant");
+        const fieldListHasActiveDescendant = !!activeDescendantId;
+        const fieldListHasChildren = $fieldList.children().length > 0;
+
+        // If the multiselect is open, has options, and one is active,
+        // let Kendo handle Enter and select it.
+        if (fieldListIsExpanded && fieldListHasChildren && fieldListHasActiveDescendant)
+            return;
+
+        isCreateDialogOpening = true;
+        $(this).blur();
+        
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        openCreateDialog(typedValue)();
+
+        // After a timeout allow opening of the dialog again
+        setTimeout(() => {
+            isCreateDialogOpening = false;
+        }, 500);
+    });
+}
 {customScript}
 })();
