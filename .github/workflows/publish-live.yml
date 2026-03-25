@@ -7,199 +7,75 @@ on:
   workflow_dispatch:
 
 jobs:
-  backup:
-    strategy:
-      matrix:
-        runner: [cluster1_transip, cluster3_transip, cluster4_transip]
-    runs-on: ${{ matrix.runner }}
+  deploy-cluster1:
+    uses: ./.github/workflows/deploy-single-server.yml
+    secrets: inherit
+    with:
+      runner: cluster1_transip
+      environment: Production
+      cloudflare_account_id: 737e9d9233ff99af2b322ea397547391
+      cloudflare_pool_id: 3f96a062515e3396be07b9ed88499c7b
+      cloudflare_origin_id: cluster_1
+
+  disable-remaining-load-balancer-origins:
+    needs: deploy-cluster1
+    runs-on: cluster1_transip
     environment: Production
-
     steps:
-    - name: Retrieve the current date and time
-      id: datetime
-      run: |
-        $dateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-        "datetime=$dateTime" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-    
-    - name: Create backup folders
-      run: |
-        $backupPath = "C:\backups"
-
-        $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
-        $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
-        
-        $folderPathApi = [IO.Path]::Combine(
-          $backupPath,
-          $baseApi,
-          "${{ steps.datetime.outputs.datetime }}"
-        )
-
-        $folderPathFrontend = [IO.Path]::Combine(
-          $backupPath,
-          $baseFrontend,
-          "${{ steps.datetime.outputs.datetime }}"
-        )
-        
-        New-Item -ItemType Directory -Path $folderPathApi -Force
-        New-Item -ItemType Directory -Path $folderPathFrontend -Force
-
-        "FOLDER_PATH_API=$folderPathApi" | Out-File -FilePath $env:GITHUB_ENV -Append
-        "FOLDER_PATH_FRONT_END=$folderPathFrontend" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-    - name: Copy contents to backup folder
-      shell: powershell
-      run: |
-        if (Test-Path "${{ secrets.PUBLISH_LOCATION_API }}") {
-          Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_API }}\*" -Destination "$env:FOLDER_PATH_API" -Recurse -Force
-        }
-
-        if (Test-Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}") {
-          Copy-Item -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}\*" -Destination "$env:FOLDER_PATH_FRONT_END" -Recurse -Force
-        }
-  build-icl:
-    strategy:
-      matrix:
-        runner: [cluster1_transip, cluster3_transip, cluster4_transip]
-    runs-on: ${{ matrix.runner }}
-    environment: Production
-    needs: [ backup ]
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: in-vista/invista-core-library
-        path: invista-core-library
-        ref: main
-
-    - name: Restore dependencies
-      run: dotnet restore
-      working-directory: invista-core-library
-
-    - name: Build
-      run: dotnet build --no-restore
-      working-directory: invista-core-library
-
-    - name: Empty destination folder
-      run: |
-        $folderPath = "C:\invista-core-library"
-        if (-Not (Test-Path -Path $folderPath)) {
-          New-Item -ItemType Directory -Path $folderPath
-        } else {
-          Remove-Item -Path "$folderPath\*" -Force -Recurse
-        }
-
-    - name: Copy files to destination folder
-      run: Copy-Item -Path "${{ secrets.WORKER_LOCATION }}\coder\coder\invista-core-library\*" -Destination "C:\invista-core-library" -Recurse
-  build-coder:
-    strategy:
-      matrix:
-        runner: [cluster1_transip, cluster3_transip, cluster4_transip]
-    runs-on: ${{ matrix.runner }}
-    environment: Production
-    needs: [build-icl]
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        path: coder
-
-    - name: Restore dependencies
-      run: dotnet restore
-      working-directory: coder
-
-    - name: Copy partner styles
-      run: Copy-Item -Path "${{ secrets.PARTNER_STYLES_LOCATION }}\*" -Destination "${{ secrets.WORKER_LOCATION }}\coder\coder\coder\FrontEnd\Core\Css\partner" -Recurse
-
-    - name: Build
-      run: dotnet build --no-restore
-      working-directory: coder
-
-    - name: Place App_Offline.htm
-      run: |
-        $apiPath = "${{ secrets.PUBLISH_LOCATION_API }}"
-        $frontendPath = "${{ secrets.PUBLISH_LOCATION_FRONT_END }}"
-
-        New-Item -Path ([IO.Path]::Combine($apiPath, "App_Offline.htm")) -ItemType File -Force
-        New-Item -Path ([IO.Path]::Combine($frontendPath, "App_Offline.htm")) -ItemType File -Force
-
-    - name: Install NPM modules
-      run: npm install
-      working-directory: 'coder/FrontEnd'
-
-    - name: Write Kendo UI license to file
-      run: |
-        [System.IO.File]::WriteAllText("telerik-license.txt", "${{ secrets.KENDO_UI_LICENSE }}", [System.Text.Encoding]::UTF8)
-      shell: powershell
-      working-directory: coder/FrontEnd
-
-    - name: Activate Kendo UI License
-      run: npx kendo-ui-license activate
-      working-directory: 'coder/FrontEnd'
-
-    - name: Compile scripts and styles with webpack
-      run: node_modules\.bin\webpack --mode=production
-      working-directory: 'coder/FrontEnd'
-
-    - name: dotnet publish API to temp folder
-      run: |
-        $tempApi = "${{ github.workspace }}\publish\API"
-        Remove-Item $tempApi -Recurse -Force -ErrorAction SilentlyContinue
-        New-Item -ItemType Directory -Path $tempApi -Force
-
-        dotnet publish API -c Release -o $tempApi --self-contained true -r win-x64 /p:EnvironmentName=Live
-      working-directory: coder
-
-    - name: dotnet publish FrontEnd to temp folder
-      run: |
-        $tempFrontend = "${{ github.workspace }}\publish\FrontEnd"
-        Remove-Item $tempFrontend -Recurse -Force -ErrorAction SilentlyContinue
-        New-Item -ItemType Directory -Path $tempFrontend -Force
-
-        dotnet publish FrontEnd -c Release -o $tempFrontend --self-contained true -r win-x64 /p:EnvironmentName=Live
-      working-directory: coder
-
-    - name: Copy API to live folder
-      run: Copy-Item -Path "${{ github.workspace }}\publish\API\*" -Destination "${{ secrets.PUBLISH_LOCATION_API }}" -Recurse -Force
-
-    - name: Copy FrontEnd to live folder
-      run: Copy-Item -Path "${{ github.workspace }}\publish\FrontEnd\*" -Destination "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Recurse -Force
-
-    - name: Remove App_Offline.htm
-      run: |
-        Remove-Item ([IO.Path]::Combine("${{ secrets.PUBLISH_LOCATION_API }}", "App_Offline.htm"))
-        Remove-Item ([IO.Path]::Combine("${{ secrets.PUBLISH_LOCATION_FRONT_END }}", "App_Offline.htm"))
-        
-  clear-backup:
-    strategy:
-      matrix:
-        runner: [cluster1_transip, cluster3_transip, cluster4_transip]
-    runs-on: ${{ matrix.runner }}
-    environment: Production
-    needs: [build-coder]
-
-    steps:
-     - name: Remove backups older than 30 days
-       run: |
-        $backupPath = "C:\backups"
-
-        $baseApi = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_API }}" -Leaf
-        $baseFrontend = Split-Path -Path "${{ secrets.PUBLISH_LOCATION_FRONT_END }}" -Leaf
-
-        $projects = @($baseApi, $baseFrontend)
-
-        foreach ($project in $projects) {
-          $projectFolder = Join-Path $backupPath $project
-
-          if (Test-Path $projectFolder) {
-            $backups = Get-ChildItem -Path $projectFolder -Directory | Sort-Object CreationTime -Descending
-
-            $oldBackups = $backups | Select-Object -Skip 2
-
-            foreach ($old in $oldBackups) {
-              Write-Host "Deleting backup $($old.FullName)"
-              Remove-Item -Path $old.FullName -Recurse -Force
-            }
+      - name: Disable Cloudflare origin
+        shell: powershell
+        env:
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          ACCOUNT_ID: 737e9d9233ff99af2b322ea397547391
+          POOL_ID: 3f96a062515e3396be07b9ed88499c7b
+          ORIGIN_IDS: '["cluster_3", "cluster_4"]'
+        run: |
+          $headers = @{
+              Authorization = "Bearer $($env:CLOUDFLARE_API_KEY)"
+              'Content-Type' = 'application/json'
           }
-        }
+
+          $uri = "https://api.cloudflare.com/client/v4/accounts/$($env:ACCOUNT_ID)/load_balancers/pools/$($env:POOL_ID)"
+
+          Write-Host 'Fetching pool configuration...'
+          $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
+
+          $originIds = $env:ORIGIN_IDS | ConvertFrom-Json
+
+          foreach ($origin in $pool.result.origins) {
+              if ($originIds -contains $origin.name) {
+                  Write-Host "Disabling origin: $($origin.name), due to being outdated"
+                  $origin.enabled = $false
+              }
+          }
+
+          $body = @{
+              origins = $pool.result.origins
+          } | ConvertTo-Json -Depth 10 -Compress
+
+          Write-Host 'Updating pool...'
+          Invoke-RestMethod -Uri $uri -Headers $headers -Method PATCH -Body $body
+
+          Write-Host 'Done.'
+
+  deploy-cluster3:
+    needs: [ deploy-cluster1, disable-remaining-load-balancer-origins ]
+    uses: ./.github/workflows/deploy-single-server.yml
+    secrets: inherit
+    with:
+      runner: cluster3_transip
+      environment: Production
+      cloudflare_account_id: 737e9d9233ff99af2b322ea397547391
+      cloudflare_pool_id: 3f96a062515e3396be07b9ed88499c7b
+      cloudflare_origin_id: cluster_3
+
+  deploy-cluster4:
+    needs: deploy-cluster3
+    uses: ./.github/workflows/deploy-single-server.yml
+    secrets: inherit
+    with:
+      runner: cluster4_transip
+      environment: Production
+      cloudflare_account_id: 737e9d9233ff99af2b322ea397547391
+      cloudflare_pool_id: 3f96a062515e3396be07b9ed88499c7b
+      cloudflare_origin_id: cluster_4
