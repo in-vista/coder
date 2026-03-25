@@ -140,7 +140,7 @@ jobs:
             env:
               ENVIRONMENT_NAME: ${{ inputs.environment }}
             run: |
-              $mode = if ('$env:$ENVIRONMENT_NAME' -eq 'Production') { 'production' } else { 'development' }
+              $mode = if ($env:$ENVIRONMENT_NAME -eq 'Production') { 'production' } else { 'development' }
               node_modules\.bin\webpack --mode=$mode
             working-directory: 'coder/FrontEnd'
 
