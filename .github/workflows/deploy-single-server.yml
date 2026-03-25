@@ -148,24 +148,26 @@ jobs:
             env:
               ENVIRONMENT_NAME: ${{ inputs.environment }}
             run: |
+                $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'Live' } else { 'Development' }
+
                 $tempApi = "${{ github.workspace }}\publish\API"
                 Remove-Item $tempApi -Recurse -Force -ErrorAction SilentlyContinue
                 New-Item -ItemType Directory -Path $tempApi -Force
 
-                dotnet publish API -c Release -o $tempApi --self-contained true -r win-x64 /p:EnvironmentName=$env:ENVIRONMENT_NAME
+                dotnet publish API -c Release -o $tempApi --self-contained true -r win-x64 /p:EnvironmentName=$environmentName
             working-directory: coder
 
           - name: dotnet publish FrontEnd to temp folder
             env:
               ENVIRONMENT_NAME: ${{ inputs.environment }}
             run: |
-                $envName = '${{ inputs.environment }}'
+                $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'Live' } else { 'Development' }
 
                 $tempFrontend = "${{ github.workspace }}\publish\FrontEnd"
                 Remove-Item $tempFrontend -Recurse -Force -ErrorAction SilentlyContinue
                 New-Item -ItemType Directory -Path $tempFrontend -Force
 
-                dotnet publish FrontEnd -c Release -o $tempFrontend --self-contained true -r win-x64 /p:EnvironmentName=$env:ENVIRONMENT_NAME
+                dotnet publish FrontEnd -c Release -o $tempFrontend --self-contained true -r win-x64 /p:EnvironmentName=$environmentName
             working-directory: coder
 
           - name: Disable Cloudflare origin
