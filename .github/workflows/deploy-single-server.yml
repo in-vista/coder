@@ -10,13 +10,13 @@ on:
         required: true
         type: string
       cloudflare_account_id:
-        required: true
+        required: false
         type: string
       cloudflare_pool_id:
-        required: true
+        required: false
         type: string
       cloudflare_origin_id:
-        required: true
+        required: false
         type: string
 
 jobs:
@@ -171,6 +171,7 @@ jobs:
             working-directory: coder
 
           - name: Disable Cloudflare origin
+            if: ${{ inputs.cloudflare_account_id && inputs.cloudflare_pool_id && inputs.cloudflare_origin_id }}
             shell: powershell
             env:
               CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
@@ -235,13 +236,13 @@ jobs:
               Remove-Item (Join-Path $env:PUBLISH_LOCATION_FRONT_END "app_offline.htm") -ErrorAction SilentlyContinue
 
           - name: Enable Cloudflare origin
+            if: ${{ inputs.cloudflare_account_id && inputs.cloudflare_pool_id && inputs.cloudflare_origin_id }}
             shell: powershell
             env:
               CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
               ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
               POOL_ID: ${{ inputs.cloudflare_pool_id }}
               ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
-            if: always()
             run: |
               $headers = @{
                   Authorization = "Bearer $($env:CLOUDFLARE_API_KEY)"
