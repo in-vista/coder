@@ -1141,6 +1141,7 @@ footer .actions {
 	display: flex;
 	justify-content: end;
 	gap: 8px;
+	margin-left: auto;
 }
 footer .actions button {
 	white-space: nowrap;
