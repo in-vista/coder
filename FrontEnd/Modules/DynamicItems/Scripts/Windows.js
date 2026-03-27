@@ -157,7 +157,7 @@ export class Windows {
                                     }
     
                                     if (canDelete) {
-                                        this.base.deleteItem(encryptedItemId, entityType);
+                                        this.base.deleteItem(encryptedItemId, entityType, isNewItem);
                                     }
                                 }
                             } catch (exception) {
@@ -496,16 +496,21 @@ export class Windows {
 
                     currentItemWindow.wrapper.find(".k-i-vertalen").parent().toggleClass("hidden", this.base.allLanguages.length <= 1 && currentItemWindow.element.find(".item[data-language-code]:not([data-language-code=''])").length === 0);
 
-                    // Setup dependencies for all tabs.
+                    let tabNames = [];
+                    
+                    // Setup dependencies for all tabs and store the tab name's in an array.
                     for (let i = htmlData.tabs.length - 1; i >= 0; i--) {
                         const tabData = htmlData.tabs[i];
                         const container = currentItemTabStrip.contentHolder(i);
+                        tabNames.push(tabData.name || "Gegevens")
                         this.base.fields.setupDependencies(container, entityType, tabData.name || "Gegevens");
                     }
 
-                    // Handle dependencies for the first tab, to make sure all the correct fields are hidden/shown on the first tab. The other tabs will be done once they are opened.
-                    this.base.fields.handleAllDependenciesOfContainer(currentItemTabStrip.contentHolder(0), entityType, "Gegevens", windowId);
-
+                    // Handle dependencies for the all tabs, this is to make sure every field's dependency is doing what it's set to do.
+                    tabNames.forEach((tabName, index) => {
+                        this.base.fields.handleAllDependenciesOfContainer(currentItemTabStrip.contentHolder(index), entityType, tabName, windowId);
+                    });
+                  
                     const showGenericTab = genericTabHasFields || !htmlData.tabs.length;
                     $(currentItemTabStrip.items()[0]).toggle(genericTabHasFields || !htmlData.tabs.length);
 
@@ -540,7 +545,7 @@ export class Windows {
             });
 
             currentItemWindow.wrapper.find(".k-i-verwijderen").parent().click(async (event) => {
-                await this.onDeleteItemPopupClick(event, kendoComponent);
+                await this.onDeleteItemPopupClick(event, kendoComponent, isNewItem);
             });
             
             currentItemWindow.wrapper.find(".k-i-terugzetten").parent().click(async (event) => {
@@ -586,7 +591,7 @@ export class Windows {
      * The click event for the delete button of item popups.
      * @param {any} event The click event.
      */
-    async onDeleteItemPopupClick(event, kendoComponent) {
+    async onDeleteItemPopupClick(event, kendoComponent, isNew) {
         event.preventDefault();
 
         const popupWindowContainer = $(event.currentTarget).closest(".k-window").find(".popup-container");
@@ -606,7 +611,7 @@ export class Windows {
             const data = kendoWindow.element.data();
             const encryptedItemId = data.itemId;
 
-            await this.base.deleteItem(encryptedItemId, entityType);
+            await this.base.deleteItem(encryptedItemId, entityType, isNew);
 
             popupWindowContainer.find(".popup-loader").removeClass("loading");
 
@@ -667,7 +672,7 @@ export class Windows {
             }
 
             // Check if the item has a Topol instance running.
-            if(TopolPlugin.iframe && document.body.contains(TopolPlugin.iframe)) {
+            if(window.TopolPlugin !== undefined && TopolPlugin.iframe && document.body.contains(TopolPlugin.iframe)) {
                 // Since manually saving the Topol instance runs async, but the 'save' function does not have the ability to wait,
                 // we wait manually by waiting for a success message that comes back from the iframe of the Topol instance.
                 await new Promise(resolve => {
@@ -687,7 +692,7 @@ export class Windows {
                     window.addEventListener('message', messageHandler);
 
                     // Release the JSON and HTML of the Topol mail editor iframe into their respective input fields.
-                    TopolPlugin.save();
+                    window.TopolPlugin?.save();
                 });
             }
 
@@ -1059,9 +1064,7 @@ export class Windows {
                 columns: gridDataResult.columns,
                 resizable: true,
                 sortable: true,
-                scrollable: {
-                    virtual: true
-                },
+                scrollable: true,
                 filterable: {
                     extra: false,
                     operators: {

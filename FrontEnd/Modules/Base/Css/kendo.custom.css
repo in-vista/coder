@@ -551,9 +551,21 @@ textarea.k-textbox:hover,
     color: var(--dark-txt);
 }
 
+.k-input > select[readonly],
+.item.readonly > .k-button[readonly]{
+    border: 1px solid var(--medium-color) !important;
+    background: var(--handle-bg-color) !important;
+    color: var(--lighter-txt) !important;
+    cursor: not-allowed;
+    pointer-events: none;
+}
 .k-input[readonly] {
     background-color: var(--white-color);
     color: var(--dark-txt);
+}
+.item.readonly .k-picker {
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .k-block,
@@ -638,12 +650,14 @@ textarea.k-textbox:hover,
     content: "e118";
 }
 
-.k-i-loading {
-    background-image: url('https://kendo.cdn.telerik.com/2019.1.220/styles/Material/loading.gif');
-}
-
-.k-loading-image {
-    background-image: url('https://kendo.cdn.telerik.com/2019.1.220/styles/Material/loading-image.gif');
+@keyframes ld-cycle {
+    0% {
+        animation-timing-function: cubic-bezier(0.3333,0.3333,0.6667,0.6667);
+        transform: translate(-50%,-50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%,-50%) rotate(360deg);
+    }
 }
 
 .k-loading-color {

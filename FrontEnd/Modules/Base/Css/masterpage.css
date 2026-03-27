@@ -1138,6 +1138,9 @@ footer .meta-data label:hover {
 	display: none;
 }
 footer .actions {
+	display: flex;
+	justify-content: end;
+	gap: 8px;
 	margin-left: auto;
 }
 footer .actions button {

@@ -39,6 +39,7 @@ import {
     GET_ENTITIES_FOR_BRANCHES,
     GET_LINK_TYPES,
     GET_TENANT_TITLE,
+    GET_TENANT_OPTIONS,
     HANDLE_CONFLICT,
     HANDLE_MULTIPLE_CONFLICTS,
     IS_MAIN_BRANCH,
@@ -61,7 +62,11 @@ import {
     USE_TOTP_BACKUP_CODE,
     USE_TOTP_BACKUP_CODE_ERROR,
     USER_BACKUP_CODES_GENERATED,
-    VALID_SUB_DOMAIN
+    VALID_SUB_DOMAIN, 
+    MODULES_PENDING_ACTIONS_REQUEST,
+    MODULES_PENDING_ACTIONS_LOADED,
+    UPDATE_TAB_STRIP_MODULES,
+	UPDATE_TAB_STRIP_TITLE_ALIAS
 } from "./mutation-types";
 
 const baseModule = {
@@ -431,6 +436,29 @@ const modulesModule = {
             }
         },
 
+        [MODULES_PENDING_ACTIONS_LOADED](state, pendingActionPairs) {
+            const pendingActionsByModuleId = (pendingActionPairs ?? []).reduce((result, item) => {
+                result[item.moduleId] = Number(item.pendingActionCount ?? 0);
+                return result;
+            }, {});
+
+            for (const moduleGroup of state.moduleGroups ?? []) {
+                for (const module of moduleGroup.modules ?? []) {
+                    module.pendingActionCount = pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0);
+                }
+            }
+
+            for (const pinnedModuleGroup of state.pinnedModuleGroups ?? []) {
+                for (const module of pinnedModuleGroup.modules ?? []) {
+                    module.pendingActionCount = pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0);
+                }
+            }
+
+            for (const module of state.allModules ?? []) {
+                module.pendingActionCount = pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0);
+            }
+        },
+
         [OPEN_MODULE]: (state, module) => {
             // Check if this module is already open, if the user is not allowed to have multiple instances of this module open at once.
             let activeModule = !module.onlyOneInstanceAllowed ? null : state.openedModules.filter(m => m.moduleId === module.moduleId)[0];
@@ -515,15 +543,25 @@ const modulesModule = {
                     module.pinned = true;
                 }
             }
+        },
+        [UPDATE_TAB_STRIP_MODULES]: (state, newTabs) => {
+            state.openedModules = newTabs;
+        },
+        [UPDATE_TAB_STRIP_TITLE_ALIAS]: (state, data) => {
+            const { module, value } = data;
+            module.alias = value;
         }
     },
 
     actions: {
-        async [MODULES_REQUEST]({ commit }) {
+        async [MODULES_REQUEST]({ commit, dispatch }) {
             commit(START_REQUEST);
             const moduleGroups = await main.modulesService.getModules();
             commit(MODULES_LOADED, moduleGroups);
-
+            
+            // Get all pending actions and attach them to their respective module 
+            await dispatch(MODULES_PENDING_ACTIONS_REQUEST);
+            
             // Automatically open pinned modules when the modules are first loaded.
             for (let group in moduleGroups) {
                 if (!moduleGroups.hasOwnProperty(group)) {
@@ -539,6 +577,15 @@ const modulesModule = {
                 }
             }
             commit(END_REQUEST);
+        },
+
+        async [MODULES_PENDING_ACTIONS_REQUEST]({ commit }) {
+            try {
+                const pendingActionPairs = await main.modulesService.getModulePendingActions();
+                commit(MODULES_PENDING_ACTIONS_LOADED, pendingActionPairs);
+            } catch (error) {
+                console.error("Failed to refresh pending actions.", error);
+            }
         },
 
         [OPEN_MODULE]({ commit }, module) {
@@ -568,6 +615,14 @@ const modulesModule = {
 
             const autoLoadModuleIds = state.allModules.filter(m => m.autoLoad).map(m => m.moduleId);
             await main.usersService.saveAutoLoadModules(autoLoadModuleIds);
+        },
+        
+        [UPDATE_TAB_STRIP_MODULES]({ commit, state }, newTabs) {
+            commit(UPDATE_TAB_STRIP_MODULES, newTabs);
+        },
+        
+        [UPDATE_TAB_STRIP_TITLE_ALIAS]({ commit, state }, data) {
+            commit(UPDATE_TAB_STRIP_TITLE_ALIAS, data);
         }
     },
 
@@ -695,6 +750,18 @@ const tenantsModule = {
             document.title = `${title} - Coder 3.0`;
         },
 
+        [GET_TENANT_OPTIONS](state, options) {
+            state.options = options;
+            
+            const documentStyle = document.documentElement.style;
+            documentStyle.setProperty('--coder-foreground-color', options.foreground_color);
+            documentStyle.setProperty('--coder-background-color', options.background_color);
+            documentStyle.setProperty('--coder-primary-color', options.primary_color);
+            documentStyle.setProperty('--coder-secondary-color', options.secondary_color);
+            documentStyle.setProperty('--coder-tertiary-color', options.tertiary_color);
+            documentStyle.setProperty('--coder-icon-color', options.icon_color);
+        },
+
         [VALID_SUB_DOMAIN](state, valid) {
             state.validSubDomain = valid;
         }
@@ -706,6 +773,13 @@ const tenantsModule = {
             const titleResponse = await main.tenantsService.getTitle(subDomain);
             commit(GET_TENANT_TITLE, titleResponse.data);
             commit(VALID_SUB_DOMAIN, titleResponse.statusCode !== 404);
+            commit(END_REQUEST);
+        },
+        async [GET_TENANT_OPTIONS]({ commit }, subDomain) {
+            commit(START_REQUEST);
+            const optionsResponse = await main.tenantsService.getOptions(subDomain);
+            commit(GET_TENANT_OPTIONS, optionsResponse.data);
+            commit(VALID_SUB_DOMAIN, optionsResponse.statusCode !== 404);
             commit(END_REQUEST);
         }
     },

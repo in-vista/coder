@@ -24,10 +24,9 @@
 }
 .k-window-content {
 	background-color: var(--item-bg-color);
-	padding: 0;
 	width: 100%;
 	height: 100%;
-	padding-bottom: 65px;
+	padding: 0 0 65px 0;
 }
 .k-window-content.k-dialog-content {
 	padding: 16px;
@@ -95,6 +94,54 @@
 	gap: 5px;
 	overflow-x: auto;
 }
+.image-carousel-root {
+	position: relative;
+}
+
+.image-zoom-container {
+	position: relative;
+	cursor: zoom-in;
+	overflow: hidden;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 600px;
+}
+
+.image-zoom-container.zoomed {
+	cursor: zoom-out;
+}
+
+.image-carousel-arrow {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 5;
+	padding: 8px 12px;
+	font-size: 28px;
+	line-height: 1;
+	border: 0;
+	background: rgba(0,0,0,.45);
+	color: white;
+	cursor: pointer;
+	user-select: none;
+}
+
+.image-carousel-arrow.left { left: 8px; }
+.image-carousel-arrow.right { right: 8px; }
+
+.image-carousel-counter {
+	position: absolute;
+	bottom: 8px;
+	right: 8px;
+	z-index: 5;
+	padding: 4px 8px;
+	background: rgba(0,0,0,.45);
+	color: white;
+	font-size: 12px;
+	border-radius: 6px;
+}
+
 .dropZoneElement {
 	position: relative;
 	display: inline-block;
@@ -272,7 +319,9 @@
 }
 .k-button-icontext .k-i-refresh,
 .k-button-icontext .k-i-filter-clear,
-.k-button-icontext .k-i-wiser-maximize {
+.k-button-icontext .k-i-wiser-maximize,
+.k-button-icontext .k-i-eye,
+.k-button-icontext .k-i-eye-slash {
 	margin: 0;
 }
 #buttons > span,
@@ -337,13 +386,6 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-}
-.actions button.button-left,
-.k-button {
-	margin: 0 4px 0 0;
-}
-.actions .k-button {
-	margin: 0 0 0 4px;
 }
 #treeview + button {
 	position: -webkit-sticky;
@@ -911,6 +953,18 @@ input[type=search] + button {
 	text-overflow: ellipsis;
 }
 
+.k-input[type=password] + .icon-eye-visible,
+.k-input[type=text] +  .icon-eye-invisible {
+	position: absolute;
+	right: 0;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	cursor: pointer;
+	z-index: 10;
+	line-height: 1;
+	font-size: clamp(12px, 2.5vh, 28px);
+}
+
 .k-dropdown .k-input-button,
 .k-dropdownlist .k-input-button,
 .k-input .k-button,
@@ -1380,6 +1434,24 @@ k-filter-menu .k-autocomplete,
 
 .k-toolbar-item:has(>.hidden) {
     display: none;
+}
+
+.k-button.progress {
+	position: relative;
+	
+	&:after {
+		content: '';
+		display: unset;
+		opacity: 1;
+		position: absolute;
+		top: unset;
+		right: unset;
+		left: 0;
+		bottom: 0;
+		height: 3px;
+		background-color: var(--kendo-color-primary);
+		width: calc(var(--progress, 0) * 1%);
+	}
 }
 
 /* Grid in an iframe / full window */

@@ -81,7 +81,8 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="identity">The identity of the authenticated user.</param>
         /// <param name="undelete">Optional: Whether to undelete the item instead of deleting it.</param>
         /// <param name="entityType">Optional: The entity type of the item to duplicate. This is needed when the item is saved in a different table than wiser_item. We can only look up the name of that table if we know the entity type beforehand.</param>
-        Task<ServiceResult<bool>> DeleteAsync(string encryptedId, ClaimsIdentity identity, bool undelete = false, string entityType = null);
+        /// <param name="isNew">Optional: Indication whether the item is considered new. If so, the default delete behaviour will be performed.</param>
+        Task<ServiceResult<bool>> DeleteAsync(string encryptedId, ClaimsIdentity identity, bool undelete = false, string entityType = null, bool isNew = false);
 
         /// <summary>
         /// Executes the workflow for an item. In wiser_entity you can set queries that need to be executed after an item has been created or updated.
@@ -289,5 +290,17 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="entityType">The entity type of item to get menu items for.</param>
         /// <returns></returns>
         Task<ServiceResult<List<ContextMenuItem>>> GetContextMenuAsync(ClaimsIdentity identity, int moduleId, string encryptedItemId, string entityType);
+        
+        /// <summary>
+        /// Logs a performed action by an action button.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <param name="encryptedItemId">The encrypted ID of the item that had an action performed on.</param>
+        /// <param name="entityType">The entity type of the item that had an action performed on.</param>
+        /// <param name="actionButton">The name of the action button that was performed.</param>
+        /// <param name="moduleId">The ID of the module that the action was performed in.</param>
+        /// <param name="propertyId">The ID of the entity property that the action was performed in.</param>
+        /// <returns>True if the action was logged in the database.</returns>
+        Task<ServiceResult<bool>> LogActionAsync(ClaimsIdentity identity, string encryptedItemId, string entityType, string actionButton, ulong? moduleId, ulong? propertyId);
     }
 }

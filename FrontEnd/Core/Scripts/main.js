@@ -47,6 +47,7 @@ import {
     GET_ENTITIES_FOR_BRANCHES,
     GET_LINK_TYPES,
     GET_TENANT_TITLE,
+    GET_TENANT_OPTIONS,
     HANDLE_CONFLICT,
     HANDLE_MULTIPLE_CONFLICTS,
     IS_MAIN_BRANCH,
@@ -57,7 +58,10 @@ import {
     RESET_BRANCH_CHANGES,
     TOGGLE_PIN_MODULE,
     UPDATE_ACTIVE_TIME,
-    USER_BACKUP_CODES_GENERATED
+    USER_BACKUP_CODES_GENERATED,
+    MODULES_PENDING_ACTIONS_REQUEST,
+    UPDATE_TAB_STRIP_MODULES,
+	UPDATE_TAB_STRIP_TITLE_ALIAS
 } from "./store/mutation-types";
 
 class Main {
@@ -392,12 +396,36 @@ class Main {
                         url: null
                     },
                     activePopout: null,
-                    hideTimeouts: new WeakMap()
+                    hideTimeouts: new WeakMap(),
+                    // Quick search.
+                    quickSearchDialogVisible: false,
+                    quickSearchDialogOpenDelta: undefined,
+                    quickSearchDialogOpenDeltaDelay: 200,
+                    quickSearchInput: undefined,
+                    quickSearchResults: undefined,
+                    quickSearchDialogActiveIndex: 0,
+                    quickSearchDialogHandleClickToClose: undefined,
+                    quickSearchShortcutMessageName: 'QUICK_SEARCH_SHORTCUT_PRESSED',
+                    // Module tab strip dragging.
+                    tabDragIndex: null,
+                    tabDragX: 0,
+                    tabInitialDragX: 0,
+                    tabWidths: [],
+                    tabStartX: 0,
+                    isTabDragging: false,
+                    tabDragThreshold: 5,
+                    // Module tab strip title editing.
+                    editingModuleTitleId: undefined,
+                    editingModuleTitleInput: undefined
                 };
             },
             async created() {
-                this.$store.dispatch(GET_TENANT_TITLE, this.appSettings.subDomain);
+                const subDomain = this.appSettings.subDomain;
+                this.$store.dispatch(GET_TENANT_TITLE, subDomain);
+                this.$store.dispatch(GET_TENANT_OPTIONS, subDomain);
+                
                 document.addEventListener("keydown", this.onAppKeyDown.bind(this));
+                window.addEventListener('message', this.handleKeydownFromIframe.bind(this));
                 
                 // Add an event for when the DOM is loaded.
                 document.addEventListener('DOMContentLoaded', async function() {
@@ -464,13 +492,17 @@ class Main {
                     return this.$store.state.modules.openedModules;
                 },
                 openedModulesWithBackend() {
-                    return this.$store.state.modules.openedModules.filter(m => !m.javascriptOnly && m.type !== "Wiser1");
+                    return this.$store.state.modules.openedModules
+                        .filter(m => !m.javascriptOnly && m.type !== "Wiser1")
+                        .sort((a, b) => a.id.localeCompare(b.id));
                 },
                 openedDynamicItemsModules() {
                     return this.$store.state.modules.openedModules.filter(m => m.type === "DynamicItems");
                 },
                 openedWiser1Modules() {
-                    return this.$store.state.modules.openedModules.filter(m => m.type === "Wiser1");
+                    return this.$store.state.modules.openedModules
+                        .filter(m => m.type === "Wiser1")
+                        .sort((a, b) => a.id.localeCompare(b.id));
                 },
                 activeModule() {
                     return this.$store.state.modules.activeModule;
@@ -486,6 +518,9 @@ class Main {
                 },
                 tenantTitle() {
                     return this.$store.state.tenants.title;
+                },
+                tenantOptions() {
+                    return this.$store.state.tenants.options;
                 },
                 validSubDomain() {
                     return this.$store.state.tenants.validSubDomain;
@@ -655,6 +690,14 @@ class Main {
                 },
                 totpBackupCodes() {
                     return this.$store.state.users.totpBackupCodes;
+                },
+                tabDragStyle() {
+                    return {
+                        transform: `translateX(${this.tabDragX}px)`,
+                        zIndex: 1000,
+                        cursor: 'grabbing',
+                        opacity: 0.5
+                    };
                 }
             },
             components: {
@@ -672,6 +715,68 @@ class Main {
                         this.openGenerateTotpBackupCodesPrompt();
                         await this.generateNewTotpBackupCodes();
                     }
+                },
+                quickSearchDialogVisible(newValue, oldValue) {
+                    if(newValue === false)
+                        this.quickSearchInput = undefined;
+                    
+                    if(newValue === true) {
+                        this.quickSearchDialogActiveIndex = 0;
+                        
+                        // Trigger the dialog to fetch results.
+                        this.quickSearchInput = '';
+                        
+                        this.$nextTick(() => {
+                            document
+                                .getElementById('invista-qs-dialog')
+                                .querySelector('.invista-qs-search-input')
+                                .focus();
+                        });
+                    }
+                },
+                quickSearchInput(newValue, oldValue) {
+                    let moduleFilter = _ => true;
+                    
+                    if(newValue?.length) {
+                        const normalisedInput = newValue.toLowerCase().trim();
+                        const normalisedInputSegments = normalisedInput.split(' ');
+                        
+                        moduleFilter = m => {
+                            const entryName = m.name;
+                            return normalisedInputSegments.every(inputSegment => new RegExp(RegExp.escape(inputSegment), 'i').test(entryName));
+                        };
+                    }
+
+                    this.quickSearchResults = this.modules
+                        .filter(moduleFilter)
+                        .sort(m => m.groupOptions?.ordering ?? Number.MAX_VALUE)
+                        .sort(m => m.ordering)
+                        .sort(m => m.name);
+                },
+                quickSearchResults(newValue, oldValue) {
+                    this.quickSearchDialogActiveIndex = 0;
+                },
+                quickSearchDialogActiveIndex(newValue, oldValue) {
+                    this.$nextTick(() => {
+                        const activeElement = this.$refs[`invista-qs-result-entry-${newValue}`]?.[0];
+                        if(!activeElement)
+                            return;
+                        
+                        activeElement.scrollIntoView({
+                            block: 'nearest',
+                            behavior: 'auto'
+                        });
+                    });
+                },
+                editingModuleTitleInput(newValue, oldValue) {
+                    const module = this.openedModules.find(m => m.id === this.editingModuleTitleId);
+                    if(!module)
+                        return;
+
+                    this.$store.dispatch(UPDATE_TAB_STRIP_TITLE_ALIAS, {
+                        module: module,
+                        value: newValue
+                    });
                 }
             },
             methods: {
@@ -689,8 +794,125 @@ class Main {
                         event.preventDefault();
                         this.openMarkerIoScreen();
                     }
+
+                    // Detect double shift for quick search dialog.
+                    if(event.key === 'Shift')
+                        this.handleQuickSearchShortcut(event);
+
+                    // Detect escape for closing the quick search dialog.
+                    if (event.key === 'Escape' && this.quickSearchDialogVisible) {
+                        this.quickSearchDialogVisible = false;
+                    }
+                },
+                
+                handleKeydownFromIframe(event) {
+                    if (event.data.type === this.quickSearchShortcutMessageName)
+                        this.handleQuickSearchShortcut(event.data.event);
+                },
+                
+                onIframeLoaded(event) {
+                    const iframe = event.target;
+                    iframe.contentWindow.addEventListener('keydown', event => {
+                        if(event.key === 'Shift')
+                            window.postMessage({
+                                type: this.quickSearchShortcutMessageName,
+                                event: {
+                                    type: 'keydown',
+                                    key: event.key,
+                                    code: event.code,
+                                    altKey: event.altKey,
+                                    ctrlKey: event.ctrlKey,
+                                    shiftKey: event.shiftKey,
+                                    repeat: event.repeat
+                                }
+                            }, '*');
+                    });
+                },
+                
+                handleQuickSearchShortcut(event) {
+                    // Only handle the shortcut if the user is logged in and there are modules to be searched for.
+                    if(!this.user.loggedIn || !this.modules?.length)
+                        return;
+                    
+                    // Ignore repeat events to avoid the shortcut being detected when holding the shortcut key.
+                    if(event.repeat)
+                        return;
+                    
+                    // Get the current timestamp used to detect quickly double pressing a key.
+                    const now = Date.now();
+                    
+                    // Open the dialog when shift is quickly pressed.
+                    if (now - this.quickSearchDialogOpenDelta < this.quickSearchDialogOpenDeltaDelay) {
+                        this.quickSearchDialogVisible = true;
+                    }
+                    this.quickSearchDialogOpenDelta = now;
+                },
+                
+                handleQuickSearchEnter() {
+                    if(!this.quickSearchResults?.length)
+                        return;
+
+                    const entry = this.quickSearchResults[this.quickSearchDialogActiveIndex];
+                    this.openModule(entry.moduleId);
+                    this.quickSearchDialogVisible = false;
                 },
 
+                handleQuickSearchDialogKeyDown(event) {
+                    let newIndex = this.quickSearchDialogActiveIndex;
+                    
+                    if(!['ArrowDown', 'ArrowUp'].includes(event.key))
+                        return;
+                    
+                    switch(event.key) {
+                        case 'ArrowDown':
+                            newIndex++;
+                            break;
+                        case 'ArrowUp':
+                            newIndex--;
+                            break;
+                    }
+                    
+                    const lowerBound = 0;
+                    const upperBound = this.quickSearchResults?.length - 1 ?? lowerBound;
+                    newIndex = Math.max(Math.min(newIndex, upperBound), lowerBound);
+                    
+                    this.quickSearchDialogActiveIndex = newIndex;
+                },
+
+                startPendingActionsRefreshTimer() {
+                    this.stopPendingActionsRefreshTimer();
+
+                    this.pendingActionsRefreshIntervalId = setInterval(() => {
+                        this.refreshPendingActions();
+                    }, 60 * 10 * 1000);
+                },
+
+                stopPendingActionsRefreshTimer() {
+                    if (this.pendingActionsRefreshIntervalId !== null) {
+                        clearInterval(this.pendingActionsRefreshIntervalId);
+                        this.pendingActionsRefreshIntervalId = null;
+                    }
+                },
+                // This method is called every 10min, upon load and when opening modules
+                // It will refresh the amount of pending action is being shown
+                async refreshPendingActions() {
+                    try {
+                        if(!this.user.loggedIn || !this.modules?.length)
+                            return;
+                        
+                        await this.$store.dispatch(MODULES_PENDING_ACTIONS_REQUEST);
+                    } catch (exception) {
+                        console.error("Failed to refresh pending actions.", exception);
+                    }
+                },
+
+                getTotalPendingActions(modules) {
+                    return (modules ?? []).reduce((totalPendingActions, module) => {
+                        const pendingActionCount = Number(module?.pendingActionCount ?? 0);
+                        return totalPendingActions + (Number.isNaN(pendingActionCount) ? 0 : pendingActionCount);
+                    }, 0);
+                },
+                
                 handleBodyClick(event) {
                     if (event.target.id !== "side-menu" && !event.target.closest("#side-menu")) {
                         this.toggleMenuActive(false);
@@ -757,6 +979,9 @@ class Main {
                     
                     // Remove the system styling.
                     Misc.removeSystemStyling();
+                    
+                    // Close the quick search dialog.
+                    this.quickSearchDialogVisible = false;
                 },
 
                 openModule(module) {
@@ -819,9 +1044,11 @@ class Main {
                 },
 
                 setActiveModule(event, moduleId) {
-                    if (event.target && event.target.classList.contains("close-module")) {
+                    if (event.target && event.target.classList.contains("close-module"))
                         return;
-                    }
+                    
+                    if(moduleId !== this.editingModuleTitleId)
+                        this.stopEditModuleTitle();
 
                     this.$store.dispatch(ACTIVATE_MODULE, moduleId);
                 },
@@ -1517,7 +1744,107 @@ class Main {
                         popout.style.display = 'none';
                     },
                     120);
+                },
+                
+                startTabDrag(event, index) {
+                    this.tabDragIndex = index;
+                    this.tabInitialDragX = event.clientX;
+                    this.isTabDragging = false;
+                    this.tabDragX = 0;
+
+                    document.querySelectorAll("iframe").forEach(iframe => {
+                        iframe.style.pointerEvents = "none";
+                    });
+
+                    const container = this.$el.querySelector('#modules-strip');
+                    const containerBounds = container.getBoundingClientRect();
+                    
+                    const element = event.currentTarget;
+                    const bounds = element.getBoundingClientRect();
+
+                    this.tabStartX = bounds.left - containerBounds.left;
+                    
+                    this.tabWidths = this.$el.querySelectorAll('.modules-strip-tab');
+                    this.tabWidths = Array.from(this.tabWidths).map(el => el.offsetWidth);
+                    
+                    document.addEventListener('mousemove', this.onTabDrag);
+                    document.addEventListener('mouseup', this.onTabEndDrag);
+                },
+                onTabDrag(event) {
+                    const delta = event.clientX - this.tabInitialDragX;
+                    
+                    if (Math.abs(delta) > this.tabDragThreshold)
+                        this.isTabDragging = true;
+
+                    if (this.isTabDragging)
+                        this.tabDragX = delta;
+                },
+                onTabEndDrag() {
+                    if(this.isTabDragging) {
+                        const newIndex = this.calculateNewTabIndex();
+                        const newTabs = [...this.openedModules];
+                        const [ draggedTab ] = newTabs.splice(this.tabDragIndex, 1);
+                        newTabs.splice(newIndex, 0, draggedTab);
+
+                        this.$store.dispatch(UPDATE_TAB_STRIP_MODULES, newTabs);
+                    }
+                    
+                    this.tabDragIndex = null;
+                    this.tabDragX = 0;
+                    
+                    setTimeout(() => {
+                        this.isTabDragging = false;
+                    }, 50);
+
+                    document.querySelectorAll("iframe").forEach(iframe => {
+                        iframe.style.pointerEvents = "";
+                    });
+                    
+                    document.removeEventListener('mousemove', this.onTabDrag);
+                    document.removeEventListener('mouseup', this.onTabEndDrag);
+                },
+                calculateNewTabIndex() {
+                    const draggedX = this.tabStartX + this.tabDragX;
+                    
+                    let cumulative = 0;
+                    for (let i = 0; i < this.tabWidths.length; i++) {
+                        cumulative += this.tabWidths[i] / 2;
+                        
+                        if (draggedX < cumulative)
+                            return i;
+                        
+                        cumulative += this.tabWidths[i] / 2;
+                    }
+                    return this.openedModules.length - 1;
+                },
+
+                startEditModuleTitle(module) {
+                    this.editingModuleTitleId = module.id;
+                    this.editingModuleTitleInput = module.alias ?? module.name;
+                    
+                    this.$nextTick(() => {
+                        $(`.modules-strip-tab-title[name="module_title_${module.id}"]`).focus();
+                    });
+                },
+                
+                stopEditModuleTitle() {
+                    this.editingModuleTitleId = undefined;
+                    this.editingModuleTitleInput = undefined;
                 }
+            },
+            mounted() {
+                this.refreshPendingActions();
+                this.startPendingActionsRefreshTimer();
+                this.quickSearchDialogHandleClickToClose = event => {
+                    if (!$(event.target).closest($('#invista-qs-dialog')).length)
+                        this.quickSearchDialogVisible = false;
+                }
+                
+                $(document).on('click', this.quickSearchDialogHandleClickToClose);
+            },
+            beforeUnmount() {
+                this.stopPendingActionsRefreshTimer();
+                $(document).off('click', this.quickSearchDialogHandleClickToClose);
             }
         });
 

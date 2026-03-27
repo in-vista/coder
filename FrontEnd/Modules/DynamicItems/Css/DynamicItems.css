@@ -296,7 +296,8 @@ body.iframe .editMenu {
 
 .k-grid-toolbar .k-grid-excel,
 .k-grid-toolbar .k-toolbar-item:has(.clear-all-filters),
-.k-grid-toolbar .k-toolbar-item:has(.full-screen) {
+.k-grid-toolbar .k-toolbar-item:has(.full-screen),
+.k-grid-toolbar .k-toolbar-item:has(.toggle-hidden-items) {
     order: 4;
 }
 
@@ -312,7 +313,8 @@ body.iframe .editMenu {
 .k-grid-toolbar .full-screen,
 .k-grid-toolbar .k-grid-refresh,
 .k-grid-toolbar .k-grid-excel,
-.k-grid-toolbar .clear-all-filters {
+.k-grid-toolbar .clear-all-filters,
+.k-grid-toolbar .toggle-hidden-items {
     max-height: 40px;
     max-width: 40px;
     padding: 12px;

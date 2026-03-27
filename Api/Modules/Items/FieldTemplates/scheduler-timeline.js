@@ -1,5 +1,5 @@
 (async () => {
-    function loadScript(src) {
+    async function loadScript(src) {
         return new Promise((resolve, reject) => {
             const s = document.createElement('script');
             s.src = src;
@@ -8,20 +8,11 @@
             document.head.appendChild(s);
         });
     }
-    
-    const scripts = [        
-        "https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js",
-        "https://cdn.jsdelivr.net/npm/flatpickr",
-        "https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/nl.js"
-    ];
-    
-    // Laad alles parallel, en wacht tot alle scripts klaar zijn
-    Promise.all(scripts.map(loadScript)).then(() => {
-        window.timelineScheduler = new TimelineScheduler();
-    }).catch(err => {
-        console.error("Fout bij laden van script:", err);
-    });
-    
+
+    await loadScript("https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js");
+    await loadScript("https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js");
+    await loadScript("https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/nl.js");   
+       
     class TimelineScheduler {
     
         // ---------- INSTELLINGEN ----------
@@ -81,6 +72,11 @@
     
             document.getElementById("next-day").addEventListener("click", () => {
                 this.currentDate.setDate(this.currentDate.getDate() + 1);
+                this.updateDateDisplay();
+            });
+
+            document.getElementById("today-button").addEventListener("click", () => {
+                this.currentDate = new Date();
                 this.updateDateDisplay();
             });
     
@@ -455,7 +451,7 @@
                 const quarter = Math.floor(minutes / 15); // Bereken het kwartier (0 = 00-14, 1 = 15-29, 2 = 30-44, 3 = 45-59)
                 const quarterLabel = `${now.getHours().toString().padStart(2,'0')}:${(quarter*15).toString().padStart(2,'0')}`; // bv. "13:00", "13:15"
                 const element = Array.from(document.querySelectorAll(".timeLabel")).find(el => el.innerText === quarterLabel);
-                element.classList.add("activeTime");
+                if (element) element.classList.add("activeTime");
             }
             else {
                 // For timeline view
@@ -1655,6 +1651,8 @@
             }
         }
     }
+
+    window.timelineScheduler = new TimelineScheduler();
 
     // Inject custom Javascript code from the entity property's settings.
     {customScript}

@@ -29,6 +29,9 @@
         field.find(".originalText").html(options.text);
     }
     const kendoComponent = field.kendoButton(options).data("kendoButton");
+
+    // Make the action button adhere to the read only if the item is set to be read-only. By default, this is false.
+    const adhereToReadOnly = options.adhereToReadOnly !== undefined ? options.adhereToReadOnly : false;
     
     // Hide the action button if the item is set to be read-only and the "show-on-read-only" is false.
     const showOnReadOnly = options.showOnReadOnly !== undefined ? options.showOnReadOnly : true;
@@ -37,13 +40,27 @@
     if(
         (!showOnReadOnly && readOnly) ||
         (options.hideWhenNew && isNew)
-    )
+    ) {
         field.closest('.item').hide();
+    } else if(
+        (adhereToReadOnly && readOnly)
+    ){
+        const $button = $(field).closest('.item').find('.k-button');
+        $button.attr('readonly', 'readonly');
+    }
+    
+    // Retrieve the button container.
+    const item = field.closest('.item');
+    
+    // Set the width of the container.
+    const width = {width};
+    item.css({
+        width: width ? `${width}%` : 'fit-content'
+    });
     
     // Move the action button to the header if set to be so.
     if(options.header) {
-        // Retrieve the button container, button and icon.
-        const item = field.closest('.item');
+        // Retrieve the button and icon.
         const button = item.find('.k-button');
         const icon = button.find('.k-icon');
         

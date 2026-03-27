@@ -27,12 +27,15 @@ export const CLOSE_ALL_MODULES = "closeAllModules";
 export const CLEAR_ALL_MODULES = "clearAllModules";
 export const ACTIVATE_MODULE = "activateModule";
 export const TOGGLE_PIN_MODULE = "togglePinModule";
+export const MODULES_PENDING_ACTIONS_REQUEST = "modulesPendingActionsRequest";
+export const MODULES_PENDING_ACTIONS_LOADED = "modulesPendingActionsLoaded";
 
 // Items module.
 export const LOAD_ENTITY_TYPES_OF_ITEM_ID = "loadEntityTypesOfItemId";
 
 // Tenants module.
 export const GET_TENANT_TITLE = "getTenantTitle";
+export const GET_TENANT_OPTIONS = "getTenantOptions";
 export const VALID_SUB_DOMAIN = "validSubDomain";
 
 // Users module.
@@ -79,3 +82,7 @@ export const CLEAR_CACHE_ERROR = "clearCacheError";
 
 // Database modules.
 export const DO_TENANT_MIGRATIONS = "doTenantMigrations";
+
+// Module tab strip.
+export const UPDATE_TAB_STRIP_MODULES = "updateTabStripModules";
+export const UPDATE_TAB_STRIP_TITLE_ALIAS = "updateTabStripTitleAlias";

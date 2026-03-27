@@ -11,11 +11,6 @@
     <link href="https://unpkg.com/@@progress/kendo-theme-material@11.1.0/dist/material-main.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-font-icons/dist/index.css" />
 
-    <script
-        src="/customscripts/topol.js"
-        type="text/javascript"
-    ></script>
-
     <script>
         window.wiserVersion = "@Model.WiserVersion?.ToString()";
     </script>
@@ -261,8 +256,8 @@
                 </ul>
             </div>
             <div class="actions">
-                <button class="saveAndCloseBottomPopup k-primary saveButton" name="saveAndClose">Opslaan en sluiten</button>
                 <button class="saveBottomPopup k-secondary saveButton" name="save">Opslaan</button>
+                <button class="saveAndCloseBottomPopup k-primary saveButton" name="saveAndClose">Opslaan en sluiten</button>
                 @* <button class="cancelItemPopup k-secondary" name="cancel">Annuleren</button> *@
             </div>
         </footer>

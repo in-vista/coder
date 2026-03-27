@@ -6,12 +6,7 @@
     let kendoComponent;
     let isFirstLoad = true;
     const height = "{height}" || undefined;
-    
-    let linkTypeParameter = "";
-    if (options.linkTypeNumber) {
-        linkTypeParameter = "?linkTypeNumber=" + encodeURIComponent(options.linkTypeNumber || "0");
-    }
-
+  
     const readonly = {readonly};
     let rowIndex = null;
     let cellIndex = null;
@@ -25,13 +20,30 @@
         gridMode = 6;
     }
 
-    let gridRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}${linkTypeParameter}`;
-
+    let gridRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/grids/{propertyId}`;
+    
+    const requestUrlQueryParameters = {};
+   
+    let linkTypeParameter = "";
+    if (options.linkTypeNumber) {
+        const linkTypeNumber = options.linkTypeNumber || '0';
+        requestUrlQueryParameters.linkTypeNumber = linkTypeNumber;
+        linkTypeParameter = "?linkTypeNumber=" + encodeURIComponent(linkTypeNumber);
+    }
+    
     const queryId = options.queryId;
     const countQueryId = options.countQueryId;
-    const usingQueryId = queryId && countQueryId;
-    if(usingQueryId)
-        gridRequestUrl += `?queryId=${encodeURIComponent(queryId)}&countQueryId=${encodeURIComponent(countQueryId)}`;
+    const usingQueryId = !!queryId;
+    if(usingQueryId) {
+        requestUrlQueryParameters.queryId = queryId;
+        requestUrlQueryParameters.countQueryId = countQueryId;
+    }
+    
+    if(options.toolbar?.hideToggleHiddenItemsButton === false)
+        requestUrlQueryParameters.showHiddenItems = false;
+    
+    if(Object.keys(requestUrlQueryParameters).length > 0)
+        gridRequestUrl += `?${Object.entries(requestUrlQueryParameters).map(([ key, value ]) => `${key}=${encodeURIComponent(value)}`).join('&')}`
     
     async function generateGrid(data, model, columns) {
         var toolbar = [];
@@ -49,6 +61,15 @@
                 name: "clearAllFilters",
                 text: "",
                 template: `<a class='k-button k-button-icontext clear-all-filters' title='Alle filters wissen' onclick='return window.dynamicItems.grids.onClearAllFiltersClick(event, ${clearFilterQueryIdEncoded})'><span class='k-font-icon k-i-filter-clear'></span></a>`
+            });
+        }
+
+        const shouldShowToggleHiddenItemsButton = options?.toolbar?.hideToggleHiddenItemsButton === false;
+        if (shouldShowToggleHiddenItemsButton) {
+            toolbar.push({
+                name: 'toggleHiddenItems',
+                text: '',
+                template: `<a class='k-button k-button-icontext toggle-hidden-items' title='Verborgen items tonen/verbergen' onclick='return window.dynamicItems.grids.onToggleHiddenItemsClick(event)'><span class='k-font-icon k-i-eye'></span></a>`
             });
         }
     
@@ -135,7 +156,7 @@
         var editable;
         if (readonly === true) {
             editable = false;
-        } else if (options.editable) {
+        } else if (options.editable !== undefined) {
             editable = options.editable;
         } else if (options.fieldGroupName) {
             editable = "incell";
@@ -158,6 +179,10 @@
                     read: function (transportOptions) {
                         try {
                             loader.addClass("loading");
+
+                            // Retrieve and store the state of which to show/hide hidden elements in the transport data.
+                            if(options?.toolbar?.hideToggleHiddenItemsButton === false)
+                                transportOptions.data.showHiddenItems = kendoComponent?.element.data('showHiddenItems') ?? false;
     
                             if (isFirstLoad) {
                                 transportOptions.success(data);
@@ -284,7 +309,13 @@
                                     "changed_on",
                                     "changedon",
                                     "changed_by",
-                                    "changedby"
+                                    "changedby",
+                                    "moduleid",
+                                    "ordering",
+                                    "original_item_id",
+                                    "parent_entity_type",
+                                    "parent_item_id",
+                                    "readonly"
                                 ];
                                 for (const key in transportOptions.data) {
                                     if (!transportOptions.data.hasOwnProperty(key) || nonFieldProperties.indexOf(key.toLowerCase()) > -1) {

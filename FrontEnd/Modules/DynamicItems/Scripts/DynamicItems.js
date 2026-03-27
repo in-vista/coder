@@ -279,8 +279,11 @@ const moduleSettings = {
 
                     var promises = [];
                     for (let element of kendoWindows) {
+                        // Retrieve the existence state of the opened item.
+                        const isNew = $(element).data("isNewItem");
+                        
                         // If the current item is a new item and it's not being saved at the moment, then delete it because it was a temporary item.
-                        if (!$(element).data("isNewItem") || $(element).data("saving")) {
+                        if (!isNew || $(element).data("saving")) {
                             continue;
                         }
 
@@ -298,7 +301,7 @@ const moduleSettings = {
                         }
 
                         if (canDelete) {
-                            promises.push(this.base.deleteItem($(element).data("itemId"), $(element).data("entityType")));
+                            promises.push(this.base.deleteItem($(element).data("itemId"), $(element).data("entityType"), isNew));
                         }
                     }
 
@@ -313,14 +316,26 @@ const moduleSettings = {
 
             // Keyboard shortcuts
             $("body").on("keydown", async (event) => {
-                const target = $(event.target);
-
                 if ((event.ctrlKey || event.metaKey) && event.key.toUpperCase() === "S") {
                     event.preventDefault();
 
-                    const entityContainer = target.closest(".entity-container");
+                    const elements = $('#right-pane, .k-window').toArray();
+                    let target = null;
+
+                    elements.forEach(el => {
+                        const rect = el.getBoundingClientRect();
+                        const x = rect.left + rect.width / 2;
+                        const y = rect.top + rect.height / 2;
+
+                        const topAtPoint = document.elementFromPoint(x, y);
+
+                        if (topAtPoint === el || el.contains(topAtPoint))
+                            target = $(el);
+                    });
+
+                    const entityContainer = target.find(".entity-container");
                     if (entityContainer.length > 0) {
-                        entityContainer.find(".saveButton").first().click();
+                        entityContainer.find(".saveButton:not(.saveAndCloseBottomPopup)").first().click();
                     }
                 }
             });
@@ -423,7 +438,17 @@ const moduleSettings = {
                 
                 // Find the closest k-window instance.
                 const kWindow = target.closest('.k-window');
+
+                const splitContainer = target.closest("#right-pane");
                 
+                // Remember the current scroll position
+                const scrollContainer = splitContainer.find(".k-tabstrip-content.k-active");
+                let previousScrollTop = 0;
+                if(scrollContainer.length > 0) 
+                    previousScrollTop = splitContainer.hasClass("info-active")
+                        ? scrollContainer.scrollTop()
+                        : splitContainer.scrollTop();
+                    
                 // Check if the context of this button lives in a k-window instance.
                 if(kWindow.length > 0) {
                     kWindow.find(".entity-container").removeClass("info-active");
@@ -433,10 +458,34 @@ const moduleSettings = {
                     const window = target.closest('#window');
                     window.find('#right-pane').removeClass('info-active');
                 }
+                
+                // Restore the scroll position
+                if(scrollContainer.length > 0)
+                    requestAnimationFrame(() => {
+                        splitContainer.scrollTop(previousScrollTop);
+                    });
             });
 
-            $("body").on("click", ".imgZoom", (event) => {
-                const image = $(event.currentTarget).parents(".product").find("img");
+            $("body").on("click", ".imgZoom", (clickEvent) => {
+                const clickedButton = $(clickEvent.currentTarget);
+                const clickedProductElement = clickedButton.closest(".product");
+                const productsContainer = clickedProductElement.closest(".imagesContainer"); // parent that contains multiple .product siblings
+
+                // Collect all images in the sibling .product
+                const productImageElements = productsContainer
+                    .find(".product img")
+                    .filter(function () {
+                        const source = $(this).attr("src");
+                        return typeof source === "string" && source.length > 0;
+                    });
+
+                if (productImageElements.length === 0) return;
+
+                // Figure out which image index was clicked
+                const clickedImageElement = clickedProductElement.find("img").first();
+                let currentImageIndex = productImageElements.index(clickedImageElement);
+                if (currentImageIndex < 0) currentImageIndex = 0;
+
                 const dialogElement = $("#imageDialog");
                 let dialog = dialogElement.data("kendoDialog");
                 if (!dialog) {
@@ -444,51 +493,136 @@ const moduleSettings = {
                         title: "Afbeelding",
                         closable: true,
                         modal: true,
-                        resizable: true
+                        resizable: true,
+                        close: () => {
+                            $(document).off("keydown.imageCarousel");
+                        }
                     }).data("kendoDialog");
+                } else {
+                    // If dialog already existed, ensure stack handlers don't stack
+                    $(document).off("keydown.imageCarousel");
                 }
                 
-                // Make a clone of the image element for the popup window.
-                const imageClone = image.clone();
+                const carouselRoot = $(`<div class="image-carousel-root"></div>`);
+
+                const leftArrowButton = $(`<button type="button" class="image-carousel-arrow left" aria-label="Vorige">‹</button>`);
+                const rightArrowButton = $(`<button type="button" class="image-carousel-arrow right" aria-label="Volgende">›</button>`);
+
+                const imageZoomContainer = $(`<div class="image-zoom-container"></div>`);
+                const counterElement = $(`<div class="image-carousel-counter"></div>`);
+
+                carouselRoot.append(leftArrowButton, imageZoomContainer, rightArrowButton, counterElement);
                 
-                // Create a zoom container element.
-                const imageZoomContainer = $('<div class="image-zoom-container"></div>');
-                imageZoomContainer.append(imageClone);
-                
-                // Keep a state of the zoom.
                 let imageZoomed = false;
+                let currentImageClone = null;
+
+                function setZoomOff() {
+                    imageZoomed = false;
+                    imageZoomContainer.removeClass("zoomed");
+                    if (currentImageClone) {
+                        currentImageClone.css({
+                            transform: "scale(1)",
+                            "transform-origin": "center center"
+                        });
+                    }
+                }
+
+                function renderCurrentImage() {
+                    // Reset zoom when switching images
+                    setZoomOff();
+                    
+                    imageZoomContainer.empty();
+
+                    const sourceImageElement = $(productImageElements.get(currentImageIndex));
+                    
+                    currentImageClone = sourceImageElement.clone();
+                    imageZoomContainer.append(currentImageClone);
+                    
+                    const hasMultipleImages = productImageElements.length > 1;
+                    leftArrowButton.prop("hidden", !hasMultipleImages);
+                    rightArrowButton.prop("hidden", !hasMultipleImages);
+                    
+                    counterElement.text(`${currentImageIndex + 1} / ${productImageElements.length}`);
+                }
+
+                function goToPreviousImage() {
+                    if (productImageElements.length <= 1) return;
+                    currentImageIndex = (currentImageIndex - 1 + productImageElements.length) % productImageElements.length;
+                    renderCurrentImage();
+                }
+
+                function goToNextImage() {
+                    if (productImageElements.length <= 1) return;
+                    currentImageIndex = (currentImageIndex + 1) % productImageElements.length;
+                    renderCurrentImage();
+                }
                 
-                // Add a click event on the image clone to zoom in/out on the image.
-                imageZoomContainer.click(() => {
+                leftArrowButton.on("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    goToPreviousImage();
+                });
+
+                rightArrowButton.on("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    goToNextImage();
+                });
+                
+                imageZoomContainer.on("click", () => {
                     imageZoomed = !imageZoomed;
-                    
-                    imageZoomContainer.toggleClass('zoomed');
-                    
-                    if(!imageZoomed) {
-                        imageClone.css({
-                            transform: 'scale(1)',
-                            'transform-origin': 'center center'
+                    imageZoomContainer.toggleClass("zoomed", imageZoomed);
+
+                    if (!imageZoomed) {
+                        setZoomOff();
+                    } else if (currentImageClone) {
+                        currentImageClone.css({
+                            transform: "scale(2)",
+                            "transform-origin": "center center"
                         });
                     }
                 });
-                
-                // Add a mouse over event for handling the offset of the zoomed image.
-                imageZoomContainer.on('mousemove', function(event) {
-                    if(!imageZoomed)
-                        return;
 
-                    const offset = imageZoomContainer.offset();
-                    const x = ((event.pageX - offset.left) / imageZoomContainer.width()) * 100;
-                    const y = ((event.pageY - offset.top) / imageZoomContainer.height()) * 100;
+                // Mousemove pan while zoomed
+                imageZoomContainer.on("mousemove", function (moveEvent) {
+                    if (!imageZoomed || !currentImageClone) return;
 
-                    imageClone.css({
-                        transform: 'scale(2)',
-                        'transform-origin': `${x}% ${y}%`,
+                    const containerOffset = imageZoomContainer.offset();
+                    const xPercentage = ((moveEvent.pageX - containerOffset.left) / imageZoomContainer.width()) * 100;
+                    const yPercentage = ((moveEvent.pageY - containerOffset.top) / imageZoomContainer.height()) * 100;
+
+                    currentImageClone.css({
+                        transform: "scale(2)",
+                        "transform-origin": `${xPercentage}% ${yPercentage}%`
                     });
                 });
+
+                // Image carrousel keyboard navigation 
+                $(document).on("keydown.imageCarousel", (keyEvent) => {
+                    const targetTagName = (keyEvent.target && keyEvent.target.tagName) ? keyEvent.target.tagName.toLowerCase() : "";
+                    const isTypingTarget = targetTagName === "input" || targetTagName === "textarea" || targetTagName === "select";
+                    if (isTypingTarget) return;
+
+                    if (keyEvent.key === "ArrowLeft" || keyEvent.key === "a" || keyEvent.key === "A") {
+                        keyEvent.preventDefault();
+                        goToPreviousImage();
+                        return;
+                    }
+
+                    if (keyEvent.key === "ArrowRight" || keyEvent.key === "d" || keyEvent.key === "D") {
+                        keyEvent.preventDefault();
+                        goToNextImage();
+                        return;
+                    }
+
+                    if (keyEvent.key === "Escape") {
+                        keyEvent.preventDefault();
+                        dialog.close();
+                    }
+                });
                 
-                // Set the content of the dialog and open it.
-                dialog.content(imageZoomContainer.get());
+                renderCurrentImage();
+                dialog.content(carouselRoot.get(0));
                 dialog.open();
             });
 
@@ -758,6 +892,9 @@ const moduleSettings = {
                 await Misc.loadExternalScript('https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js');
                 await Misc.loadExternalScript('https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors');
             }
+            if(scriptTemplate.indexOf("TopolPlugin") > -1) {
+                await Misc.loadExternalScript('/customscripts/topol.js');
+            }
             if (scriptTemplate.indexOf("bryntum.calendar.Calendar") > -1) {
                 // These scripts have to be loaded as script tags due to how the library works.
                 await Misc.loadExternalScript('/customscripts/bryntum/calendar/locales/calendar.locale.Nl.js', {
@@ -948,7 +1085,7 @@ const moduleSettings = {
                     {
                         Wiser.showConfirmDialog(`Weet u zeker dat u het item '${dataItem.title}' wilt verwijderen?`).then(async () => {
                             try {
-                                await this.base.deleteItem(itemId, entityType);
+                                await this.base.deleteItem(itemId, entityType, false);
                                 this.base.mainTreeView.remove(selectedNode);
                             } catch (exception) {
                                 console.error(exception);
@@ -1051,7 +1188,7 @@ const moduleSettings = {
             window.processing.addProcess(process);
             
             // Check if the item has a Topol instance running.
-            if(TopolPlugin.iframe && document.body.contains(TopolPlugin.iframe)) {
+            if(window.TopolPlugin !== undefined && TopolPlugin.iframe && document.body.contains(TopolPlugin.iframe)) {
                 // Since manually saving the Topol instance runs async, but the 'save' function does not have the ability to wait,
                 // we wait manually by waiting for a success message that comes back from the iframe of the Topol instance.
                 await new Promise(resolve => {
@@ -1071,7 +1208,7 @@ const moduleSettings = {
                     window.addEventListener('message', messageHandler);
 
                     // Release the JSON and HTML of the Topol mail editor iframe into their respective input fields.
-                    TopolPlugin.save();
+                    window.TopolPlugin?.save();
                 });
             }
 
@@ -1701,7 +1838,7 @@ const moduleSettings = {
             }
 
             try {
-                await this.deleteItem(encryptedItemId, entityType);
+                await this.deleteItem(encryptedItemId, entityType, false);
 
                 if (!this.settings.iframeMode) {
                     // Close the opened item.
@@ -1737,7 +1874,7 @@ const moduleSettings = {
         async onUndeleteItemClick(event, encryptedItemId, popupWindowContainer = undefined) {
             event.preventDefault();
 
-            const title = popupWindowContainer.data('title');
+            const title = popupWindowContainer?.data('title') ?? "dit item";
             
             await Wiser.showConfirmDialog(`Weet u zeker dat u het verwijderen ongedaan wilt maken voor '${title}'?`, "Verwijderen ongedaan maken", "Annuleren", "Terugzetten");
 
@@ -1929,6 +2066,12 @@ const moduleSettings = {
 
                 // Set the HTML of the fields tab.
                 const itemHtmlResult = await this.getItemHtml(itemId, itemMetaData.entityType, isNew);
+                
+                // Check whether a valid item HTML was given.
+                if(!itemHtmlResult) {
+                    kendo.alert("Het opgevraagde item bestaat niet of is ongeldig.");
+                    return;
+                }
 
                 this.mainTabStrip.element.find("> .k-tabstrip-items-wrapper > ul > li .addedFromDatabase").each((index, element) => {
                     this.mainTabStrip.remove($(element).closest("li.k-item"));
@@ -1991,16 +2134,21 @@ const moduleSettings = {
                 const translateButton = entityContainer.find(".editMenu .translateItem").closest("li");
                 translateButton.toggle(this.allLanguages.length > 1 && entityContainer.find(".item[data-language-code]:not([data-language-code=''])").length > 0);
 
-                // Setup dependencies for all tabs.
+                let tabNames = [];
+
+                // Setup dependencies for all tabs and store the tab name's in an array.
                 for (let i = itemHtmlResult.tabs.length - 1; i >= 0; i--) {
                     const tabData = itemHtmlResult.tabs[i];
                     const container = this.mainTabStrip.contentHolder(i);
+                    tabNames.push(tabData.name || "Gegevens")
                     this.base.fields.setupDependencies(container, itemMetaData.entityType, tabData.name || "Gegevens");
                 }
-
-                // Handle dependencies for the first tab, to make sure all the correct fields are hidden/shown on the first tab. The other tabs will be done once they are opened.
-                this.base.fields.handleAllDependenciesOfContainer(this.mainTabStrip.contentHolder(0), itemMetaData.entityType, "Gegevens", "mainScreen");
-
+               
+                // Handle dependencies for all tabs, this is to make sure every field's dependency is doing what it's set to do.
+                tabNames.forEach((tabName, index) => {
+                    this.base.fields.handleAllDependenciesOfContainer(this.mainTabStrip.contentHolder(index), itemMetaData.entityType, tabName, "mainScreen");
+                });
+                
                 $(this.mainTabStrip.items()[0]).toggle(genericTabHasFields || itemTitleFieldContainer.is(":visible"));
 
                 // Figure our which tab to select (don't select hidden or empty tabs).
@@ -2032,9 +2180,9 @@ const moduleSettings = {
                 } else {
                     kendo.alert("Er is iets fout gegaan met het laden van dit item. Probeer het a.u.b. nogmaals.");
                 }
+            } finally {
+                window.processing.removeProcess(process);
             }
-
-            window.processing.removeProcess(process);
         }
 
         /**
@@ -2287,10 +2435,11 @@ const moduleSettings = {
          * Marks an item as deleted.
          * @param {string} encryptedItemId The encrypted item ID.
          * @param {string} entityType The entity type of the item to delete. This is required for workflows.
+         * @param {boolean} isNew Indication whether the item is considered new. If so, the default delete behavior will be performed.
          * @returns {Promise} A promise with the result of the AJAX call.
          */
-        async deleteItem(encryptedItemId, entityType) {
-            return Wiser.deleteItem(this.settings, encryptedItemId, entityType);
+        async deleteItem(encryptedItemId, entityType, isNew) {
+            return Wiser.deleteItem(this.settings, encryptedItemId, entityType, isNew);
         }
 
         /**
@@ -2336,6 +2485,9 @@ const moduleSettings = {
          * @returns {Promise} A promise with the results.
          */
         async getTitle(itemId) {
+            if(!itemId)
+                return null;
+            
             return Wiser.api({ url: `${this.settings.serviceRoot}/GET_TITLE?itemId=${encodeURIComponent(itemId)}` });
         }
 
@@ -2350,6 +2502,9 @@ const moduleSettings = {
          * @returns {Promise} A promise with the results.
          */
         async getItemHtml(itemId, entityType, isNew, propertyIdSuffix = "", linkId = 0, linkType = 0) {
+            if(!itemId)
+                return null;
+            
             let url = `${this.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}?entityType=${encodeURIComponent(entityType)}&isNew=${encodeURIComponent(isNew)}&encryptedModuleId=${encodeURIComponent(this.base.settings.encryptedModuleId)}`;
             if (propertyIdSuffix) {
                 url += `&propertyIdSuffix=${encodeURIComponent(propertyIdSuffix)}`;
@@ -2401,6 +2556,10 @@ const moduleSettings = {
          * @returns {Promise} A promise, which will return an array with 1 item. That item will contain it's basic properties and a property called "property_" which contains an object with all fields and their values.
          */
         async getItemMetaData(itemId, entityType) {
+            // Validate item ID.
+            if(!itemId)
+                return null;
+            
             const entityTypeUrlPart = entityType ? `?entityType=${encodeURIComponent(entityType)}` : "";
             return Wiser.api({ url: `${this.settings.wiserApiRoot}items/${encodeURIComponent(itemId)}/meta${entityTypeUrlPart}` });
         }

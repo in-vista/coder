@@ -24,12 +24,18 @@ export class Grids {
         this.mainGridFirstLoad = true;
         this.mainGridForceRecount = false;
         this.gridContextMenu = null;
+        
+        this.quickSearchShortcutMessageName = 'QUICK_SEARCH_SHORTCUT_PRESSED';
     }
 
     /**
      * Do all initializations for the Grids class, such as adding bindings.
      */
     async initialize() {
+        window.addEventListener('message', event => {
+            window.parent?.postMessage(event.data, '*');
+        });
+        
         if (this.base.settings.gridViewMode && !this.base.settings.iframeMode) {
             this.base.settings.gridViewSettings = this.base.settings.gridViewSettings || {};
 
@@ -100,11 +106,17 @@ export class Grids {
 
             this.informationBlockIframe = $(`<iframe />`).appendTo(informationBlockContainer);
             this.informationBlockIframe[0].onload = (event) => {
-                if (event.target.contentDocument.URL === "about:blank") {
+                const iframe = event.target;
+                
+                if (iframe.contentDocument.URL === "about:blank")
                     return;
-                }
 
                 window.processing.removeProcess(initialProcess);
+
+                iframe.contentWindow.addEventListener('keydown', event => {
+                    if(event.key === 'Shift')
+                        window.postMessage({ type: this.quickSearchShortcutMessageName }, '*');
+                });
 
                 dynamicItems.grids.informationBlockIframe[0].contentDocument.addEventListener("dynamicItems.onSaveButtonClick", () => {
                     if (!this.mainGrid || !this.mainGrid.dataSource) {
@@ -230,6 +242,9 @@ export class Grids {
                     previousFilters = JSON.stringify(options.filter);
                 }
 
+                if(gridViewSettings?.toolbar?.hideToggleHiddenItemsButton === false)
+                    options.showHiddenItems = false;
+
                 gridDataResult = await Wiser.api({
                     url: `${this.base.settings.wiserApiRoot}modules/${encodeURIComponent(this.base.settings.moduleId)}/overview-grid`,
                     method: "POST",
@@ -304,7 +319,7 @@ export class Grids {
                             name: "remove",
                             iconClass: "k-font-icon k-i-delete",
                             text: "",
-                            click: this.base.grids.executeToolbarActionButton(event, () => onDeleteClick.bind(this))
+                            click: event => this.base.grids.executeToolbarActionButton(event, () => onDeleteClick.bind(this))
                         });
                     }
                     else if (gridViewSettings.showDeleteButton === true) {
@@ -350,6 +365,15 @@ export class Grids {
                 });
             }
 
+            const shouldShowToggleHiddenItemsButton = gridViewSettings?.toolbar?.hideToggleHiddenItemsButton === false;
+            if (shouldShowToggleHiddenItemsButton) {
+                toolbar.push({
+                    name: 'toggleHiddenItems',
+                    text: '',
+                    template: `<a class='k-button k-button-icontext toggle-hidden-items' title='Verborgen items tonen/verbergen' onclick='window.dynamicItems.grids.executeToolbarActionButton(event, () => window.dynamicItems.grids.onToggleHiddenItemsClick(event))'><span class='k-font-icon k-i-eye'></span></a>`
+                });
+            }
+
             if (!gridViewSettings.toolbar || !gridViewSettings.toolbar.hideCount) {
                 toolbar.push({
                     name: "count",
@@ -385,7 +409,11 @@ export class Grids {
             }
 
             if (gridViewSettings.toolbar && gridViewSettings.toolbar.customActions && gridViewSettings.toolbar.customActions.length > 0) {
-                this.addCustomActionsToToolbar("#gridView", 0, 0, toolbar, gridViewSettings.toolbar.customActions, undefined);
+                // Retrieve all custom actions that are set to be shown in the toolbar.
+                const filteredCustomActions = gridViewSettings.toolbar.customActions
+                    .filter(action => (action.hideInToolbar ?? false) === false);
+                
+                this.addCustomActionsToToolbar("#gridView", 0, 0, toolbar, filteredCustomActions, undefined);
             }
 
             let totalResults = gridDataResult.totalResults;
@@ -487,6 +515,10 @@ export class Grids {
                         read: async (transportOptions) => {
                             const process = `loadMainGrid_${Date.now()}`;
 
+                            // Retrieve and store the state of which to show/hide hidden elements in the transport data.
+                            if(toolbarSettings?.hideToggleHiddenItemsButton === false)
+                                transportOptions.data.showHiddenItems = this.mainGrid?.element.data('showHiddenItems') ?? false;
+                            
                             try {
                                 if (this.mainGridFirstLoad) {
                                     transportOptions.success(gridDataResult);
@@ -512,7 +544,7 @@ export class Grids {
                                 transportOptions.data.pageSize = transportOptions.data.page_size || transportOptions.data.pageSize;
                                 previousFilters = currentFilters;
                                 this.mainGridForceRecount = false;
-
+                                
                                 let newGridDataResult;
                                 if (usingDataSelector) {
                                     newGridDataResult = {
@@ -736,7 +768,7 @@ export class Grids {
                     // Filter out any actions that do not need a row to be selected, as those are irrelevant.
                     .filter(action => !action.allowNoSelection)
                     // Filter out any actions that are set to not be shown in a context menu.
-                    .filter(action => action.contextMenu ?? true);
+                    .filter(action => (action.hideInContextMenu ?? false) === false);
                 
                 // Only allow a context menu in the grid if there are any actions that require a row to be selected.
                 if(contextMenuActions.length > 0) {
@@ -1756,7 +1788,7 @@ export class Grids {
                                 text: "Gehele item",
                                 action: (e) => {
                                     try {
-                                        this.base.deleteItem(encryptedId, options.entityType).then(() => {
+                                        this.base.deleteItem(encryptedId, options.entityType, false).then(() => {
                                             senderGrid.dataSource.read();
                                         });
                                     } catch (exception) {
@@ -1797,7 +1829,7 @@ export class Grids {
                     }
 
                     try {
-                        await this.base.deleteItem(dataItem.encryptedId || dataItem.encrypted_id || dataItem.encryptedid, options.entityType);
+                        await this.base.deleteItem(dataItem.encryptedId || dataItem.encrypted_id || dataItem.encryptedid, options.entityType, false);
                     } catch (exception) {
                         console.error(exception);
 
@@ -1911,6 +1943,36 @@ export class Grids {
         grid.refresh();
     }
 
+    async onToggleHiddenItemsClick(event) {
+        // Prevent default behavior of the clicked button.
+        event.preventDefault();
+        
+        // Retrieve the elements associated to the event.
+        const button = $(event.target).closest('.k-button');
+        const buttonIcon = button.find('.k-font-icon');
+        
+        // Retrieve the associated grid element of the grid.
+        const grid = $(event.target).closest(".k-grid").data("kendoGrid");
+        
+        // Validate the grid and throw an error if it was not found.
+        if (!grid) {
+            console.error("Grid not found, cannot toggle hidden items.", event, $(event.target).closest(".k-grid"));
+            return;
+        }
+        
+        // Retrieve the jQuery DOM element of the grid.
+        const gridElement = grid.element;
+        
+        // Toggle the state of the grid and button to mark it to show/hide hidden items.
+        const showHiddenItems = gridElement.data('showHiddenItems') ?? false;
+        buttonIcon.toggleClass('k-i-eye-slash');
+        buttonIcon.toggleClass('k-i-eye');
+        gridElement.data('showHiddenItems', !showHiddenItems);
+
+        // Reload the grid overview.
+        grid.dataSource.read();
+    }
+
     /**
      * Event handler for clicking the maximize button in a grid.
      * @param {any} event The click event.
@@ -1955,10 +2017,10 @@ export class Grids {
      * are supposed to be hidden if the item is read-only.
      */
     async onGridSelectionChange(event, readOnly = undefined) {
-        // Check based on given condition to hide.
-        const conditionalButtons = event.sender.wrapper.find('.k-button.hide-when-no-selected-rows');
+        // Retrieve all buttons to check the condition for.
+        let conditionalButtons = event.sender.wrapper.find('.k-button');
 
-        // Retrieve the elements of the selected rows
+        // Retrieve the elements of the selected rows.
         const grid = event.sender;
         const selectedData = grid.select().get().map(row => grid.dataItem(row).toJSON());
         
@@ -1980,9 +2042,13 @@ export class Grids {
             
             // Determine whether the action button should be hidden or not.
             const shouldHide = that.shouldHideActionButton(selectedData, condition, roles, showOnReadOnly, minimumRows, maximumRows, readOnly);
-
+            
+            // Retrieve the amount of selected rows and determine whether it should be considered for this conditional button.
+            const selectedRows = event.sender.select().length;
+            const shouldHideWhenNoRowsSelected = button.hasClass('hide-when-no-selected-rows');
+            
             // Show or hide the action button based on the evaluated condition or default value.
-            button.toggleClass('hidden', shouldHide || event.sender.select().length === 0);
+            button.toggleClass('hidden', shouldHide || (shouldHideWhenNoRowsSelected && selectedRows === 0));
         });
         
         // Check whether to hide a button group when no buttons are visible in the group.
