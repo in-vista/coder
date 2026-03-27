@@ -10,7 +10,7 @@
     <UserSecretsId>a69118f8-4ce1-4765-b419-31edbd568e39</UserSecretsId>
     <AssemblyVersion>3.4.28.0</AssemblyVersion>
 	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
-	<LangVersion>default</LangVersion>
+	<LangVersion>14</LangVersion>
 	<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 

@@ -9,7 +9,7 @@
     <Product>Wiser API</Product>
 	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 	<AssemblyVersion>3.4.28.0</AssemblyVersion>
-	<LangVersion>default</LangVersion>
+	<LangVersion>14</LangVersion>
 	<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
