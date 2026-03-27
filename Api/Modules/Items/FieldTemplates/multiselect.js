@@ -186,10 +186,11 @@ if (options.createItemFromInput && options.entityType) {
         .find(".k-multiselect .k-input-inner");
 
     const $fieldList = $(`#${$input.attr("aria-controls")}`);
+    const parentId = "{itemIdEncrypted}";
 
     const openCreateDialog = (itemName) => window.dynamicItems.dialogs.openCreateItemDialog.bind(
         window.dynamicItems.dialogs,
-        options.parentId,
+        parentId,
         null,
         options.entityType,
         false,
