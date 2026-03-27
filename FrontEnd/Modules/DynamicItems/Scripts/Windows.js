@@ -1064,9 +1064,7 @@ export class Windows {
                 columns: gridDataResult.columns,
                 resizable: true,
                 sortable: true,
-                scrollable: {
-                    virtual: true
-                },
+                scrollable: true,
                 filterable: {
                     extra: false,
                     operators: {

@@ -24,10 +24,9 @@
 }
 .k-window-content {
 	background-color: var(--item-bg-color);
-	padding: 0;
 	width: 100%;
 	height: 100%;
-	padding-bottom: 65px;
+	padding: 0 0 65px 0;
 }
 .k-window-content.k-dialog-content {
 	padding: 16px;

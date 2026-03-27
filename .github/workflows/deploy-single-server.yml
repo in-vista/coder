@@ -10,13 +10,13 @@ on:
         required: true
         type: string
       cloudflare_account_id:
-        required: true
+        required: false
         type: string
       cloudflare_pool_id:
-        required: true
+        required: false
         type: string
       cloudflare_origin_id:
-        required: true
+        required: false
         type: string
 
 jobs:
@@ -137,28 +137,41 @@ jobs:
             working-directory: 'coder/FrontEnd'
 
           - name: Compile scripts and styles with webpack
-            run: node_modules\.bin\webpack --mode=development
+            env:
+              ENVIRONMENT_NAME: ${{ inputs.environment }}
+            run: |
+              $mode = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'production' } else { 'development' }
+              node_modules\.bin\webpack --mode=$mode
             working-directory: 'coder/FrontEnd'
 
           - name: dotnet publish API to temp folder
+            env:
+              ENVIRONMENT_NAME: ${{ inputs.environment }}
             run: |
+                $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'Live' } else { 'Development' }
+
                 $tempApi = "${{ github.workspace }}\publish\API"
                 Remove-Item $tempApi -Recurse -Force -ErrorAction SilentlyContinue
                 New-Item -ItemType Directory -Path $tempApi -Force
 
-                dotnet publish API -c Release -o $tempApi --self-contained true -r win-x64 /p:EnvironmentName=Development
+                dotnet publish API -c Release -o $tempApi --self-contained true -r win-x64 /p:EnvironmentName=$environmentName
             working-directory: coder
 
           - name: dotnet publish FrontEnd to temp folder
+            env:
+              ENVIRONMENT_NAME: ${{ inputs.environment }}
             run: |
+                $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'Live' } else { 'Development' }
+
                 $tempFrontend = "${{ github.workspace }}\publish\FrontEnd"
                 Remove-Item $tempFrontend -Recurse -Force -ErrorAction SilentlyContinue
                 New-Item -ItemType Directory -Path $tempFrontend -Force
 
-                dotnet publish FrontEnd -c Release -o $tempFrontend --self-contained true -r win-x64 /p:EnvironmentName=Development
+                dotnet publish FrontEnd -c Release -o $tempFrontend --self-contained true -r win-x64 /p:EnvironmentName=$environmentName
             working-directory: coder
 
           - name: Disable Cloudflare origin
+            if: ${{ inputs.cloudflare_account_id && inputs.cloudflare_pool_id && inputs.cloudflare_origin_id }}
             shell: powershell
             env:
               CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
@@ -176,19 +189,11 @@ jobs:
               Write-Host 'Fetching pool configuration...'
               $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
 
-              $found = $false
-
               foreach ($origin in $pool.result.origins) {
-                  if ($origin.name -eq $env:ORIGIN_ID) {
+                  if ($origin.name -eq $env:ORIGIN_ID -and $origin.enabled) {
                       Write-Host "Disabling origin: $($origin.name)"
                       $origin.enabled = $false
-                      $found = $true
                   }
-              }
-
-              if (-not $found) {
-                  Write-Error "Origin '$($env:ORIGIN_ID)' not found."
-                  exit 1
               }
 
               $body = @{
@@ -231,13 +236,13 @@ jobs:
               Remove-Item (Join-Path $env:PUBLISH_LOCATION_FRONT_END "app_offline.htm") -ErrorAction SilentlyContinue
 
           - name: Enable Cloudflare origin
+            if: ${{ inputs.cloudflare_account_id && inputs.cloudflare_pool_id && inputs.cloudflare_origin_id }}
             shell: powershell
             env:
               CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
               ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
               POOL_ID: ${{ inputs.cloudflare_pool_id }}
               ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
-            if: always()
             run: |
               $headers = @{
                   Authorization = "Bearer $($env:CLOUDFLARE_API_KEY)"
@@ -249,19 +254,11 @@ jobs:
               Write-Host 'Fetching pool configuration...'
               $pool = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
 
-              $found = $false
-
               foreach ($origin in $pool.result.origins) {
-                  if ($origin.name -eq $env:ORIGIN_ID) {
+                  if ($origin.name -eq $env:ORIGIN_ID -and -not $origin.enabled) {
                       Write-Host "Disabling origin: $($origin.name)"
                       $origin.enabled = $true
-                      $found = $true
                   }
-              }
-
-              if (-not $found) {
-                  Write-Error "Origin '$($env:ORIGIN_ID)' not found."
-                  exit 1
               }
 
               $body = @{

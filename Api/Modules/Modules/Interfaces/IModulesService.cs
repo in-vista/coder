@@ -17,6 +17,13 @@ namespace Api.Modules.Modules.Interfaces
         /// <param name="identity">The identity of the authenticated user.</param>
         /// <returns></returns>
         Task<ServiceResult<Dictionary<string, List<ModuleAccessRightsModel>>>> GetAsync(ClaimsIdentity identity);
+        
+        /// <summary>
+        /// Gets a list of module ids and the amount of pending actions they have.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <returns></returns>
+        Task<ServiceResult<List<ModulePendingActionsModel>>> GetPendingActionsAsync(ClaimsIdentity identity);
 
         /// <summary>
         /// Gets the settings for all modules.

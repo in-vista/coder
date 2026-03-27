@@ -2954,10 +2954,17 @@ ORDER BY {orderByClause}";
             {
                 ulong sourceId = sourceIds[i];
                 
-                var isPossible = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(sourceId, EntityActions.Delete, userId, entityType: sourceEntityType);
+                var isPossible = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(sourceId, EntityActions.Update, userId, entityType: sourceEntityType);
                 if (!isPossible.ok)
                     sourceIds.RemoveAt(i);
             }
+            
+            // If there are no source Ids to process, we can simply skip further execution.
+            if(sourceIds.Count == 0)
+                return new ServiceResult<bool>
+                {
+                    StatusCode = HttpStatusCode.NoContent
+                };
             
             var tablePrefix = String.IsNullOrWhiteSpace(sourceEntityType) ? "" : await wiserItemsService.GetTablePrefixForEntityAsync(sourceEntityType);
 
@@ -2976,11 +2983,11 @@ ORDER BY {orderByClause}";
                     };
                 }
 
-                query = $@"UPDATE {tablePrefix}{WiserTableNames.WiserItem} SET parent_item_id = 0 WHERE id IN ({String.Join(",", sourceIds)})";
+                query = $"UPDATE {tablePrefix}{WiserTableNames.WiserItem} SET parent_item_id = 0 WHERE id IN ({String.Join(",", sourceIds)})";
             }
             else
             {
-                query = $@"DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} WHERE type = ?linkType AND destination_item_id IN ({String.Join(",", destinationIds)}) AND item_id IN ({String.Join(",", sourceIds)});";
+                query = $"DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} WHERE type = ?linkType AND destination_item_id IN ({String.Join(",", destinationIds)}) AND item_id IN ({string.Join(",", sourceIds)})";
                 
                 if (setOrdering) // Set ordering for the remaining items.
                 {

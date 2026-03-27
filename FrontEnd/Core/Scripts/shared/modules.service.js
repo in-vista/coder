@@ -49,6 +49,8 @@ export default class ModulesService extends BaseService {
                         }
                         
                         module.icon ??= icon;
+                        
+                        module.alias = module.name;
 
                         return module;
                     })
@@ -66,5 +68,21 @@ export default class ModulesService extends BaseService {
             console.error(error);
             return [];
         } 
+    }
+    
+    /**
+     * Gets all the pending actions of all the modules the user has
+     * access to.
+     * @returns {any} An array with all available modules their ID 
+     * and a count of pending actions.
+     */
+    async getModulePendingActions() {
+        try {
+            const pendingActionsResult = await this.base.api.get(`/api/v3/modules/pending-actions`);
+            return this.parseList(pendingActionsResult) ?? [];
+        } catch (error) {
+            console.error(error);
+            return [];
+        }
     }
 }

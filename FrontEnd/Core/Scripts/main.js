@@ -58,7 +58,10 @@ import {
     RESET_BRANCH_CHANGES,
     TOGGLE_PIN_MODULE,
     UPDATE_ACTIVE_TIME,
-    USER_BACKUP_CODES_GENERATED
+    USER_BACKUP_CODES_GENERATED,
+    MODULES_PENDING_ACTIONS_REQUEST,
+    UPDATE_TAB_STRIP_MODULES,
+	UPDATE_TAB_STRIP_TITLE_ALIAS
 } from "./store/mutation-types";
 
 class Main {
@@ -394,6 +397,7 @@ class Main {
                     },
                     activePopout: null,
                     hideTimeouts: new WeakMap(),
+                    // Quick search.
                     quickSearchDialogVisible: false,
                     quickSearchDialogOpenDelta: undefined,
                     quickSearchDialogOpenDeltaDelay: 200,
@@ -401,7 +405,18 @@ class Main {
                     quickSearchResults: undefined,
                     quickSearchDialogActiveIndex: 0,
                     quickSearchDialogHandleClickToClose: undefined,
-                    quickSearchShortcutMessageName: 'QUICK_SEARCH_SHORTCUT_PRESSED'
+                    quickSearchShortcutMessageName: 'QUICK_SEARCH_SHORTCUT_PRESSED',
+                    // Module tab strip dragging.
+                    tabDragIndex: null,
+                    tabDragX: 0,
+                    tabInitialDragX: 0,
+                    tabWidths: [],
+                    tabStartX: 0,
+                    isTabDragging: false,
+                    tabDragThreshold: 5,
+                    // Module tab strip title editing.
+                    editingModuleTitleId: undefined,
+                    editingModuleTitleInput: undefined
                 };
             },
             async created() {
@@ -477,13 +492,17 @@ class Main {
                     return this.$store.state.modules.openedModules;
                 },
                 openedModulesWithBackend() {
-                    return this.$store.state.modules.openedModules.filter(m => !m.javascriptOnly && m.type !== "Wiser1");
+                    return this.$store.state.modules.openedModules
+                        .filter(m => !m.javascriptOnly && m.type !== "Wiser1")
+                        .sort((a, b) => a.id.localeCompare(b.id));
                 },
                 openedDynamicItemsModules() {
                     return this.$store.state.modules.openedModules.filter(m => m.type === "DynamicItems");
                 },
                 openedWiser1Modules() {
-                    return this.$store.state.modules.openedModules.filter(m => m.type === "Wiser1");
+                    return this.$store.state.modules.openedModules
+                        .filter(m => m.type === "Wiser1")
+                        .sort((a, b) => a.id.localeCompare(b.id));
                 },
                 activeModule() {
                     return this.$store.state.modules.activeModule;
@@ -671,6 +690,14 @@ class Main {
                 },
                 totpBackupCodes() {
                     return this.$store.state.users.totpBackupCodes;
+                },
+                tabDragStyle() {
+                    return {
+                        transform: `translateX(${this.tabDragX}px)`,
+                        zIndex: 1000,
+                        cursor: 'grabbing',
+                        opacity: 0.5
+                    };
                 }
             },
             components: {
@@ -740,6 +767,16 @@ class Main {
                             behavior: 'auto'
                         });
                     });
+                },
+                editingModuleTitleInput(newValue, oldValue) {
+                    const module = this.openedModules.find(m => m.id === this.editingModuleTitleId);
+                    if(!module)
+                        return;
+
+                    this.$store.dispatch(UPDATE_TAB_STRIP_TITLE_ALIAS, {
+                        module: module,
+                        value: newValue
+                    });
                 }
             },
             methods: {
@@ -770,14 +807,25 @@ class Main {
                 
                 handleKeydownFromIframe(event) {
                     if (event.data.type === this.quickSearchShortcutMessageName)
-                        this.handleQuickSearchShortcut(event.data.event ?? event);
+                        this.handleQuickSearchShortcut(event.data.event);
                 },
                 
                 onIframeLoaded(event) {
                     const iframe = event.target;
                     iframe.contentWindow.addEventListener('keydown', event => {
                         if(event.key === 'Shift')
-                            window.postMessage({ type: this.quickSearchShortcutMessageName }, '*');
+                            window.postMessage({
+                                type: this.quickSearchShortcutMessageName,
+                                event: {
+                                    type: 'keydown',
+                                    key: event.key,
+                                    code: event.code,
+                                    altKey: event.altKey,
+                                    ctrlKey: event.ctrlKey,
+                                    shiftKey: event.shiftKey,
+                                    repeat: event.repeat
+                                }
+                            }, '*');
                     });
                 },
                 
@@ -829,6 +877,40 @@ class Main {
                     newIndex = Math.max(Math.min(newIndex, upperBound), lowerBound);
                     
                     this.quickSearchDialogActiveIndex = newIndex;
+                },
+
+                startPendingActionsRefreshTimer() {
+                    this.stopPendingActionsRefreshTimer();
+
+                    this.pendingActionsRefreshIntervalId = setInterval(() => {
+                        this.refreshPendingActions();
+                    }, 60 * 10 * 1000);
+                },
+
+                stopPendingActionsRefreshTimer() {
+                    if (this.pendingActionsRefreshIntervalId !== null) {
+                        clearInterval(this.pendingActionsRefreshIntervalId);
+                        this.pendingActionsRefreshIntervalId = null;
+                    }
+                },
+                // This method is called every 10min, upon load and when opening modules
+                // It will refresh the amount of pending action is being shown
+                async refreshPendingActions() {
+                    try {
+                        if(!this.user.loggedIn || !this.modules?.length)
+                            return;
+                        
+                        await this.$store.dispatch(MODULES_PENDING_ACTIONS_REQUEST);
+                    } catch (exception) {
+                        console.error("Failed to refresh pending actions.", exception);
+                    }
+                },
+
+                getTotalPendingActions(modules) {
+                    return (modules ?? []).reduce((totalPendingActions, module) => {
+                        const pendingActionCount = Number(module?.pendingActionCount ?? 0);
+                        return totalPendingActions + (Number.isNaN(pendingActionCount) ? 0 : pendingActionCount);
+                    }, 0);
                 },
                 
                 handleBodyClick(event) {
@@ -962,9 +1044,11 @@ class Main {
                 },
 
                 setActiveModule(event, moduleId) {
-                    if (event.target && event.target.classList.contains("close-module")) {
+                    if (event.target && event.target.classList.contains("close-module"))
                         return;
-                    }
+                    
+                    if(moduleId !== this.editingModuleTitleId)
+                        this.stopEditModuleTitle();
 
                     this.$store.dispatch(ACTIVATE_MODULE, moduleId);
                 },
@@ -1660,9 +1744,97 @@ class Main {
                         popout.style.display = 'none';
                     },
                     120);
+                },
+                
+                startTabDrag(event, index) {
+                    this.tabDragIndex = index;
+                    this.tabInitialDragX = event.clientX;
+                    this.isTabDragging = false;
+                    this.tabDragX = 0;
+
+                    document.querySelectorAll("iframe").forEach(iframe => {
+                        iframe.style.pointerEvents = "none";
+                    });
+
+                    const container = this.$el.querySelector('#modules-strip');
+                    const containerBounds = container.getBoundingClientRect();
+                    
+                    const element = event.currentTarget;
+                    const bounds = element.getBoundingClientRect();
+
+                    this.tabStartX = bounds.left - containerBounds.left;
+                    
+                    this.tabWidths = this.$el.querySelectorAll('.modules-strip-tab');
+                    this.tabWidths = Array.from(this.tabWidths).map(el => el.offsetWidth);
+                    
+                    document.addEventListener('mousemove', this.onTabDrag);
+                    document.addEventListener('mouseup', this.onTabEndDrag);
+                },
+                onTabDrag(event) {
+                    const delta = event.clientX - this.tabInitialDragX;
+                    
+                    if (Math.abs(delta) > this.tabDragThreshold)
+                        this.isTabDragging = true;
+
+                    if (this.isTabDragging)
+                        this.tabDragX = delta;
+                },
+                onTabEndDrag() {
+                    if(this.isTabDragging) {
+                        const newIndex = this.calculateNewTabIndex();
+                        const newTabs = [...this.openedModules];
+                        const [ draggedTab ] = newTabs.splice(this.tabDragIndex, 1);
+                        newTabs.splice(newIndex, 0, draggedTab);
+
+                        this.$store.dispatch(UPDATE_TAB_STRIP_MODULES, newTabs);
+                    }
+                    
+                    this.tabDragIndex = null;
+                    this.tabDragX = 0;
+                    
+                    setTimeout(() => {
+                        this.isTabDragging = false;
+                    }, 50);
+
+                    document.querySelectorAll("iframe").forEach(iframe => {
+                        iframe.style.pointerEvents = "";
+                    });
+                    
+                    document.removeEventListener('mousemove', this.onTabDrag);
+                    document.removeEventListener('mouseup', this.onTabEndDrag);
+                },
+                calculateNewTabIndex() {
+                    const draggedX = this.tabStartX + this.tabDragX;
+                    
+                    let cumulative = 0;
+                    for (let i = 0; i < this.tabWidths.length; i++) {
+                        cumulative += this.tabWidths[i] / 2;
+                        
+                        if (draggedX < cumulative)
+                            return i;
+                        
+                        cumulative += this.tabWidths[i] / 2;
+                    }
+                    return this.openedModules.length - 1;
+                },
+
+                startEditModuleTitle(module) {
+                    this.editingModuleTitleId = module.id;
+                    this.editingModuleTitleInput = module.alias ?? module.name;
+                    
+                    this.$nextTick(() => {
+                        $(`.modules-strip-tab-title[name="module_title_${module.id}"]`).focus();
+                    });
+                },
+                
+                stopEditModuleTitle() {
+                    this.editingModuleTitleId = undefined;
+                    this.editingModuleTitleInput = undefined;
                 }
             },
             mounted() {
+                this.refreshPendingActions();
+                this.startPendingActionsRefreshTimer();
                 this.quickSearchDialogHandleClickToClose = event => {
                     if (!$(event.target).closest($('#invista-qs-dialog')).length)
                         this.quickSearchDialogVisible = false;
@@ -1671,6 +1843,7 @@ class Main {
                 $(document).on('click', this.quickSearchDialogHandleClickToClose);
             },
             beforeUnmount() {
+                this.stopPendingActionsRefreshTimer();
                 $(document).off('click', this.quickSearchDialogHandleClickToClose);
             }
         });

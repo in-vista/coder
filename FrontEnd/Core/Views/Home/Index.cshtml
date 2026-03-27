@@ -15,14 +15,19 @@
             <div id="modules" class="coder-menu-group">
                 <template v-for="moduleGroup in [ ...pinnedModuleGroups, ...moduleGroups ]" :key="moduleGroup.name">
                     <div v-if="moduleGroup.modules.length" class="coder-menu-item">
-                        <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)">
+                        <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)" :data-pending-actions="
+                                (moduleGroup.modules ?? []).reduce(
+                                    (totalPendingActions, module) => totalPendingActions + Number(module?.pendingActionCount ?? 0),
+                                    0
+                                )
+                            ">
                             <i class="mdi mdi-size-2" :class="[ `mdi-${moduleGroup.icon ?? 'cog'}` ]"></i>
                         </div>
                         <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event)">
                             <p class="coder-menu-item-popout-title">{{ moduleGroup.name }}</p>
                             <div class="coder-menu-item-popout-items">
                                 <div v-for="module in moduleGroup.modules" :key="module.moduleId" class="coder-menu-item-popout-item" @@click="onOpenModuleClick($event, module)">
-                                    <div class="coder-menu-item-popout-item-content hover">
+                                    <div class="coder-menu-item-popout-item-content hover" :data-pending-actions="module.pendingActionCount ?? 0">
                                         <i class="mdi mdi-size-2" :class="[ `mdi-${module.icon ?? 'cog'}` ]"></i>
                                         <span>{{ module.name }}</span>
                                     </div>
@@ -64,15 +69,32 @@
             <div v-if="user.loggedIn && !requirePasswordChange" id="coder-tab-strip">
                 <div id="modules-strip">
                     <div
-                        v-for="module in openedModules"
+                        v-for="(module, tabIndex) in openedModules"
                         :key="module.id"
                         class="modules-strip-tab"
                         :class="{ 'active': module.id === activeModule }"
-                        :title="module.name"
-                        @@click="setActiveModule($event, module.id)">
+                        :style="tabDragIndex === tabIndex ? tabDragStyle : {}"
+                        :title="module.alias ? module.alias + ' (' + module.name + ')' : module.name"
+                        @@mousedown.left.prevent="startTabDrag($event, tabIndex)"
+                        @@click.left="!isTabDragging ? setActiveModule($event, module.id) : null"
+                        @@click.middle="!isTabDragging ? closeModule(module) : null">
                         <ins class="mdi mdi-size-2" :class="[ `mdi-${module.icon}` ]"></ins>
-                        <span class="modules-strip-tab-title">{{ module.name }}</span>
-                        <div class="tab-strip-button" @@click.stop="closeModule(module)">
+                        <template v-if="editingModuleTitleId !== module.id">
+                            <p
+                                class="modules-strip-tab-title"
+                                @@mouseup="!isTabDragging && module.id === activeModule ? startEditModuleTitle(module) : null">
+                                {{ module.alias ?? module.name }}
+                            </p>
+                        </template>
+                        <template v-else>
+                            <input
+                                v-model="editingModuleTitleInput"
+                                class="modules-strip-tab-title"
+                                @@blur="stopEditModuleTitle()"
+                                @@keydown.enter="stopEditModuleTitle()"
+                                :name="'module_title_' + module.id"/>
+                        </template>
+                        <div class="tab-strip-button" @@click.left.stop="closeModule(module)">
                             <ins class="mdi mdi-close"></ins>
                         </div>
                     </div>
