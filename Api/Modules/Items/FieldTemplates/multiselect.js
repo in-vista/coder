@@ -29,14 +29,54 @@ const options = $.extend(true, {
                 }
             }
         }
+    },
+    dataBound: async function(event) {
+        const multiSelect = event.sender;
+        
+        // If there is a "queryIdGetValue" is given, overwrite the default value with the value of the query.
+        if (options.queryIdGetValue) {
+            const propertyId = container.data().propertyId;
+            
+            const data = {
+                userId: window.dynamicItems.base.settings.userId,
+                propertyName: container.data().propertyName
+            };
+            
+            try {
+                const result = await Wiser.api({
+                    url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/${encodeURIComponent(propertyId)}?queryId=${encodeURIComponent(options.queryIdGetValue)}`,
+                    contentType: "application/json",
+                    dataType: "json",
+                    method: "POST",
+                    data: JSON.stringify(data)
+                });
+
+                // Retrieve the data from the query results.
+                const overrideEntry = result.otherData?.[0];
+
+                // Check whether an entry is present.
+                if (overrideEntry === undefined)
+                    return;
+
+                // Set the default value to the first value in the entry.
+                const overrideValue = Object.values(overrideEntry)[0];
+                const finalOverrideValue = typeof overrideValue === "string" ? overrideValue.split(",") : overrideValue;
+                multiSelect.value(finalOverrideValue);
+
+                // Handle dependency again after loading the value into the multiselect.
+                window.dynamicItems.fields.handleAllDependenciesOfContainer(window.dynamicItems.mainTabStrip.element, options.entityType, "", "mainScreen");
+            } catch(exception) {
+                console.warn('Query get overrule value error', exception);
+            }
+        }
     }
 }, fieldOptions);
 let kendoComponent;
 
+// If a value is set, and we are not relying on a query call from the "queryIdGetValue" property, we want to set the value immediately.
 const defaultValue = {default_value};
-if (defaultValue) {
+if (defaultValue && !options.queryIdGetValue)
     options.value = typeof defaultValue === "string" ? defaultValue.split(",") : defaultValue;
-}
 
 if(fieldOptions.optionLabel !== undefined) {
     const optionLabel = fieldOptions.optionLabel;
