@@ -2,7 +2,7 @@
     let container = $("#container_{propertyIdWithSuffix}");
     const item = container.closest('.item');
 
-    const placeholderPattern = /^\{[^{}]*\}$/;
+    const placeholderPattern = /^\{[^{}]+\}$/;
     const inputValue = container.text().trim();
 
     // If it only contains text of a replacement variable (e.g. {full_name} ), remove the item
