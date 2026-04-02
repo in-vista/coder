@@ -464,6 +464,13 @@ namespace Api.Modules.Grids.Services
                     var genericFilter = options.Filter.Filters.FirstOrDefault(f => f.Field.Equals("search", StringComparison.OrdinalIgnoreCase));
                     var removedFilter = options.Filter.Filters.FirstOrDefault(f => f.Field.Equals("removed", StringComparison.OrdinalIgnoreCase));
 
+                    // Turn the check for whether to search for removed items or into a variable for ease of reuse
+                    var shouldIncludeRemovedItems = removedFilter == null || removedFilter.Value == "1";
+
+                    var removedFilterClause = shouldIncludeRemovedItems
+                        ? "AND i.published_environment >= 0"
+                        : "AND i.published_environment > 0";
+
                     if (genericFilter == null)
                     {
                         // Filtering on specific field(s).
@@ -478,6 +485,7 @@ namespace Api.Modules.Grids.Services
                                             # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 	                                        LEFT JOIN {WiserTableNames.WiserUserRoles} user_role ON user_role.user_id = ?userId
 	                                        LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
+                                            LEFT JOIN {WiserTableNames.WiserItem} user_parent ON user_parent.id = ?userId AND user_parent.entity_type = 'Wiseruser'
 
                                             {{filters}}
                                             WHERE [if({{title}}!)]i.title {{title_filter}}[else]TRUE[endif] 
@@ -487,7 +495,12 @@ namespace Api.Modules.Grids.Services
                                             [if({{id}}!)]AND i.id {{id_filter}}[endif]
                                             {versionWhereClause}
                                             AND (?entityType = '' OR i.entity_type = ?entityType)
-                                            AND (permission.id IS NULL OR (permission.permissions & 1) > 0)";
+                                            AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
+                                            AND (
+                                                    user_parent.parent_item_id IS NULL
+                                                    OR i.parent_item_id = user_parent.parent_item_id
+                                                )
+                                            {removedFilterClause}";
 
                         selectQuery = $@"SELECT 
 	                                        i.id,
@@ -508,6 +521,7 @@ namespace Api.Modules.Grids.Services
                                         # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 	                                    LEFT JOIN {WiserTableNames.WiserUserRoles} user_role ON user_role.user_id = ?userId
 	                                    LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
+                                        LEFT JOIN {WiserTableNames.WiserItem} user_parent ON user_parent.id = ?userId AND user_parent.entity_type = 'Wiseruser'
 
                                         {{filters}}
                                         WHERE [if({{title}}!)]i.title {{title_filter}}[else]TRUE[endif] 
@@ -518,10 +532,15 @@ namespace Api.Modules.Grids.Services
                                         {versionWhereClause}
                                         AND (?entityType = '' OR i.entity_type = ?entityType)
                                         AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
+                                        AND (
+                                                    user_parent.parent_item_id IS NULL
+                                                    OR i.parent_item_id = user_parent.parent_item_id
+                                                )
+                                        {removedFilterClause}
 
                                         GROUP BY i.id";
 
-                        if (removedFilter == null || removedFilter.Value == "1")
+                        if (shouldIncludeRemovedItems)
                         {
                             countQuery += $@"
                                             UNION
@@ -534,6 +553,7 @@ namespace Api.Modules.Grids.Services
                                             # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 	                                        LEFT JOIN {WiserTableNames.WiserUserRoles} user_role ON user_role.user_id = ?userId
 	                                        LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
+                                            LEFT JOIN {WiserTableNames.WiserItem} user_parent ON user_parent.id = ?userId AND user_parent.entity_type = 'Wiseruser'
 
                                             {{filters}}
                                             WHERE [if({{title}}!)]i.title {{title_filter}}[else]TRUE[endif] 
@@ -543,8 +563,13 @@ namespace Api.Modules.Grids.Services
                                             [if({{id}}!)]AND i.id {{id_filter}}[endif]
                                             {versionWhereClause}
                                             AND (?entityType = '' OR i.entity_type = ?entityType)
-                                            AND (permission.id IS NULL OR (permission.permissions & 1) > 0)";
-
+                                            AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
+                                            AND (
+                                                    user_parent.parent_item_id IS NULL
+                                                    OR i.parent_item_id = user_parent.parent_item_id
+                                                )
+                                            {removedFilterClause}
+";
                             selectQuery += $@"
                                             UNION ALL
                                             SELECT 
@@ -566,6 +591,7 @@ namespace Api.Modules.Grids.Services
                                             # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 	                                        LEFT JOIN {WiserTableNames.WiserUserRoles} user_role ON user_role.user_id = ?userId
 	                                        LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
+                                            LEFT JOIN {WiserTableNames.WiserItem} user_parent ON user_parent.id = ?userId AND user_parent.entity_type = 'Wiseruser' 
 
                                             {{filters}}
                                             WHERE [if({{title}}!)]i.title {{title_filter}}[else]TRUE[endif] 
@@ -576,7 +602,11 @@ namespace Api.Modules.Grids.Services
                                             {versionWhereClause}
                                             AND (?entityType = '' OR i.entity_type = ?entityType)
                                             AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
-
+                                            AND (
+                                                    user_parent.parent_item_id IS NULL
+                                                    OR i.parent_item_id = user_parent.parent_item_id
+                                                )
+                                            {removedFilterClause}
                                             GROUP BY i.id";
                         }
 
@@ -596,11 +626,16 @@ namespace Api.Modules.Grids.Services
                                             # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 	                                        LEFT JOIN {WiserTableNames.WiserUserRoles} user_role ON user_role.user_id = ?userId
 	                                        LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
+                                            LEFT JOIN {WiserTableNames.WiserItem} user_parent ON user_parent.id = ?userId AND user_parent.entity_type = 'Wiseruser'
 
                                             WHERE i.title LIKE CONCAT(?search, '%')
                                             {versionWhereClause}
                                             AND (?entityType = '' OR i.entity_type = ?entityType)
                                             AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
+                                            AND (
+                                                user_parent.parent_item_id IS NULL
+                                                OR i.parent_item_id = user_parent.parent_item_id
+                                            )
 
                                             UNION
 
@@ -614,10 +649,16 @@ namespace Api.Modules.Grids.Services
                                             # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 	                                        LEFT JOIN {WiserTableNames.WiserUserRoles} user_role ON user_role.user_id = ?userId
 	                                        LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
+                                            LEFT JOIN {WiserTableNames.WiserItem} user_parent ON user_parent.id = ?userId AND user_parent.entity_type = 'Wiseruser'
 
                                             WHERE id.`value` LIKE CONCAT(?search, '%')
                                             {versionWhereClause}
                                             AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
+                                            AND (
+                                                user_parent.parent_item_id IS NULL
+                                                OR i.parent_item_id = user_parent.parent_item_id
+                                            )
+                                            {removedFilterClause}
                                             GROUP BY i.id";
 
                         selectQuery = $@"SELECT 
@@ -639,11 +680,18 @@ namespace Api.Modules.Grids.Services
                                         # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 	                                    LEFT JOIN {WiserTableNames.WiserUserRoles} user_role ON user_role.user_id = ?userId
 	                                    LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
+                                        LEFT JOIN {WiserTableNames.WiserItem} user_parent ON user_parent.id = ?userId AND user_parent.entity_type = 'Wiseruser'
+                                      
 
                                         WHERE i.title LIKE CONCAT(?search, '%')
                                         {versionWhereClause}
                                         AND (?entityType = '' OR i.entity_type = ?entityType)
                                         AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
+                                        AND (
+                                            user_parent.parent_item_id IS NULL
+                                            OR i.parent_item_id = user_parent.parent_item_id
+                                        )
+                                        {removedFilterClause}
 
                                         UNION
 
@@ -661,19 +709,26 @@ namespace Api.Modules.Grids.Services
                                         FROM {tablePrefix}{WiserTableNames.WiserItemDetail} id
                                         JOIN {tablePrefix}{WiserTableNames.WiserItem} i ON i.id = id.item_id AND (?entityType = '' OR i.entity_type = ?entityType)
                                         JOIN {WiserTableNames.WiserEntity} e ON e.name = i.entity_type AND e.show_in_search = 1
+                                        
 
                                         {String.Format(versionJoinClause, "")}
 
                                         # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 	                                    LEFT JOIN {WiserTableNames.WiserUserRoles} user_role ON user_role.user_id = ?userId
 	                                    LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
+                                        LEFT JOIN {WiserTableNames.WiserItem} user_parent ON user_parent.id = ?userId AND user_parent.entity_type = 'Wiseruser' 
 
                                         WHERE id.`value` LIKE CONCAT(?search, '%')
                                         {versionWhereClause}
                                         AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
+                                        AND (
+                                            user_parent.parent_item_id IS NULL
+                                            OR i.parent_item_id = user_parent.parent_item_id
+                                        )
+                                        {removedFilterClause}
                                         GROUP BY i.id";
 
-                        if (removedFilter == null || removedFilter.Value == "1")
+                        if (shouldIncludeRemovedItems)
                         {
                             countQuery += $@"
                                                 UNION
@@ -687,11 +742,17 @@ namespace Api.Modules.Grids.Services
                                                 # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 	                                            LEFT JOIN {WiserTableNames.WiserUserRoles} user_role ON user_role.user_id = ?userId
 	                                            LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
+                                                LEFT JOIN {WiserTableNames.WiserItem} user_parent ON user_parent.id = ?userId AND user_parent.entity_type = 'Wiseruser'
 
                                                 WHERE i.title LIKE CONCAT(?search, '%')
                                                 {versionWhereClause}
                                                 AND (?entityType = '' OR i.entity_type = ?entityType)
                                                 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
+                                                AND (
+                                                    user_parent.parent_item_id IS NULL
+                                                    OR i.parent_item_id = user_parent.parent_item_id
+                                                )
+                                                {removedFilterClause}
 
                                                 UNION
 
@@ -705,10 +766,16 @@ namespace Api.Modules.Grids.Services
                                                 # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 	                                            LEFT JOIN {WiserTableNames.WiserUserRoles} user_role ON user_role.user_id = ?userId
 	                                            LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
-
+                                                LEFT JOIN {WiserTableNames.WiserItem} user_parent ON user_parent.id = ?userId AND user_parent.entity_type = 'Wiseruser'
+                                                
                                                 WHERE id.`value` LIKE CONCAT(?search, '%')
                                                 {versionWhereClause}
                                                 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
+                                                AND (
+                                                    user_parent.parent_item_id IS NULL
+                                                    OR id.parent_item_id = user_parent.parent_item_id
+                                                )
+                                                {removedFilterClause}
                                                 GROUP BY i.id";
 
                             selectQuery += $@"
@@ -733,11 +800,17 @@ namespace Api.Modules.Grids.Services
                                             # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 	                                        LEFT JOIN {WiserTableNames.WiserUserRoles} user_role ON user_role.user_id = ?userId
 	                                        LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
+                                            LEFT JOIN {WiserTableNames.WiserItem} user_parent ON user_parent.id = ?userId AND user_parent.entity_type = 'Wiseruser'
 
                                             WHERE i.title LIKE CONCAT(?search, '%')
                                             {versionWhereClause}
                                             AND (?entityType = '' OR i.entity_type = ?entityType)
                                             AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
+                                            AND (
+                                                user_parent.parent_item_id IS NULL
+                                                OR i.parent_item_id = user_parent.parent_item_id
+                                            )
+                                            {removedFilterClause}
 
                                             UNION
 
@@ -761,10 +834,17 @@ namespace Api.Modules.Grids.Services
                                             # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 	                                        LEFT JOIN {WiserTableNames.WiserUserRoles} user_role ON user_role.user_id = ?userId
 	                                        LEFT JOIN {WiserTableNames.WiserPermission} permission ON permission.role_id = user_role.role_id AND permission.item_id = i.id
+                                            LEFT JOIN {WiserTableNames.WiserItem} user_parent ON user_parent.id = ?userId AND user_parent.entity_type = 'Wiseruser'
 
                                             WHERE id.`value` LIKE CONCAT(?search, '%')
                                             {versionWhereClause}
                                             AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
+                                            AND (
+                                                user_parent.parent_item_id IS NULL
+                                                OR i.parent_item_id = user_parent.parent_item_id
+                                            )
+                                            {removedFilterClause}
+
                                             GROUP BY i.id";
                         }
 
