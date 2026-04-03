@@ -376,6 +376,7 @@ ORDER BY template.ordering ASC");
                 TemplateQueryStrings.Add("IMPORTEXPORT_GET_ENTITY_NAMES", @"SELECT `name`, module_id AS moduleId
 FROM wiser_entity
 WHERE `name` <> ''
+    AND show_in_import = 1
 ORDER BY `name`");
                 TemplateQueryStrings.Add("SET_DATA_SELECTOR_REMOVED", @"UPDATE wiser_data_selector
 SET removed = 1
