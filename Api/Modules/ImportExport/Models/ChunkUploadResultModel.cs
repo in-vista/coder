@@ -1,4 +1,4 @@
-﻿namespace FrontEnd.Modules.ImportExport.Models
+﻿namespace Api.Modules.ImportExport.Models
 {
     public class ChunkUploadResultModel
     {
@@ -9,5 +9,7 @@
         public string Filename { get; set; } = "";
 
         public string FilePath { get; set; } = "";
+        
+        public string Operation { get; set; } = "";
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Api.Modules.Imports.Models
+namespace Api.Modules.ImportExport.Models
 {
     /// <summary>
     /// A model for the result of the Wiser import module.

@@ -72,8 +72,6 @@ const importModuleSettings = {
                 this.initializeKendoWindows();
                 return;
             }
-            
-            this.settings.importRequestsUrl = "/Modules/ImportExport/Import";
 
             // Add logged in user access token to default authorization headers for all jQuery ajax requests.
             $.ajaxSetup({
@@ -95,6 +93,8 @@ const importModuleSettings = {
             if (!this.settings.wiserApiRoot.endsWith("/")) {
                 this.settings.wiserApiRoot += "/";
             }
+
+            this.settings.importRequestsUrl = `${this.settings.wiserApiRoot}imports`;
             
             // Show an error if the user is no longer logged in.
             const accessTokenExpires = localStorage.getItem("accessTokenExpiresOn");
@@ -541,8 +541,9 @@ const importModuleSettings = {
             //UPLOADER
             $(context).find(".fileUpload").kendoUpload({
                 async: {
-                    saveUrl: `${this.settings.importRequestsUrl}/Upload?type=feed`,
-                    removeUrl: `${this.settings.importRequestsUrl}/Delete`,
+                    saveUrl: `${this.settings.importRequestsUrl}/upload-temp?type=feed`,
+                    removeUrl: `${this.settings.importRequestsUrl}/delete-temp`,
+                    withCredentials: false,
                     autoUpload: true
                 },
                 localization: {
@@ -555,8 +556,37 @@ const importModuleSettings = {
                     maxFileSize: 26214400 // 25 MB = 25 * 1024 * 1024
                 },
                 multiple: false,
+                upload: (e) => {
+                    let xhr = e.XMLHttpRequest;
+                    if (xhr) {
+                        xhr.addEventListener("readystatechange", (e) => {
+                            if (xhr.readyState === 1 /* OPENED */) {
+                                xhr.setRequestHeader("authorization", `Bearer ${localStorage.getItem("accessToken")}`);
+                            }
+                        });
+                    }
+                },
+                remove: (e) => {
+                    if(e.files[0])
+                        // Manually set the file name to the one that was returned when uploading. This is done so it can be removed from Cloud Flare upon removal
+                        e.files[0].name = this.importFilename;
+                },
                 success: (e) => {
                     if (e.operation !== "upload") {
+                        return;
+                    }
+
+                    const uploadWidget = $(context).find(".fileUpload").data("kendoUpload");
+
+                    // If the upload wasn't successful make sure to remove the file
+                    if (!e.response?.successful) {
+                        uploadWidget.clearAllFiles();
+
+                        Wiser.alert({
+                            title: "Upload mislukt.",
+                            content: e.response?.errorMessage || "Er is een fout opgetreden tijdens het uploaden."
+                        });
+
                         return;
                     }
 
@@ -574,8 +604,9 @@ const importModuleSettings = {
             $(context).find(".imgUpload").kendoUpload({
                 async: {
                     chunkSize: 2097152, // 2 MB
-                    saveUrl: `${this.settings.importRequestsUrl}/Upload?type=images`,
-                    removeUrl: `${this.settings.importRequestsUrl}/Delete`,
+                    saveUrl: `${this.settings.importRequestsUrl}/upload-temp?type=images`,
+                    removeUrl: `${this.settings.importRequestsUrl}/delete-temp`,
+                    withCredentials: false,
                     autoUpload: true
                 },
                 localization: {
@@ -588,6 +619,21 @@ const importModuleSettings = {
                     maxFileSize: 419430400 // 400 MB
                 },
                 multiple: false,
+                upload: (e) => {
+                    let xhr = e.XMLHttpRequest;
+                    if (xhr) {
+                        xhr.addEventListener("readystatechange", (e) => {
+                            if (xhr.readyState === 1 /* OPENED */) {
+                                xhr.setRequestHeader("authorization", `Bearer ${localStorage.getItem("accessToken")}`);
+                            }
+                        });
+                    }
+                },
+                remove: (e) => {
+                    if(e.files[0])
+                        // Manually set the file name to the one that was returned when uploading. This is done so it can be removed from Cloud Flare upon removal
+                        e.files[0].name = this.importImagesFilePath;
+                },
                 success: (e) => {
                     if (e.operation !== "upload") {
                         return;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
@@ -11,10 +12,11 @@ using System.Threading.Tasks;
 using Api.Core.Enums;
 using Api.Core.Helpers;
 using Api.Core.Services;
+using Api.Modules.CloudFlare.Interfaces;
 using Api.Modules.EntityProperties.Helpers;
 using Api.Modules.EntityProperties.Models;
-using Api.Modules.Imports.Interfaces;
-using Api.Modules.Imports.Models;
+using Api.Modules.ImportExport.Interfaces;
+using Api.Modules.ImportExport.Models;
 using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Tenants.Models;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
@@ -25,14 +27,16 @@ using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using GeeksCoreLibrary.Modules.Exports.Interfaces;
 using GeeksCoreLibrary.Modules.Imports.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.FileIO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Api.Modules.Imports.Services
+namespace Api.Modules.ImportExport.Services
 {
-    /// <inheritdoc cref="Api.Modules.Imports.Interfaces.IImportsService" />
+    /// <inheritdoc cref="IImportsService" />
     public class ImportsService : IImportsService, IScopedService
     {
         private readonly IWiserItemsService wiserItemsService;
@@ -41,13 +45,14 @@ namespace Api.Modules.Imports.Services
         private readonly IDatabaseConnection clientDatabaseConnection;
         private readonly IExcelService excelService;
         private readonly ILogger<ImportsService> logger;
+        private readonly ICloudFlareService cloudFlareService;
 
         private const uint ImportLimit = 1000000;
 
         /// <summary>
         /// Creates a new instance of <see cref="ImportsService"/>.
         /// </summary>
-        public ImportsService(IWiserItemsService wiserItemsService, IUsersService usersService, IWiserTenantsService wiserTenantsService, IDatabaseConnection clientDatabaseConnection, IExcelService excelService, ILogger<ImportsService> logger)
+        public ImportsService(IWiserItemsService wiserItemsService, IUsersService usersService, IWiserTenantsService wiserTenantsService, IDatabaseConnection clientDatabaseConnection, IExcelService excelService, ILogger<ImportsService> logger, ICloudFlareService cloudFlareService)
         {
             this.wiserItemsService = wiserItemsService;
             this.usersService = usersService;
@@ -55,12 +60,13 @@ namespace Api.Modules.Imports.Services
             this.clientDatabaseConnection = clientDatabaseConnection;
             this.excelService = excelService;
             this.logger = logger;
+            this.cloudFlareService = cloudFlareService;
         }
 
         /// <inheritdoc />
         public async Task<ServiceResult<ImportResultModel>> PrepareImportAsync(ClaimsIdentity identity, ImportRequestModel importRequest)
         {
-            if (String.IsNullOrWhiteSpace(importRequest.FilePath) || !File.Exists(importRequest.FilePath))
+            if (String.IsNullOrWhiteSpace(importRequest.FilePath))
             {
                 return new ServiceResult<ImportResultModel>
                 {
@@ -82,7 +88,14 @@ namespace Api.Modules.Imports.Services
             var entityType = importRequest.ImportSettings.Count > 0 ? Convert.ToString(importRequest.ImportSettings.First()["entityType"]) : "";
             var moduleId = importRequest.ImportSettings.Count > 0 ? Convert.ToInt32(importRequest.ImportSettings.First()["moduleId"]) : 0;
             var importResult = new ImportResultModel();
-            var fileBytes = await File.ReadAllBytesAsync(importRequest.FilePath);
+            var fileName = importRequest.FilePath.Split("/").LastOrDefault();
+            
+            var hasImage = !string.IsNullOrWhiteSpace(importRequest.ImagesFileName) &&
+                          !string.IsNullOrWhiteSpace(importRequest.ImagesFilePath);
+            
+            var fileBytes = await GetFileBytes(
+                importRequest.FilePath,
+                importRequest.FilePath);
 
             // If the file has the UTF-8 BOM, it can't properly detect if a column called "id" exists if the first column is the id column.
             if (fileBytes.Length >= 3)
@@ -132,7 +145,9 @@ namespace Api.Modules.Imports.Services
 
             if (importRequest.FilePath.EndsWith(".xlsx", StringComparison.InvariantCultureIgnoreCase))
             {
-                var headerFields = excelService.GetColumnNames(importRequest.FilePath).ToArray();
+                using var memoryStream = new MemoryStream(fileBytes);
+                
+                var headerFields = excelService.GetColumnNames(importRequest.FilePath, memoryStream).ToArray();
                 var headerResult = CheckHeader(headerFields, importResult);
 
                 if (headerResult.result != null)
@@ -141,7 +156,7 @@ namespace Api.Modules.Imports.Services
                 }
 
                 var idIndex = headerResult.idIndex;
-                var rows = excelService.GetLines(importRequest.FilePath,  headerFields.Length, true, true);
+                var rows = excelService.GetLines(importRequest.FilePath,  headerFields.Length, true, true, memoryStream);
                 var rowsHandled = 0;
                 foreach (var row in rows)
                 {
@@ -208,6 +223,7 @@ namespace Api.Modules.Imports.Services
 
             var existingItemIds = new List<ulong>();
             var allItemIds = importData.Where(i => i.Item.Id > 0).Select(i => i.Item.Id).ToList();
+            var allParentIds = importData.Select(i => i.Item.ParentItemId).ToList();
             var tablePrefix = await wiserItemsService.GetTablePrefixForEntityAsync(entityType);
 
             // Check if all items are of the correct entity type if there are any items that are imported according to the settings
@@ -358,6 +374,49 @@ namespace Api.Modules.Imports.Services
                     existingItemIds.AddRange(allRows.Select(dataRow => dataRow.Field<ulong>("id")));
                 }
             }
+            
+            var user = await clientDatabaseConnection.GetAsync(
+                $"SELECT parent_item_id FROM {WiserTableNames.WiserItem} WHERE id = {IdentityHelpers.GetWiserUserId(identity)} LIMIT 1;");
+
+            if (user == null)
+            {
+                importResult.Failed += 1U;
+                importResult.Errors.Add("Can't do import because no user was found.");
+                importResult.UserFriendlyErrors.Add("Import kan niet gedaan worden, omdat er geen gebruiker is gevonden");
+            }
+            
+            // One or more errors occurred, skip the import and notify the user.
+            if (importResult.Failed > 0)
+            {
+                return new ServiceResult<ImportResultModel>(importResult);
+            }
+            
+            var accountId = user.Rows[0].Field<ulong>("parent_item_id");
+
+            if (accountId > 0)
+            {
+                // Return error if 1 or more items don't have the current user's parent_item_id.
+                var mismatchedItems = allParentIds.Where(parentId => parentId != accountId).ToList();
+                if (mismatchedItems.Any())
+                {
+                    importResult.Failed += 1U;
+                    importResult.Errors.Add($"Can't do import because the following items don't have a matching parent_item_id to the logged in user: {string.Join(", ", mismatchedItems.Distinct())}");
+                    importResult.UserFriendlyErrors.Add($"Import kan niet gedaan worden omdat 1 of meer items niet voor dit account bestemd zijn: <br>{string.Join(", ", mismatchedItems.Distinct())}");
+                }
+            }
+            else
+            {
+                importResult.Failed += 1U;
+                importResult.Errors.Add($"Can't do import, because no account ID was found.");
+                importResult.UserFriendlyErrors.Add($"Import kan niet gedaan worden omdat er geen account ID is gevonden.");
+                return new ServiceResult<ImportResultModel>(importResult);
+            }
+
+            // One or more errors occurred, skip the import and notify the user.
+            if (importResult.Failed > 0)
+            {
+                return new ServiceResult<ImportResultModel>(importResult);
+            }
 
             // Return error if 1 or more items don't exist.
             var missingItems = allItemIds.Except(existingItemIds).ToList();
@@ -420,28 +479,550 @@ namespace Api.Modules.Imports.Services
             {
                 return new ServiceResult<ImportResultModel>(importResult);
             }
-
-            // Extract the images zip to a place where the WTS can find them.
-            if (String.IsNullOrWhiteSpace(importRequest.ImagesFileName) && String.IsNullOrWhiteSpace(importRequest.ImagesFilePath))
-            {
-                return new ServiceResult<ImportResultModel>(importResult);
-            }
-
+            
             var basePath = $@"C:\temp\WTS Import\{tenant.TenantId}\{wiserImportId}\";
+            var baseCloudFlarePath = $"{tenant.SubDomain}/{tenant.TenantId}/{wiserImportId}";
 
-            var imagesDirectory = new DirectoryInfo(basePath);
-            imagesDirectory.Create();
+            // Make sure the starts with is very specific to avoid uploading when the user who made the request isn't supposed to.
+            if (importRequest.FilePath.StartsWith($"{tenant.SubDomain}/temp/{tenant.TenantId}"))
+            {
+                var contentTypeProvider = new FileExtensionContentTypeProvider();
+
+                // Get the content type based on the file path. Fallback to the cloudflare R2 object storage default
+                if (!contentTypeProvider.TryGetContentType(importRequest.FilePath, out var contentType))
+                    contentType = "application/octet-stream";
+
+                // Find the first index of '_', because that is always the separator for the name and GUID of the file. Then get the part after the first '_'
+                var separatorIndex = fileName.IndexOf("_", StringComparison.Ordinal) + 1;
+                var correctFileName = fileName[separatorIndex..];
+
+                var cloudFlareObjectKey = await cloudFlareService.UploadFileAsync(
+                    correctFileName,
+                    fileBytes,
+                    "coder-imports",
+                    contentType,
+                    baseCloudFlarePath);
+                
+                if (!string.IsNullOrEmpty(cloudFlareObjectKey))
+                    await HandleTempCleanUpAsync(identity, importRequest.FilePath, basePath);
+            }
+            
+            // Return early if no images were uploaded alongside the data
+            if (!hasImage)
+                return new ServiceResult<ImportResultModel>(importResult);
+            
+            try
+            {
+                var imageBytes = await GetFileBytes(
+                    importRequest.ImagesFilePath,
+                    basePath
+                );
+
+                var uploadedObjectKeys = await UploadImagesFromZipToCloudFlareAsync(
+                    imageBytes,
+                    "coder-imports",
+                    $"{baseCloudFlarePath}/images");
+
+                if (uploadedObjectKeys.Count > 0)
+                {
+                    await HandleTempCleanUpAsync(identity, importRequest.ImagesFilePath, basePath);
+                    return new ServiceResult<ImportResultModel>(importResult);
+                }
+
+                logger.LogWarning(
+                    "Image zip was read successfully but no files were uploaded to Cloudflare. Falling back to local extraction. FilePath: {ImagesFilePath}",
+                    importRequest.ImagesFilePath);
+            }
+            catch (Exception exception)
+            {
+                logger.LogWarning(
+                    exception,
+                    "Failed to read or upload image zip to Cloudflare. Falling back to local extraction. FilePath: {ImagesFilePath}",
+                    importRequest.ImagesFilePath);
+            }
 
             try
             {
+                var imagesDirectory = new DirectoryInfo(basePath);
+                imagesDirectory.Create();
+
                 CompressionHelpers.ExtractZipFile(importRequest.ImagesFilePath, imagesDirectory.FullName);
+
+                await HandleTempCleanUpAsync(identity, importRequest.ImagesFilePath, basePath);
+
+                return new ServiceResult<ImportResultModel>(importResult);
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                logger.LogError(e.ToString());
+                logger.LogError(
+                    exception,
+                    "Failed to extract image zip locally. FilePath: {ImagesFilePath}, BasePath: {BasePath}",
+                    importRequest.ImagesFilePath,
+                    basePath);
+
+                importResult.Failed += 1;
+                importResult.Errors.Add($"Failed to process image zip file '{importRequest.ImagesFileName}'.");
+                importResult.UserFriendlyErrors.Add("Het uploaden van het afbeeldingenbestand is mislukt.");
+
+                return new ServiceResult<ImportResultModel>(importResult);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<FeedFileUploadResultModel> HandleFeedFileUploadAsync(ClaimsIdentity identity, IFormCollection formCollection,
+            string uploadsDirectory)
+        {
+            if (formCollection?.Files == null || !formCollection.Files.Any())
+                return null;
+
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            var tenant = (await wiserTenantsService.GetSingleAsync(identity)).ModelObject;
+            var uploadedFile = formCollection.Files[0];
+            var uploadedFilename = Path.GetFileName(uploadedFile.FileName);
+            var filePath = Path.Combine(uploadsDirectory, uploadedFilename);
+
+            byte[] fileBytes;
+            await using (var memoryStream = new MemoryStream())
+            {
+                await uploadedFile.CopyToAsync(memoryStream);
+                fileBytes = memoryStream.ToArray();
             }
 
-            return new ServiceResult<ImportResultModel>(importResult);
+            var uploadResult = new FeedFileUploadResultModel
+            {
+                ImportLimit = ImportLimit,
+                Filename = filePath,
+                Operation = "upload"
+            };
+            
+            var user = await clientDatabaseConnection.GetAsync(
+                $"SELECT parent_item_id FROM {WiserTableNames.WiserItem} WHERE id = {IdentityHelpers.GetWiserUserId(identity)} LIMIT 1;");
+
+            if (user == null || user.Rows.Count == 0)
+            {
+                uploadResult.Successful = false;
+                uploadResult.ErrorMessage = "Kan het bestand niet uploaden, er is geen gebruiker gevonden";
+                return uploadResult;
+            }
+
+            var accountId = user.Rows[0].Field<ulong?>("parent_item_id");
+            if (accountId is null or 0)
+            {
+                uploadResult.Successful = false;
+                return uploadResult;
+            }
+            
+            var uploadUid = Guid.NewGuid().ToString("N");
+            var fileName = $"{uploadUid}_{uploadedFilename}";
+            var tempCloudFlarePath = $"{tenant.SubDomain}/temp/{tenant.TenantId}";
+            
+            if (uploadedFilename.EndsWith(".xlsx", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var contentTypeProvider = new FileExtensionContentTypeProvider();
+                
+                if (!contentTypeProvider.TryGetContentType(uploadedFilename, out var contentType))
+                    contentType = "application/octet-stream";
+                
+                var cloudFlareObjectKey = await cloudFlareService.UploadFileAsync(
+                    fileName,
+                    fileBytes,
+                    "coder-imports",
+                    contentType,
+                    tempCloudFlarePath);
+
+                if (!string.IsNullOrWhiteSpace(cloudFlareObjectKey))
+                {
+                    uploadResult.Filename = cloudFlareObjectKey;
+                }
+                else
+                {
+                    if (!Directory.Exists(uploadsDirectory))
+                        Directory.CreateDirectory(uploadsDirectory);
+
+                    await File.WriteAllBytesAsync(filePath, fileBytes);
+                }
+
+                var excelReadPath = !string.IsNullOrWhiteSpace(cloudFlareObjectKey) ? null : filePath;
+
+                if (!string.IsNullOrWhiteSpace(excelReadPath))
+                {
+                    uploadResult.Columns = excelService.GetColumnNames(excelReadPath).ToArray();
+                    uploadResult.RowCount = Convert.ToUInt32(excelService.GetRowCount(excelReadPath) - 1);
+                }
+                else
+                {
+                    using var memoryStream = new MemoryStream(fileBytes);
+                    
+                    uploadResult.Columns = excelService.GetColumnNames(null, memoryStream).ToArray();
+                    uploadResult.RowCount = Convert.ToUInt32(excelService.GetRowCount(null, memoryStream) - 1);
+                }
+                
+                var mismatchedParentItemIds = new List<string>();
+
+                List<List<string>> excelData;
+
+                if (!string.IsNullOrWhiteSpace(excelReadPath))
+                {
+                    excelData = excelService.GetLines(excelReadPath, uploadResult.Columns.Length, true, true);
+                }
+                else
+                {
+                    using var validationMemoryStream = new MemoryStream(fileBytes);
+                    excelData = excelService.GetLines(excelReadPath, uploadResult.Columns.Length, true, true, validationMemoryStream);
+                }
+
+                var parentItemIdColumnIndex = Array.FindIndex(
+                    uploadResult.Columns,
+                    columnName => columnName.Equals("parent_item_id", StringComparison.OrdinalIgnoreCase));
+
+                if (parentItemIdColumnIndex >= 0)
+                {
+                    foreach (var row in excelData)
+                    {
+                        if (row == null || row.Count <= parentItemIdColumnIndex)
+                        {
+                            mismatchedParentItemIds.Add("(null)");
+                            continue;
+                        }
+
+                        var parentItemIdValue = row[parentItemIdColumnIndex]?.Trim();
+
+                        if (string.IsNullOrWhiteSpace(parentItemIdValue) ||
+                            !ulong.TryParse(parentItemIdValue, out var parsedParentItemId) ||
+                            parsedParentItemId != accountId.Value)
+                        {
+                            mismatchedParentItemIds.Add(parentItemIdValue ?? "(null)");
+                        }
+                    }
+                }
+
+                if (mismatchedParentItemIds.Any())
+                {
+                    // Clean up Cloud Flare or the locally stored files if there was a mismatch
+                    await HandleTempCleanUpAsync(identity, uploadResult.Filename, filePath);
+                    uploadResult.Successful = false;
+                    uploadResult.ErrorMessage =
+                        $"Upload kan niet gedaan worden omdat 1 of meer items niet voor dit account bestemd zijn: {string.Join(", ", mismatchedParentItemIds.Distinct())}";
+                    return uploadResult;
+                }
+            }
+            else
+            {
+                switch (fileBytes.Length)
+                {
+                    case 0:
+                        return uploadResult;
+                    case >= 3:
+                        fileBytes = RemoveUtf8BomBytes(fileBytes);
+                        break;
+                }
+
+                var fileContents = Encoding.UTF8.GetString(fileBytes);
+
+                var linesCounted = 0U;
+                var mismatchedParentItemIds = new List<string>();
+
+                using (var stringReader = new StringReader(fileContents))
+                using (var reader = new TextFieldParser(stringReader))
+                {
+                    reader.Delimiters = new[] { ";" };
+                    reader.TextFieldType = FieldType.Delimited;
+                    reader.HasFieldsEnclosedInQuotes = true;
+
+                    uploadResult.Columns = reader.ReadFields();
+
+                    var parentItemIdColumnIndex = -1;
+                    if (uploadResult.Columns != null)
+                    {
+                        parentItemIdColumnIndex = Array.FindIndex(
+                            uploadResult.Columns,
+                            columnName => columnName.Equals("parent_item_id", StringComparison.OrdinalIgnoreCase));
+                    }
+
+                    while (!reader.EndOfData)
+                    {
+                        var rowValues = reader.ReadFields();
+                        linesCounted += 1U;
+
+                        if (parentItemIdColumnIndex < 0 ||
+                            rowValues == null ||
+                            rowValues.Length <= parentItemIdColumnIndex) continue;
+                        
+                        var parentItemIdValue = rowValues[parentItemIdColumnIndex].Trim();
+
+                        if (string.IsNullOrWhiteSpace(parentItemIdValue) ||
+                            !ulong.TryParse(parentItemIdValue, out var parsedParentItemId) ||
+                            parsedParentItemId != accountId.Value)
+                        {
+                            mismatchedParentItemIds.Add(parentItemIdValue ?? "(null)");
+                        }
+                    }
+                }
+
+                uploadResult.RowCount = linesCounted;
+
+                if (mismatchedParentItemIds.Any())
+                {
+                    uploadResult.Successful = false;
+                    uploadResult.ErrorMessage =
+                        $"Upload kan niet gedaan worden omdat 1 of meer items niet voor dit account bestemd zijn: {string.Join(", ", mismatchedParentItemIds.Distinct())}";
+                    return uploadResult;
+                }
+                
+                var contentTypeProvider = new FileExtensionContentTypeProvider(); 
+                
+                if (!contentTypeProvider.TryGetContentType(uploadedFilename, out var contentType)) 
+                    contentType = "application/octet-stream"; 
+                
+                var cloudFlareObjectKey = await cloudFlareService.UploadFileAsync( fileName, fileBytes, "coder-imports", contentType, tempCloudFlarePath);
+
+                if (!string.IsNullOrWhiteSpace(cloudFlareObjectKey))
+                {
+                    uploadResult.Filename = cloudFlareObjectKey;
+                }
+                else
+                {
+                    if (!Directory.Exists(uploadsDirectory)) Directory.CreateDirectory(uploadsDirectory);
+                    await File.WriteAllBytesAsync(filePath, fileBytes);
+                }
+            }
+            
+            
+            // TODO: Make it so ID isn't the only allowed/required column, make it adjustable with a dropdown
+            if (uploadResult.Columns != null && uploadResult.Columns.Contains("id", StringComparer.OrdinalIgnoreCase))
+            {
+                uploadResult.Columns = uploadResult.Columns
+                    .Where(columnName => !columnName.Equals("id", StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+            }
+
+            return uploadResult;
+       }
+
+        /// <inheritdoc cref="IImportsService"/>
+        public async Task<ChunkUploadResultModel> HandleImagesFileUploadAsync(ClaimsIdentity identity, IFormCollection formCollection,
+            string uploadsDirectory)
+        {
+            if (formCollection?.Files == null || !formCollection.Files.Any())
+                return null;
+
+            var metaData = formCollection.ContainsKey("metadata") ? formCollection["metadata"].ToString() : null;
+            if (string.IsNullOrWhiteSpace(metaData))
+                return null;
+
+            var chunkMetaData = JsonConvert.DeserializeObject<ChunkMetaDataModel>(metaData);
+            if (chunkMetaData == null)
+                return null;
+
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            var tenant = (await wiserTenantsService.GetSingleAsync(identity)).ModelObject;
+            var uploadedFile = formCollection.Files[0];
+            var chunkFileName = $"{Path.GetFileName(chunkMetaData.FileName)}_{chunkMetaData.ChunkIndex}";
+            var chunksDirectory = Path.Combine(uploadsDirectory, "chunks");
+            var chunkFilePath = Path.Combine(chunksDirectory, chunkFileName);
+            var finalFilePath = Path.Combine(uploadsDirectory, Path.GetFileName(chunkMetaData.FileName ?? ""));
+            
+            var uploadUid = Guid.NewGuid().ToString("N");
+            var fileName = $"{uploadUid}_{chunkMetaData.FileName}";
+            var tempCloudFlarePath = $"{tenant.SubDomain}/temp/{tenant.TenantId}/images";
+
+            if (!Directory.Exists(chunksDirectory))
+                Directory.CreateDirectory(chunksDirectory);
+
+            // Chunks still need temporary local storage until the full file exists.
+            await using (var chunkFileStream = new FileStream(chunkFilePath, FileMode.Create))
+            {
+                await uploadedFile.CopyToAsync(chunkFileStream);
+            }
+
+            var allChunksUploaded = chunkMetaData.TotalChunks - 1 <= chunkMetaData.ChunkIndex;
+            if (!allChunksUploaded)
+            {
+                return new ChunkUploadResultModel
+                {
+                    Uploaded = false,
+                    FileUid = chunkMetaData.UploadUid,
+                    Filename = $"{tempCloudFlarePath}/{fileName}",
+                    FilePath = finalFilePath,
+                    Operation = "upload"
+                };
+            }
+
+            byte[] mergedFileBytes;
+            await using (var mergedFileMemoryStream = new MemoryStream())
+            {
+                for (var chunkIndex = 0; chunkIndex <= chunkMetaData.TotalChunks - 1; chunkIndex++)
+                {
+                    var currentChunkPath = Path.Combine(chunksDirectory, $"{chunkMetaData.FileName}_{chunkIndex}");
+                    var currentChunkBytes = await File.ReadAllBytesAsync(currentChunkPath);
+                    await mergedFileMemoryStream.WriteAsync(currentChunkBytes, 0, currentChunkBytes.Length);
+                }
+
+                mergedFileBytes = mergedFileMemoryStream.ToArray();
+            }
+
+            var contentTypeProvider = new FileExtensionContentTypeProvider();
+            if (!contentTypeProvider.TryGetContentType(chunkMetaData.FileName ?? "", out var contentType))
+                contentType = "application/octet-stream";
+
+            var cloudFlareObjectKey = await cloudFlareService.UploadFileAsync(
+                fileName,
+                mergedFileBytes,
+                "coder-imports",
+                contentType,
+                tempCloudFlarePath);
+
+            string resultingFilePath;
+
+            if (!string.IsNullOrWhiteSpace(cloudFlareObjectKey))
+            {
+                resultingFilePath = cloudFlareObjectKey;
+            }
+            else
+            {
+                if (!Directory.Exists(uploadsDirectory))
+                    Directory.CreateDirectory(uploadsDirectory);
+
+                await File.WriteAllBytesAsync(finalFilePath, mergedFileBytes);
+                resultingFilePath = finalFilePath;
+            }
+
+            for (var chunkIndex = 0; chunkIndex <= chunkMetaData.TotalChunks - 1; chunkIndex++)
+            {
+                var currentChunkPath = Path.Combine(chunksDirectory, $"{chunkMetaData.FileName}_{chunkIndex}");
+                if (File.Exists(currentChunkPath))
+                    File.Delete(currentChunkPath);
+            }
+
+            return new ChunkUploadResultModel
+            {
+                Uploaded = true,
+                FileUid = chunkMetaData.UploadUid,
+                Filename = fileName,
+                FilePath = resultingFilePath,
+                Operation = "upload"
+            };
+        }
+
+        /// <inheritdoc cref="IImportsService"/>
+        public async Task HandleTempCleanUpAsync(ClaimsIdentity identity, string fileNames, string uploadsDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(fileNames))
+                return;
+            
+            var tenant = (await wiserTenantsService.GetSingleAsync(identity)).ModelObject;
+            
+            foreach (var fileName in fileNames.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                // If it is an R2 temp file, delete it from CloudFlare. Make sure the StartsWith is very specific to avoid deletion when it isn't allowed.
+                if (fileName.StartsWith($"{tenant.SubDomain}/temp/{tenant.TenantId}", StringComparison.OrdinalIgnoreCase))
+                {
+                    await cloudFlareService.DeleteFileAsync("coder-imports", fileName);
+                    continue;
+                }
+
+                // Otherwise treat it as a local temp file.
+                var localPath = Path.Combine(uploadsDirectory, fileName);
+                if (!File.Exists(localPath))
+                {
+                    continue;
+                }
+
+                File.Delete(localPath);
+            }
+        }
+
+        /// <summary>
+        /// Get the file bytes from either Cloud Flare's R2 object storage or the locally stored files if they exist.
+        /// </summary>
+        /// <param name="cloudFlareObjectKey">The object key leading to the file in the R2 object storage</param>
+        /// <param name="localFilePath">The path to the locally stored file</param>
+        /// <returns></returns>
+        private async Task<byte[]> GetFileBytes(string cloudFlareObjectKey, string localFilePath)
+        {
+            if (!string.IsNullOrWhiteSpace(cloudFlareObjectKey))
+            {
+                try
+                {
+                    var cloudFlareBytes = await cloudFlareService.DownloadFileAsync("coder-imports", cloudFlareObjectKey);
+                    if (cloudFlareBytes is { Length: > 0 })
+                    {
+                        return cloudFlareBytes;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    logger.LogError(exception, "Reading file from CloudFlare failed, falling back to local file.");
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(localFilePath) && File.Exists(localFilePath))
+            {
+                return await File.ReadAllBytesAsync(localFilePath);
+            }
+
+            return null;
+        }
+        
+        /// <summary>
+        /// Reads the provided ZIP archive from memory, extracts its file entries, and uploads each file to Cloudflare R2.
+        /// </summary>
+        /// <param name="zipBytes">
+        /// The byte array containing the ZIP archive data.
+        /// </param>
+        /// <param name="bucketName">
+        /// The name of the Cloudflare R2 bucket to upload the extracted files to.
+        /// </param>
+        /// <param name="folder">
+        /// The destination folder path within the specified bucket.
+        /// </param>
+        /// <returns>
+        /// A list of Cloudflare R2 object keys for the files that were uploaded successfully.
+        /// Empty directory entries and files that fail to upload are not included.
+        /// </returns>
+        private async Task<List<string>> UploadImagesFromZipToCloudFlareAsync(
+            byte[] zipBytes,
+            string bucketName,
+            string folder)
+        {
+            var uploadedObjectKeys = new List<string>();
+
+            using var memoryStream = new MemoryStream(zipBytes);
+            using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read);
+
+            foreach (var entry in archive.Entries)
+            {
+                if (string.IsNullOrWhiteSpace(entry.Name))
+                {
+                    continue;
+                }
+
+                await using var entryStream = entry.Open();
+                await using var entryMemoryStream = new MemoryStream();
+                await entryStream.CopyToAsync(entryMemoryStream);
+
+                var entryBytes = entryMemoryStream.ToArray();
+
+                var contentTypeProvider = new FileExtensionContentTypeProvider();
+                if (!contentTypeProvider.TryGetContentType(entry.Name, out var entryContentType))
+                {
+                    entryContentType = "application/octet-stream";
+                }
+
+                var objectKey = await cloudFlareService.UploadFileAsync(
+                    entry.Name,
+                    entryBytes,
+                    bucketName,
+                    entryContentType,
+                    folder);
+
+                if (!string.IsNullOrWhiteSpace(objectKey))
+                {
+                    uploadedObjectKeys.Add(objectKey);
+                }
+            }
+
+            return uploadedObjectKeys;
         }
 
         /// <summary>

@@ -3,8 +3,6 @@ using Api.Core.Services;
 using FrontEnd.Core.Interfaces;
 using FrontEnd.Core.Models;
 using FrontEnd.Core.Services;
-using FrontEnd.Modules.ImportExport.Interfaces;
-using FrontEnd.Modules.ImportExport.Services;
 using FrontEnd.Modules.Templates.Interfaces;
 using FrontEnd.Modules.Templates.Services;
 using GeeksCoreLibrary.Core.Models;
@@ -104,7 +102,6 @@ namespace FrontEnd
             services.AddHttpContextAccessor();
             services.AddTransient<IPluginsService, PluginsService>();
             services.AddTransient<IBaseService, BaseService>();
-            services.AddTransient<IImportsService, ImportsService>();
             services.AddTransient<IFrontEndDynamicContentService, FrontEndDynamicContentService>();
             services.AddScoped<IExcelService, ExcelService>();
             services.AddSingleton<IWebPackService, WebPackService>();

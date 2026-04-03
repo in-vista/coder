@@ -3,9 +3,10 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Api.Core.Services;
 using Api.Modules.EntityProperties.Models;
-using Api.Modules.Imports.Models;
+using Api.Modules.ImportExport.Models;
+using Microsoft.AspNetCore.Http;
 
-namespace Api.Modules.Imports.Interfaces
+namespace Api.Modules.ImportExport.Interfaces
 {
     //TODO Verify comments
     /// <summary>
@@ -62,5 +63,56 @@ namespace Api.Modules.Imports.Interfaces
         /// <param name="linkType">Optional link type, in case the properties should be retrieved by link type instead of entity name.</param>
         /// <returns>A collection of <see cref="EntityPropertyModel"/> objects.</returns>
         Task<ServiceResult<IEnumerable<EntityPropertyModel>>> GetEntityPropertiesAsync(ClaimsIdentity identity, string entityName = null, int linkType = 0);
+        
+        /// <summary>
+        /// Handles the upload of a feed file, such as a CSV file.
+        /// </summary>
+        /// <param name="identity">
+        /// The identity of the authenticated user.
+        /// </param>
+        /// <param name="formCollection">
+        /// The form data from the request, including the uploaded file.
+        /// </param>
+        /// <param name="uploadsDirectory">
+        /// The server directory where the uploaded file should be temporarily stored.
+        /// </param>
+        /// <returns>
+        /// A <see cref="FeedFileUploadResultModel"/> containing information about the uploaded file and its contents.
+        /// </returns>
+        Task<FeedFileUploadResultModel> HandleFeedFileUploadAsync(ClaimsIdentity identity, IFormCollection formCollection, string uploadsDirectory);
+
+        /// <summary>
+        /// Handles the upload of an images archive file, such as a ZIP file containing images.
+        /// </summary>
+        /// <param name="identity">
+        /// The identity of the authenticated user.
+        /// </param>
+        /// <param name="formCollection">
+        /// The form data from the request, including the uploaded file.
+        /// </param>
+        /// <param name="uploadsDirectory">
+        /// The server directory where the uploaded file should be temporarily stored.
+        /// </param>
+        /// <returns>
+        /// A <see cref="ChunkUploadResultModel"/> containing information about the uploaded images file.
+        /// </returns>
+        Task<ChunkUploadResultModel> HandleImagesFileUploadAsync(ClaimsIdentity identity, IFormCollection formCollection, string uploadsDirectory);
+        
+        /// <summary>
+        /// Removes temporary files from local storage or Cloudflare R2, depending on the provided file identifiers.
+        /// </summary>
+        /// <param name="identity">
+        /// The identity of the authenticated user.
+        /// </param>
+        /// <param name="fileNames">
+        /// The file identifiers to remove.
+        /// Values containing <c>"/temp"</c> are interpreted as Cloudflare R2 object keys and are deleted from object storage.
+        /// All other values are interpreted as local file names and are deleted from the specified uploads-directory.
+        /// </param>
+        /// <param name="uploadsDirectory">
+        /// The local uploads directory that may contain temporary files.
+        /// This path is only used for identifiers that refer to local files.
+        /// </param>
+        Task HandleTempCleanUpAsync(ClaimsIdentity identity, string fileNames, string uploadsDirectory);
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Api.Modules.Imports.Models
+﻿namespace Api.Modules.ImportExport.Models
 {
     //TODO Verify comments
     /// <summary>

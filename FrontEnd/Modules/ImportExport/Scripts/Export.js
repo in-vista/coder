@@ -159,7 +159,7 @@ const exportModuleSettings = {
             let fileName;
 
             switch (exportType) {
-                case "dataselector": {
+              /*  case "dataselector": {
                     const dropDownList = $("#DataSelectorList").data("kendoDropDownList");
                     const dataItem = dropDownList.dataItem();
                     const dataSelectorId = dataItem.encryptedId;
@@ -173,7 +173,7 @@ const exportModuleSettings = {
                         }
                     });
                     break;
-                }
+                } */
                 case "query": {
                     const dropDownList = $("#QueryList").data("kendoDropDownList");
                     const dataItem = dropDownList.dataItem();
@@ -189,7 +189,7 @@ const exportModuleSettings = {
                     });
                     break;
                 }
-                case "module": {
+               /* case "module": {
                     const dropDownList = $("#ModuleList").data("kendoDropDownList");
                     const dataItem = dropDownList.dataItem();
 
@@ -205,7 +205,7 @@ const exportModuleSettings = {
                     });
 
                     break;
-                }
+                } */
                 default:
                     window.processing.removeProcess(process);
                     kendo.alert("Ongeldig exporttype geselecteerd.");

@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Api.Core.Enums;
 
-namespace Api.Modules.Imports.Models
+namespace Api.Modules.ImportExport.Models
 {
     /// <summary>
     /// A model for a delete links request to the Wiser import/export module.

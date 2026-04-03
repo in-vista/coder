@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Api.Modules.Imports.Models
+namespace Api.Modules.ImportExport.Models
 {
     /// <summary>
     /// A model for the confirmation of the links to delete by import.

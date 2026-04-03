@@ -1,15 +1,19 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Mime;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Api.Modules.EntityProperties.Models;
-using Api.Modules.Imports.Interfaces;
-using Api.Modules.Imports.Models;
+using Api.Modules.ImportExport.Interfaces;
+using Api.Modules.ImportExport.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Modules.Imports.Controllers
+namespace Api.Modules.ImportExport.Controllers
 {
     /// <summary>
     /// A controller for doing things for the import module of Wiser.
@@ -17,18 +21,62 @@ namespace Api.Modules.Imports.Controllers
     [Route("api/v3/[controller]")]
     [ApiController]
     [Authorize]
-    [Consumes(MediaTypeNames.Application.Json)]
-    [Produces(MediaTypeNames.Application.Json)]
     public class ImportsController : ControllerBase
     {
         private readonly IImportsService importsService;
+        private readonly IWebHostEnvironment webHostEnvironment;
 
         /// <summary>
         /// Creates a new instance of <see cref="ImportsController"/>.
         /// </summary>
-        public ImportsController(IImportsService importsService)
+        public ImportsController(IImportsService importsService, IWebHostEnvironment webHostEnvironment)
         {
             this.importsService = importsService;
+            this.webHostEnvironment = webHostEnvironment;
+        }
+        
+        /// <summary>
+        /// `POST api/v3/imports/upload-temp`
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        [HttpPost, Route("upload-temp")]
+        public async Task<IActionResult> UploadAsync([FromQuery] string type = null)
+        {
+            var uploadsDirectory = Path.Combine(webHostEnvironment.ContentRootPath, "temp/import/uploads");
+            if (!Directory.Exists(uploadsDirectory))
+                Directory.CreateDirectory(uploadsDirectory);
+            
+            var formCollection = await Request.ReadFormAsync();
+            if (!formCollection.Files.Any())
+                return new JsonResult(new FeedFileUploadResultModel { Successful = false });
+
+            var fileType = type ?? "feed";
+
+            return fileType switch
+            {
+                "feed" => new JsonResult(await importsService.HandleFeedFileUploadAsync((ClaimsIdentity)User.Identity, formCollection, uploadsDirectory)),
+                "images" => new JsonResult(await importsService.HandleImagesFileUploadAsync((ClaimsIdentity)User.Identity, formCollection, uploadsDirectory)),
+                _ => new JsonResult(new FeedFileUploadResultModel { Successful = false })
+            };
+        }
+        
+        /// <summary>
+        /// `POST api/v3/imports/delete-temp`
+        /// </summary>
+        /// <param name="fileNames"></param>
+        [HttpPost, Route("delete-temp")]
+        public async Task<IActionResult> DeleteTemporaryFiles([FromForm] string fileNames)
+        {
+            var uploadsDirectory = Path.Combine(webHostEnvironment.ContentRootPath, "temp/import/uploads");
+            if (string.IsNullOrWhiteSpace(fileNames))
+            {
+                return Ok();
+            }
+
+            await importsService.HandleTempCleanUpAsync((ClaimsIdentity)User.Identity, fileNames, uploadsDirectory);
+
+            return Ok();
         }
 
         /// <summary>

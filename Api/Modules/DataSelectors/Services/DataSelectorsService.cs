@@ -741,6 +741,9 @@ ORDER BY name ASC");
             }
 
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            
+            // Add the userId parameter so queries can use the current user's ID for retrieving data connected to a specific account.
+            clientDatabaseConnection.AddParameter("userId", IdentityHelpers.GetWiserUserId(identity));
 
             return await gclDataSelectorsService.GetJsonResponseAsync(data, true);
         }

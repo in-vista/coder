@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Api.Modules.Imports.Models
+namespace Api.Modules.ImportExport.Models
 {
     /// <summary>
     /// A model for a delete items request to the Wiser import/export module.
