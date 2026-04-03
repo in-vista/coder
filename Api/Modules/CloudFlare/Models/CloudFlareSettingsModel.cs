@@ -21,5 +21,16 @@
         /// Gets or sets the AccountId
         /// </summary>
         public string AccountId { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the R2 Object Storage key ID
+        /// </summary>
+        public string R2AccessKeyId { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the R2 Object Storage access key 
+        /// </summary>
+        public string R2SecretAccessKey { get; set; }
+
     }
 }
