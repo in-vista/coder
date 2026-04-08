@@ -49,14 +49,14 @@ namespace Api.Modules.TaskAlerts.Services
             // The database portion which will be placed in front of the table names of the FROM and JOIN statements.
             var queryDatabasePart = !String.IsNullOrWhiteSpace(branchDatabaseName) ? $"`{branchDatabaseName}`." : String.Empty;
 
-            var userJoinPart = getAllUsers ? "" : "AND userId.`value` = ?userId";
+            var userJoinPart = getAllUsers ? "" : "AND FIND_IN_SET(userId.`value`, ?userId)";
             var dataTable = await clientDatabaseConnection.GetAsync($@"SELECT
     taskAlert.id,
     taskAlert.moduleid,
     DATE(checkedOn.value) AS checkedOn,
     content.value AS content,
     DATE(createdOn.value) AS createdOn,
-    userId.value AS userId,
+    `user`.id AS userId,
     `user`.title AS userName,
     status.value AS status,
     linkedItemId.value AS linkedItemId,
@@ -66,7 +66,7 @@ namespace Api.Modules.TaskAlerts.Services
     placedById.value AS placedById
 FROM {queryDatabasePart}{WiserTableNames.AgendaWiserItem} AS taskAlert
 JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS userId ON userId.item_id = taskAlert.id AND userId.`key` = 'userid'{userJoinPart}
-JOIN {queryDatabasePart}{WiserTableNames.WiserItem} AS `user` ON `user`.id = userId.`value` AND `user`.entity_type = 'wiseruser'
+JOIN {queryDatabasePart}{WiserTableNames.WiserItem} AS `user` ON `user`.id = ?userId AND `user`.entity_type = 'wiseruser'{userJoinPart}
 JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS createdOn ON createdOn.item_id = taskAlert.id AND createdOn.`key` = 'agendering_date' AND createdOn.value <= ?now
 LEFT JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS checkedOn ON checkedOn.item_id = taskAlert.id AND checkedOn.`key` = 'checkedon'
 LEFT JOIN {queryDatabasePart}{WiserTableNames.AgendaWiserItemDetail} AS content ON content.item_id = taskAlert.id AND content.`key` = 'content'
