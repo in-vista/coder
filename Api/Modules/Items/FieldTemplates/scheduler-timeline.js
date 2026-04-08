@@ -575,6 +575,8 @@
                 });
                 // Loop over elke groep van dezelfde reservationId
                 Object.values(reservationsById).forEach(group => {
+                    if (group.length > 1) return; // Alleen warnings toevoegen bij enkele tafels, geen reserveringen over meerdere tafels
+                    
                     // Pak het aantal personen uit de eerste reservering
                     const numberOfPersons = group[0].numberOfPersons;
 
@@ -598,7 +600,7 @@
                     if (numberOfPersons > totalCapacity) {
                         group.forEach(reservation => {
                             if (reservation.warning !== '') reservation.warning += ' - ';
-                            reservation.warning = `Tafels bieden niet genoeg plaats voor het aantal personen (${numberOfPersons}/${totalCapacity})`;
+                            reservation.warning = `Tafel biedt niet genoeg plaats voor het aantal personen (${numberOfPersons}/${totalCapacity})`;
                         });
                     }
                 });
@@ -878,10 +880,10 @@
                         hover.id = `hover${res.reservationId}${res.table}`;
                         hover.dataset.id = res.reservationId;
                         hover.classList.add("hover");
-                        const left = getOffset(res.start, new Date(res.startDate).getDate() !== this.currentDate.getDate());
-                        const width = (res.end - res.start) * this.cellWidth * (60 / (60 / this.quartersPerHour));
-                        hover.style.left = (left + width / 2) + "px";
-                        hover.style.transform = "translateX(-50%)"; // mooi centreren
+                        const blockLeft = getOffset(res.start,new Date(res.startDate).getDate() !== this.currentDate.getDate());
+                        const blockWidth = getWidth(res.start, res.end);
+                        hover.style.left = (blockLeft + blockWidth / 2) + "px";
+                        hover.style.transform = "translateX(-50%)";
                         hover.addEventListener("mousedown", (e) => {
                             e.stopPropagation();   // voorkomt dat de scheduler drag start
                         });
@@ -890,7 +892,7 @@
                         });
                         hover.innerHTML = `<span class="hover-customer-name">${res.customerFullName}</span><span class="hover-number-of-visits">{numberOfVisits}</span><br />
                     {phoneNumbers}<hr class="hover-horizontal-line" />
-                    <span class="hover-arrangement">${this.arrangements.find(item => item.id === res.arrangement)?.title || ""}</span><span class="hover-paid-amount">${res.paid ? `&euro; ${res.paid}` : ''}</span><br />
+                    <span class="hover-arrangement">${this.arrangements.find(item => item.id === res.arrangement)?.title || ""}</span><span class="hover-paid-amount">${res.paid ? `&euro; ${res.paid}` : ''}</span>
                     <div class="hover-notes">
                       <div class="hover-reservation-notes">${res.notes || "<span style='color:#999999;'>Klik hier om notities toe te voegen</span>"}</div>
                       <div class="hover-edit-area" style="display:none;">
