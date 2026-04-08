@@ -403,8 +403,6 @@ const moduleSettings = {
         }
 
         async createTaskAlerts() {
-            let created = 0;
-
             try {
                 const selectedUsers = this.taskUserSelect.dataItems();
                 
@@ -413,68 +411,58 @@ const moduleSettings = {
                     kendo.alert("U moet de agendering tenminste aan 1 gebruiker toewijzen.");
                     return;
                 }
-                
-                for (let i = 0; i < selectedUsers.length; i++) {
-                    const userId = selectedUsers[i].id;
-                    const username = selectedUsers[i].title;
-                    const parentId = this.settings.zeroEncrypted;
-                    const taskContent = document.getElementById("taskDescription").value;
 
-                    // Check whether to send an email or not
-                    const sendEmail = document.getElementById("taskEmail").checked;
+                const userIds = selectedUsers[i].map(user => user.id);
+                const parentId = this.settings.zeroEncrypted;
+                const taskContent = document.getElementById("taskDescription").value;
 
-                    // The input data is the entered information.
-                    const inputData = [
-                        {
-                            key: "agendering_date",
-                            value: kendo.toString(this.taskDatePicker.value() || new Date(), "yyyy-MM-dd")
-                        },
-                        {
-                            key: "content",
-                            value: taskContent
-                        },
-                        {
-                            key: "userid",
-                            value: userId
-                        },
-                        {
-                            key: "username",
-                            value: username
-                        },
-                        {
-                            key: "placed_by",
-                            value: this.settings.username
-                        },
-                        {
-                            key: "placed_by_id",
-                            value: this.settings.wiserUserId
-                        }
-                    ];
-                    
-                    // Create the item.
-                    const createResult = await this.createItem("agendering", parentId, null, null, inputData);
+                // Check whether to send an email or not
+                const sendEmail = document.getElementById("taskEmail").checked;
 
-                    // Send a pusher to notify the receiving user.
-                    await Wiser.api({
-                        url: `${this.settings.wiserApiRoot}pusher/message`,
-                        method: "POST",
-                        contentType: "application/json",
-                        data: JSON.stringify({
-                            channel: "agendering",
-                            userId: userId,
-                            sendEmail: sendEmail,
-                            eventData: JSON.stringify({
-                                message: taskContent
-                            })
-                        })
-                    });
-
-                    created++;
-                    if (created >= selectedUsers.length) {
-                        // Refresh.
-                        await this.loadTasks();
+                // The input data is the entered information.
+                const inputData = [
+                    {
+                        key: "agendering_date",
+                        value: kendo.toString(this.taskDatePicker.value() || new Date(), "yyyy-MM-dd")
+                    },
+                    {
+                        key: "content",
+                        value: taskContent
+                    },
+                    {
+                        key: "userid",
+                        value: userIds
+                    },
+                    {
+                        key: "placed_by",
+                        value: this.settings.username
+                    },
+                    {
+                        key: "placed_by_id",
+                        value: this.settings.wiserUserId
                     }
-                }
+                ];
+
+                // Create the item.
+                await this.createItem("agendering", parentId, null, null, inputData);
+
+                // Send a pusher to notify the receiving user.
+                await Wiser.api({
+                    url: `${this.settings.wiserApiRoot}pusher/message`,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        channel: "agendering",
+                        userId: userId,
+                        sendEmail: sendEmail,
+                        eventData: JSON.stringify({
+                            message: taskContent
+                        })
+                    })
+                });
+
+                // Refresh.
+                await this.loadTasks();
 
                 // After creating the new task, immediately close the form.
                 this.closeForm();
