@@ -366,8 +366,12 @@ export class Fields {
         }
 
         // Remember the change.
-        const entityContainer = container.closest(".entity-container");
-        const windowId = entityContainer.hasClass("popup-container") ? entityContainer.attr("id") : "mainScreen";
+        let entityContainer = container.closest(".entity-container");
+        if(entityContainer.length === 0)
+            entityContainer = container.closest('.k-window').find('.entity-container');
+        const windowId = entityContainer.hasClass("popup-container")
+            ? entityContainer.attr("id")
+            : "mainScreen";
         const propertyName = container.data("propertyName");
         if (!this.unsavedItemValues[windowId]) {
             this.unsavedItemValues[windowId] = {};
