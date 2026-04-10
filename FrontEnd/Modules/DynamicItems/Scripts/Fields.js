@@ -3200,27 +3200,44 @@ export class Fields {
                         click: async (event) => {
                             try {
                                 const dialogElement = $("#sendMailDialog");
-                                const validator = dialogElement.find(".formview").kendoValidator({
+                                const validators = dialogElement.find(".formview").map(function () {
+                                    const formView = $(this);
+                                    formView.kendoValidator({
                                     rules: {
                                         email: (input) => {
-                                            // Custom e-mail validation for allowing multiple e-mail addresses.
-                                            if (input.is("[type=email]") && input.val() !== "")
-                                            {
+                                            if (input.is("[type=email]") && input.val() !== "") {
                                                 const emailsArray = input.val().split(";");
-                                                for (let email of emailsArray)
-                                                {
+                                                for (let email of emailsArray) {
                                                     email = email.trim();
-                                                    if (email !== "" && !emailRegularExpression.test(email))
-                                                    {
+                                                    if (email !== "" && !emailRegularExpression.test(email)) {
                                                         return false;
                                                     }
                                                 }
                                             }
 
                                             return true;
+                                        },
+
+                                            editor: (input) => {
+                                                if (input.is("textarea.editor")) {
+                                                    const editor = input.data("kendoEditor") || dialogElement.find("textarea.editor").data("kendoEditor");
+                                                    const editorHtml = editor ? editor.value() : input.val();
+
+                                                    return /<img\b[^>]*>/i.test(editorHtml || "") ||
+                                                        /\S/.test(
+                                                            (editorHtml || "")
+                                                                .replace(/&nbsp;/gi, " ")
+                                                                .replace(/<[^>]*>/g, " ")
+                                                        );
+                                                }
+
+                                                return true;
+                                            }
                                         }
-                                    }
-                                }).data("kendoValidator");
+                                    });
+
+                                    return formView.data("kendoValidator");
+                                }).get();
                                 let mailDialog = dialogElement.data("kendoDialog");
                                 const uploadedFiles = [];
 
@@ -3261,7 +3278,16 @@ export class Fields {
                                             text: "Verstuur",
                                             primary: true,
                                             action: (event) => {
-                                                if (!validator.validate()) {
+                                                let isValid = true;
+
+                                                validators.forEach(function (validator) {
+                                                    validator.hideMessages();
+
+                                                    if (!validator.validate()) 
+                                                        isValid = false;
+                                                });
+
+                                                if (!isValid) {
                                                     return false;
                                                 }
 
