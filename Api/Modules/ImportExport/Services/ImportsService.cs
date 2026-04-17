@@ -19,6 +19,7 @@ using Api.Modules.ImportExport.Interfaces;
 using Api.Modules.ImportExport.Models;
 using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Tenants.Models;
+using FluentFTP.Helpers;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Core.Helpers;
@@ -33,6 +34,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.FileIO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NUglify.Helpers;
 
 namespace Api.Modules.ImportExport.Services
 {
@@ -112,7 +114,7 @@ namespace Api.Modules.ImportExport.Services
             var linkProperties = new List<(string PropertyName, string LanguageCode, string InputType, JObject Options)>();
 
             clientDatabaseConnection.AddParameter("entityType", entityType);
-            var dataTable = await clientDatabaseConnection.GetAsync($@"SELECT property_name, display_name, options, inputtype, data_query, language_code
+            var dataTable = await clientDatabaseConnection.GetAsync($@"SELECT property_name, IFNULL(display_name, property_name) AS display_name, options, inputtype, data_query, language_code
                                                                             FROM {WiserTableNames.WiserEntityProperty}
                                                                             WHERE entity_name = ?entityType");
 
@@ -140,6 +142,24 @@ namespace Api.Modules.ImportExport.Services
                     });
                 }
             }
+            
+            var user = await clientDatabaseConnection.GetAsync(
+                $"SELECT parent_item_id FROM {WiserTableNames.WiserItem} WHERE id = {IdentityHelpers.GetWiserUserId(identity)} LIMIT 1;");
+
+            if (user == null)
+            {
+                importResult.Failed += 1U;
+                importResult.Errors.Add("Can't do import because no user was found.");
+                importResult.UserFriendlyErrors.Add("Import kan niet gedaan worden, omdat er geen gebruiker is gevonden");
+            }
+            
+            // One or more errors occurred, skip the import and notify the user.
+            if (importResult.Failed > 0)
+            {
+                return new ServiceResult<ImportResultModel>(importResult);
+            }
+            
+            var accountId = user.Rows[0].Field<ulong>("parent_item_id");
 
             var importData = new List<ImportDataModel>();
 
@@ -156,6 +176,7 @@ namespace Api.Modules.ImportExport.Services
                 }
 
                 var idIndex = headerResult.idIndex;
+                var parentItemIdIndex = headerResult.parentItemIdIndex;
                 var rows = excelService.GetLines(importRequest.FilePath,  headerFields.Length, true, true, memoryStream);
                 var rowsHandled = 0;
                 foreach (var row in rows)
@@ -165,7 +186,7 @@ namespace Api.Modules.ImportExport.Services
                         break;
                     }
 
-                    await ProcessLineAsync(importResult, row.ToArray(), identity, moduleId, linkComboBoxFields, linkProperties, importData, idIndex, entityType, headerFields, importRequest, comboBoxFields, properties, tenant, subDomain);
+                    await ProcessLineAsync(importResult, row.ToArray(), identity, moduleId, linkComboBoxFields, linkProperties, importData, idIndex, parentItemIdIndex, entityType, headerFields, importRequest, comboBoxFields, properties, tenant, subDomain);
                     rowsHandled++;
                 }
             }
@@ -175,7 +196,7 @@ namespace Api.Modules.ImportExport.Services
                 {
                     using (var reader = new TextFieldParser(stringReader))
                     {
-                        reader.Delimiters = new[] {";"};
+                        reader.Delimiters = new[] {";", ","};
                         reader.TextFieldType = FieldType.Delimited;
                         reader.HasFieldsEnclosedInQuotes = true;
 
@@ -183,6 +204,7 @@ namespace Api.Modules.ImportExport.Services
                         var firstLine = true;
                         var rowsHandled = 0;
                         var idIndex = -1;
+                        var parentItemIdIndex = -1;
 
                         while (!reader.EndOfData)
                         {
@@ -198,6 +220,7 @@ namespace Api.Modules.ImportExport.Services
                                 }
 
                                 idIndex = headerResult.idIndex;
+                                parentItemIdIndex = headerResult.parentItemIdIndex;
                                 continue;
                             }
 
@@ -209,7 +232,7 @@ namespace Api.Modules.ImportExport.Services
                             rowsHandled += 1;
 
                             var lineFields = reader.ReadFields();
-                            await ProcessLineAsync(importResult, lineFields, identity, moduleId, linkComboBoxFields, linkProperties, importData, idIndex, entityType, headerFields, importRequest, comboBoxFields, properties, tenant, subDomain);
+                            await ProcessLineAsync(importResult, lineFields, identity, moduleId, linkComboBoxFields, linkProperties, importData, idIndex, parentItemIdIndex, entityType, headerFields, importRequest, comboBoxFields, properties, tenant, subDomain);
                         }
                     }
                 }
@@ -222,8 +245,8 @@ namespace Api.Modules.ImportExport.Services
             }
 
             var existingItemIds = new List<ulong>();
-            var allItemIds = importData.Where(i => i.Item.Id > 0).Select(i => i.Item.Id).ToList();
-            var allParentIds = importData.Select(i => i.Item.ParentItemId).ToList();
+            var allItemIds = importData.Select(i => i.Item.Id).ToList();
+            var allParentIds = importData.Where(i => i.Item.Id > 0).Select(i => i.Item.ParentItemId).ToList();
             var tablePrefix = await wiserItemsService.GetTablePrefixForEntityAsync(entityType);
 
             // Check if all items are of the correct entity type if there are any items that are imported according to the settings
@@ -375,57 +398,25 @@ namespace Api.Modules.ImportExport.Services
                 }
             }
             
-            var user = await clientDatabaseConnection.GetAsync(
-                $"SELECT parent_item_id FROM {WiserTableNames.WiserItem} WHERE id = {IdentityHelpers.GetWiserUserId(identity)} LIMIT 1;");
+                // Return error if 1 or more items don't have the current user's parent_item_id (only for items that have an ID defined).
+             var mismatchedItems = allParentIds.Where(parentId => parentId != accountId).ToList();
+             if (mismatchedItems.Any())
+             {
+                 importResult.Failed += 1U;
+                 importResult.Errors.Add(
+                     $"Can't do import because the following items don't have a matching parent_item_id to the logged in user: {string.Join(", ", mismatchedItems.Distinct())}");
+                 importResult.UserFriendlyErrors.Add(
+                     $"Import kan niet gedaan worden omdat 1 of meer items niet voor dit account bestemd zijn: <br>{string.Join(", ", mismatchedItems.Distinct())}");
+             }
 
-            if (user == null)
-            {
-                importResult.Failed += 1U;
-                importResult.Errors.Add("Can't do import because no user was found.");
-                importResult.UserFriendlyErrors.Add("Import kan niet gedaan worden, omdat er geen gebruiker is gevonden");
-            }
-            
-            // One or more errors occurred, skip the import and notify the user.
-            if (importResult.Failed > 0)
-            {
-                return new ServiceResult<ImportResultModel>(importResult);
-            }
-            
-            var accountId = user.Rows[0].Field<ulong>("parent_item_id");
-
-            if (accountId > 0)
-            {
-                // Return error if 1 or more items don't have the current user's parent_item_id.
-                var mismatchedItems = allParentIds.Where(parentId => parentId != accountId).ToList();
-                if (mismatchedItems.Any())
-                {
-                    importResult.Failed += 1U;
-                    importResult.Errors.Add($"Can't do import because the following items don't have a matching parent_item_id to the logged in user: {string.Join(", ", mismatchedItems.Distinct())}");
-                    importResult.UserFriendlyErrors.Add($"Import kan niet gedaan worden omdat 1 of meer items niet voor dit account bestemd zijn: <br>{string.Join(", ", mismatchedItems.Distinct())}");
-                }
-            }
-            else
-            {
-                importResult.Failed += 1U;
-                importResult.Errors.Add($"Can't do import, because no account ID was found.");
-                importResult.UserFriendlyErrors.Add($"Import kan niet gedaan worden omdat er geen account ID is gevonden.");
-                return new ServiceResult<ImportResultModel>(importResult);
-            }
-
-            // One or more errors occurred, skip the import and notify the user.
+             // One or more errors occurred, skip the import and notify the user.
             if (importResult.Failed > 0)
             {
                 return new ServiceResult<ImportResultModel>(importResult);
             }
 
-            // Return error if 1 or more items don't exist.
-            var missingItems = allItemIds.Except(existingItemIds).ToList();
-            if (missingItems.Any())
-            {
-                importResult.Failed += 1U;
-                importResult.Errors.Add($"Can't do import because the following items don't exist: {String.Join(", ", missingItems)}");
-                importResult.UserFriendlyErrors.Add($"Import kan niet gedaan worden omdat 1 of meer items niet bestaan of verwijderd zijn. Het gaat om de volgende items:<br>{String.Join(", ", missingItems)}");
-            }
+            // If the parent item ID isn't set, make sure to set it to the account ID.
+            importData.Where(i => i.Item.ParentItemId == 0u).ForEach(p => p.Item.ParentItemId = accountId);
 
             // One or more errors occurred, skip the import and notify the user.
             if (importResult.Failed > 0)
@@ -481,30 +472,11 @@ namespace Api.Modules.ImportExport.Services
             }
             
             var basePath = $@"C:\temp\WTS Import\{tenant.TenantId}\{wiserImportId}\";
-            var baseCloudFlarePath = $"{tenant.SubDomain}/{tenant.TenantId}/{wiserImportId}";
 
-            // Make sure the starts with is very specific to avoid uploading when the user who made the request isn't supposed to.
+            // Make sure the starts with is very specific to avoid deleting the temporary files when the user who made the request isn't supposed to.
             if (importRequest.FilePath.StartsWith($"{tenant.SubDomain}/temp/{tenant.TenantId}"))
             {
-                var contentTypeProvider = new FileExtensionContentTypeProvider();
-
-                // Get the content type based on the file path. Fallback to the cloudflare R2 object storage default
-                if (!contentTypeProvider.TryGetContentType(importRequest.FilePath, out var contentType))
-                    contentType = "application/octet-stream";
-
-                // Find the first index of '_', because that is always the separator for the name and GUID of the file. Then get the part after the first '_'
-                var separatorIndex = fileName.IndexOf("_", StringComparison.Ordinal) + 1;
-                var correctFileName = fileName[separatorIndex..];
-
-                var cloudFlareObjectKey = await cloudFlareService.UploadFileAsync(
-                    correctFileName,
-                    fileBytes,
-                    "coder-imports",
-                    contentType,
-                    baseCloudFlarePath);
-                
-                if (!string.IsNullOrEmpty(cloudFlareObjectKey))
-                    await HandleTempCleanUpAsync(identity, importRequest.FilePath, basePath);
+                await HandleTempCleanUpAsync(identity, importRequest.FilePath, basePath);
             }
             
             // Return early if no images were uploaded alongside the data
@@ -513,17 +485,7 @@ namespace Api.Modules.ImportExport.Services
             
             try
             {
-                var imageBytes = await GetFileBytes(
-                    importRequest.ImagesFilePath,
-                    basePath
-                );
-
-                var uploadedObjectKeys = await UploadImagesFromZipToCloudFlareAsync(
-                    imageBytes,
-                    "coder-imports",
-                    $"{baseCloudFlarePath}/images");
-
-                if (uploadedObjectKeys.Count > 0)
+                if (importRequest.ImagesFilePath.StartsWith($"{tenant.SubDomain}/temp/{tenant.TenantId}"))
                 {
                     await HandleTempCleanUpAsync(identity, importRequest.ImagesFilePath, basePath);
                     return new ServiceResult<ImportResultModel>(importResult);
@@ -537,7 +499,7 @@ namespace Api.Modules.ImportExport.Services
             {
                 logger.LogWarning(
                     exception,
-                    "Failed to read or upload image zip to Cloudflare. Falling back to local extraction. FilePath: {ImagesFilePath}",
+                    "Failed to remove the temporary image files from Cloudflare. Falling back to local extraction. FilePath: {ImagesFilePath}",
                     importRequest.ImagesFilePath);
             }
 
@@ -606,7 +568,7 @@ namespace Api.Modules.ImportExport.Services
             }
 
             var accountId = user.Rows[0].Field<ulong?>("parent_item_id");
-            if (accountId is null or 0)
+            if (accountId is null)
             {
                 uploadResult.Successful = false;
                 return uploadResult;
@@ -674,12 +636,22 @@ namespace Api.Modules.ImportExport.Services
                 var parentItemIdColumnIndex = Array.FindIndex(
                     uploadResult.Columns,
                     columnName => columnName.Equals("parent_item_id", StringComparison.OrdinalIgnoreCase));
+                
+                var idColumnIndex = Array.FindIndex(
+                    uploadResult.Columns,
+                    columnName => columnName.Equals("id", StringComparison.OrdinalIgnoreCase));
 
                 if (parentItemIdColumnIndex >= 0)
                 {
                     foreach (var row in excelData)
                     {
-                        if (row == null || row.Count <= parentItemIdColumnIndex)
+                        if (row == null) continue;
+                        
+                        var idValue = row[idColumnIndex].Trim();
+                        
+                        if (ulong.TryParse(idValue, out var itemId) && itemId == 0) continue;
+                        
+                        if (row.Count <= parentItemIdColumnIndex)
                         {
                             mismatchedParentItemIds.Add("(null)");
                             continue;
@@ -725,18 +697,23 @@ namespace Api.Modules.ImportExport.Services
                 using (var stringReader = new StringReader(fileContents))
                 using (var reader = new TextFieldParser(stringReader))
                 {
-                    reader.Delimiters = new[] { ";" };
+                    reader.Delimiters = new[] { ";", "," };
                     reader.TextFieldType = FieldType.Delimited;
                     reader.HasFieldsEnclosedInQuotes = true;
 
                     uploadResult.Columns = reader.ReadFields();
 
                     var parentItemIdColumnIndex = -1;
+                    var idColumnIndex = -1;
                     if (uploadResult.Columns != null)
                     {
                         parentItemIdColumnIndex = Array.FindIndex(
                             uploadResult.Columns,
                             columnName => columnName.Equals("parent_item_id", StringComparison.OrdinalIgnoreCase));
+                        
+                        idColumnIndex = Array.FindIndex(
+                            uploadResult.Columns,
+                            columnName => columnName.Equals("id", StringComparison.OrdinalIgnoreCase));
                     }
 
                     while (!reader.EndOfData)
@@ -748,7 +725,14 @@ namespace Api.Modules.ImportExport.Services
                             rowValues == null ||
                             rowValues.Length <= parentItemIdColumnIndex) continue;
                         
+                        if (idColumnIndex < 0 ||
+                            rowValues.Length <= idColumnIndex) continue;
+                        
                         var parentItemIdValue = rowValues[parentItemIdColumnIndex].Trim();
+                        var idValue = rowValues[idColumnIndex].Trim();
+                        if (string.IsNullOrWhiteSpace(idValue)) idValue = "0";
+
+                        if (ulong.TryParse(idValue, out var itemId) && itemId == 0) continue;
 
                         if (string.IsNullOrWhiteSpace(parentItemIdValue) ||
                             !ulong.TryParse(parentItemIdValue, out var parsedParentItemId) ||
@@ -861,22 +845,16 @@ namespace Api.Modules.ImportExport.Services
                 mergedFileBytes = mergedFileMemoryStream.ToArray();
             }
 
-            var contentTypeProvider = new FileExtensionContentTypeProvider();
-            if (!contentTypeProvider.TryGetContentType(chunkMetaData.FileName ?? "", out var contentType))
-                contentType = "application/octet-stream";
-
-            var cloudFlareObjectKey = await cloudFlareService.UploadFileAsync(
-                fileName,
+            var cloudFlareObjectKey = await UploadImagesFromZipToCloudFlareAsync(
                 mergedFileBytes,
                 "coder-imports",
-                contentType,
                 tempCloudFlarePath);
 
             string resultingFilePath;
 
-            if (!string.IsNullOrWhiteSpace(cloudFlareObjectKey))
+            if (cloudFlareObjectKey.Count > 0)
             {
-                resultingFilePath = cloudFlareObjectKey;
+                resultingFilePath = cloudFlareObjectKey.Join(",");
             }
             else
             {
@@ -1031,16 +1009,17 @@ namespace Api.Modules.ImportExport.Services
         /// <param name="headerFields">The fields containing the headers.</param>
         /// <param name="importResult">The result that will be given back to the front-end to set any errors if they occur.</param>
         /// <returns>Returns the index of the ID column and depending if it was found the <see cref="ServiceResult{T}"/> to return.</returns>
-        private (ServiceResult<ImportResultModel> result, int idIndex) CheckHeader(string[] headerFields, ImportResultModel importResult)
+        private (ServiceResult<ImportResultModel> result, int idIndex, int parentItemIdIndex) CheckHeader(string[] headerFields, ImportResultModel importResult)
         {
             var idIndex = Array.FindIndex(headerFields, s => s.Equals("id", StringComparison.OrdinalIgnoreCase));
-
-            if (idIndex >= 0) return (null, idIndex);
-
+            var parentItemIdIndex = Array.FindIndex(headerFields, s => s.Equals("parent_item_id", StringComparison.OrdinalIgnoreCase));
+            
+            if (idIndex >= 0 && parentItemIdIndex >= 0) return (null, idIndex, parentItemIdIndex);
+            
             importResult.Failed += 1U;
-            importResult.Errors.Add("Can't do import because of missing ID column");
-            importResult.UserFriendlyErrors.Add("De import kan niet gedaan worden omdat er geen kolom genaamd 'id' is gevonden in het importbestand. Er moet altijd een kolom met de naam 'id' zijn. Bij het wijzigen van bestaande items, moet daar het ID van het item im komen te staan. Bij het toevoegen van nieuwe items, kan de kolon leeg blijven, of '0' zijn. Bij het importeren van koppelingen moet daar het ID van een van de items in staan (en het andere ID moet dan in een andere kolom staan).");
-            return (new ServiceResult<ImportResultModel>(importResult), idIndex);
+            importResult.Errors.Add("Can't do import because of missing ID or parent item ID column");
+            importResult.UserFriendlyErrors.Add("De import kan niet gedaan worden omdat er geen kolom genaamd 'id' of 'parent_item_id' is gevonden in het importbestand. Er moet altijd een kolom met de naam 'id' of 'parent_item_id' zijn. Bij het wijzigen van bestaande items, moet daar het ID van het item im komen te staan. Bij het toevoegen van nieuwe items, kan de kolon leeg blijven, of '0' zijn. Bij het importeren van koppelingen moet daar het ID van een van de items in staan (en het andere ID moet dan in een andere kolom staan).");
+            return (new ServiceResult<ImportResultModel>(importResult), idIndex, parentItemIdIndex);
         }
 
         /// <summary>
@@ -1054,6 +1033,7 @@ namespace Api.Modules.ImportExport.Services
         /// <param name="linkProperties">A list of properties to add information of properties on the link to.</param>
         /// <param name="importData">A list of <see cref="ImportDataModel"/>s containing the data that need to be imported.</param>
         /// <param name="idIndex">The index of the ID column.</param>
+        /// <param name="parentItemIdIndex">The index of the parent item ID column.</param>
         /// <param name="entityType">The entity type being imported.</param>
         /// <param name="headerFields">The names of the columns in the header.</param>
         /// <param name="importRequest">The <see cref="ImportRequestModel"/> with the information filled in in Wiser.</param>
@@ -1069,6 +1049,7 @@ namespace Api.Modules.ImportExport.Services
             List<(string PropertyName, string LanguageCode, string InputType, JObject Options)> linkProperties,
             List<ImportDataModel> importData,
             int idIndex,
+            int parentItemIdIndex,
             string entityType,
             string[] headerFields,
             ImportRequestModel importRequest,
@@ -1101,6 +1082,12 @@ namespace Api.Modules.ImportExport.Services
                 // ID field exists and is filled; line is item update.
                 importItem.Item.Id = Convert.ToUInt64(lineFields[idIndex]);
                 isNewItem = importItem.Item.Id == 0;
+            }
+            
+            if (parentItemIdIndex >= 0)
+            {
+                // Parent item id field exists and is filled
+                importItem.Item.ParentItemId = string.IsNullOrWhiteSpace(lineFields[parentItemIdIndex]) ? 0u : Convert.ToUInt64(lineFields[parentItemIdIndex]);
             }
 
             // Now update the item with the fields from the import.
