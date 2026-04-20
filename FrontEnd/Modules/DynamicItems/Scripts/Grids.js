@@ -727,7 +727,9 @@ export class Grids {
                     this.onGridSelectionChange(event);
                 },
                 resizable: true,
-                sortable: true,
+                sortable: {
+                    mode: 'mixed'
+                },
                 scrollable: usingDataSelector || (gridViewSettings.groupable && gridViewSettings.clientSidePaging) ? true : {
                     virtual: true
                 },
@@ -1308,7 +1310,9 @@ export class Grids {
                 refresh: true
             },
             toolbar: toolbar,
-            sortable: true,
+            sortable: {
+                mode: 'mixed'
+            },
             resizable: true,
             editable: false,
             navigatable: true,
