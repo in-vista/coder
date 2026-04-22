@@ -3257,6 +3257,11 @@ export class Fields {
                                 let emailBodyEditor = dialogElement.find("textarea.editor").data("kendoEditor");
                                 let attachmentsUploader = dialogElement.find("input[name=files]").data("kendoUpload");
 
+                                // Make sure to hide all previous form errors
+                                validators.forEach(function (validator) {
+                                    validator.hideMessages();
+                                });
+
                                 if (mailDialog) {
                                     mailDialog.destroy();
                                 }
@@ -3281,8 +3286,6 @@ export class Fields {
                                                 let isValid = true;
 
                                                 validators.forEach(function (validator) {
-                                                    validator.hideMessages();
-
                                                     if (!validator.validate()) 
                                                         isValid = false;
                                                 });
