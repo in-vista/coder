@@ -46,7 +46,7 @@ namespace Api.Modules.EntityTypes.Services
         }
 
         /// <inheritdoc />
-        public async Task<ServiceResult<List<EntityTypeModel>>> GetAsync(ClaimsIdentity identity, bool onlyEntityTypesWithDisplayName = true, bool includeCount = false, bool skipEntitiesWithoutItems = false, int moduleId = 0, int branchId = 0)
+        public async Task<ServiceResult<List<EntityTypeModel>>> GetAsync(ClaimsIdentity identity, bool onlyEntityTypesWithDisplayName = true, bool includeCount = false, bool skipEntitiesWithoutItems = false, bool isForSearch = false, int moduleId = 0, int branchId = 0)
         {
             using var scope = serviceProvider.CreateScope();
             var databaseConnectionResult = await branchesService.GetBranchDatabaseConnectionAsync(scope, identity, branchId);
@@ -67,6 +67,11 @@ namespace Api.Modules.EntityTypes.Services
                 databaseHelpersServiceToUse = scope.ServiceProvider.GetRequiredService<IDatabaseHelpersService>();
             }
 
+            var searchWhereClause = "";
+
+            if (isForSearch)
+                searchWhereClause = "AND entity.show_in_search = 1";
+
             var result = new List<EntityTypeModel>();
             var query = $@"SELECT 
 	entity.name, 
@@ -79,6 +84,7 @@ LEFT JOIN {WiserTableNames.WiserModule} AS module ON module.id = entity.module_i
 WHERE entity.`name` <> ''
 {(onlyEntityTypesWithDisplayName ? "AND entity.friendly_name IS NOT NULL AND entity.friendly_name <> ''" : "")}
 {(moduleId <= 0 ? "" : "AND entity.module_id = ?moduleId")}
+{searchWhereClause}
 GROUP BY entity.`name`
 ORDER BY CONCAT(IF(entity.friendly_name IS NULL OR entity.friendly_name = '', entity.name, entity.friendly_name), IF(module.`name` IS NULL, '', CONCAT(' (', module.`name`, ')'))) ASC";
 
