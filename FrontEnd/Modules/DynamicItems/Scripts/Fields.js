@@ -1655,9 +1655,15 @@ export class Fields {
                                     if (ignoreVisible)
                                         return false;
 
-                                    // Disallow key action if the user is currently focused in a text area.
+                                    // Disallow key action if the user is currently focused in a text area or input
+                                    // which is not part of the main input of the dialog window.
                                     const disallowedFocusedElements = [ 'INPUT', 'TEXTAREA' ];
-                                    if (disallowedFocusedElements.includes(event.target.tagName))
+                                    const allowedFocusedIds = [
+                                        'normalInputUserParameter',
+                                        'multiLineInputUserParameter',
+                                        'comboBoxUserParameter'
+                                    ];
+                                    if (disallowedFocusedElements.includes(event.target.tagName) && !allowedFocusedIds.includes(event.target.id))
                                         return false;
 
                                     // Allow input.
