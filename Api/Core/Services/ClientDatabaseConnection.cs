@@ -572,6 +572,19 @@ namespace Api.Core.Services
             
             return $"({joinedEntries})";
         }
+        
+        /// <inheritdoc/>
+        public string AddInsertIntoParameters(string key, IEnumerable<object> collection)
+        {
+            string joinedEntries = string.Join(", ", collection.Select((entry, entryIndex) =>
+            {
+                string parameterName = $"{key}_{entryIndex}";
+                AddParameter(parameterName, entry);
+                return $"(?{parameterName})";
+            }));
+            
+            return $"{joinedEntries}";
+        }
 
         /// <inheritdoc />
         public async ValueTask DisposeAsync()
