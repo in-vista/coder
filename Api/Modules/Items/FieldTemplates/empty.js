@@ -9,5 +9,6 @@
     // so it doesn't take up any space.
     if (placeholderPattern.test(inputValue))
         item.remove();
-    
+
+    {customScript}
 })();
