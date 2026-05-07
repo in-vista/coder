@@ -49,7 +49,7 @@ namespace Api.Modules.TaskAlerts.Services
             // The database portion which will be placed in front of the table names of the FROM and JOIN statements.
             var queryDatabasePart = !String.IsNullOrWhiteSpace(branchDatabaseName) ? $"`{branchDatabaseName}`." : String.Empty;
 
-            var userJoinPart = getAllUsers ? "" : "AND FIND_IN_SET(userId.`value`, ?userId)";
+            var userJoinPart = getAllUsers ? "" : "AND FIND_IN_SET(?userId, userId.`value`)";
             var dataTable = await clientDatabaseConnection.GetAsync($@"SELECT
     taskAlert.id,
     taskAlert.moduleid,
