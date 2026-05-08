@@ -77,7 +77,7 @@ namespace Api.Core.Models
 
                     AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
                     AccessTokenType = AccessTokenType.Jwt,
-                    AccessTokenLifetime = 300,
+                    AccessTokenLifetime = 1800,
                     IdentityTokenLifetime = 3600,
                     UpdateAccessTokenClaimsOnRefresh = true,
                     AllowOfflineAccess = true,

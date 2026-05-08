@@ -288,15 +288,13 @@ export class Wiser {
         // If another process/request is already requesting a new access token, wait for that to finish first.
         // This is to prevent multiple access token requests at the same time and to prevent racing conditions.
         if (wiserMainWindow.wiserApiRefreshTokenPromise) {
-            const timeoutPromise = new Promise((res) => setTimeout(() => res("TIMEOUT"), 1000));
-            const newRefreshToken = await Promise.race([wiserMainWindow.wiserApiRefreshTokenPromise, timeoutPromise]);
+            // Request a new refresh token.
+            const newRefreshToken = await wiserMainWindow.wiserApiRefreshTokenPromise;
 
             // Add logged in user access token to default authorization headers for all jQuery ajax requests.
-            if (newRefreshToken !== "TIMEOUT") {
-                $.ajaxSetup({
-                    headers: {"Authorization": `Bearer ${newRefreshToken.access_token}`}
-                });
-            }
+            $.ajaxSetup({
+                headers: {"Authorization": `Bearer ${newRefreshToken.access_token}`}
+            });
         }
 
         const accessTokenExpires = localStorage.getItem("accessTokenExpiresOn");
@@ -350,12 +348,13 @@ export class Wiser {
                 } catch (exception) {
                     console.error("Error occurred while trying to get a new token.", exception);
                     reject(exception);
+                } finally {
+                    wiserMainWindow.wiserApiRefreshTokenPromise = null;
                 }
             });
 
             // Of course we also need to wait until we have the new auth token, otherwise the code below will be executed too early.
-            const timeoutPromise = new Promise((res) => setTimeout(() => res("TIMEOUT"), 1000));
-            await Promise.race([wiserMainWindow.wiserApiRefreshTokenPromise, timeoutPromise]);
+            await wiserMainWindow.wiserApiRefreshTokenPromise;
         }
 
         // Double check if the current ajax setup has the correct token set.
