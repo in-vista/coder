@@ -259,60 +259,58 @@ const loginModule = {
                 if (!rootState.users.updateTimeActiveTimerWorking && user.hasOwnProperty("encryptedLoginLogId")) {
                     await this.dispatch(START_UPDATE_TIME_ACTIVE_TIMER);
                 }
+            } else {
+                const loginResult = await main.usersService.loginUser(user.username, user.password, (user.selectedUser || {}).username, user.totpPin, user.totpBackupCode);
+                if (!loginResult.success) {
+                    commit(AUTH_ERROR, {
+                        message: loginResult.message,
+                        isTotpError: data.loginStatus === "totp"
+                    });
+                    return;
+                }
 
-                return;
+                // If TOTP is enabled and not succeeded yet, show the 2FA step.
+                if (loginResult.data.totpEnabled && !loginResult.data.totpSuccess) {
+                    commit(loginResult.data.totpQrImageUrl ? AUTH_TOTP_SETUP : AUTH_TOTP_PIN, loginResult.data);
+                    return;
+                }
+
+                // If the user that is logging in is an admin account, show a list of users for the tenant.
+                if (loginResult.data.adminLogin && !loginResult.data.adminAccountId) {
+                    commit(AUTH_LIST, loginResult.data.usersList);
+                    return;
+                }
+
+                localStorage.setItem("accessToken", loginResult.data.access_token);
+                localStorage.setItem("accessTokenExpiresOn", loginResult.data.expiresOn);
+                localStorage.setItem("userData", JSON.stringify(loginResult.data));
+                window.main.api.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("accessToken")}`;
+
+                loginResult.data.loggedIn = true;
+
+                commit(AUTH_SUCCESS, loginResult.data);
+
+                const extraUserData = await window.main.usersService.getLoggedInUserData();
+                if (extraUserData.success) {
+                    Object.assign(loginResult.data, extraUserData.data);
+                }
+
+                commit(AUTH_SUCCESS, loginResult.data);
+
+                if (!rootState.modules.allModules || !rootState.modules.allModules.length)
+                    await this.dispatch(DO_TENANT_MIGRATIONS);
+
+                // If a login log ID is also set in the user data, use it to start the "time active" timer.
+                if (!rootState.users.updateTimeActiveTimerWorking && user.hasOwnProperty("encryptedLoginLogId")) {
+                    await this.dispatch(START_UPDATE_TIME_ACTIVE_TIMER);
+                }
+
+                // Reload the modules after a successful login.
+                await this.dispatch(MODULES_REQUEST);
+
+                // Load system styling.
+                await Misc.injectSystemStyling();
             }
-
-            const loginResult = await main.usersService.loginUser(user.username, user.password, (user.selectedUser || {}).username, user.totpPin, user.totpBackupCode);
-            if (!loginResult.success) {
-                commit(AUTH_ERROR, {
-                    message: loginResult.message,
-                    isTotpError: data.loginStatus === "totp"
-                });
-                return;
-            }
-
-            // If TOTP is enabled and not succeeded yet, show the 2FA step.
-            if (loginResult.data.totpEnabled && !loginResult.data.totpSuccess) {
-                commit(loginResult.data.totpQrImageUrl ? AUTH_TOTP_SETUP : AUTH_TOTP_PIN, loginResult.data);
-                return;
-            }
-
-            // If the user that is logging in is an admin account, show a list of users for the tenant.
-            if (loginResult.data.adminLogin && !loginResult.data.adminAccountId) {
-                commit(AUTH_LIST, loginResult.data.usersList);
-                return;
-            }
-
-            localStorage.setItem("accessToken", loginResult.data.access_token);
-            localStorage.setItem("accessTokenExpiresOn", loginResult.data.expiresOn);
-            localStorage.setItem("userData", JSON.stringify(loginResult.data));
-            window.main.api.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("accessToken")}`;
-
-            loginResult.data.loggedIn = true;
-
-            commit(AUTH_SUCCESS, loginResult.data);
-
-            const extraUserData = await window.main.usersService.getLoggedInUserData();
-            if (extraUserData.success) {
-                Object.assign(loginResult.data, extraUserData.data);
-            }
-
-            commit(AUTH_SUCCESS, loginResult.data);
-
-            if (!rootState.modules.allModules || !rootState.modules.allModules.length)
-                await this.dispatch(DO_TENANT_MIGRATIONS);
-
-            // If a login log ID is also set in the user data, use it to start the "time active" timer.
-            if (!rootState.users.updateTimeActiveTimerWorking && user.hasOwnProperty("encryptedLoginLogId")) {
-                await this.dispatch(START_UPDATE_TIME_ACTIVE_TIMER);
-            }
-            
-            // Reload the modules after a successful login.
-            await this.dispatch(MODULES_REQUEST);
-            
-            // Load system styling.
-            await Misc.injectSystemStyling();
         },
 
         [AUTH_LOGOUT]({ commit }) {
