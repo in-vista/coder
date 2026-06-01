@@ -738,6 +738,7 @@
             },
             filter: (event) => {filtersChanged = true;},
             change: event => dynamicItems.grids.onGridSelectionChange(event, readonly),
+            changing: event => dynamicItems.grids.onGridSelectionChanging(event),
             allowCopy: true
         }, options);
     
