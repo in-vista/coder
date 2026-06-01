@@ -2027,7 +2027,28 @@ export class Grids {
 
         // Retrieve the elements of the selected rows.
         const grid = event.sender;
-        const selectedData = grid.select().get().map(row => grid.dataItem(row).toJSON());
+        const selectedData = grid.select().get().map(selectedElement => {
+            const $selectedElement = $(selectedElement);
+            
+            // Check whether the selected item is a row or a cell and return data based on the behavior.
+            if($selectedElement.is('tr')) {
+                return grid.dataItem($selectedElement).toJSON();
+            } else if($selectedElement.is('td')) {
+                // Get the index of the column in the grid.
+                const columnIndex = $selectedElement.index();
+                
+                // Retrieve the column information of the grid of the column index of the selected cell.
+                const columnData = grid.columns[columnIndex];
+                const columnKey = columnData.field;
+                
+                // Get all the data of the row with the selected cell and retrieve the underlying value.
+                const dataRow = grid.dataItem($selectedElement.closest('tr'));
+                const columnValue = dataRow[columnKey];
+                
+                // Return the data as JSON of the selected cell.
+                return { [columnKey]: columnValue };
+            }
+        });
         
         // Determine whether any of the selected items are set to be readonly.
         if(readOnly === undefined)
