@@ -2093,8 +2093,16 @@ export class Grids {
         const grid = event.sender;
         const state = this.getSelectionState(grid);
 
-        state.shift = event.originalEvent?.shiftKey ?? false;
-        state.target = $(event.target);
+        const target = $(event.target);
+        const shift = event.originalEvent?.shiftKey ?? false;
+
+        if (!shift) {
+            state.anchor = target;
+            return;
+        }
+
+        state.shift = true;
+        state.target = target;
     }
 
     /**
@@ -2110,16 +2118,6 @@ export class Grids {
         
         // Ignore the selection overwrite behavior if the shift key was not pressed.
         if (!state.shift)
-            return;
-        
-        // Retrieve the selected cells from the grid.
-        const selectedCells = grid.select();
-        
-        // Assume the first selected cell is the anchor for the selection.
-        const anchor = selectedCells.first();
-        
-        // Ignore behavior if there is no anchor.
-        if(!anchor.length)
             return;
         
         // Retrieve necessary properties from the grid's selection options.
@@ -2139,8 +2137,8 @@ export class Grids {
                 // Retrieve the target of the selection.
                 const target = state.target;
 
-                // Reset current default selection from Kendo.
-                const anchor = selectedCells.first();
+                // Retrieve the anchor element to base the selection area with the target for.
+                let anchor = state.anchor;
                 
                 // If there is no anchor nor target, we can ignore this behavior.
                 if (!anchor.length || !target.length)
