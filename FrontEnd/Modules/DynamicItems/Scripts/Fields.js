@@ -1584,6 +1584,13 @@ export class Fields {
                                             break;
                                         }
                                     }
+                                    
+                                    const regex = parameter.regex;
+                                    if(regex !== undefined && !new RegExp(regex).test(value)) {
+                                        kendo.alert(parameter.regexFailedMessage ?? 'U heeft een ongeldig formaat ingevoerd.');
+                                        reject('Invalid input format based on given regex');
+                                        return;
+                                    }
 
                                     resolve(value);
                                 };
