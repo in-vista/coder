@@ -103,9 +103,8 @@ export default {
             }
 
             // Don't try a new login request if one is still running.
-            if (this.loginStatus === "loading") {
+            if (['loading', 'list_loading'].includes(this.loginStatus))
                 return;
-            }
 
             await this.$store.dispatch(AUTH_REQUEST, {
                 user: Object.assign({}, this.loginForm),

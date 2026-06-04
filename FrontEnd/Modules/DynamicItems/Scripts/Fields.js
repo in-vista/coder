@@ -366,8 +366,12 @@ export class Fields {
         }
 
         // Remember the change.
-        const entityContainer = container.closest(".entity-container");
-        const windowId = entityContainer.hasClass("popup-container") ? entityContainer.attr("id") : "mainScreen";
+        let entityContainer = container.closest(".entity-container");
+        if(entityContainer.length === 0)
+            entityContainer = container.closest('.k-window').find('.entity-container');
+        const windowId = entityContainer.hasClass("popup-container")
+            ? entityContainer.attr("id")
+            : "mainScreen";
         const propertyName = container.data("propertyName");
         if (!this.unsavedItemValues[windowId]) {
             this.unsavedItemValues[windowId] = {};
@@ -1576,6 +1580,13 @@ export class Fields {
                                             value = fileData.fileId;
                                             break;
                                         }
+                                    }
+                                    
+                                    const regex = parameter.regex;
+                                    if(regex !== undefined && !new RegExp(regex).test(value)) {
+                                        kendo.alert(parameter.regexFailedMessage ?? 'U heeft een ongeldig formaat ingevoerd.');
+                                        reject('Invalid input format based on given regex');
+                                        return;
                                     }
 
                                     resolve(value);

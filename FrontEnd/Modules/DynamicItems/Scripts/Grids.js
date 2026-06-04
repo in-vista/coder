@@ -726,14 +726,18 @@ export class Grids {
                     // Invoke the grid selection change event.
                     this.onGridSelectionChange(event);
                 },
+                changing: event => this.onGridSelectionChanging(event),
                 resizable: true,
-                sortable: true,
+                sortable: {
+                    mode: 'mixed'
+                },
                 scrollable: usingDataSelector || (gridViewSettings.groupable && gridViewSettings.clientSidePaging) ? true : {
                     virtual: true
                 },
                 filterable: filterable,
                 filterMenuInit: this.onFilterMenuInit.bind(this),
-                filterMenuOpen: this.onFilterMenuOpen.bind(this)
+                filterMenuOpen: this.onFilterMenuOpen.bind(this),
+                allowCopy: true
             }, gridViewSettings);
 
             finalGridViewSettings.selectable = gridViewSettings.selectable || false;
@@ -1308,7 +1312,9 @@ export class Grids {
                 refresh: true
             },
             toolbar: toolbar,
-            sortable: true,
+            sortable: {
+                mode: 'mixed'
+            },
             resizable: true,
             editable: false,
             navigatable: true,
@@ -2017,12 +2023,36 @@ export class Grids {
      * are supposed to be hidden if the item is read-only.
      */
     async onGridSelectionChange(event, readOnly = undefined) {
+        // Overwrite the default Kendo selection mode.
+        this.overwriteKendoGridCellSelection(event);
+        
         // Retrieve all buttons to check the condition for.
         let conditionalButtons = event.sender.wrapper.find('.k-button');
 
         // Retrieve the elements of the selected rows.
         const grid = event.sender;
-        const selectedData = grid.select().get().map(row => grid.dataItem(row).toJSON());
+        const selectedData = grid.select().get().map(selectedElement => {
+            const $selectedElement = $(selectedElement);
+            
+            // Check whether the selected item is a row or a cell and return data based on the behavior.
+            if($selectedElement.is('tr')) {
+                return grid.dataItem($selectedElement).toJSON();
+            } else if($selectedElement.is('td')) {
+                // Get the index of the column in the grid.
+                const columnIndex = $selectedElement.index();
+                
+                // Retrieve the column information of the grid of the column index of the selected cell.
+                const columnData = grid.columns[columnIndex];
+                const columnKey = columnData.field;
+                
+                // Get all the data of the row with the selected cell and retrieve the underlying value.
+                const dataRow = grid.dataItem($selectedElement.closest('tr'));
+                const columnValue = dataRow[columnKey];
+                
+                // Return the data as JSON of the selected cell.
+                return { [columnKey]: columnValue };
+            }
+        });
         
         // Determine whether any of the selected items are set to be readonly.
         if(readOnly === undefined)
@@ -2059,6 +2089,105 @@ export class Grids {
         }
     }
 
+    onGridSelectionChanging(event) {
+        const grid = event.sender;
+        const state = this.getSelectionState(grid);
+
+        const target = $(event.target);
+        const shift = event.originalEvent?.shiftKey ?? false;
+
+        if (!shift) {
+            state.anchor = target;
+            return;
+        }
+
+        state.shift = true;
+        state.target = target;
+    }
+
+    /**
+     * Overwrites Kendo's default cell selection by adjusting the area of selection based on the selection mode.
+     * @param event - The Kendo event object for the changing event of grids.
+     */
+    overwriteKendoGridCellSelection(event) {
+        // Retrieve the grid in question.
+        const grid = event.sender;
+        
+        // Get the state of the grid.
+        const state = this.getSelectionState(grid);
+        
+        // Ignore the selection overwrite behavior if the shift key was not pressed.
+        if (!state.shift)
+            return;
+        
+        // Retrieve necessary properties from the grid's selection options.
+        const { filter: selectionFilter } = grid.selectable.options;
+        
+        // Retrieve the selection mode (row / cell) based on the set filter on the grid.
+        const selectionFilterMap = {
+            '>tbody>tr': 'row',
+            '>tbody>tr:not(.k-grouping-row):not(.k-detail-row):not(.k-group-footer):not([data-skeleton-row]) > td:not(.k-group-cell):not(.k-hierarchy-cell)': 'cell'
+        }
+        const selectionMode = selectionFilterMap[selectionFilter];
+        
+        // Overwrite selection behavior based on the selection mode.
+        switch(selectionMode) {
+            // Deselect irrelevant cells from non-selected columns.
+            case 'cell':
+                // Retrieve the target of the selection.
+                const target = state.target;
+
+                // Retrieve the anchor element to base the selection area with the target for.
+                let anchor = state.anchor;
+                
+                // If there is no anchor nor target, we can ignore this behavior.
+                if (!anchor.length || !target.length)
+                    break;
+                
+                // Determine the area of selection based on the anchor and target of the selection.
+                const startRow = anchor.parent().index();
+                const endRow = target.parent().index();
+                const startCol = grid.cellIndex(anchor);
+                const endCol = grid.cellIndex(target);
+                const minRow = Math.min(startRow, endRow);
+                const maxRow = Math.max(startRow, endRow);
+                const minCol = Math.min(startCol, endCol);
+                const maxCol = Math.max(startCol, endCol);
+                
+                // Build a list of elements that are present within the calculated selection area.
+                const newSelection = [];
+                for (let r = minRow; r <= maxRow; r++) {
+                    const row = grid.tbody.children().eq(r);
+                    for (let c = minCol; c <= maxCol; c++) {
+                        const cell = row.children().eq(c);
+                        newSelection.push(cell[0]);
+                    }
+                }
+                
+                // Clear the selection.
+                grid.clearSelection();
+
+                // Reapply the selection based on the calculate selection area.
+                grid.select($(newSelection));
+                
+                // Reset the selection state.
+                state.shift = false;
+                state.target = null;
+                
+                break;
+        }
+    }
+    
+    getSelectionState(grid) {
+        if (!grid._selectionState) {
+            grid._selectionState = {
+                shift: false,
+                target: null
+            };
+        }
+        
+        return grid._selectionState;
+    }
     /**
      * 
      */

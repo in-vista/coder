@@ -2987,7 +2987,7 @@ ORDER BY {orderByClause}";
             }
             else
             {
-                query = $"DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} WHERE type = ?linkType AND destination_item_id IN ({String.Join(",", destinationIds)}) AND item_id IN ({string.Join(",", sourceIds)})";
+                query = $"DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} WHERE type = ?linkType AND destination_item_id IN ({String.Join(",", destinationIds)}) AND item_id IN ({string.Join(",", sourceIds)});";
                 
                 if (setOrdering) // Set ordering for the remaining items.
                 {

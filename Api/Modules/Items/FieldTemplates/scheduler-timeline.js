@@ -86,6 +86,7 @@
     
             currentDateSpan.innerText = this.formatDate(this.currentDate);
             this.createHeader();
+            this.initHeaderDragScroll();
 
             // Load arrangements and cache for 1 hour            
             this.arrangements = (await this.callApi(this.options.timelineSchedulerQueryGetArrangements));
@@ -265,6 +266,8 @@
             // BEGIN DRAG
             block.addEventListener("mousedown", (e) => {
                 if (e.target === handle) return;
+                if (e.button !== 0) return; // Alleen linker muisknop
+                
                 e.stopPropagation();
     
                 document.querySelectorAll(".hover").forEach(el => el.style.display = "none");
@@ -545,7 +548,7 @@
                     startDate: r.start.substring(0,10),
                     endDate: r.end.substring(0,10),
                     paid: r.paid,
-                    color:  r.event_color || timelineScheduler.arrangements.find(item => item.id === r.arrangement)?.color || "#4B99D2", // fallback kleur
+                    color:  r.event_color || timelineScheduler.arrangements.find(item => item.id === r.arrangement)?.color || "#031B53", // fallback kleur
                     textColor: r.text_color || timelineScheduler.arrangements.find(item => item.id === r.arrangement)?.text_color || "#FFFFFF",
                     numberOfPersons: parseInt(r.number_of_persons, 10) || 0,
                     arrangement: parseInt(r.arrangement, 10) || 0,
@@ -572,6 +575,8 @@
                 });
                 // Loop over elke groep van dezelfde reservationId
                 Object.values(reservationsById).forEach(group => {
+                    if (group.length > 1) return; // Alleen warnings toevoegen bij enkele tafels, geen reserveringen over meerdere tafels
+                    
                     // Pak het aantal personen uit de eerste reservering
                     const numberOfPersons = group[0].numberOfPersons;
 
@@ -595,7 +600,7 @@
                     if (numberOfPersons > totalCapacity) {
                         group.forEach(reservation => {
                             if (reservation.warning !== '') reservation.warning += ' - ';
-                            reservation.warning = `Tafels bieden niet genoeg plaats voor het aantal personen (${numberOfPersons}/${totalCapacity})`;
+                            reservation.warning = `Tafel biedt niet genoeg plaats voor het aantal personen (${numberOfPersons}/${totalCapacity})`;
                         });
                     }
                 });
@@ -875,10 +880,10 @@
                         hover.id = `hover${res.reservationId}${res.table}`;
                         hover.dataset.id = res.reservationId;
                         hover.classList.add("hover");
-                        const left = getOffset(res.start, new Date(res.startDate).getDate() !== this.currentDate.getDate());
-                        const width = (res.end - res.start) * this.cellWidth * (60 / (60 / this.quartersPerHour));
-                        hover.style.left = (left + width / 2) + "px";
-                        hover.style.transform = "translateX(-50%)"; // mooi centreren
+                        const blockLeft = getOffset(res.start,new Date(res.startDate).getDate() !== this.currentDate.getDate());
+                        const blockWidth = getWidth(res.start, res.end);
+                        hover.style.left = (blockLeft + blockWidth / 2) + "px";
+                        hover.style.transform = "translateX(-50%)";
                         hover.addEventListener("mousedown", (e) => {
                             e.stopPropagation();   // voorkomt dat de scheduler drag start
                         });
@@ -887,9 +892,9 @@
                         });
                         hover.innerHTML = `<span class="hover-customer-name">${res.customerFullName}</span><span class="hover-number-of-visits">{numberOfVisits}</span><br />
                     {phoneNumbers}<hr class="hover-horizontal-line" />
-                    <span class="hover-arrangement">${this.arrangements.find(item => item.id === res.arrangement)?.title || ""}</span><span class="hover-paid-amount">&euro; ${res.paid}</span><br />
+                    <span class="hover-arrangement">${this.arrangements.find(item => item.id === res.arrangement)?.title || ""}</span><span class="hover-paid-amount">${res.paid ? `&euro; ${res.paid}` : ''}</span>
                     <div class="hover-notes">
-                      <div class="hover-reservation-notes">${res.notes || "<span style='color:#CCCCCC;'>Klik hier om notities toe te voegen</span>"}</div>
+                      <div class="hover-reservation-notes">${res.notes || "<span style='color:#999999;'>Klik hier om notities toe te voegen</span>"}</div>
                       <div class="hover-edit-area" style="display:none;">
                         <textarea class="hover-notes-textarea">${res.notes || ""}</textarea>
                         <div class="hover-edit-actions">
@@ -1189,7 +1194,7 @@
                         connectedIds.add(id);
 
                     const bg = getComputedStyle(el).backgroundColor;
-                    el.style.color = this.lightenColor(bg, 0.4);
+                    el.style.color = this.lightenColor(bg, 0.5);
                 } else {
                     seenIds.add(id);
                 }
@@ -1649,6 +1654,52 @@
             } catch (error) {
                 console.error(error);                
             }
+        }
+
+        initHeaderDragScroll() {
+            const scheduler = document.querySelector(".scheduler");
+            if (!scheduler) return;
+
+            const headerRows = document.querySelectorAll(".scheduler-header");
+
+            headerRows.forEach(header => {
+                let isDragging = false;
+                let startX = 0;
+                let startScrollLeft = 0;
+
+                header.addEventListener("mousedown", (e) => {
+                    if (e.button !== 0) return; // alleen linker muisknop
+                    if (e.target.closest("button, input, a, textarea")) return;
+
+                    isDragging = true;
+                    startX = e.clientX;
+                    startScrollLeft = scheduler.scrollLeft;
+
+                    header.classList.add("dragging");
+                    document.body.style.userSelect = "none";
+
+                    e.preventDefault();
+                });
+
+                window.addEventListener("mousemove", (e) => {
+                    if (!isDragging) return;
+
+                    const dx = e.clientX - startX;
+                    scheduler.scrollLeft = startScrollLeft - dx;
+                });
+
+                window.addEventListener("mouseup", () => {
+                    if (!isDragging) return;
+
+                    isDragging = false;
+                    header.classList.remove("dragging");
+                    document.body.style.userSelect = "";
+                });
+
+                header.addEventListener("mouseleave", () => {
+                    // optioneel leeg laten; mouseup op window handelt het al af
+                });
+            });
         }
     }
 

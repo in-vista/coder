@@ -1819,12 +1819,15 @@ class Main {
                 },
 
                 startEditModuleTitle(module) {
-                    this.editingModuleTitleId = module.id;
+                    // TODO: Rethink functionality
+                    // Temporarily disabled the ability to edit tab names, due to this functionality being unwanted as of now.
+                    
+                    /*this.editingModuleTitleId = module.id;
                     this.editingModuleTitleInput = module.alias ?? module.name;
                     
                     this.$nextTick(() => {
                         $(`.modules-strip-tab-title[name="module_title_${module.id}"]`).focus();
-                    });
+                    });*/
                 },
                 
                 stopEditModuleTitle() {
