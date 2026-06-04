@@ -753,6 +753,39 @@
         }
     
         kendoComponent = field.kendoGrid(kendoGridOptions).data("kendoGrid");
+        
+        if(options.sortable) {
+            kendoComponent.table.kendoSortable({
+                ...{
+                    filter: '>tbody >tr:not(.k-grid-edit-row)',
+                    placeholder: function(element) {
+                        return element.clone().addClass("k-hover").css("opacity", 0.65);
+                    },
+                    change: async function (event) {
+                        if(event.action !== 'sort')
+                            return;
+                        
+                        const { item: target, oldIndex, newIndex } = event;
+                        
+                        const grid = target.closest('.k-grid').data('kendoGrid');
+                        const itemData = grid.dataItem(target);
+                        const encryptedItemId = itemData.encryptedId || itemData.encrypted_id;
+                        
+                        await Wiser.api({
+                            url: `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent({propertyId})}/change-order`,
+                            method: 'PUT',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                encryptedItemId: encryptedItemId,
+                                oldIndex: oldIndex,
+                                newIndex: newIndex
+                            })
+                        });
+                    }
+                },
+                ...options.sortable
+            });
+        }
     
         if (!options.disableOpeningOfItems) {
             field.on("dblclick", "tbody tr[data-uid] td", function (event) {

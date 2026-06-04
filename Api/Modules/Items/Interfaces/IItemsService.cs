@@ -240,6 +240,16 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="destinationEntityType">The entity type of the item that it's being moved towards.</param>
         /// <param name="moduleId">The ID of the module.</param>
         Task<ServiceResult<bool>> MoveItemAsync(ClaimsIdentity identity, string encryptedSourceId, string encryptedDestinationId, string position, string encryptedSourceParentId, string encryptedDestinationParentId, string sourceEntityType, string destinationEntityType, int moduleId);
+        
+        /// <summary>
+        /// Move an item to a different ordering position in a grid.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <param name="propertyId">The ID of the property of the grid where the item belongs in.</param>
+        /// <param name="encryptedItemId">The encrypted ID of the item that is being moved.</param>
+        /// <param name="oldIndex">The index in the grid where the item was previously positioned.</param>
+        /// <param name="newIndex">The index in the grid where the item is currently positioned.</param>
+        Task<ServiceResult<bool>> ChangeOrderAsync(ClaimsIdentity identity, ulong propertyId, string encryptedItemId, int oldIndex, int newIndex);
 
         /// <summary>
         /// Link one or more items to one or more other items.

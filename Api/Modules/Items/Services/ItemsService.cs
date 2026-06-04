@@ -26,6 +26,7 @@ using Api.Modules.Items.Models;
 using Api.Modules.Kendo.Models;
 using Api.Modules.Templates.Interfaces;
 using Api.Modules.Tenants.Interfaces;
+using Api.Modules.Tenants.Models;
 using CM.Text.BusinessMessaging.Model;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Enums;
@@ -2865,6 +2866,29 @@ ORDER BY {orderByClause}";
                 await clientDatabaseConnection.RollbackTransactionAsync();
                 throw;
             }
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<bool>> ChangeOrderAsync(ClaimsIdentity identity, ulong propertyId, string encryptedItemId, int oldIndex, int newIndex)
+        {
+            if (string.IsNullOrWhiteSpace(encryptedItemId))
+            {
+                return new ServiceResult<bool>
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    ErrorMessage = "The parameter encryptedItemId needs to have a value"
+                };
+            }
+
+            TenantModel tenant = (await wiserTenantsService.GetSingleAsync(identity)).ModelObject;
+            ulong itemId = wiserTenantsService.DecryptValue<ulong>(encryptedItemId, tenant);
+            ulong userId = IdentityHelpers.GetWiserUserId(identity);
+
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            
+            // TODO: Move the item in some sort of way in the back end.
+            
+            return new ServiceResult<bool>(true);
         }
 
         /// <inheritdoc />
