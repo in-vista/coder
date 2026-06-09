@@ -777,7 +777,7 @@
                     label.innerText = table.text;
                     row.appendChild(label);
 
-                    if (table.onlineState === '1') {
+                    if (table.onlineState === 1) {
                         const onlineState = document.createElement("div");
                         onlineState.classList.add("table-online-state");
                         label.appendChild(onlineState);
@@ -793,6 +793,10 @@
                     const timeline = document.createElement("div");
                     timeline.classList.add("timeline");
 
+                    if (table.onlineState === 0) {
+                        timeline.classList.add("disabled");
+                    }                   
+                  
                     for(let i=0;i<this.totalQuarters;i++){
                         const cell = document.createElement("div");
                         cell.classList.add("quarter-cell");

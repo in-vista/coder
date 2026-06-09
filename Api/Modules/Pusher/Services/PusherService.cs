@@ -15,6 +15,7 @@ using GeeksCoreLibrary.Modules.Templates.Interfaces;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Core.Interfaces;
+using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Communication.Models;
 using Microsoft.Extensions.Options;
 using PusherServer;
@@ -109,22 +110,35 @@ namespace Api.Modules.Pusher.Services
             var result = await pusher.TriggerAsync(data.Channel, eventName, data.EventData);
             var success = (int)result.StatusCode >= 200 && (int)result.StatusCode < 300;
             
-            // TODO: Make it so that it doesn't use skipPermissionsCheck
-            var userDetails = await wiserItemsService.GetItemDetailsAsync(data.UserId, skipPermissionsCheck: true);
-            
-            var emailAddress = userDetails.GetDetailValue("email_address");
-            
             var serviceResult = new ServiceResult<bool>(success)
             {
                 StatusCode = result.StatusCode,
                 ErrorMessage = success ? null : result.Body
             };
-            if (!data.SendEmail || String.IsNullOrWhiteSpace(emailAddress))
-                return serviceResult;
             
-            var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(data.EventData.ToString());
+            // TODO: Make it so that it doesn't use skipPermissionsCheck
+            WiserItemModel userDetails = await wiserItemsService.GetItemDetailsAsync(data.UserId, skipPermissionsCheck: true);
+            if (userDetails != null)
+            {
+                string emailAddress = userDetails.GetDetailValue("email_address");
             
-            await communicationsService.SendEmailAsync(receiverName: userDetails.Title, receiver: emailAddress, subject: "Agendering vanuit Coder",  body: dict.FirstOrDefault().Value);
+                if (data.SendEmail && !string.IsNullOrWhiteSpace(emailAddress))
+                {
+                    Dictionary<string, string> dataDictionary = new Dictionary<string, string>();
+                    
+                    try
+                    {
+                        dataDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(data.EventData.ToString());
+                    }
+                    catch (Exception exception)
+                    {
+                        // TODO: Proper error logging when the deserialization of the data failed.
+                    }
+
+                    KeyValuePair<string, string> kvp = dataDictionary.FirstOrDefault(); // What is 'kvp'?
+                    await communicationsService.SendEmailAsync(receiverName: userDetails.Title, receiver: emailAddress, subject: "Agendering vanuit Coder", body: kvp.Value);
+                }
+            }
 
             return serviceResult;
         }
