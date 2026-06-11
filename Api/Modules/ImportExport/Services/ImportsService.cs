@@ -252,13 +252,79 @@ namespace Api.Modules.ImportExport.Services
             // Check if all items are of the correct entity type if there are any items that are imported according to the settings
             if (allItemIds.Any() && importRequest.ImportSettings.Any())
             {
-                dataTable = await clientDatabaseConnection.GetAsync($"SELECT id, entity_type FROM {tablePrefix}{WiserTableNames.WiserItem} WHERE id IN ({String.Join(",", allItemIds)})");
+                dataTable = await clientDatabaseConnection.GetAsync($@"
+        WITH RECURSIVE item_parent_tree AS (
+            SELECT
+                wiser_item.id,
+                wiser_item.parent_item_id AS original_parent_item_id,
+                wiser_item.parent_item_id AS current_parent_item_id,
+                wiser_item.entity_type,
+                CASE
+                    WHEN wiser_item.id = {accountId}
+                        OR wiser_item.parent_item_id = {accountId}
+                    THEN 1
+                    ELSE 0
+                END AS has_matching_account_id,
+                0 AS depth
+            FROM {tablePrefix}{WiserTableNames.WiserItem} wiser_item
+            WHERE wiser_item.id IN ({String.Join(",", allItemIds)})
+
+            UNION ALL
+
+            SELECT
+                item_parent_tree.id,
+                item_parent_tree.original_parent_item_id,
+                parent_wiser_item.parent_item_id AS current_parent_item_id,
+                item_parent_tree.entity_type,
+                CASE
+                    WHEN parent_wiser_item.id = {accountId}
+                        OR parent_wiser_item.parent_item_id = {accountId}
+                    THEN 1
+                    ELSE item_parent_tree.has_matching_account_id
+                END AS has_matching_account_id,
+                item_parent_tree.depth + 1 AS depth
+            FROM item_parent_tree
+            JOIN {tablePrefix}{WiserTableNames.WiserItem} parent_wiser_item
+                ON parent_wiser_item.id = item_parent_tree.current_parent_item_id
+            WHERE item_parent_tree.has_matching_account_id = 0
+                AND item_parent_tree.current_parent_item_id IS NOT NULL
+                AND item_parent_tree.current_parent_item_id <> 0
+                AND item_parent_tree.depth < 100
+        )
+
+        SELECT
+            id,
+            CASE
+                WHEN MAX(has_matching_account_id) = 1 THEN {accountId}
+                ELSE MAX(CASE WHEN depth = 0 THEN original_parent_item_id END)
+            END AS parent_item_id,
+            MAX(entity_type) AS entity_type
+        FROM item_parent_tree
+        GROUP BY id;
+    ");
                 if (dataTable.Rows.Count > 0)
                 {
                     var allRows = dataTable.Rows.Cast<DataRow>().ToList();
                     existingItemIds = allRows.Select(dataRow => dataRow.Field<ulong>("id")).ToList();
+                    
+                    var itemsWithWrongParentItemId = allRows
+                        .Where(dataRow => Convert.ToUInt64(dataRow["parent_item_id"]) != accountId)
+                        .Select(dataRow => $"{Convert.ToUInt64(dataRow["id"])} {Convert.ToUInt64(dataRow["parent_item_id"])}")
+                        .ToList();
 
-                    var itemsWithWrongEntityType = allRows.Where(dataRow => !String.Equals(entityType, dataRow.Field<string>("entity_type"), StringComparison.OrdinalIgnoreCase)).Select(dataRow => $"{dataRow.Field<ulong>("id")} ({dataRow.Field<string>("entity_type")})").ToList();
+                    if (itemsWithWrongParentItemId.Any())
+                    {
+                        importResult.Failed += 1U;
+                        importResult.Errors.Add($"Can't do import because the following items have a different parent_item_id than the selected account ID ({accountId}): {String.Join(", ", itemsWithWrongParentItemId)}");
+                        importResult.UserFriendlyErrors.Add($"Import kan niet gedaan worden omdat 1 of meer items niet onder het juiste account vallen. U heeft gekozen om items te importeren onder account '{accountId}', maar de volgende items hebben een ander account:<br>{String.Join(", ", itemsWithWrongParentItemId)}");
+                        return new ServiceResult<ImportResultModel>(importResult);
+                    }
+
+                    var itemsWithWrongEntityType = allRows
+                        .Where(dataRow => !String.Equals(entityType, dataRow.Field<string>("entity_type"), StringComparison.OrdinalIgnoreCase))
+                        .Select(dataRow => $"{dataRow.Field<ulong>("id")} ({dataRow.Field<string>("entity_type")})")
+                        .ToList();
+
                     if (itemsWithWrongEntityType.Any())
                     {
                         importResult.Failed += 1U;
@@ -399,7 +465,7 @@ namespace Api.Modules.ImportExport.Services
             }
             
                 // Return error if 1 or more items don't have the current user's parent_item_id (only for items that have an ID defined).
-             var mismatchedItems = allParentIds.Where(parentId => parentId != accountId).ToList();
+            /* var mismatchedItems = allParentIds.Where(parentId => parentId != accountId).ToList();
              if (mismatchedItems.Any())
              {
                  importResult.Failed += 1U;
@@ -407,7 +473,7 @@ namespace Api.Modules.ImportExport.Services
                      $"Can't do import because the following items don't have a matching parent_item_id to the logged in user: {string.Join(", ", mismatchedItems.Distinct())}");
                  importResult.UserFriendlyErrors.Add(
                      $"Import kan niet gedaan worden omdat 1 of meer items niet voor dit account bestemd zijn: <br>{string.Join(", ", mismatchedItems.Distinct())}");
-             }
+             } */
 
              // One or more errors occurred, skip the import and notify the user.
             if (importResult.Failed > 0)
@@ -744,7 +810,7 @@ namespace Api.Modules.ImportExport.Services
                 }
 
                 uploadResult.RowCount = linesCounted;
-
+                
                 if (mismatchedParentItemIds.Any())
                 {
                     uploadResult.Successful = false;

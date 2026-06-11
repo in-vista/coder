@@ -494,6 +494,20 @@ const importModuleSettings = {
                         title: "Import geslaagd",
                         content: "De import is bezig. U ontvangt een bericht wanneer deze klaar is."
                     });
+                    
+                    const importContainer = $("#ImportContainer");
+
+                    // Clear everything related to what the user has uploaded.
+                    importContainer
+                        .find(".fileUpload, .imgUpload")
+                        .each(function () {
+                            const uploadWidget = $(this).data("kendoUpload");
+
+                            uploadWidget?.clearAllFiles();
+                        });
+
+                    this.updateImportGrid([]);
+                    
                 }
             } catch (exception) {
                 console.error(exception);
@@ -567,6 +581,7 @@ const importModuleSettings = {
                     }
                 },
                 remove: (e) => {
+                    this.updateImportGrid([])
                     if(e.files[0])
                         // Manually set the file name to the one that was returned when uploading. This is done so it can be removed from Cloud Flare upon removal
                         e.files[0].name = this.importFilename;
