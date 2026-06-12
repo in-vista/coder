@@ -758,6 +758,8 @@
             kendoComponent.table.kendoSortable({
                 ...{
                     filter: '>tbody >tr:not(.k-grid-edit-row)',
+                    container: kendoComponent.table,
+                    axis: 'y',
                     placeholder: function(element) {
                         return element.clone().addClass("k-hover").css("opacity", 0.65);
                     },
@@ -765,21 +767,38 @@
                         if(event.action !== 'sort')
                             return;
                         
-                        const { item: target, oldIndex, newIndex } = event;
+                        const { item: target, newIndex } = event;
                         
                         const grid = target.closest('.k-grid').data('kendoGrid');
-                        const itemData = grid.dataItem(target);
-                        const encryptedItemId = itemData.encryptedId || itemData.encrypted_id;
                         
-                        await Wiser.api({
-                            url: `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent({propertyId})}/change-order`,
-                            method: 'PUT',
-                            contentType: 'application/json',
-                            data: JSON.stringify({
-                                encryptedItemId: encryptedItemId,
-                                oldIndex: oldIndex,
-                                newIndex: newIndex
-                            })
+                        setTimeout(async () => {
+                            const rows = grid.tbody.children('tr');
+                            const draggedDataItem = grid.dataSource.getByUid(rows.eq(newIndex).attr('data-uid'));
+                            const beforeDataItem = grid.dataSource.getByUid(rows.eq(newIndex + 1).attr('data-uid'));
+
+                            const getEncryptedItemId = dataItem => dataItem ? (dataItem.encryptedId || dataItem.encrypted_id) : null;
+
+                            const encryptedItemId = getEncryptedItemId(draggedDataItem);
+                            const beforeEncryptedItemId = getEncryptedItemId(beforeDataItem);
+
+                            const sortingRequestQueryParameters = {};
+                            if(options.linkTypeNumber)
+                                sortingRequestQueryParameters.linkTypeNumber = options.linkTypeNumber;
+                            if(options.currentItemIsSourceId)
+                                sortingRequestQueryParameters.currentItemIsSourceId = options.currentItemIsSourceId;
+
+                            const joinedSortingRequestQueryParameters = Object.entries(sortingRequestQueryParameters).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+                            const sortingRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent({propertyId})}/change-order?${joinedSortingRequestQueryParameters}`;
+
+                            await Wiser.api({
+                                url: sortingRequestUrl,
+                                method: 'PUT',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    encryptedItemId: encryptedItemId,
+                                    beforeEncryptedItemId: beforeEncryptedItemId
+                                })
+                            });
                         });
                     }
                 },

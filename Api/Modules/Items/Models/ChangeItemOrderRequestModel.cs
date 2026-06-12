@@ -8,12 +8,12 @@ public class ChangeItemOrderRequestModel
     public string EncryptedItemId { get; set; }
     
     /// <summary>
-    /// The index in the grid where the item was previously positioned.
+    /// The entity type of the item.
     /// </summary>
-    public int OldIndex { get; set; }
+    public string EntityType { get; set; }
     
     /// <summary>
-    /// The index in the grid where the item is currently positioned.
+    /// The encrypted ID of the item that the currently dragged item is being placed behind.
     /// </summary>
-    public int NewIndex { get; set; }
+    public string BeforeEncryptedItemId { get; set; }
 }

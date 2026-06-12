@@ -247,9 +247,11 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="identity">The identity of the authenticated user.</param>
         /// <param name="propertyId">The ID of the property of the grid where the item belongs in.</param>
         /// <param name="encryptedItemId">The encrypted ID of the item that is being moved.</param>
-        /// <param name="oldIndex">The index in the grid where the item was previously positioned.</param>
-        /// <param name="newIndex">The index in the grid where the item is currently positioned.</param>
-        Task<ServiceResult<bool>> ChangeOrderAsync(ClaimsIdentity identity, ulong propertyId, string encryptedItemId, int oldIndex, int newIndex);
+        /// <param name="entityType">The entity type of the item.</param>
+        /// <param name="currentItemIsSourceId">Whether the given item is the source of the link if a link is present.</param>
+        /// <param name="beforeEncryptedItemId">The encrypted ID of the item that the currently dragged item is being placed behind.</param>
+        /// <param name="linkTypeNumber">(Optional) The link type number to change the ordering for.</param>
+        Task<ServiceResult<bool>> ChangeOrderAsync(ClaimsIdentity identity, ulong propertyId, string encryptedItemId, string entityType, bool currentItemIsSourceId, string beforeEncryptedItemId, int? linkTypeNumber);
 
         /// <summary>
         /// Link one or more items to one or more other items.
