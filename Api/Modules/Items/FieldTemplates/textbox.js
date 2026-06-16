@@ -76,6 +76,7 @@ function validateRegex(input) {
 	const regex = /{pattern}/;
 	const matchesRegex = regex.test(input);
 	regexFailedMessageElement[!matchesRegex ? 'text' : 'html'](!matchesRegex ? regexFailedMessage : '&nbsp;');
+	regexFailedMessageElement.toggleClass("hidden", matchesRegex);
 }
 
 {customScript}
