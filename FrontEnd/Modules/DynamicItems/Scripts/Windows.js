@@ -123,7 +123,7 @@ export class Windows {
 
             // If the window still exists, we just want to bring that window to the front, to prevent people from opening an item in multiple windows.
             // This prevents confusion ("I thought I already closed this item before.") and also prevents problems with fields that would have duplicate IDs then.
-            if (currentItemWindow) {
+            if (currentItemWindow && currentItemWindow.element.data().entityType === entityType) {
                 currentItemWindow.maximize().center().open();
                 return;
             }
@@ -447,6 +447,7 @@ export class Windows {
                     currentItemWindow.element.data("entityType", entityType);
                     const nameField = currentItemWindow.element.find(".itemNameField");
                     currentItemWindow.element.find(".itemNameFieldContainer").toggle(entitySettings.showTitleField && showTitleField);
+                    debugger;
 
                     currentItemTabStrip.element.find("> .k-tabstrip-items-wrapper > ul > li .addedFromDatabase").each((index, element) => {
                         currentItemTabStrip.remove($(element).closest("li.k-item"));
