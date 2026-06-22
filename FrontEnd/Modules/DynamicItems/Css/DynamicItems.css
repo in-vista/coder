@@ -483,3 +483,77 @@ body.iframe .editMenu {
     max-width: 530px;
     margin-left: calc(100% - 560px);
 }
+
+.item.checklist-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    max-height: 300px;
+    min-height: 300px;
+    overflow: hidden;
+}
+
+.item.checklist-box > .handler,
+.item.checklist-box > h4,
+.item.checklist-box > .form-hint {
+    flex: 0 0 auto;
+}
+
+.item.checklist-box > .fieldSet {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0;
+    border-color: var(--kendo-color-border, rgba(29, 27, 32, 0.12));
+    width: 100%;
+    overflow: hidden;
+}
+
+.item.checklist-box .checklist-box-search {
+    flex: 0 0 auto;
+}
+
+.item.checklist-box .checklist-box-options {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.checklist-box-options > .checklist-box-option {
+    padding-block: var(--kendo-spacing-3, 0.75rem);
+    padding-inline: var(--kendo-spacing-3, 0.75rem);
+}
+
+.checklist-box-options > .checklist-box-option:nth-child(odd of :not([hidden])) {
+    background-color: var(--lightest-color);
+}
+
+.checklist-box-options > .checklist-box-option:nth-child(even of :not([hidden])) {
+    background: var(--item-bg-color);
+}
+
+.checklist-box-options > .checklist-box-option[hidden] {
+    display: none !important;
+}
+
+.checklist-box-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.checklist-box-checkbox {
+    cursor: pointer;
+}
+
+.checklist-box-empty,
+.checklist-box-error {
+    padding-block: var(--kendo-spacing-3, 0.75rem);
+    padding-inline: var(--kendo-spacing-3, 0.75rem);
+    color: #777;
+    font-style: italic;
+}
