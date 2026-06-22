@@ -447,7 +447,6 @@ export class Windows {
                     currentItemWindow.element.data("entityType", entityType);
                     const nameField = currentItemWindow.element.find(".itemNameField");
                     currentItemWindow.element.find(".itemNameFieldContainer").toggle(entitySettings.showTitleField && showTitleField);
-                    debugger;
 
                     currentItemTabStrip.element.find("> .k-tabstrip-items-wrapper > ul > li .addedFromDatabase").each((index, element) => {
                         currentItemTabStrip.remove($(element).closest("li.k-item"));
@@ -513,7 +512,20 @@ export class Windows {
                     });
                   
                     const showGenericTab = genericTabHasFields || !htmlData.tabs.length;
-                    $(currentItemTabStrip.items()[0]).toggle(genericTabHasFields || !htmlData.tabs.length);
+                    
+                    // Retrieve the item name field container element.
+                    const itemNameFieldContainer = currentItemWindow.element.find(".itemNameFieldContainer");
+                    
+                    // Decide whether to move the item name field if there are no items on the generic tab, but there
+                    // are items on other tabs, and we have set it up to show the title field to move it to the first
+                    // available tab in the tab strip. Otherwise, we want to hide the generic tab all together.
+                    if(!showGenericTab && itemNameFieldContainer.is(':visible') && htmlData.tabs.length > 1) {
+                        const container = currentItemTabStrip.contentHolder(1);
+                        itemNameFieldContainer.prependTo(container);
+                        $(currentItemTabStrip.items()[0]).toggle(false);
+                    } else {
+                        $(currentItemTabStrip.items()[0]).toggle(genericTabHasFields || !htmlData.tabs.length);
+                    }
 
                     if (!genericTabHasFields && !htmlData.tabs.length) {
                         nameField.keypress((event) => {
