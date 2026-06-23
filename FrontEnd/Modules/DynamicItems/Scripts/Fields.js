@@ -920,13 +920,13 @@ export class Fields {
         const itemDetails = !itemId ? { encryptedId: this.base.settings.zeroEncrypted } : (await this.base.getItemDetails(itemId, entityType));
 
         const userParametersWithValues = {};
-        const success = await this.executeActionButtonActions(actionDetails.actions, userParametersWithValues, itemDetails, propertyId, entityType, selectedItems, senderGrid.element, $(event.currentTarget));
+        const actionButtonResults = await this.executeActionButtonActions(actionDetails.actions, userParametersWithValues, itemDetails, propertyId, entityType, selectedItems, senderGrid.element, $(event.currentTarget));
 
         if (senderGrid && senderGrid.element) {
             senderGrid.element.siblings(".grid-loader").removeClass("loading");
         }
 
-        if (success) {
+        if (actionButtonResults?.success) {
             if (senderGrid) {
                 const grids = this.base.grids;
 
@@ -959,7 +959,7 @@ export class Fields {
             }
 
             if (!actionDetails.disableSuccessMessages) {
-                this.base.notification.show({ message: `Alle acties zijn uitgevoerd.` }, "success");
+                this.base.notification.show({ message: actionButtonResults.messages.join('<br/>') }, "success");
             }
         }
     }
@@ -1009,10 +1009,10 @@ export class Fields {
 
             // Execute all actions that are configured for this button.
             const userParametersWithValues = {};
-            const success = await this.executeActionButtonActions(options.actions, userParametersWithValues, itemDetails, propertyId, entityType, [], button, $(event.currentTarget));
+            const actionButtonResults = await this.executeActionButtonActions(options.actions, userParametersWithValues, itemDetails, propertyId, entityType, [], button, $(event.currentTarget));
             event.sender.element.removeClass("loading");
-            if (success && !options.disableSuccessMessages) {
-                this.base.notification.show({ message: `Alle acties zijn uitgevoerd.` }, "success");
+            if (actionButtonResults?.success && !options.disableSuccessMessages) {
+                this.base.notification.show({ message: actionButtonResults.messages.join('<br/>') }, "success");
             }
         } catch (exception) {
             console.error(exception);
@@ -1383,6 +1383,9 @@ export class Fields {
      * @param {any} button The action button that was clicked.
      */
     async executeActionButtonActions(actions, userParametersWithValues, mainItemDetails, propertyId, entityType, selectedItems = [], element = null, button = null) {
+        // Prepare an accumulator of result messages that can be populated by different actions.
+        let resultMessages = [];
+        
         button?.addClass('progress');
         
         // Prepare a function to set the progress of the action button execution.
@@ -2263,6 +2266,10 @@ export class Fields {
                                 }
                             }
 
+                            // Push a result message to the accumulated result messages.
+                            if(queryActionResult.resultMessage)
+                                resultMessages.push(queryActionResult.resultMessage);
+
                             break;
                         }
 
@@ -2286,6 +2293,10 @@ export class Fields {
                                     return false;
                                 }
                             }
+                            
+                            // Push a result message to the accumulated result messages.
+                            if(queryActionResult.resultMessage)
+                                resultMessages.push(queryActionResult.resultMessage);
 
                             break;
                         }
@@ -2725,7 +2736,10 @@ export class Fields {
                                 // Retrieve the optional attribute whether this action has to be run iteratively.
                                 const isIterative = action.iterative ?? false;
                                 const hasItemsSelected = selectedItems && selectedItems.length > 0;
-
+                                
+                                // Prepare a results array for all executed API actions.
+                                let apiActionsResults = [];
+                                
                                 if(isIterative && hasItemsSelected) {
                                     // Loop over all the selected items from the grid.
                                     for(const selectedItem of selectedItems) {
@@ -2755,7 +2769,7 @@ export class Fields {
                                         extraData = {...extraData, ...userParametersWithValues};
 
                                         // Make an API call for the currently selected item in the iteration.
-                                        await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, extraData);
+                                        apiActionsResults = await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, extraData);
                                     }
                                 } else {
                                     // Combine all values of the selected items.
@@ -2763,7 +2777,13 @@ export class Fields {
                                         await combineValuesFromAllSelectedItemsAndAddToUserParameters();
 
                                     // Make an API call for all selected items.
-                                    await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, userParametersWithValues);
+                                    apiActionsResults = await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, userParametersWithValues);
+                                }
+
+                                // Push a result message to the accumulated result messages.
+                                for(const apiActionResults in apiActionsResults) {
+                                    if(apiActionResults.resultMessage)
+                                        resultMessages.push(apiActionResults.resultMessage);
                                 }
                             } catch (apiCallException) {
                                 if (typeof apiCallException === "string") {
@@ -2924,7 +2944,10 @@ export class Fields {
             setActionProgress(0, 2);
         }
 
-        return true;
+        return {
+            success: true,
+            messages: resultMessages.length ? resultMessages : [ 'Alle acties zijn uitgevoerd!' ]
+        }
     }
 
     /**
