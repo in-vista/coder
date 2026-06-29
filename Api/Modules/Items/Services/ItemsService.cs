@@ -2373,6 +2373,9 @@ ORDER BY item.ordering ASC";
             
             var parentEntitySettings = await wiserItemsService.GetEntityTypeSettingsAsync(parentEntityType ?? String.Empty, moduleId);
             var parentTablePrefix = wiserItemsService.GetTablePrefixForEntity(parentEntitySettings);
+
+            var linkTypeSettings = await wiserItemsService.GetLinkTypeSettingsAsync(linkType);
+            bool useParentItemId = linkTypeSettings.UseItemParentId;
             
             var firstChild = parentEntitySettings.AcceptedChildTypes.FirstOrDefault();
             if (firstChild is null)
@@ -2453,19 +2456,20 @@ LEFT JOIN {WiserTableNames.WiserItemLink} AS checked ON checked.item_id = item.i
 FROM {tablePrefix}{WiserTableNames.WiserItem} AS item
 JOIN {WiserTableNames.WiserEntity} AS entity ON entity.name = item.entity_type AND entity.show_in_tree_view = 1
 LEFT JOIN {WiserTableNames.WiserEntity} AS entityModule ON entityModule.name = item.entity_type AND entityModule.show_in_tree_view = 1 AND entityModule.module_id = item.moduleid
-JOIN {WiserTableNames.WiserItemLink} AS link_parent ON link_parent.item_id = item.id AND link_parent.destination_item_id = ?parentId AND link_parent.type NOT IN ({linkTypesToHideFromTreeViewList})
+JOIN {WiserTableNames.WiserItemLink} AS link_parent ON link_parent.item_id = item.id {(useParentItemId ? string.Empty : "AND link_parent.destination_item_id = ?parentId")} AND link_parent.type NOT IN ({linkTypesToHideFromTreeViewList})
 
 # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 LEFT JOIN {WiserTableNames.WiserUserRoles} AS user_role ON user_role.user_id = ?userId
 LEFT JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = user_role.role_id AND permission.item_id = item.id
 
 # Only get items that should actually be shown, based on accepted_childtypes from wiser_entity.
-LEFT JOIN {parentTablePrefix}{WiserTableNames.WiserItem} parent_item ON parent_item.id = link_parent.destination_item_id
-JOIN {WiserTableNames.WiserEntity} AS parent_entity ON ((link_parent.destination_item_id = 0 AND parent_entity.`name` = '') OR parent_entity.`name` = parent_item.entity_type) AND (parent_entity.accepted_childtypes = '' OR FIND_IN_SET(item.entity_type, parent_entity.accepted_childtypes))
+LEFT JOIN {parentTablePrefix}{WiserTableNames.WiserItem} parent_item ON parent_item.id = {(useParentItemId ? "item.parent_item_id" : "link_parent.destination_item_id")}
+JOIN {WiserTableNames.WiserEntity} AS parent_entity ON parent_entity.`name` = parent_item.entity_type AND (parent_entity.accepted_childtypes = '' OR FIND_IN_SET(item.entity_type, parent_entity.accepted_childtypes))
 
 {checkIdJoin}
 
 WHERE TRUE
+{(useParentItemId ? "AND item.parent_item_id = ?parentId" : string.Empty)}
 AND item.moduleid = ?moduleId
 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
 GROUP BY IF(item.original_item_id > 0, item.original_item_id, item.id)
@@ -2521,7 +2525,7 @@ ORDER BY {orderByClause}";
 	IF(MAX(item.published_environment) = 0, 'hiddenOnWebsite', '') AS nodeCssClass,
 	item.entity_type,
 	GROUP_CONCAT(DISTINCT IFNULL(entityModule.accepted_childtypes, entity.accepted_childtypes)) AS accepted_childtypes,
-    IF(item.parent_item_id > 0 AND item.parent_item_id = ?checkId, 1, 0) AS checked
+    IF(item.parent_item_id > 0 AND item.parent_item_id = ?checkId OR checked.id IS NOT NULL, 1, 0) AS checked
 
 # Get the items linked to the parent.
 FROM {tablePrefix}{WiserTableNames.WiserItem} AS item
@@ -2539,6 +2543,8 @@ JOIN {WiserTableNames.WiserEntity} AS parent_entity ON {(parentId == 0 ? "parent
 # Link settings to check if these links should be shown.
 LEFT JOIN {WiserTableNames.WiserLink} AS link_settings ON link_settings.destination_entity_type = parent_item.entity_type AND link_settings.connected_entity_type = item.entity_type
 
+{checkIdJoin}
+                                                                                 
 WHERE item.parent_item_id = ?parentId
 AND (?childEntityTypes = '' OR FIND_IN_SET(item.entity_type, ?childEntityTypes))
 AND item.moduleid = ?moduleId
