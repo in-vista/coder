@@ -2376,6 +2376,7 @@ ORDER BY item.ordering ASC";
 
             var linkTypeSettings = await wiserItemsService.GetLinkTypeSettingsAsync(linkType);
             bool useParentItemId = linkTypeSettings.UseItemParentId;
+            string linkTablePrefix = linkTypeSettings.UseDedicatedTable ? $"{linkType}_wiser_itemlink" : null;
             
             var firstChild = parentEntitySettings.AcceptedChildTypes.FirstOrDefault();
             if (firstChild is null)
@@ -2432,7 +2433,7 @@ ORDER BY item.ordering ASC";
             if (checkId > 0)
             {
                 checkIdJoin = $@"# Check if item needs to be checked in item-linker field.
-LEFT JOIN {WiserTableNames.WiserItemLink} AS checked ON checked.item_id = item.id AND checked.destination_item_id = ?checkId";
+LEFT JOIN {linkTablePrefix}{WiserTableNames.WiserItemLink} AS checked ON checked.item_id = item.id AND checked.destination_item_id = ?checkId";
                 if (linkType > 0)
                 {
                     clientDatabaseConnection.AddParameter("linkType", linkType);
@@ -2456,7 +2457,7 @@ LEFT JOIN {WiserTableNames.WiserItemLink} AS checked ON checked.item_id = item.i
 FROM {tablePrefix}{WiserTableNames.WiserItem} AS item
 JOIN {WiserTableNames.WiserEntity} AS entity ON entity.name = item.entity_type AND entity.show_in_tree_view = 1
 LEFT JOIN {WiserTableNames.WiserEntity} AS entityModule ON entityModule.name = item.entity_type AND entityModule.show_in_tree_view = 1 AND entityModule.module_id = item.moduleid
-JOIN {WiserTableNames.WiserItemLink} AS link_parent ON link_parent.item_id = item.id {(useParentItemId ? string.Empty : "AND link_parent.destination_item_id = ?parentId")} AND link_parent.type NOT IN ({linkTypesToHideFromTreeViewList})
+JOIN {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link_parent ON link_parent.item_id = item.id {(useParentItemId ? string.Empty : "AND link_parent.destination_item_id = ?parentId")} AND link_parent.type NOT IN ({linkTypesToHideFromTreeViewList})
 
 # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 LEFT JOIN {WiserTableNames.WiserUserRoles} AS user_role ON user_role.user_id = ?userId
@@ -2541,7 +2542,7 @@ LEFT JOIN {parentTablePrefix}{WiserTableNames.WiserItem} parent_item ON parent_i
 JOIN {WiserTableNames.WiserEntity} AS parent_entity ON {(parentId == 0 ? "parent_entity.module_id = ?moduleId AND parent_entity.`name` = ''" : "parent_entity.`name` = parent_item.entity_type")} AND (parent_entity.accepted_childtypes = '' OR FIND_IN_SET(item.entity_type, parent_entity.accepted_childtypes))
 
 # Link settings to check if these links should be shown.
-LEFT JOIN {WiserTableNames.WiserLink} AS link_settings ON link_settings.destination_entity_type = parent_item.entity_type AND link_settings.connected_entity_type = item.entity_type
+LEFT JOIN {linkTablePrefix}{WiserTableNames.WiserLink} AS link_settings ON link_settings.destination_entity_type = parent_item.entity_type AND link_settings.connected_entity_type = item.entity_type
 
 {checkIdJoin}
                                                                                  
