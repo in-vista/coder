@@ -2781,7 +2781,7 @@ export class Fields {
                                 }
 
                                 // Push a result message to the accumulated result messages.
-                                for(const apiActionResults in apiActionsResults) {
+                                for(const apiActionResults of apiActionsResults) {
                                     if(apiActionResults.resultMessage)
                                         resultMessages.push(apiActionResults.resultMessage);
                                 }
