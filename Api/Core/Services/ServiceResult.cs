@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 
 namespace Api.Core.Services
 {
@@ -64,6 +65,10 @@ namespace Api.Core.Services
             else if (ModelObject != null && StatusCode != HttpStatusCode.NoContent)
             {
                 response = GetContentForModelObject(contentType);
+            }
+            else if (ModelObject == null && StatusCode == HttpStatusCode.OK && typeof(T) == typeof(JToken))
+            {
+                response = new JsonResult(null);
             }
             else
             {
