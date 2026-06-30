@@ -2374,9 +2374,9 @@ ORDER BY item.ordering ASC";
             var parentEntitySettings = await wiserItemsService.GetEntityTypeSettingsAsync(parentEntityType ?? String.Empty, moduleId);
             var parentTablePrefix = wiserItemsService.GetTablePrefixForEntity(parentEntitySettings);
 
-            var linkTypeSettings = await wiserItemsService.GetLinkTypeSettingsAsync(linkType);
-            bool useParentItemId = linkTypeSettings.UseItemParentId;
-            string linkTablePrefix = linkTypeSettings.UseDedicatedTable ? $"{linkType}_wiser_itemlink" : null;
+            LinkSettingsModel linkTypeSettings = linkType > 0 ? await wiserItemsService.GetLinkTypeSettingsAsync(linkType) : null;
+            bool useParentItemId = linkTypeSettings?.UseItemParentId ?? true;
+            string linkTablePrefix = linkTypeSettings?.UseDedicatedTable ?? false ? $"{linkType}_wiser_itemlink" : null;
             
             var firstChild = parentEntitySettings.AcceptedChildTypes.FirstOrDefault();
             if (firstChild is null)
@@ -2526,7 +2526,7 @@ ORDER BY {orderByClause}";
 	IF(MAX(item.published_environment) = 0, 'hiddenOnWebsite', '') AS nodeCssClass,
 	item.entity_type,
 	GROUP_CONCAT(DISTINCT IFNULL(entityModule.accepted_childtypes, entity.accepted_childtypes)) AS accepted_childtypes,
-    IF(item.parent_item_id > 0 AND item.parent_item_id = ?checkId OR checked.id IS NOT NULL, 1, 0) AS checked
+    IF(item.parent_item_id > 0 AND item.parent_item_id = ?checkId {(checkId > 0 ? "OR checked.id IS NOT NULL" : string.Empty)}, 1, 0) AS checked
 
 # Get the items linked to the parent.
 FROM {tablePrefix}{WiserTableNames.WiserItem} AS item
