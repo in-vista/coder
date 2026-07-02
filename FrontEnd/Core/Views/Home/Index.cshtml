@@ -962,7 +962,7 @@
                 <div class="btn-row">
                     <button type="submit" :class="{ btn: true, 'btn-primary': true, loading: loginStatus === 'loading' }">Inloggen</button>
 
-                    <a href="#" @@click="togglePasswordForgottenScreen(true)" id="forgotten-password">Wachtwoord vergeten?</a>
+                    <a href="#forgotpassword" @@click="togglePasswordForgottenScreen(true)" id="forgotten-password">Wachtwoord vergeten?</a>
                 </div>
             </div>
             <div v-if="(loginStatus === 'totp' || loginStatus === 'totp_loading' || loginStatus === 'totp_error') && !showForgotPasswordScreen" class="totp">
