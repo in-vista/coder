@@ -223,8 +223,10 @@
                 timelineScheduler.openReservationInCoder(reservationId, encryptedReservationId);
                 
                 // Open datum van reservering in timeline view en scroll naar hoogte van reservering en highlight reservering
-                timelineScheduler.currentDate = new Date(item.getAttribute('data-date'));                
-                await timelineScheduler.updateDateDisplay();
+                if (item.getAttribute('data-date')) {
+                    timelineScheduler.currentDate = new Date(item.getAttribute('data-date'));
+                    await timelineScheduler.updateDateDisplay();
+                }
                 timelineScheduler.highlightAndScrollToReservation(item.getAttribute('data-reservation-id'));
             });
             
