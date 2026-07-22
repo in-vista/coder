@@ -2375,8 +2375,8 @@ ORDER BY item.ordering ASC";
             var parentTablePrefix = wiserItemsService.GetTablePrefixForEntity(parentEntitySettings);
 
             LinkSettingsModel linkTypeSettings = linkType > 0 ? await wiserItemsService.GetLinkTypeSettingsAsync(linkType) : null;
-            bool useParentItemId = linkTypeSettings?.UseItemParentId ?? true;
-            string linkTablePrefix = linkTypeSettings?.UseDedicatedTable ?? false ? $"{linkType}_wiser_itemlink" : null;
+            bool useParentItemId = linkTypeSettings is { Type: 1, UseItemParentId: true };
+            string linkTablePrefix = linkTypeSettings?.UseDedicatedTable ?? false ? $"{linkType}_" : null;
             
             var firstChild = parentEntitySettings.AcceptedChildTypes.FirstOrDefault();
             if (firstChild is null)
@@ -2465,7 +2465,7 @@ LEFT JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id 
 
 # Only get items that should actually be shown, based on accepted_childtypes from wiser_entity.
 LEFT JOIN {parentTablePrefix}{WiserTableNames.WiserItem} parent_item ON parent_item.id = {(useParentItemId ? "item.parent_item_id" : "link_parent.destination_item_id")}
-JOIN {WiserTableNames.WiserEntity} AS parent_entity ON parent_entity.`name` = parent_item.entity_type AND (parent_entity.accepted_childtypes = '' OR FIND_IN_SET(item.entity_type, parent_entity.accepted_childtypes))
+JOIN {WiserTableNames.WiserEntity} AS parent_entity ON ((link_parent.destination_item_id = 0 AND parent_entity.`name` = '') OR parent_entity.`name` = parent_item.entity_type) AND (parent_entity.accepted_childtypes = '' OR FIND_IN_SET(item.entity_type, parent_entity.accepted_childtypes))
 
 {checkIdJoin}
 
