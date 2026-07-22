@@ -146,6 +146,16 @@ export default {
 
         togglePasswordForgottenScreen(show) {
             this.showForgotPasswordScreen = show;
+
+            const url = new URL(window.location.href);
+
+            if (show) {
+                url.hash = "forgotpassword";
+            } else {
+                url.hash = "";
+            }
+
+            history.replaceState(null, document.title, url);
         },
 
         toggleTotpBackupCodeScreen(show) {
@@ -165,6 +175,14 @@ export default {
                 return;
             
             this.loginForm.capslock = e.getModifierState('CapsLock');
+        }
+    },
+    mounted() {
+        // Check the hash in the URL to automatically open the forgot password screen.
+        const hash = window.location.hash.slice(1).toLowerCase();
+
+        if (hash === "forgotpassword") {
+            this.togglePasswordForgottenScreen(true);
         }
     }
 };

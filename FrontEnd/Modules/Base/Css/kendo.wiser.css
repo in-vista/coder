@@ -1454,6 +1454,14 @@ k-filter-menu .k-autocomplete,
 	}
 }
 
+.k-toolbar-item .k-button:has(.k-i-undefined) {
+	padding: 12px;
+}
+
+.k-toolbar-item .k-button .k-i-undefined {
+	display: none;
+} 
+
 /* Grid in an iframe / full window */
 .gridViewMode .k-grid-content {
 	resize: none;
