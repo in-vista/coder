@@ -63,6 +63,7 @@
     
             // Open Flatpickr bij click
             currentDateSpan.addEventListener("click", () => {
+                fp.setDate(this.currentDate, false); // false = onChange niet triggeren                
                 fp.open();
             });
     
