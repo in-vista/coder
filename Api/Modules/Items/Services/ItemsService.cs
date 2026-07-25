@@ -71,6 +71,7 @@ namespace Api.Modules.Items.Services
         private readonly IObjectsService objectsService;
         private readonly IServiceProvider serviceProvider;
         private readonly IBranchesService branchesService;
+        private readonly IEntityTypesService entityTypesService;
 
         /// <summary>
         /// Creates a new instance of <see cref="ItemsService"/>.
@@ -91,7 +92,8 @@ namespace Api.Modules.Items.Services
                             IGoogleTranslateService googleTranslateService,
                             IObjectsService objectsService,
                             IServiceProvider serviceProvider,
-                            IBranchesService branchesService)
+                            IBranchesService branchesService,
+                            IEntityTypesService entityTypesService)
         {
             this.templatesService = templatesService;
             this.wiserTenantsService = wiserTenantsService;
@@ -110,6 +112,7 @@ namespace Api.Modules.Items.Services
             this.objectsService = objectsService;
             this.serviceProvider = serviceProvider;
             this.branchesService = branchesService;
+            this.entityTypesService = entityTypesService;
         }
 
         /// <inheritdoc />
@@ -256,7 +259,7 @@ namespace Api.Modules.Items.Services
 					ORDER BY IFNULL(item.changed_on, item.added_on) DESC
                     LIMIT {(input.Page - 1) * input.PageSize}, {input.PageSize}
                 ) AS x
-                LEFT JOIN {WiserTableNames.WiserEntityProperty} AS property ON property.entity_name = x.entity_type AND property.inputtype NOT IN ('file-upload', 'querybuilder', 'grid', 'button', 'image-upload', 'sub-entities-grid', 'item-linker', 'linked-item', 'action-button', 'data-selector', 'chart', 'scheduler', 'timeline', 'empty', 'qr')
+                LEFT JOIN {WiserTableNames.WiserEntityProperty} AS property ON property.entity_name = x.entity_type AND property.inputtype NOT IN ('file-upload', 'querybuilder', 'grid', 'button', 'image-upload', 'image-curator', 'sub-entities-grid', 'item-linker', 'linked-item', 'action-button', 'data-selector', 'chart', 'scheduler', 'timeline', 'empty', 'qr')
                 LEFT JOIN {WiserTableNames.WiserItemDetail} AS field ON field.item_id = x.id AND field.`key` = IFNULL(property.property_name, property.display_name) AND field.language_code = property.language_code
                 GROUP BY x.id
 				ORDER BY IFNULL(x.changed_on, x.added_on) DESC
@@ -1472,6 +1475,57 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         }
                     }
                 }
+                
+                // Load associated files for image curator.
+                string imageCuratorPoolFiles = null;
+                string imageCuratorActiveFiles = null;
+                if (fieldType == "image-curator")
+                {
+                    string poolPropertyName = optionsObject.TryGetValue("poolPropertyName", out JToken poolPropertyNameTmp) ? poolPropertyNameTmp.Value<string>() : null;
+                    string activePropertyName = optionsObject.TryGetValue("activePropertyName", out JToken activePropertyNameTmp) ? activePropertyNameTmp.Value<string>() : null;
+                    
+                    string poolEntityType = optionsObject.TryGetValue("poolEntityType", out JToken poolEntityTypeTmp) ? poolEntityTypeTmp.Value<string>() : null;
+                    string activeEntityType = optionsObject.TryGetValue("activeEntityType", out JToken activeEntityTypeTmp) ? activeEntityTypeTmp.Value<string>() : null;
+
+                    string poolFileTablePrefix = !string.IsNullOrEmpty(poolEntityType) ? await entityTypesService.GetTablePrefixForEntityAsync(poolEntityType) : null;
+                    string activeFileTablePrefix = !string.IsNullOrEmpty(activeEntityType) ? await entityTypesService.GetTablePrefixForEntityAsync(activeEntityType) : null;
+                    
+                    string imageCuratorQuery = $@"
+                        SELECT CONCAT('[', GROUP_CONCAT(
+                            JSON_OBJECT(
+                                'itemId', item_id,
+                                'itemLinkId', itemlink_id,
+                                'fileId', id,
+                                'name', REPLACE(file_name, '/', '-'),
+                                'title', title,
+                                'extension', extension,
+                                'size', IFNULL(OCTET_LENGTH(content), 0),
+                                'addedOn', added_on,
+                                'contentUrl', IFNULL(content_url, ''),
+                                'extraData', extra_data,
+                                'listType', ?listType,
+                                'entityType', ?entityType,
+                                'readonly', protected)
+                            ORDER BY ordering ASC), ']'
+                        )
+                        FROM {{0}}{WiserTableNames.WiserItemFile}
+                        WHERE item_id = ?itemId AND property_name = ?propertyName
+                        GROUP BY property_name
+                        LIMIT 1";
+                    
+                    clientDatabaseConnection.AddParameter("itemId", itemId);
+                    
+                    clientDatabaseConnection.AddParameter("propertyName", poolPropertyName);
+                    clientDatabaseConnection.AddParameter("listType", "pool");
+                    clientDatabaseConnection.AddParameter("entityType", poolEntityType);
+                    imageCuratorPoolFiles = await clientDatabaseConnection.ExecuteScalarAsync<string>(string.Format(imageCuratorQuery, poolFileTablePrefix));
+                    
+                    clientDatabaseConnection.AddParameter("propertyName", activePropertyName);
+                    clientDatabaseConnection.AddParameter("listType", "active");
+                    clientDatabaseConnection.AddParameter("entityType", activeEntityType);
+                    imageCuratorActiveFiles = await clientDatabaseConnection.ExecuteScalarAsync<string>(string.Format(imageCuratorQuery, activeFileTablePrefix));
+                }
+
                 var fieldMode = "";
                 var containerCssClasses = new List<string>();
                 if (optionsObject.ContainsKey("mode"))
@@ -1804,7 +1858,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 
                 // Retrieve the "Pro6PP" field value.
                 string pro6PPField = optionsObject.ContainsKey("Pro6PPField") ? optionsObject["Pro6PPField"].ToString() : null;
-
+                
                 defaultValue = defaultValue.Replace("{itemId}", itemId.ToString()).Replace("{userId}", userId.ToString());
 
                 // Retrieve the subdomain that is currently being used.
@@ -1906,6 +1960,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         .Replace("{moduleId}", (dataRow.Field<short?>("module_id") ?? 0).ToString())
                         .Replace("{options}", String.IsNullOrWhiteSpace(options) ? "{}" : options)
                         .Replace("{initialFiles}", String.IsNullOrWhiteSpace(filesJson) ? "[]" : filesJson)
+                        .Replace("{poolFiles}", String.IsNullOrWhiteSpace(imageCuratorPoolFiles) ? "[]" : imageCuratorPoolFiles)
+                        .Replace("{activeFiles}", String.IsNullOrWhiteSpace(imageCuratorActiveFiles) ? "[]" : imageCuratorActiveFiles)
                         .Replace("{propertyName}",
                             String.IsNullOrWhiteSpace(propertyName) ? displayName ?? "" : propertyName.Trim())
                         .Replace("{title}", String.IsNullOrWhiteSpace(displayName) ? propertyName ?? "" : displayName)

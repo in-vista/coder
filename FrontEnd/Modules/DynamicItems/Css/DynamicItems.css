@@ -483,3 +483,133 @@ body.iframe .editMenu {
     max-width: 530px;
     margin-left: calc(100% - 560px);
 }
+
+.selection-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-top: 10px;
+}
+
+.selection-column {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d7d7d7;
+    border-radius: 4px;
+    background: #fafafa;
+    min-height: 340px;
+}
+
+.selection-column h5 {
+    margin: 0;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #3d3d3d;
+    border-bottom: 1px solid #d7d7d7;
+}
+
+.imagesContainer {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 10px;
+}
+
+.product {
+    position: relative;
+    width: 120px;
+    background: #fff;
+    border: 1px solid #cfcfcf;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: .15s;
+}
+
+.product:hover {
+    border-color: #7ea6d8;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.product img {
+    display: block;
+    width: 100%;
+    height: 110px;
+    object-fit: contain;
+    background: #fff;
+}
+
+.product .imgTools {
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid #e2e2e2;
+    background: #f8f8f8;
+    height: 32px;
+}
+
+.product .imgTools > button {
+    line-height: 1;
+}
+
+.product .imgTools button {
+    flex-grow: 1;
+    height: 100%;
+    cursor: pointer;
+    transition: .15s;
+}
+
+.product .imgAdd::before {
+    content: "+";
+    font-weight: bold;
+    color: #2e7d32;
+}
+
+.product .imgRemove::before {
+    content: "−";
+    font-weight: bold;
+    color: #b71c1c;
+}
+
+.product .imgMoveUp::before {
+    content: "↑";
+}
+
+.product .imgMoveDown::before {
+    content: "↓";
+}
+
+.activeContainer {
+    background: #f7fbff;
+}
+
+.activeContainer .product {
+    cursor: move;
+}
+
+.selection-column.empty .imagesContainer::after {
+    content: "Geen afbeeldingen";
+    width: 100%;
+    text-align: center;
+    color: #999;
+    padding: 30px 0;
+    font-style: italic;
+}
+
+.product.is-active::after {
+    content: "✓";
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2e7d32;
+    color: white;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
