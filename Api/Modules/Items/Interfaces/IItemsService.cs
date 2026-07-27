@@ -302,5 +302,15 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="propertyId">The ID of the entity property that the action was performed in.</param>
         /// <returns>True if the action was logged in the database.</returns>
         Task<ServiceResult<bool>> LogActionAsync(ClaimsIdentity identity, string encryptedItemId, string entityType, string actionButton, ulong? moduleId, ulong? propertyId);
+        
+        /// <summary>
+        /// Adjusts the currently curated images in an image curator field type.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <param name="encryptedId">The encrypted ID of the item the image curator is presented in.</param>
+        /// <param name="propertyId">The property ID of the image curator in question.</param>
+        /// <param name="activeFiles">A collection of currently active files that are in the active pool of the image curator.</param>
+        /// <returns>True if the image curator could properly process.</returns>
+        Task<ServiceResult<bool>> UpdateImageCuratorAsync(ClaimsIdentity identity, string encryptedId, ulong propertyId, ImageCuratorActiveFile[] activeFiles);
     }
 }

@@ -1484,11 +1484,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                     string poolPropertyName = optionsObject.TryGetValue("poolPropertyName", out JToken poolPropertyNameTmp) ? poolPropertyNameTmp.Value<string>() : null;
                     string activePropertyName = optionsObject.TryGetValue("activePropertyName", out JToken activePropertyNameTmp) ? activePropertyNameTmp.Value<string>() : null;
                     
-                    string poolEntityType = optionsObject.TryGetValue("poolEntityType", out JToken poolEntityTypeTmp) ? poolEntityTypeTmp.Value<string>() : null;
-                    string activeEntityType = optionsObject.TryGetValue("activeEntityType", out JToken activeEntityTypeTmp) ? activeEntityTypeTmp.Value<string>() : null;
-
-                    string poolFileTablePrefix = !string.IsNullOrEmpty(poolEntityType) ? await entityTypesService.GetTablePrefixForEntityAsync(poolEntityType) : null;
-                    string activeFileTablePrefix = !string.IsNullOrEmpty(activeEntityType) ? await entityTypesService.GetTablePrefixForEntityAsync(activeEntityType) : null;
+                    string imageCuratorEntityType = optionsObject.TryGetValue("entityType", out JToken imageCuratorEntityTypeTmp) ? imageCuratorEntityTypeTmp.Value<string>() : null;
+                    string imageCuratorTablePrefix = !string.IsNullOrEmpty(imageCuratorEntityType) ? await entityTypesService.GetTablePrefixForEntityAsync(imageCuratorEntityType) : null;
                     
                     string imageCuratorQuery = $@"
                         SELECT CONCAT('[', GROUP_CONCAT(
@@ -1508,22 +1505,21 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 'readonly', protected)
                             ORDER BY ordering ASC), ']'
                         )
-                        FROM {{0}}{WiserTableNames.WiserItemFile}
+                        FROM {imageCuratorTablePrefix}{WiserTableNames.WiserItemFile}
                         WHERE item_id = ?itemId AND property_name = ?propertyName
                         GROUP BY property_name
                         LIMIT 1";
                     
                     clientDatabaseConnection.AddParameter("itemId", itemId);
+                    clientDatabaseConnection.AddParameter("entityType", imageCuratorEntityType);
                     
                     clientDatabaseConnection.AddParameter("propertyName", poolPropertyName);
                     clientDatabaseConnection.AddParameter("listType", "pool");
-                    clientDatabaseConnection.AddParameter("entityType", poolEntityType);
-                    imageCuratorPoolFiles = await clientDatabaseConnection.ExecuteScalarAsync<string>(string.Format(imageCuratorQuery, poolFileTablePrefix));
+                    imageCuratorPoolFiles = await clientDatabaseConnection.ExecuteScalarAsync<string>(imageCuratorQuery);
                     
                     clientDatabaseConnection.AddParameter("propertyName", activePropertyName);
                     clientDatabaseConnection.AddParameter("listType", "active");
-                    clientDatabaseConnection.AddParameter("entityType", activeEntityType);
-                    imageCuratorActiveFiles = await clientDatabaseConnection.ExecuteScalarAsync<string>(string.Format(imageCuratorQuery, activeFileTablePrefix));
+                    imageCuratorActiveFiles = await clientDatabaseConnection.ExecuteScalarAsync<string>(imageCuratorQuery);
                 }
 
                 var fieldMode = "";
@@ -3423,6 +3419,89 @@ VALUES(?itemId, ?entityType, ?actionButton, ?userId, ?moduleId, ?propertyId)";
             clientDatabaseConnection.AddParameter("propertyId", propertyId);
 
             await clientDatabaseConnection.ExecuteAsync(query);
+            
+            return new ServiceResult<bool>(true);
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<bool>> UpdateImageCuratorAsync(ClaimsIdentity identity, string encryptedId, ulong propertyId, ImageCuratorActiveFile[] activeFiles)
+        {
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            ulong itemId = await wiserTenantsService.DecryptValue<ulong>(encryptedId, identity);
+            ulong userId = IdentityHelpers.GetWiserUserId(identity);
+            
+            clientDatabaseConnection.ClearParameters();
+            clientDatabaseConnection.AddParameter("propertyId", propertyId);
+            string optionsRaw = await clientDatabaseConnection.ExecuteScalarAsync<string>($"SELECT options FROM {WiserTableNames.WiserEntityProperty} WHERE id = ?propertyId");
+            JObject options = JObject.Parse(optionsRaw);
+
+            string entityType = options.Value<string>("entityType");
+            string tablePrefix = await entityTypesService.GetTablePrefixForEntityAsync(entityType);
+
+            string poolPropertyName = options.Value<string>("poolPropertyName");
+            string activePropertyName = options.Value<string>("activePropertyName");
+            
+            await clientDatabaseConnection.EnsureOpenConnectionForWritingAsync();
+            
+            clientDatabaseConnection.ClearParameters();
+            clientDatabaseConnection.AddParameter("itemId", itemId);
+            clientDatabaseConnection.AddParameter("poolPropertyName", poolPropertyName);
+            clientDatabaseConnection.AddParameter("activePropertyName", activePropertyName);
+            
+            await clientDatabaseConnection.ExecuteAsync(@$"
+                DELETE FROM Sku_wiser_itemfile
+                WHERE
+                    item_id = ?itemId AND
+                    property_name = ?activePropertyName
+                    {(activeFiles.Length > 0
+                        ? $"AND id NOT IN {clientDatabaseConnection.AddInParameters("fileId", activeFiles.Select(x => (object) x.FileId))}"
+                        : string.Empty)}
+                ");
+
+            if (activeFiles.Length > 0)
+            {
+                clientDatabaseConnection.ClearParameters();
+                clientDatabaseConnection.AddParameter("itemId", itemId);
+                clientDatabaseConnection.AddParameter("userId", userId);
+                clientDatabaseConnection.AddParameter("poolPropertyName", poolPropertyName);
+                clientDatabaseConnection.AddParameter("activePropertyName", activePropertyName);
+
+                await clientDatabaseConnection.ExecuteAsync(@$"
+                    INSERT IGNORE INTO {tablePrefix}{WiserTableNames.WiserItemFile}
+                    (item_id, content_type, content, content_url, width, height, file_name, extension, added_on, added_by, title, property_name, itemlink_id, protected, ordering, extra_data)
+                    SELECT
+	                    file.item_id,
+	                    file.content_type,
+	                    file.content,
+	                    file.content_url,
+	                    file.width,
+	                    file.height,
+	                    file.file_name,
+	                    file.extension,
+	                    NOW(),
+	                    (SELECT title FROM wiser_item WHERE id = ?userId LIMIT 1),
+	                    file.title,
+	                    ?activePropertyName,
+	                    file.itemlink_id,
+	                    file.protected,
+	                    IFNULL((
+		                    SELECT
+			                    MAX(inner_file.ordering) + 1
+		                    FROM {tablePrefix}{WiserTableNames.WiserItemFile} inner_file
+		                    WHERE inner_file.item_id = ?itemId AND inner_file.property_name = ?activePropertyName
+	                    ), 1),
+	                    file.extra_data
+                    FROM {tablePrefix}{WiserTableNames.WiserItemFile} file
+                    WHERE file.item_id = ?itemId AND file.property_name = ?poolPropertyName AND file.id IN {clientDatabaseConnection.AddInParameters("fileId", activeFiles.Select(x => (object) x.FileId))}"
+                    );
+
+                foreach (ImageCuratorActiveFile file in activeFiles)
+                {
+                    clientDatabaseConnection.AddParameter("fileId", file.FileId);
+                    clientDatabaseConnection.AddParameter("ordering", file.Ordering);
+                    await clientDatabaseConnection.ExecuteAsync($"UPDATE {tablePrefix}{WiserTableNames.WiserItemFile} SET ordering = ?ordering WHERE id = ?fileId");
+                }
+            }
             
             return new ServiceResult<bool>(true);
         }

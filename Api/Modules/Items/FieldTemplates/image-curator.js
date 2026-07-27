@@ -1,12 +1,12 @@
 ﻿(async () => {
 	let options = {options};
 
-	const container = $("#container_{propertyIdWithSuffix}");
+	const container = $('#container_{propertyIdWithSuffix}');
 	const readonly = {readonly};
 
-	const hiddenInput = $("#field_{propertyIdWithSuffix}");
-	const poolContainer = $("#pool_{propertyIdWithSuffix}");
-	const activeContainer = $("#active_{propertyIdWithSuffix}");
+	const hiddenInput = $('#field_{propertyIdWithSuffix}');
+	const poolContainer = $('#pool_{propertyIdWithSuffix}');
+	const activeContainer = $('#active_{propertyIdWithSuffix}');
 
 	const poolTitle = container.find('.curator-title-pool');
 	const activeTitle = container.find('.curator-title-active');
@@ -22,7 +22,7 @@
 		
 		for (let i = 0; i < files.length; i++) {
 			files[i].readonly = readonly;
-			files[i].entityType = "{entityType}";
+			files[i].entityType = '{entityType}';
 		}
 	}
 	
@@ -59,19 +59,16 @@
 
 	function bindEvents() {
 		poolContainer
-			.off("click.imageCurator")
-			.on("click.imageCurator", ".imgAdd", addImage);
+			.off('click.imageCurator')
+			.on('click.imageCurator', '.imgAdd', addImage);
 
 		activeContainer
-			.off("click.imageCurator")
-			.on("click.imageCurator", ".imgRemove", removeImage);
+			.off('click.imageCurator')
+			.on('click.imageCurator', '.imgRemove', removeImage);
 	}
 
 	function addImage() {
 		const fileId = $(this).closest('.product').data('imageId');
-		
-		if (state.activeFiles.some(f => f.fileId === fileId))
-			return;
 		
 		const file = state.poolFiles.find(f => f.fileId === fileId);
 		
@@ -96,7 +93,7 @@
 
 	function initSortable() {
 		activeContainer.kendoSortable({
-			cursor: "move",
+			cursor: 'move',
 			hint: event => event.clone(),
 			placeholder: event => event.clone().addClass('k-state-hover').css('opacity', 0.65),
 			change: event => {
@@ -109,6 +106,14 @@
 	}
 
 	async function save() {
-		console.log('Saving state...');
+		await Wiser.api({
+			url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent('{itemIdEncrypted}')}/image-curator/{propertyId}`,
+			dataType: 'json',
+			method: 'PUT',
+			contentType: 'application/json',
+			data: JSON.stringify({
+				files: JSON.parse(hiddenInput.val())
+			})
+		})
 	}
 })();
