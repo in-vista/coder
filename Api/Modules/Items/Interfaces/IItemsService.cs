@@ -7,6 +7,7 @@ using Api.Modules.EntityTypes.Models;
 using Api.Modules.Items.Models;
 using GeeksCoreLibrary.Core.Enums;
 using GeeksCoreLibrary.Core.Models;
+using Newtonsoft.Json.Linq;
 
 namespace Api.Modules.Items.Interfaces
 {
@@ -311,6 +312,6 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="propertyId">The property ID of the image curator in question.</param>
         /// <param name="activeFiles">A collection of currently active files that are in the active pool of the image curator.</param>
         /// <returns>True if the image curator could properly process.</returns>
-        Task<ServiceResult<bool>> UpdateImageCuratorAsync(ClaimsIdentity identity, string encryptedId, ulong propertyId, ImageCuratorActiveFile[] activeFiles);
+        Task<ServiceResult<JArray>> UpdateImageCuratorAsync(ClaimsIdentity identity, string encryptedId, ulong propertyId, ImageCuratorActiveFile[] activeFiles);
     }
 }

@@ -3424,7 +3424,7 @@ VALUES(?itemId, ?entityType, ?actionButton, ?userId, ?moduleId, ?propertyId)";
         }
         
         /// <inheritdoc/>
-        public async Task<ServiceResult<bool>> UpdateImageCuratorAsync(ClaimsIdentity identity, string encryptedId, ulong propertyId, ImageCuratorActiveFile[] activeFiles)
+        public async Task<ServiceResult<JArray>> UpdateImageCuratorAsync(ClaimsIdentity identity, string encryptedId, ulong propertyId, ImageCuratorActiveFile[] activeFiles)
         {
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
             ulong itemId = await wiserTenantsService.DecryptValue<ulong>(encryptedId, identity);
@@ -3457,15 +3457,16 @@ VALUES(?itemId, ?entityType, ?actionButton, ?userId, ?moduleId, ?propertyId)";
                         ? $"AND id NOT IN {clientDatabaseConnection.AddInParameters("fileId", activeFiles.Select(x => (object) x.FileId))}"
                         : string.Empty)}
                 ");
-
+            
+            clientDatabaseConnection.ClearParameters();
+            clientDatabaseConnection.AddParameter("itemId", itemId);
+            clientDatabaseConnection.AddParameter("userId", userId);
+            clientDatabaseConnection.AddParameter("poolPropertyName", poolPropertyName);
+            clientDatabaseConnection.AddParameter("activePropertyName", activePropertyName);
+            clientDatabaseConnection.AddParameter("entityType", entityType);
+            
             if (activeFiles.Length > 0)
             {
-                clientDatabaseConnection.ClearParameters();
-                clientDatabaseConnection.AddParameter("itemId", itemId);
-                clientDatabaseConnection.AddParameter("userId", userId);
-                clientDatabaseConnection.AddParameter("poolPropertyName", poolPropertyName);
-                clientDatabaseConnection.AddParameter("activePropertyName", activePropertyName);
-
                 await clientDatabaseConnection.ExecuteAsync(@$"
                     INSERT IGNORE INTO {tablePrefix}{WiserTableNames.WiserItemFile}
                     (item_id, content_type, content, content_url, width, height, file_name, extension, added_on, added_by, title, property_name, itemlink_id, protected, ordering, extra_data)
@@ -3498,12 +3499,34 @@ VALUES(?itemId, ?entityType, ?actionButton, ?userId, ?moduleId, ?propertyId)";
                 foreach (ImageCuratorActiveFile file in activeFiles)
                 {
                     clientDatabaseConnection.AddParameter("fileId", file.FileId);
-                    clientDatabaseConnection.AddParameter("ordering", file.Ordering);
-                    await clientDatabaseConnection.ExecuteAsync($"UPDATE {tablePrefix}{WiserTableNames.WiserItemFile} SET ordering = ?ordering WHERE id = ?fileId");
+                    clientDatabaseConnection.AddParameter("orderIndex", file.Ordering);
+                    await clientDatabaseConnection.ExecuteAsync($"UPDATE {tablePrefix}{WiserTableNames.WiserItemFile} SET ordering = ?orderIndex WHERE id = ?fileId");
                 }
             }
             
-            return new ServiceResult<bool>(true);
+            // Execute query to retrieve all item IDs of the active pool to return to the front end.
+            string currentActiveFilesJson = await clientDatabaseConnection.GetAsJsonAsync(@$"
+                SELECT
+                    item_id AS `itemId`,
+                    itemlink_id AS `itemLinkId`,
+                    id AS `fileId`,
+                    REPLACE(file_name, '/', '-') AS `name`,
+                    title AS `title`,
+                    extension AS `extension`,
+                    IFNULL(OCTET_LENGTH(content), 0) AS `size`,
+                    added_on AS `addedOn`,
+                    IFNULL(content_url, '') AS `contentUrl`,
+                    extra_data AS `extraData`,
+                    'active' AS `listType`,
+                    ?entityType AS `entityType`,
+                    protected AS `readonly`
+                FROM {tablePrefix}{WiserTableNames.WiserItemFile}
+                WHERE item_id = ?itemId AND property_name = ?activePropertyName
+                ORDER BY ordering");
+
+            JArray currentActiveFiles = JArray.Parse(currentActiveFilesJson);
+            
+            return new ServiceResult<JArray>(currentActiveFiles);
         }
 
         /// <summary>

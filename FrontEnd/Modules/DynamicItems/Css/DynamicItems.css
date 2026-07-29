@@ -500,13 +500,26 @@ body.iframe .editMenu {
     min-height: 340px;
 }
 
-.selection-column h5 {
-    margin: 0;
+.selection-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     padding: 10px 12px;
+    border-bottom: 1px solid #d7d7d7;
+    background: linear-gradient(#ffffff, #f5f5f5);
+}
+
+.selection-header h5 {
+    margin: 0;
+    flex: 1;
     font-size: 13px;
     font-weight: 600;
     color: #3d3d3d;
-    border-bottom: 1px solid #d7d7d7;
+}
+
+.selection-header .uploadButton {
+    flex-shrink: 0;
 }
 
 .imagesContainer {

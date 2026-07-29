@@ -12,36 +12,41 @@
 	const activeTitle = container.find('.curator-title-active');
 	poolTitle.text(options.poolTitle);
 	activeTitle.text(options.activeTitle);
+
+	const uploadButton = container.find(".uploadButton");
+	const uploadInput = container.find(".uploadInput");
+
+	const template = kendo.template($("#imageCuratorTemplate").html());
 	
 	let poolFiles = {poolFiles};
 	let activeFiles = {activeFiles};
-	
-	const normalizeFiles = (files) => {
-		if(!files || !files.length)
-			return;
-		
-		for (let i = 0; i < files.length; i++) {
-			files[i].readonly = readonly;
-			files[i].entityType = '{entityType}';
-		}
-	}
-	
-	normalizeFiles(poolFiles);
-	normalizeFiles(activeFiles);
 
 	const state = {
 		poolFiles: {poolFiles} || [],
 		activeFiles: {activeFiles} || []
 	};
 
-	const template = kendo.template($("#imageCuratorTemplate").html());
-
+	normalizeFiles(state.poolFiles);
+	normalizeFiles(state.activeFiles);
+	
 	render();
 	initSortable();
+	if(options.allowUpload)
+		initUpload();
 	bindEvents();
 	
 	{customScript}
+	
+	function normalizeFiles(files) {
+		if(!files || !files.length)
+			return;
 
+		for (let i = 0; i < files.length; i++) {
+			files[i].readonly = readonly;
+			files[i].entityType = '{entityType}';
+		}
+	}
+	
 	function render() {
 		poolContainer.html(kendo.render(template, state.poolFiles));
 		activeContainer.html(kendo.render(template, state.activeFiles));
@@ -104,16 +109,68 @@
 			}
 		});
 	}
+	
+	function initUpload() {
+		uploadInput.kendoUpload({
+			async: {
+				saveUrl: `${window.dynamicItems.settings.wiserApiRoot}items/{itemIdEncrypted}/upload?propertyName=${encodeURIComponent("{propertyName}")}&itemLinkId={itemLinkId}&entityType=${encodeURIComponent("{entityType}")}`,
+				withCredentials: false
+			},
+			multiple: true,
+			showFileList: false,
+			upload: event => {
+				const xhr = event.XMLHttpRequest;
+				if (xhr) {
+					xhr.addEventListener('readystatechange', () => {
+						if (xhr.readyState === 1) {
+							xhr.setRequestHeader(
+								'authorization',
+								`Bearer ${localStorage.getItem('accessToken')}`
+							);
+						}
+					});
+				}
+			},
+			success: (e) => {
+				const uploadedFiles = e.response.files;
+
+				normalizeFiles(uploadedFiles);
+
+				for (const file of uploadedFiles) {
+					state.poolFiles.push(file);
+					state.activeFiles.push({
+						...file
+					});
+				}
+
+				render();
+				save();
+			},
+			error: window.dynamicItems.fields.onFileUploadError.bind(window.dynamicItems.fields)
+		});
+		
+		uploadButton.on('click', () => {
+			debugger;
+			uploadInput.click();
+		});
+	}
 
 	async function save() {
-		await Wiser.api({
-			url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent('{itemIdEncrypted}')}/image-curator/{propertyId}`,
-			dataType: 'json',
-			method: 'PUT',
-			contentType: 'application/json',
-			data: JSON.stringify({
-				files: JSON.parse(hiddenInput.val())
-			})
-		})
+		try {
+			state.activeFiles = await Wiser.api({
+				url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent('{itemIdEncrypted}')}/image-curator/{propertyId}`,
+				dataType: 'json',
+				method: 'PUT',
+				contentType: 'application/json',
+				data: JSON.stringify({
+					files: JSON.parse(hiddenInput.val())
+				})
+			});
+
+			render();
+		} catch(exception) {
+			console.error(exception);
+			kendo.alert(`Niet in staat om de aanpassing op te slaan. Probeer later opnieuw.`);
+		}
 	}
 })();

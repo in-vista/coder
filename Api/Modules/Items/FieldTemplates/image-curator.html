@@ -27,12 +27,26 @@
 	</h4>
 	<div class="selection-layout">
 		<div class="selection-column">
-			<h5 class="curator-title-pool"></h5>
+			<div class="selection-header">
+				<h5 class="curator-title-pool"></h5>
+			</div>
 			<div id="pool_{propertyIdWithSuffix}" class="imagesContainer poolContainer"></div>
 		</div>
 		
 		<div class="selection-column">
-			<h5 class="curator-title-active"></h5>
+			<div class="selection-header">
+				<h5 class="curator-title-active"></h5>
+				<button type="button"
+				        class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-primary uploadButton">
+					<span class="k-font-icon k-i-upload"></span>
+					Upload afbeelding
+				</button>
+				<input type="file"
+				       class="uploadInput"
+				       accept="image/*"
+				       multiple
+				       style="display:none;" />
+			</div>
 			<div id="active_{propertyIdWithSuffix}" class="imagesContainer activeContainer"></div>
 		</div>
 	</div>
