@@ -109,6 +109,12 @@ namespace Api.Modules.Tenants.Services
         {
             return await usersService.GetUserDataAsync(service, identity);
         }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<UserModel>> GetUserByIdAsync(ulong userId)
+        {
+            return await usersService.GetUserByIdAsync(userId);
+        }
 
         /// <inheritdoc />
         public Task<ServiceResult<string>> GetSettingsAsync(ClaimsIdentity identity, string groupName, string uniqueKey, string defaultValue = null)
@@ -246,6 +252,18 @@ namespace Api.Modules.Tenants.Services
         public Task<ServiceResult<bool>> SaveDashboardSettingsAsync(ClaimsIdentity identity, JToken settings)
         {
             return usersService.SaveDashboardSettingsAsync(identity, settings);
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<JArray>> GetImitationsAsync(ClaimsIdentity identity)
+        {
+            return await usersService.GetImitationsAsync(identity);
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<bool>> ImitateAsync(ClaimsIdentity identity, string encryptedUserId)
+        {
+            return await usersService.ImitateAsync(identity, encryptedUserId);
         }
     }
 }
