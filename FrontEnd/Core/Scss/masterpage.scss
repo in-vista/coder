@@ -1132,6 +1132,33 @@ ul.totp-backup-codes {
     }
 }
 
+.password-requirements-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 24px;
+    margin-bottom: 14px;
+}
+
+.password-requirement {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.password-requirement-check, .password-requirement-text {
+    line-height: normal;
+}
+
+.password-requirement-check {
+    flex: 0 0;
+}
+
+.password-requirement-text {
+    flex: 1 0;
+    font-size: 13px;
+}
+
 /* CODER v2 */
 $mdi-sizes: (
         1: 16px,
