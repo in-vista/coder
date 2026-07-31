@@ -20,6 +20,7 @@
         DateTimePicker,
         ImageCoordinates,
         ImageUpload,
+        ImageCurator,
         GpsLocation,
         DateRange,
         SubEntitiesGrid,

@@ -526,5 +526,13 @@ namespace Api.Modules.Items.Controllers
                     logActionRequest.EntityType, logActionRequest.ActionButton, logActionRequest.ModuleId, logActionRequest.PropertyId))
                 .GetHttpResponseMessage();
         }
+
+        [HttpPut]
+        [Route("{encryptedId}/image-curator/{propertyId:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> UpdateImageCuratorAsync(string encryptedId, ulong propertyId, [FromBody] UpdateImageCuratorRequest request)
+        {
+            return (await itemsService.UpdateImageCuratorAsync((ClaimsIdentity)User.Identity, encryptedId, propertyId, request.Files)).GetHttpResponseMessage();
+        }
     }
 }
