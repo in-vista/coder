@@ -62,11 +62,11 @@ import {
     USE_TOTP_BACKUP_CODE,
     USE_TOTP_BACKUP_CODE_ERROR,
     USER_BACKUP_CODES_GENERATED,
-    VALID_SUB_DOMAIN, 
+    VALID_SUB_DOMAIN,
     MODULES_PENDING_ACTIONS_REQUEST,
     MODULES_PENDING_ACTIONS_LOADED,
     UPDATE_TAB_STRIP_MODULES,
-	UPDATE_TAB_STRIP_TITLE_ALIAS
+    UPDATE_TAB_STRIP_TITLE_ALIAS, IMITATIONS_REQUEST, IMITATIONS_LOADED, IMITATE_ACCOUNT
 } from "./mutation-types";
 
 const baseModule = {
@@ -107,7 +107,8 @@ const loginModule = {
         },
         listOfUsers: [],
         resetPassword: false,
-        requirePasswordChange: false
+        requirePasswordChange: false,
+        imitations: []
     }),
 
     mutations: {
@@ -179,6 +180,7 @@ const loginModule = {
                 totpQrImageUrl: ""
             };
             state.requirePasswordChange = false;
+            state.imitations = [];
         },
         [FORGOT_PASSWORD]: (state) => {
             state.resetPassword = false;
@@ -207,7 +209,10 @@ const loginModule = {
         },
         [USER_BACKUP_CODES_GENERATED]: (state) => {
             state.user.totpFirstTime = false;
-        }
+        },
+        [IMITATIONS_LOADED](state, imitations) {
+            state.imitations = imitations;
+        },
     },
 
     actions: {
@@ -253,6 +258,7 @@ const loginModule = {
                 if (!rootState.modules.allModules || !rootState.modules.allModules.length) {
                     await this.dispatch(DO_TENANT_MIGRATIONS);
                     await this.dispatch(MODULES_REQUEST);
+                    await this.dispatch(IMITATIONS_REQUEST);
                 }
 
                 // If a login log ID is also set in the user data, use it to start the "time active" timer.
@@ -305,8 +311,9 @@ const loginModule = {
                     await this.dispatch(START_UPDATE_TIME_ACTIVE_TIMER);
                 }
 
-                // Reload the modules after a successful login.
+                // Reload the modules and imitations after a successful login.
                 await this.dispatch(MODULES_REQUEST);
+                await this.dispatch(IMITATIONS_REQUEST);
 
                 // Load system styling.
                 await Misc.injectSystemStyling();
@@ -368,6 +375,26 @@ const loginModule = {
 
             localUser.totpFirstTime = false;
             localStorage.setItem("userData", JSON.stringify(localUser));
+        },
+
+        async [IMITATIONS_REQUEST]({ commit, dispatch }) {
+            commit(START_REQUEST);
+
+            const imitations = await main.usersService.fetchImitations();
+            commit(IMITATIONS_LOADED, imitations.data);
+
+            commit(END_REQUEST);
+        },
+
+        async [IMITATE_ACCOUNT]({ commit, dispatch }, encryptedUserId) {
+            commit(START_REQUEST);
+            
+            await main.usersService.imitate(encryptedUserId);
+            
+            // TODO: Dispatch AUTH_REQUEST to avoid having to refresh all content of the page for a smoother experience.
+            window.location.reload();
+            
+            commit(END_REQUEST);
         }
     },
 
