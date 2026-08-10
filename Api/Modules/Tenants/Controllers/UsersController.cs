@@ -262,5 +262,30 @@ namespace Api.Modules.Tenants.Controllers
         {
             return (await usersService.SaveDashboardSettingsAsync((ClaimsIdentity) User.Identity, layoutData)).GetHttpResponseMessage();
         }
+        
+        /// <summary>
+        /// Fetches all available imitations the users is allowed to.
+        /// </summary>
+        /// <returns>A JSON response representing a list of available imitations.</returns>
+        [HttpGet]
+        [Route("imitations")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetImitationsAsync()
+        {
+            return (await usersService.GetImitationsAsync((ClaimsIdentity) User.Identity)).GetHttpResponseMessage();
+        }
+        
+        /// <summary>
+        /// Forcefully logs the user in based on the given encrypted user ID.
+        /// </summary>
+        /// <param name="encryptedUserId">The encrypted user ID to log the user in for.</param>
+        /// <returns>True, if the login was successful.</returns>
+        [HttpPost]
+        [Route("imitate")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ImitateAsync([FromQuery] string encryptedUserId)
+        {
+            return (await usersService.ImitateAsync((ClaimsIdentity) User.Identity, encryptedUserId)).GetHttpResponseMessage();
+        }
     }
 }

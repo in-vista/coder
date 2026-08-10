@@ -207,7 +207,8 @@ namespace Api
                 .AddInMemoryApiScopes(ConfigureIdentityServer.GetApiScopes())
                 .AddInMemoryClients(ConfigureIdentityServer.GetClients(clientSecret))
                 .AddProfileService<WiserProfileService>()
-                .AddResourceOwnerValidator<WiserGrantValidator>();
+                .AddResourceOwnerValidator<WiserGrantValidator>()
+                .AddExtensionGrantValidator<WiserForceGrantValidator>();
 
             if (webHostEnvironment.IsDevelopment())
             {
