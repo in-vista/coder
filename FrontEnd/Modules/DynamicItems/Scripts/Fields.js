@@ -1418,23 +1418,21 @@ export class Fields {
                     ? (await this.base.getItemDetails(itemEncryptedId, itemEntityType)) || mainItemDetails
                     : mainItemDetails;
                 
-                try {
-                    await Wiser.api({
-                        url: `${window.dynamicItems.settings.wiserApiRoot}items/log-action`,
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            item_id: itemDetails.encryptedId || null,
-                            entity_type: itemDetails.entityType || null,
-                            action_button: action,
-                            module_id: moduleId || null,
-                            property_id: propertyId || null
-                        })
-                    });
-                } catch(exception) {
+                Wiser.api({
+                    url: `${window.dynamicItems.settings.wiserApiRoot}items/log-action`,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        item_id: itemDetails.encryptedId || null,
+                        entity_type: itemDetails.entityType || null,
+                        action_button: action,
+                        module_id: moduleId || null,
+                        property_id: propertyId || null
+                    })
+                }).catch(exception => {
                     console.error(exception);
                     kendo.alert(`Er is een fout opgetreden bij het schrijven van een log van de action button voor actie '${action}'.`);
-                }
+                });
             }
 
             const getSuffixFromSelectedColumn = (selectedItem) => {

@@ -3515,6 +3515,7 @@ VALUES(?itemId, ?entityType, ?actionButton, ?userId, ?moduleId, ?propertyId)";
                     extension AS `extension`,
                     IFNULL(OCTET_LENGTH(content), 0) AS `size`,
                     added_on AS `addedOn`,
+                    content_type AS `contentType`,
                     IFNULL(content_url, '') AS `contentUrl`,
                     extra_data AS `extraData`,
                     'active' AS `listType`,
