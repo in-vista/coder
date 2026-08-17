@@ -31,8 +31,12 @@
 	
 	render();
 	initSortable();
+	
 	if(options.allowUpload)
 		initUpload();
+	else
+		uploadButton.remove();
+	
 	bindEvents();
 	
 	{customScript}
@@ -111,9 +115,9 @@
 	}
 	
 	function initUpload() {
-		uploadInput.kendoUpload({
+		const uploadComponent = uploadInput.kendoUpload({
 			async: {
-				saveUrl: `${window.dynamicItems.settings.wiserApiRoot}items/{itemIdEncrypted}/upload?propertyName=${encodeURIComponent("{propertyName}")}&itemLinkId={itemLinkId}&entityType=${encodeURIComponent("{entityType}")}`,
+				saveUrl: `${window.dynamicItems.settings.wiserApiRoot}items/{itemIdEncrypted}/upload?propertyName=${encodeURIComponent(options.activePropertyName)}&itemLinkId={itemLinkId}&entityType=${encodeURIComponent(options.entityType)}`,
 				withCredentials: false
 			},
 			multiple: true,
@@ -131,27 +135,28 @@
 					});
 				}
 			},
-			success: (e) => {
-				const uploadedFiles = e.response.files;
+			success: async event => {
+				const uploadedFiles = event.response;
 
 				normalizeFiles(uploadedFiles);
-
+				
 				for (const file of uploadedFiles) {
-					state.poolFiles.push(file);
 					state.activeFiles.push({
-						...file
+						...file,
+						listType: 'active'
 					});
 				}
 
 				render();
-				save();
+				await save();
 			},
 			error: window.dynamicItems.fields.onFileUploadError.bind(window.dynamicItems.fields)
-		});
+		}).data('kendoUpload');
+		
+		uploadInput.closest('.k-upload').hide();
 		
 		uploadButton.on('click', () => {
-			debugger;
-			uploadInput.click();
+			uploadComponent.wrapper.find(".k-upload-button").trigger("click");
 		});
 	}
 
