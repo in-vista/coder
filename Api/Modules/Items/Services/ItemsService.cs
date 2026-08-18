@@ -3449,7 +3449,7 @@ VALUES(?itemId, ?entityType, ?actionButton, ?userId, ?moduleId, ?propertyId)";
             clientDatabaseConnection.AddParameter("activePropertyName", activePropertyName);
             
             await clientDatabaseConnection.ExecuteAsync(@$"
-                DELETE FROM Sku_wiser_itemfile
+                DELETE FROM {tablePrefix}{WiserTableNames.WiserItemFile}
                 WHERE
                     item_id = ?itemId AND
                     property_name = ?activePropertyName
