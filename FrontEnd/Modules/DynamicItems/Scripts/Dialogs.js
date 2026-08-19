@@ -157,8 +157,9 @@ export class Dialogs {
      * @param {number} moduleId Optional: The id of the module in which the item should be created.
      * @param {any} kendoComponent Optional: If this item is being created via a field with a kendo component (such as a grid or dropdown), add the instance of it here, so we can refresh the data source after.
      * @param {string} parentEntityType The entityType of the parent to create the item for.
+     * @param {string} itemName Optional: If skipName is `false` the name of the item to be created will be automatically filled.
      */
-    async openCreateItemDialog(parentId, node, entityType, skipName = false, skipInitialDialog = false, linkTypeNumber = 1, moduleId = 0, kendoComponent = null, parentEntityType = "") {
+    async openCreateItemDialog(parentId, node, entityType, skipName = false, skipInitialDialog = false, linkTypeNumber = 1, moduleId = 0, kendoComponent = null, parentEntityType = "", itemName = "") {
         node = node || (this.base.mainTreeView ? this.base.mainTreeView.select() : null);
         if (typeof parentId !== "string") {
             if (this.base.selectedItem && this.base.selectedItem.id) {
@@ -172,7 +173,7 @@ export class Dialogs {
         await this.loadAvailableEntityTypesInDropDown(parentId, parentEntityType);
 
         this.newItemDialog.element.find("#alsoCreateInMainBranch").prop("checked", false);
-        const newItemNameField = this.newItemDialog.element.find("#newItemNameField").val("");
+        const newItemNameField = this.newItemDialog.element.find("#newItemNameField").val(skipName ? "" : itemName);
 
         this.newItemDialog.element.data("parentId", parentId);
         this.newItemDialog.element.data("entityType", entityType);
