@@ -534,7 +534,7 @@ SELECT title FROM wiser_item WHERE id = @_itemId;");
     IF(property_name = '', display_name, property_name) AS propertyName
 FROM wiser_entityproperty
 WHERE entity_name = '{entityType}'
-AND inputtype NOT IN ('file-upload', 'grid', 'image-upload', 'sub-entities-grid', 'item-linker', 'linked-item', 'action-button')
+AND inputtype NOT IN ('file-upload', 'grid', 'image-upload', 'image-curator', 'sub-entities-grid', 'item-linker', 'linked-item', 'action-button')
 
 UNION SELECT 'Algemeen' AS tabName, 'ID' AS displayName, 'id' AS propertyName
 UNION SELECT 'Algemeen' AS tabName, 'UUID' AS displayName, 'unique_uuid' AS propertyName
@@ -829,6 +829,7 @@ FROM (
             'file-upload',
             'grid',
             'image-upload',
+            'image-curator',
             'item-linker',
             'linked-item',
             'querybuilder',
@@ -872,6 +873,7 @@ FROM (
             'file-upload',
             'grid',
             'image-upload',
+            'image-curator',
             'item-linker',
             'linked-item',
             'querybuilder',
@@ -934,6 +936,7 @@ FROM (
             'file-upload',
             'grid',
             'image-upload',
+            'image-curator',
             'item-linker',
             'linked-item',
             'querybuilder',
@@ -977,6 +980,7 @@ FROM (
             'file-upload',
             'grid',
             'image-upload',
+            'image-curator',
             'item-linker',
             'linked-item',
             'querybuilder',

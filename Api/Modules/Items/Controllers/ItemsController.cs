@@ -319,6 +319,7 @@ namespace Api.Modules.Items.Controllers
         /// <param name="encryptedId">The encrypted ID of the currently opened item that contains the sub-entities-grid.</param>
         /// <param name="queryId">Optional: The encrypted ID of the query to execute for getting the data.</param>
         /// <param name="countQueryId">Optional: The encrypted ID of the query to execute for counting the total amount of items.</param>
+        /// <param name="showHiddenItems">Optional: Indicates whether to show hidden items. Defaults to <c>false</c>.</param>
         /// <returns>The data of the grid, as a <see cref="GridSettingsAndDataModel"/>.</returns>
         [HttpGet]
         [Route("{encryptedId}/grids/{propertyId:int}")]
@@ -518,7 +519,11 @@ namespace Api.Modules.Items.Controllers
         {
             return (await itemsService.SearchAsync((ClaimsIdentity)User.Identity, parentId, data)).GetHttpResponseMessage();
         }
-
+        
+        /// <summary>
+        /// Logs an action that has been invoked through an action button from the front-end.
+        /// </summary>
+        /// <param name="logActionRequest">The model containing information about the invoked action.</param>
         [HttpPost]
         [Route("log-action")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -527,6 +532,20 @@ namespace Api.Modules.Items.Controllers
             return (await itemsService.LogActionAsync((ClaimsIdentity)User.Identity, logActionRequest.EncryptedItemId,
                     logActionRequest.EntityType, logActionRequest.ActionButton, logActionRequest.ModuleId, logActionRequest.PropertyId))
                 .GetHttpResponseMessage();
+        }
+        
+        /// <summary>
+        /// Updates the current state of the given image curator field template.
+        /// </summary>
+        /// <param name="encryptedId">The encrypted ID of the item the image curator is presented in.</param>
+        /// <param name="propertyId">The ID of the property of the image curator.</param>
+        /// <param name="request">The model containing information on the current state of the image curator.</param>
+        [HttpPut]
+        [Route("{encryptedId}/image-curator/{propertyId:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> UpdateImageCuratorAsync(string encryptedId, ulong propertyId, [FromBody] UpdateImageCuratorRequest request)
+        {
+            return (await itemsService.UpdateImageCuratorAsync((ClaimsIdentity)User.Identity, encryptedId, propertyId, request.Files)).GetHttpResponseMessage();
         }
     }
 }

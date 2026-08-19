@@ -35,7 +35,7 @@ namespace Api.Core.Models
         public List<string> JsonPropertiesToAlwaysEncrypt { get; set; }
 
         /// <summary>
-        /// The amount of time to cache results from functions of <see cref="IUsersService"/> and <see cref="IWiserTenantService"/>.
+        /// The amount of time to cache results from functions of <see cref="IUsersService"/> and <see cref="IWiserTenantsService"/>.
         /// </summary>
         public TimeSpan DefaultUsersCacheDuration { get; set; } = new(1, 0, 0);
 

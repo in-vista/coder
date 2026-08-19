@@ -26,6 +26,7 @@
     
         reservations = []; // internal for keeping reservations
         tableGroups = {}; // internal for keeping tables and table groups
+        customerUrl = "";
     
         container = null;
         activeDrag = null;
@@ -62,6 +63,7 @@
     
             // Open Flatpickr bij click
             currentDateSpan.addEventListener("click", () => {
+                fp.setDate(this.currentDate, false); // false = onChange niet triggeren                
                 fp.open();
             });
     
@@ -87,6 +89,9 @@
             currentDateSpan.innerText = this.formatDate(this.currentDate);
             this.createHeader();
             this.initHeaderDragScroll();
+            
+            // Get customer URL
+            this.customerUrl = (await this.callApi(this.options.timelineSchedulerQueryCustomerUrl))?.[0]?.url ?? "";            
 
             // Load arrangements and cache for 1 hour            
             this.arrangements = (await this.callApi(this.options.timelineSchedulerQueryGetArrangements));
@@ -219,22 +224,28 @@
                 timelineScheduler.openReservationInCoder(reservationId, encryptedReservationId);
                 
                 // Open datum van reservering in timeline view en scroll naar hoogte van reservering en highlight reservering
-                timelineScheduler.currentDate = new Date(item.getAttribute('data-date'));                
-                await timelineScheduler.updateDateDisplay();
+                if (item.getAttribute('data-date')) {
+                    timelineScheduler.currentDate = new Date(item.getAttribute('data-date'));
+                    await timelineScheduler.updateDateDisplay();
+                }
                 timelineScheduler.highlightAndScrollToReservation(item.getAttribute('data-reservation-id'));
             });
             
-            // Change view when clicking list or timeline view
+            // Change view when clicking list, timeline or map view
             const timelineBtn = document.getElementById("timeline-view-btn");
             const listBtn = document.getElementById("list-view-btn");
+            const mapBtn = document.getElementById("map-view-btn");
             const timelineSchedulerEl = document.querySelector(".scheduler");
             const listView = document.getElementById("list-view");
+            const mapView = document.getElementById("map-view");
             timelineBtn.addEventListener("click", () => {
                 timelineBtn.classList.add("active");
                 listBtn.classList.remove("active");
+                mapBtn.classList.remove("active");
 
                 timelineSchedulerEl.classList.remove("hidden");
                 listView.classList.add("hidden");
+                mapView.classList.add("hidden");
 
                 this.renderReservations();
             });
@@ -242,11 +253,25 @@
             listBtn.addEventListener("click", () => {
                 listBtn.classList.add("active");
                 timelineBtn.classList.remove("active");
+                mapBtn.classList.remove("active");
 
                 timelineSchedulerEl.classList.add("hidden");
                 listView.classList.remove("hidden");
+                mapView.classList.add("hidden");
 
                 this.renderReservations(); 
+            });
+
+            mapBtn.addEventListener("click", () => {
+                mapBtn.classList.add("active");
+                timelineBtn.classList.remove("active");
+                listBtn.classList.remove("active");
+
+                timelineSchedulerEl.classList.add("hidden");
+                listView.classList.add("hidden");
+                mapView.classList.remove("hidden");
+
+                this.renderReservations();
             });
 
             // Automatic refresh every x minutes
@@ -456,7 +481,7 @@
                 const element = Array.from(document.querySelectorAll(".timeLabel")).find(el => el.innerText === quarterLabel);
                 if (element) element.classList.add("activeTime");
             }
-            else {
+            else if (document.getElementById("timeline-view-btn").classList.contains("active")) {
                 // For timeline view
                 const line = document.getElementById('current-time-line');
 
@@ -488,6 +513,9 @@
                 } else {
                     line.style.display = 'none';
                 }    
+            }
+            else {
+                // map view, don't update current timeline
             }
         }
     
@@ -724,14 +752,33 @@
             if (document.getElementById("list-view-btn").classList.contains("active")){
                 this.renderListView();
             }
-            else {
+            else if (document.getElementById("timeline-view-btn").classList.contains("active")){
                 this.renderTimelineView();   
             }
+            else { // map view
+                this.renderMapView();
+            }            
             this.updateCurrentTimeLine();
+        }
+
+        // For showing date controls when switching back form map view to timeline or list view
+        showDateControls() {            
+            document.querySelectorAll("#prev-day, #next-day, #today-button, #refresh-button").forEach(el => {
+                el.style.display = "inline-flex";
+            });
+            document.querySelectorAll("#current-date").forEach(el => {
+                el.style.display = "inline-block";
+            });
+            document.querySelectorAll(".timeline-search").forEach(el => {
+                el.style.display = "flex";
+            });
         }
         
         renderTimelineView() {
             this.container.innerHTML = "";
+
+            // Toon date-control weer (worden bij map view verborgen)
+            this.showDateControls();
 
             for(const [groupName, tables] of Object.entries(this.tableGroups)){
                 const groupHeader = document.createElement("div");
@@ -777,7 +824,7 @@
                     label.innerText = table.text;
                     row.appendChild(label);
 
-                    if (table.onlineState === '1') {
+                    if (table.onlineState === 1) {
                         const onlineState = document.createElement("div");
                         onlineState.classList.add("table-online-state");
                         label.appendChild(onlineState);
@@ -793,6 +840,10 @@
                     const timeline = document.createElement("div");
                     timeline.classList.add("timeline");
 
+                    if (table.onlineState === 0) {
+                        timeline.classList.add("disabled");
+                    }                   
+                  
                     for(let i=0;i<this.totalQuarters;i++){
                         const cell = document.createElement("div");
                         cell.classList.add("quarter-cell");
@@ -1242,20 +1293,6 @@
             }
             else {
                 dynamicItems.windows.loadItemInWindow(false, reservationId, reservationIdEncrypted, 'reservation', '', false, dynamicItems.grids.mainGrid, { hideTitleColumn: true }, 0, null, null, 0, this.getReservations);
-
-                /*let target = window.location.href.includes('reservery.dev') || window.location.href.includes('localhost') ? 'https://maindev.coder.nl' : 'https://' + new URL(window.location.href).hostname.split('.')[0] + '.coder.nl';
-                window.top.postMessage({
-                    action: "OpenItem",
-                    actionData: {
-                        moduleId: 602,
-                        name: `Reservering: ${reservation.name}`,
-                        type: "dynamicItems",
-                        itemId: `${decodeURIComponent(reservation.reservationIdEncrypted)}`,
-                        entityType: "Reservation",
-                        queryString: `?itemId=${decodeURIComponent(reservation.reservationIdEncrypted)}&moduleId=602&iframe=true&entityType=Reservation`
-                    }
-                }, target);*/
-                
             }
         }
     
@@ -1489,7 +1526,11 @@
         renderListView() {
             const listView = document.getElementById("list-view");
             listView.innerHTML = ""; // leeg
+            
             const groups = this.groupReservationsByQuarter();
+
+            // Toon date-control weer (worden bij map view verborgen)
+            this.showDateControls();
             
             if (Object.keys(groups).length === 0){
                 listView.innerHTML = `<div style="margin: 25px;font-size:larger;">Geen reserveringen deze dag</div>`; 
@@ -1579,6 +1620,30 @@
                 listView.appendChild(accordion);
                 listView.appendChild(panel);
             });
+        }
+        
+        renderMapView() {                      
+            const mapView = document.getElementById("map-view");
+            
+            // Verberg alle elementen met class "date-control"
+            document.querySelectorAll(".date-control").forEach(el => {
+                el.style.display = "none";
+            });
+
+            mapView.innerHTML = `
+                <iframe
+                    src="${this.customerUrl}/plattegrond.html?scheduler=true"
+                    title="Plattegrond"
+                    style="
+                        width: 100%;
+                        height: 100%;
+                        border: 0;
+                        display: block;
+                    "
+                    loading="lazy"
+                    referrerpolicy="strict-origin-when-cross-origin">
+                </iframe>
+            `;
         }
 
         checkIn(res) {

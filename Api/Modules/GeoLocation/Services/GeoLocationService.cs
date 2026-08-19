@@ -12,10 +12,12 @@ using Newtonsoft.Json;
 
 namespace Api.Modules.GeoLocation.Services;
 
+/// <inheritdoc cref="IGeoLocationService"/>
 public class GeoLocationService : IGeoLocationService, IScopedService
 {
     private readonly IObjectsService objectsService;
-
+    
+    /// <inheritdoc cref="IGeoLocationService"/>
     public GeoLocationService(IObjectsService objectsService)
     {
         this.objectsService = objectsService;

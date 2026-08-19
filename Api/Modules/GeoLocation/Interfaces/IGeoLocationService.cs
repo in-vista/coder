@@ -4,6 +4,9 @@ using Api.Modules.GeoLocation.Models;
 
 namespace Api.Modules.GeoLocation.Interfaces;
 
+/// <summary>
+/// The service that handles geogrpahical-related topics.
+/// </summary>
 public interface IGeoLocationService
 {
     /// <summary>

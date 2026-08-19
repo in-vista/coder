@@ -78,7 +78,10 @@ namespace Api.Modules.Grids.Models
         /// A list of columns to order by using server side sorting.
         /// </summary>
         public GridSortModel[] Order { get; set; }
-
+        
+        /// <summary>
+        /// The constructor for the <see cref="GridSettingsAndDataModel"/> class.
+        /// </summary>
         public GridSettingsAndDataModel()
         {
             Triggerable = new TriggerableFieldModel();

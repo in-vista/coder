@@ -920,13 +920,13 @@ export class Fields {
         const itemDetails = !itemId ? { encryptedId: this.base.settings.zeroEncrypted } : (await this.base.getItemDetails(itemId, entityType));
 
         const userParametersWithValues = {};
-        const success = await this.executeActionButtonActions(actionDetails.actions, userParametersWithValues, itemDetails, propertyId, entityType, selectedItems, senderGrid.element, $(event.currentTarget));
+        const actionButtonResults = await this.executeActionButtonActions(actionDetails.actions, userParametersWithValues, itemDetails, propertyId, entityType, selectedItems, senderGrid.element, $(event.currentTarget));
 
         if (senderGrid && senderGrid.element) {
             senderGrid.element.siblings(".grid-loader").removeClass("loading");
         }
 
-        if (success) {
+        if (actionButtonResults?.success) {
             if (senderGrid) {
                 const grids = this.base.grids;
 
@@ -951,15 +951,15 @@ export class Fields {
                     const gridData = senderGrid.dataSource.data();
                     const selectedRowUids = gridData.filter(row => selectedIds.includes(row.id)).map(row => row.uid);
                     const selectedRows = $(gridSelector).find(selectedRowUids.map(uid => `tr[data-uid="${uid}"]`).join(','));
-                    grids.mainGrid.select(selectedRows);
+                    senderGrid.select(selectedRows);
                     
                     // Force a 'change' event trigger to check the conditions for each action button's visiblity.
-                    grids.mainGrid.trigger('change');
+                    senderGrid.trigger('change');
                 }
             }
 
             if (!actionDetails.disableSuccessMessages) {
-                this.base.notification.show({ message: `Alle acties zijn uitgevoerd.` }, "success");
+                this.base.notification.show({ message: actionButtonResults.messages.join('<br/>') }, "success");
             }
         }
     }
@@ -1009,10 +1009,10 @@ export class Fields {
 
             // Execute all actions that are configured for this button.
             const userParametersWithValues = {};
-            const success = await this.executeActionButtonActions(options.actions, userParametersWithValues, itemDetails, propertyId, entityType, [], button, $(event.currentTarget));
+            const actionButtonResults = await this.executeActionButtonActions(options.actions, userParametersWithValues, itemDetails, propertyId, entityType, [], button, $(event.currentTarget));
             event.sender.element.removeClass("loading");
-            if (success && !options.disableSuccessMessages) {
-                this.base.notification.show({ message: `Alle acties zijn uitgevoerd.` }, "success");
+            if (actionButtonResults?.success && !options.disableSuccessMessages) {
+                this.base.notification.show({ message: actionButtonResults.messages.join('<br/>') }, "success");
             }
         } catch (exception) {
             console.error(exception);
@@ -1383,6 +1383,9 @@ export class Fields {
      * @param {any} button The action button that was clicked.
      */
     async executeActionButtonActions(actions, userParametersWithValues, mainItemDetails, propertyId, entityType, selectedItems = [], element = null, button = null) {
+        // Prepare an accumulator of result messages that can be populated by different actions.
+        let resultMessages = [];
+        
         button?.addClass('progress');
         
         // Prepare a function to set the progress of the action button execution.
@@ -1415,23 +1418,21 @@ export class Fields {
                     ? (await this.base.getItemDetails(itemEncryptedId, itemEntityType)) || mainItemDetails
                     : mainItemDetails;
                 
-                try {
-                    await Wiser.api({
-                        url: `${window.dynamicItems.settings.wiserApiRoot}items/log-action`,
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            item_id: itemDetails.encryptedId || null,
-                            entity_type: itemDetails.entityType || null,
-                            action_button: action,
-                            module_id: moduleId || null,
-                            property_id: propertyId || null
-                        })
-                    });
-                } catch(exception) {
+                Wiser.api({
+                    url: `${window.dynamicItems.settings.wiserApiRoot}items/log-action`,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        item_id: itemDetails.encryptedId || null,
+                        entity_type: itemDetails.entityType || null,
+                        action_button: action,
+                        module_id: moduleId || null,
+                        property_id: propertyId || null
+                    })
+                }).catch(exception => {
                     console.error(exception);
                     kendo.alert(`Er is een fout opgetreden bij het schrijven van een log van de action button voor actie '${action}'.`);
-                }
+                });
             }
 
             const getSuffixFromSelectedColumn = (selectedItem) => {
@@ -1521,8 +1522,21 @@ export class Fields {
                                         {
                                             const comboBox = dialog.element.find("select").data("kendoComboBox");
                                             const dataItem = comboBox.dataItem();
+                                            
+                                            let encryptedId;
+                                            
+                                            if(dataItem === undefined) {
+                                                const createItemFromInput =  action.userParameters[0]?.createItemFromInput ?? false;
+                                                if(createItemFromInput){
+                                                    value = comboBox._old.length > 0 ? comboBox._old : "undefined";
+                                                    break;
+                                                }
+                                            } else{
+                                                encryptedId = dataItem?.encryptedId || dataItem?.encryptedid || dataItem?.encrypted_id || comboBox.value();
+                                            }
+                                           
                                             // Decode here to prevent duplicate encoding, because the JCL already encodes the value and then javascript will do it again later.
-                                            value = decodeURIComponent(dataItem.encryptedId || dataItem.encryptedid || dataItem.encrypted_id || comboBox.value());
+                                            value = decodeURIComponent(encryptedId);
                                             break;
                                         }
                                         case "dropdownlist":
@@ -2263,6 +2277,10 @@ export class Fields {
                                 }
                             }
 
+                            // Push a result message to the accumulated result messages.
+                            if(queryActionResult.resultMessage)
+                                resultMessages.push(queryActionResult.resultMessage);
+
                             break;
                         }
 
@@ -2286,6 +2304,10 @@ export class Fields {
                                     return false;
                                 }
                             }
+                            
+                            // Push a result message to the accumulated result messages.
+                            if(queryActionResult.resultMessage)
+                                resultMessages.push(queryActionResult.resultMessage);
 
                             break;
                         }
@@ -2725,7 +2747,10 @@ export class Fields {
                                 // Retrieve the optional attribute whether this action has to be run iteratively.
                                 const isIterative = action.iterative ?? false;
                                 const hasItemsSelected = selectedItems && selectedItems.length > 0;
-
+                                
+                                // Prepare a results array for all executed API actions.
+                                let apiActionsResults = [];
+                                
                                 if(isIterative && hasItemsSelected) {
                                     // Loop over all the selected items from the grid.
                                     for(const selectedItem of selectedItems) {
@@ -2755,7 +2780,7 @@ export class Fields {
                                         extraData = {...extraData, ...userParametersWithValues};
 
                                         // Make an API call for the currently selected item in the iteration.
-                                        await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, extraData);
+                                        apiActionsResults = await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, extraData);
                                     }
                                 } else {
                                     // Combine all values of the selected items.
@@ -2763,7 +2788,13 @@ export class Fields {
                                         await combineValuesFromAllSelectedItemsAndAddToUserParameters();
 
                                     // Make an API call for all selected items.
-                                    await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, userParametersWithValues);
+                                    apiActionsResults = await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, userParametersWithValues);
+                                }
+
+                                // Push a result message to the accumulated result messages.
+                                for(const apiActionResults of apiActionsResults) {
+                                    if(apiActionResults.resultMessage)
+                                        resultMessages.push(apiActionResults.resultMessage);
                                 }
                             } catch (apiCallException) {
                                 if (typeof apiCallException === "string") {
@@ -2924,7 +2955,10 @@ export class Fields {
             setActionProgress(0, 2);
         }
 
-        return true;
+        return {
+            success: true,
+            messages: resultMessages.length ? resultMessages : [ 'Alle acties zijn uitgevoerd!' ]
+        }
     }
 
     /**

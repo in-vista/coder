@@ -269,7 +269,12 @@ namespace Api.Core.Services
         /// <inheritdoc />
         public async Task<string> GetAsJsonAsync(string query, bool formatResult = false, bool skipCache = false)
         {
-            return JsonConvert.SerializeObject(await GetAsync(query), formatResult ? Formatting.Indented : Formatting.None);
+            JsonSerializerSettings settings = new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Include
+            };
+            
+            return JsonConvert.SerializeObject(await GetAsync(query), formatResult ? Formatting.Indented : Formatting.None, settings);
         }
 
         /// <inheritdoc />

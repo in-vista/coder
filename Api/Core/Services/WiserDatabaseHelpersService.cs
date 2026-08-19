@@ -97,6 +97,7 @@ public class WiserDatabaseHelpersService : IWiserDatabaseHelpersService, IScoped
             WiserTableNames.WiserParentUpdates,
             WiserTableNames.WiserHistory,
             WiserTableNames.WiserActionButtonLog,
+            WiserTableNames.WiserUserImitation,
             Constants.DatabaseConnectionLogTableName
         });
 
