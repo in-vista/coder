@@ -4178,11 +4178,46 @@ export class Fields {
         const saveOnChange = fieldContainer.data("saveOnChange");
         if (saveOnChange) {
             let saveButton = itemContainer.find(".saveBottomPopup");
-            if (!saveButton.length) {                
+            if (!saveButton.length) {
                 await dynamicItems.onSaveButtonClick(event);
             }
             else {
-                await dynamicItems.windows.onSaveItemPopupClick(event, false, false, event.sender.element.closest(".popup-container"));
+                let sourceElement = null;
+
+                // Kendo event
+                if (event?.sender?.element) {
+                    sourceElement = event.sender.element;
+                }
+                // jQuery / native DOM event
+                else if (event?.currentTarget) {
+                    sourceElement = event.currentTarget;
+                }
+                else if (event?.target) {
+                    sourceElement = event.target;
+                }
+                // Last fallback: use the save button we already found
+                else if (saveButton.length) {
+                    sourceElement = saveButton;
+                }
+
+                const $sourceElement = sourceElement
+                    ? $(sourceElement)
+                    : $();
+
+                let popupContainer = $sourceElement.closest(".popup-container");
+
+                // If the event source wasn't inside the popup,
+                // try resolving it from the save button instead.
+                if (!popupContainer.length) {
+                    popupContainer = saveButton.closest(".popup-container");
+                }
+
+                await dynamicItems.windows.onSaveItemPopupClick(
+                    event,
+                    false,
+                    false,
+                    popupContainer
+                );
             }
         }
 
