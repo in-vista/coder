@@ -327,6 +327,20 @@ export class Windows {
                         if (role === "dropdownlist" || role === "combobox") {
                             kendoComponent.value(itemId);
                             validator.validateInput(kendoComponent.element);
+                        } else if(role === "multiselect"){
+                            const values = kendoComponent?.value();
+
+                            // Make sure the item doesn't exist before adding it.
+                            if (Array.isArray(values)) {
+                                const value = String(itemId);
+
+                                if (!values.includes(value)) {
+                                    values.push(value);
+                                    kendoComponent.value(values);
+                                }
+
+                                validator?.validateInput(kendoComponent.element);
+                            }
                         }
                     }
                 }
