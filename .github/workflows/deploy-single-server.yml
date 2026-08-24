@@ -153,7 +153,7 @@ jobs:
             run: |
               $mode = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'production' } else { 'development' }
               node_modules\.bin\webpack --mode=$mode
-            working-directory: 'coder/FrontEnd
+            working-directory: 'coder/FrontEnd'
 
           - name: Disable Cloudflare origin
             if: ${{ inputs.cloudflare_account_id && inputs.cloudflare_pool_id && inputs.cloudflare_origin_id }}
