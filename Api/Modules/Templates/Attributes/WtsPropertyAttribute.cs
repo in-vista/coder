@@ -3,6 +3,9 @@ using Api.Modules.Templates.Enums;
 
 namespace Api.Modules.Templates.Attributes;
 
+/// <summary>
+/// An attribute class to handle editor input fields for CTS-related content.
+/// </summary>
 [AttributeUsage(AttributeTargets.Property)]
 public class WtsPropertyAttribute : Attribute
 {
