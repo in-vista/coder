@@ -67,14 +67,16 @@ jobs:
             run: |
                 if (Test-Path $env:PUBLISH_LOCATION_API) {
                   robocopy "$env:PUBLISH_LOCATION_API" "$env:FOLDER_PATH_API" /E /MT:32 /R:1 /W:1
+                  if ($LASTEXITCODE -gt 7) {
+                    exit $LASTEXITCODE
+                  }
                 }
 
                 if (Test-Path $env:PUBLISH_LOCATION_FRONT_END) {
                   robocopy "$env:PUBLISH_LOCATION_FRONT_END" "$env:FOLDER_PATH_FRONT_END" /E /MT:32 /R:1 /W:1
-                }
-
-                if ($LASTEXITCODE -gt 7) {
-                  exit $LASTEXITCODE
+                  if ($LASTEXITCODE -gt 7) {
+                    exit $LASTEXITCODE
+                  }
                 }
 
           - name: Checkout
