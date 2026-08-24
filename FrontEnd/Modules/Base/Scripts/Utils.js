@@ -1186,7 +1186,7 @@ export class Wiser {
                 if (executeWorkFlow) {
                     const apiActionId = await Wiser.getApiAction(moduleSettings, "after_update", updateResult.entityType);
                     if (apiActionId) {
-                        await Wiser.doApiCall(this.settings, apiActionId, updateResult);
+                        await Wiser.doApiCall(moduleSettings, apiActionId, updateResult);
                     }
                 }
             } catch (exception) {
