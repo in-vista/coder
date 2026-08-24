@@ -905,7 +905,8 @@ namespace Api.Modules.Grids.Services
                                             p.depends_on_action,
                                             p.link_type > 0 AS isLinkProperty,
                                             p.regex_validation,
-                                            p.mandatory
+                                            p.mandatory,
+                                            IF(p.default_value IS NULL OR p.default_value = '', '', p.default_value) AS default_value
                                         FROM {WiserTableNames.WiserEntityProperty} p 
                                         WHERE (p.entity_name = ?entityType OR (p.link_type > 0 AND p.link_type = ?linkTypeNumber))
                                         AND p.visible_in_overview = 1
@@ -952,6 +953,7 @@ namespace Api.Modules.Grids.Services
                             };
 
                             var inputType = dataRow.Field<string>("inputtype");
+                            var defaultValue = Convert.ToString(dataRow["default_value"]);
                             var fieldOptionsValue = dataRow.Field<string>("options");
                             var fieldOptions = new Dictionary<string, object>();
 
@@ -968,7 +970,15 @@ namespace Api.Modules.Grids.Services
                                 case "checkbox":
                                     field.Type = "boolean";
                                     column.Editor = "booleanEditor";
-                                    column.Template = $" # if ({fieldName} == true) {{ # Ja #}} else {{ # Nee # }} #";
+                                    var normalizedDefaultValue = defaultValue?.Trim().ToLowerInvariant();
+
+                                    var defaultValueForTemplate = normalizedDefaultValue is "1" or "true" or "yes" or "ja"
+                                        ? "1"
+                                        : "0";
+
+                                    column.Template =
+                                        $"# var checkboxValue = typeof {fieldName} !== 'undefined' && {fieldName} != null ? {fieldName} : {defaultValueForTemplate}; #" +
+                                        $"# if (checkboxValue == 1) {{ # Ja # }} else {{ # Nee # }} #";
                                     break;
                                 case "numeric-input":
                                     field.Type = "number";
