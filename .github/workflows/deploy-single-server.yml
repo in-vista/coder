@@ -67,17 +67,23 @@ jobs:
             run: |
                 if (Test-Path $env:PUBLISH_LOCATION_API) {
                   robocopy "$env:PUBLISH_LOCATION_API" "$env:FOLDER_PATH_API" /E /MT:32 /R:1 /W:1
-                  if ($LASTEXITCODE -gt 7) {
-                    exit $LASTEXITCODE
+                  $exitCode = $LASTEXITCODE
+
+                  if ($exitCode -gt 7) {
+                    exit $exitCode
                   }
                 }
 
                 if (Test-Path $env:PUBLISH_LOCATION_FRONT_END) {
                   robocopy "$env:PUBLISH_LOCATION_FRONT_END" "$env:FOLDER_PATH_FRONT_END" /E /MT:32 /R:1 /W:1
-                  if ($LASTEXITCODE -gt 7) {
-                    exit $LASTEXITCODE
+                  $exitCode = $LASTEXITCODE
+
+                  if ($exitCode -gt 7) {
+                    exit $exitCode
                   }
                 }
+
+                exit 0
 
           - name: Checkout
             uses: actions/checkout@v4
@@ -97,9 +103,9 @@ jobs:
             run: |
                 $folderPath = "C:\invista-core-library"
                 if (-Not (Test-Path -Path $folderPath)) {
-                New-Item -ItemType Directory -Path $folderPath
+                  New-Item -ItemType Directory -Path $folderPath
                 } else {
-                Remove-Item -Path "$folderPath\*" -Force -Recurse
+                  Remove-Item -Path "$folderPath\*" -Force -Recurse
                 }
 
           - name: Copy files to destination folder
