@@ -31,7 +31,7 @@ jobs:
                 $dateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
                 "datetime=$dateTime" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
             
-          - name: Create backup folders
+          - name: (Coder) Create backup folders
             env:
               PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
               PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
@@ -59,7 +59,7 @@ jobs:
                 "FOLDER_PATH_API=$folderPathApi" | Out-File -FilePath $env:GITHUB_ENV -Append
                 "FOLDER_PATH_FRONT_END=$folderPathFrontend" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-          - name: Copy contents to backup folder
+          - name: (Coder) Copy contents to backup folder
             env:
               PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
               PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
@@ -85,21 +85,13 @@ jobs:
 
                 exit 0
 
-          - name: Checkout
+          - name: (ICL) Checkout
             uses: actions/checkout@v4
             with:
                 repository: in-vista/invista-core-library
                 path: invista-core-library
 
-          - name: Restore dependencies
-            run: dotnet restore
-            working-directory: invista-core-library
-
-          - name: Build
-            run: dotnet build --no-restore
-            working-directory: invista-core-library
-
-          - name: Empty destination folder
+          - name: (ICL) Empty destination folder
             run: |
                 $folderPath = "C:\invista-core-library"
                 if (-Not (Test-Path -Path $folderPath)) {
@@ -108,7 +100,7 @@ jobs:
                   Remove-Item -Path "$folderPath\*" -Force -Recurse
                 }
 
-          - name: Copy files to destination folder
+          - name: (ICL) Copy files to destination folder
             env:
               WORKER_LOCATION: ${{ secrets.WORKER_LOCATION }}
             run: |
@@ -117,7 +109,9 @@ jobs:
                 exit $LASTEXITCODE
               }
 
-          - name: Checkout
+              exit 0
+
+          - name: (Coder) Checkout
             uses: actions/checkout@v4
             with:
                 path: coder
@@ -132,18 +126,20 @@ jobs:
                 exit $LASTEXITCODE
               }
 
-          - name: Setup Node
+              exit 0
+
+          - name: (Coder) Setup Node
             uses: actions/setup-node@v4
             with:
               node-version: 22
               cache: npm
               cache-dependency-path: coder/FrontEnd/package-lock.json
 
-          - name: Install NPM modules
+          - name: (Coder) Install NPM modules
             run: npm ci
             working-directory: 'coder/FrontEnd'
 
-          - name: Write Kendo UI license to file
+          - name: (Coder) Write Kendo UI license to file
             env:
               KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
             run: |
@@ -151,11 +147,11 @@ jobs:
             shell: powershell
             working-directory: coder/FrontEnd
 
-          - name: Activate Kendo UI License
+          - name: (Coder) Activate Kendo UI License
             run: npx kendo-ui-license activate
             working-directory: 'coder/FrontEnd'
 
-          - name: Compile scripts and styles with webpack
+          - name: (Coder) Compile scripts and styles with webpack
             env:
               ENVIRONMENT_NAME: ${{ inputs.environment }}
             run: |
@@ -198,7 +194,7 @@ jobs:
 
               Write-Host 'Done.'
 
-          - name: Place app_offline.htm
+          - name: (Coder) Place app_offline.htm
             shell: powershell
             env:
               PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
@@ -208,7 +204,7 @@ jobs:
               New-Item -Path (Join-Path $env:PUBLISH_LOCATION_FRONT_END "app_offline.htm") -ItemType File -Force
               Start-Sleep -Seconds 3
 
-          - name: Publish API + FrontEnd
+          - name: (Coder) Publish
             env:
               ENVIRONMENT_NAME: ${{ inputs.environment }}
             run: |
@@ -243,7 +239,7 @@ jobs:
                 Remove-Job $apiJob, $frontEndJob
             working-directory: coder
 
-          - name: Remove app_offline.htm
+          - name: (Coder) Remove app_offline.htm
             if: always()
             shell: powershell
             env:
@@ -288,7 +284,7 @@ jobs:
 
               Write-Host 'Done.'
 
-          - name: Remove backups older than 30 days
+          - name: (Coder) Remove backups older than 30 days
             env:
               PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
               PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
