@@ -905,7 +905,8 @@ namespace Api.Modules.Grids.Services
                                             p.depends_on_action,
                                             p.link_type > 0 AS isLinkProperty,
                                             p.regex_validation,
-                                            p.mandatory
+                                            p.mandatory,
+                                            IF(p.default_value IS NULL OR p.default_value = '', '', p.default_value) AS default_value
                                         FROM {WiserTableNames.WiserEntityProperty} p 
                                         WHERE (p.entity_name = ?entityType OR (p.link_type > 0 AND p.link_type = ?linkTypeNumber))
                                         AND p.visible_in_overview = 1
@@ -952,6 +953,7 @@ namespace Api.Modules.Grids.Services
                             };
 
                             var inputType = dataRow.Field<string>("inputtype");
+                            var defaultValue = Convert.ToString(dataRow["default_value"]);
                             var fieldOptionsValue = dataRow.Field<string>("options");
                             var fieldOptions = new Dictionary<string, object>();
 
@@ -968,7 +970,15 @@ namespace Api.Modules.Grids.Services
                                 case "checkbox":
                                     field.Type = "boolean";
                                     column.Editor = "booleanEditor";
-                                    column.Template = $" # if ({fieldName} == true) {{ # Ja #}} else {{ # Nee # }} #";
+                                    var normalizedDefaultValue = defaultValue?.Trim().ToLowerInvariant();
+
+                                    var defaultValueForTemplate = normalizedDefaultValue is "1" or "true" or "yes" or "ja"
+                                        ? "1"
+                                        : "0";
+
+                                    column.Template =
+                                        $"# var checkboxValue = typeof {fieldName} !== 'undefined' && {fieldName} != null ? {fieldName} : {defaultValueForTemplate}; #" +
+                                        $"# if (checkboxValue == 1) {{ # Ja # }} else {{ # Nee # }} #";
                                     break;
                                 case "numeric-input":
                                     field.Type = "number";
@@ -2143,12 +2153,13 @@ namespace Api.Modules.Grids.Services
             var queryId = String.IsNullOrWhiteSpace(encryptedQueryId) ? 0 : wiserTenantsService.DecryptValue<int>(encryptedQueryId, tenant.ModelObject);
             var countQueryId = String.IsNullOrWhiteSpace(encryptedCountQueryId) ? 0 : wiserTenantsService.DecryptValue<int>(encryptedCountQueryId, tenant.ModelObject);
             var itemId = String.IsNullOrWhiteSpace(encryptedId) ? 0 : wiserTenantsService.DecryptValue<ulong>(encryptedId, tenant.ModelObject);
-            var hasPredefinedColumns = false;
             var results = new GridSettingsAndDataModel();
             var extraJavascript = new StringBuilder();
             string selectQuery;
             var countQuery = "";
-
+            
+            var (query, errorResult, gridConfiguration) = await itemsService.GetPropertyQueryAsync<GridSettingsAndDataModel>(propertyId, "data_query", true, itemId);
+            
             if (queryId > 0)
             {
                 var customQueryResult = await itemsService.GetCustomQueryAsync(propertyId, queryId, identity);
@@ -2164,24 +2175,19 @@ namespace Api.Modules.Grids.Services
 
                 selectQuery = customQueryResult.ModelObject;
                 if (customQueryResult.StatusCode == HttpStatusCode.OK)
-                {
                     countQuery = countQueryResult.ModelObject;
-                }
             }
             else
             {
-                var (query, errorResult, gridConfiguration) = await itemsService.GetPropertyQueryAsync<GridSettingsAndDataModel>(propertyId, "data_query", true, itemId);
                 selectQuery = query;
-
+                
                 if (errorResult != null)
-                {
                     return errorResult;
-                }
-
-                // Deserialize the options of the grid into our model.
-                results = await GridSettingsAndDataModelFromFieldOptionsAsync(propertyId, gridConfiguration, itemId);
-                hasPredefinedColumns = results.Columns.Any();
             }
+            
+            // Deserialize the options of the grid into our model.
+            results = await GridSettingsAndDataModelFromFieldOptionsAsync(propertyId, gridConfiguration, itemId);
+            bool hasPredefinedColumns = results.Columns.Any();
 
             // If the count query is empty and the select query contains a limit, build a count query based on the select query without the limit and sort.
             if (String.IsNullOrWhiteSpace(countQuery) && !String.IsNullOrWhiteSpace(selectQuery) && selectQuery.Contains("{limit}", StringComparison.OrdinalIgnoreCase))
