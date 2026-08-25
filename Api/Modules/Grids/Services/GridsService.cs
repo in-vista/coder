@@ -2153,12 +2153,13 @@ namespace Api.Modules.Grids.Services
             var queryId = String.IsNullOrWhiteSpace(encryptedQueryId) ? 0 : wiserTenantsService.DecryptValue<int>(encryptedQueryId, tenant.ModelObject);
             var countQueryId = String.IsNullOrWhiteSpace(encryptedCountQueryId) ? 0 : wiserTenantsService.DecryptValue<int>(encryptedCountQueryId, tenant.ModelObject);
             var itemId = String.IsNullOrWhiteSpace(encryptedId) ? 0 : wiserTenantsService.DecryptValue<ulong>(encryptedId, tenant.ModelObject);
-            var hasPredefinedColumns = false;
             var results = new GridSettingsAndDataModel();
             var extraJavascript = new StringBuilder();
             string selectQuery;
             var countQuery = "";
-
+            
+            var (query, errorResult, gridConfiguration) = await itemsService.GetPropertyQueryAsync<GridSettingsAndDataModel>(propertyId, "data_query", true, itemId);
+            
             if (queryId > 0)
             {
                 var customQueryResult = await itemsService.GetCustomQueryAsync(propertyId, queryId, identity);
@@ -2174,24 +2175,19 @@ namespace Api.Modules.Grids.Services
 
                 selectQuery = customQueryResult.ModelObject;
                 if (customQueryResult.StatusCode == HttpStatusCode.OK)
-                {
                     countQuery = countQueryResult.ModelObject;
-                }
             }
             else
             {
-                var (query, errorResult, gridConfiguration) = await itemsService.GetPropertyQueryAsync<GridSettingsAndDataModel>(propertyId, "data_query", true, itemId);
                 selectQuery = query;
-
+                
                 if (errorResult != null)
-                {
                     return errorResult;
-                }
-
-                // Deserialize the options of the grid into our model.
-                results = await GridSettingsAndDataModelFromFieldOptionsAsync(propertyId, gridConfiguration, itemId);
-                hasPredefinedColumns = results.Columns.Any();
             }
+            
+            // Deserialize the options of the grid into our model.
+            results = await GridSettingsAndDataModelFromFieldOptionsAsync(propertyId, gridConfiguration, itemId);
+            bool hasPredefinedColumns = results.Columns.Any();
 
             // If the count query is empty and the select query contains a limit, build a count query based on the select query without the limit and sort.
             if (String.IsNullOrWhiteSpace(countQuery) && !String.IsNullOrWhiteSpace(selectQuery) && selectQuery.Contains("{limit}", StringComparison.OrdinalIgnoreCase))
