@@ -1960,12 +1960,10 @@ export class Fields {
                                         if (options.defaultValue)
                                             dialog.element.find("textarea").val(options.defaultValue);
                                         break;
-                                    default:
-                                        if (options.defaultValue) {
-                                            dialog.element.find("input").val(options.defaultValue);
-                                        }
-                                        break;
                                 }
+
+                                if (options.defaultValue)
+                                    dialog.element.find("input")?.val(options.defaultValue);
 
                                 dialog.open();
                             });
