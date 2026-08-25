@@ -1665,7 +1665,7 @@ export class Fields {
                                     dialog.close(event);
                                 });
 
-                                const allowKeyAction = (event) => {
+                                const allowKeyAction = (event, inputFocusCheck) => {
                                     // Array of class names to ignore.
                                     const ignoreClasses = [
                                         "k-filter-menu-container"
@@ -1677,9 +1677,11 @@ export class Fields {
                                         return false;
 
                                     // Disallow key action if the user is currently focused in a text area.
-                                    const disallowedFocusedElements = [ 'INPUT', 'TEXTAREA' ];
-                                    if (disallowedFocusedElements.includes(event.target.tagName))
-                                        return false;
+                                    if(inputFocusCheck) {
+                                        const disallowedFocusedElements = [ 'TEXTAREA' ];
+                                        if (disallowedFocusedElements.includes(event.target.tagName))
+                                            return false;
+                                    }
 
                                     // Allow input.
                                     return true;
@@ -1690,7 +1692,7 @@ export class Fields {
                                     if (!event.key || event.key.toLowerCase() !== 'escape')
                                         return;
 
-                                    if(!allowKeyAction(event))
+                                    if(!allowKeyAction(event, false))
                                         return;
 
                                     reject({ userPressedCancel: true })
@@ -1702,7 +1704,7 @@ export class Fields {
                                     if (!event.key || event.key.toLowerCase() !== 'enter')
                                         return;
 
-                                    if(!allowKeyAction(event))
+                                    if(!allowKeyAction(event, true))
                                         return;
 
                                     // Trigger the OK button.
