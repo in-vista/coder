@@ -1121,6 +1121,8 @@ AND ordering < ?newOrderingStart";
                     return "qr";
                 case EntityPropertyInputTypes.Iframe:
                     return "iframe";
+                case EntityPropertyInputTypes.CheckBoxList:
+                    return "checkboxlist";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(value), value, null);
             }

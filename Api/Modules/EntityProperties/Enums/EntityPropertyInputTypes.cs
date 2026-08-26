@@ -35,7 +35,8 @@
         TimeLine,
         Empty,
         Qr,
-        Iframe
+        Iframe,
+        CheckBoxList
 #pragma warning restore CS1591
     }
 }

@@ -97,7 +97,7 @@ const moduleSettings = {
             
             // Get list of all entity types, so we can show friendly names wherever we need to and don't have to get them from database via different places.
             try {
-                this.allEntityTypes = (await Wiser.api({url: `${this.settings.wiserApiRoot}entity-types?onlyEntityTypesWithDisplayName=false`})) || [];
+                this.allEntityTypes = (await Wiser.api({url: `${this.settings.wiserApiRoot}entity-types?onlyEntityTypesWithDisplayName=false&isForSearch=true`})) || [];
             } catch (exception) {
                 console.error("Error occurred while trying to load all entity types", exception);
                 this.allEntityTypes = [];
