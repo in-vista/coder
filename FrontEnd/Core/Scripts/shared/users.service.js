@@ -306,4 +306,46 @@ export default class UsersService extends BaseService {
 
         return result;
     }
+    
+    async fetchImitations() {
+        const result = {};
+        
+        try {
+            const response = await this.base.api.get(`/api/v3/users/imitations`);
+            result.success = true;
+            result.data = response.data;
+        } catch(exception) {
+            result.success = false;
+            result.message = `Er is een onbekende fout opgetreden bij het ophalen van imitators. Probeer het a.u.b. nogmaals.`;
+            console.error(exception);
+        }
+        
+        return result;
+    }
+    
+    async imitate(encryptedUserId) {
+        const loginData = new URLSearchParams();
+        loginData.append("grant_type", "force_login");
+        loginData.append("token", encryptedUserId);
+        loginData.append("subDomain", this.base.appSettings.subDomain);
+        loginData.append("client_id", this.base.appSettings.apiClientId);
+        loginData.append("client_secret", this.base.appSettings.apiClientSecret);
+        loginData.append("isTestEnvironment", this.base.appSettings.isTestEnvironment);
+        loginData.append("isWiserFrontEndLogin", this.base.appSettings.isWiserFrontEndLogin);
+        
+        try {
+            const response = await this.base.api.post("/connect/token", loginData);
+
+            const accessToken = response.data.access_token;
+            const refreshToken = response.data.refresh_token;
+
+            localStorage.setItem("access_token", accessToken);
+            localStorage.setItem("refresh_token", refreshToken);
+            localStorage.setItem("userData", JSON.stringify(response.data));
+            
+            localStorage.removeItem("accessTokenExpiresOn");
+        } catch(exception) {
+            console.error(exception);
+        }
+    }
 }

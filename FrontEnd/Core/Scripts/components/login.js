@@ -1,5 +1,7 @@
 ﻿import {AUTH_LOGOUT, AUTH_REQUEST, CHANGE_PASSWORD_LOGIN, FORGOT_PASSWORD} from "../store/mutation-types";
 import {ComboBox} from "@progress/kendo-vue-dropdowns";
+import PasswordRequirement from "./password-requirement";
+import PasswordRequirements from "./password-requirements";
 
 export default {
     name: "login",
@@ -26,7 +28,8 @@ export default {
                 newPassword: "",
                 newPasswordRepeat: ""
             },
-            showTotpBackupCodeScreen: false
+            showTotpBackupCodeScreen: false,
+            passwordRequirementsValid: undefined
         };
     },
     async created() {
@@ -74,7 +77,9 @@ export default {
         }
     },
     components: {
-        "combobox": ComboBox
+        "combobox": ComboBox,
+        'passwordRequirement': PasswordRequirement,
+        'passwordRequirements': PasswordRequirements
     },
     methods: {
         async login(event) {
@@ -146,6 +151,16 @@ export default {
 
         togglePasswordForgottenScreen(show) {
             this.showForgotPasswordScreen = show;
+
+            const url = new URL(window.location.href);
+
+            if (show) {
+                url.hash = "forgotpassword";
+            } else {
+                url.hash = "";
+            }
+
+            history.replaceState(null, document.title, url);
         },
 
         toggleTotpBackupCodeScreen(show) {
@@ -165,6 +180,14 @@ export default {
                 return;
             
             this.loginForm.capslock = e.getModifierState('CapsLock');
+        }
+    },
+    mounted() {
+        // Check the hash in the URL to automatically open the forgot password screen.
+        const hash = window.location.hash.slice(1).toLowerCase();
+
+        if (hash === "forgotpassword") {
+            this.togglePasswordForgottenScreen(true);
         }
     }
 };

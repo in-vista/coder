@@ -61,7 +61,7 @@ import {
     USER_BACKUP_CODES_GENERATED,
     MODULES_PENDING_ACTIONS_REQUEST,
     UPDATE_TAB_STRIP_MODULES,
-	UPDATE_TAB_STRIP_TITLE_ALIAS
+    UPDATE_TAB_STRIP_TITLE_ALIAS, IMITATIONS_REQUEST, IMITATE_ACCOUNT
 } from "./store/mutation-types";
 
 class Main {
@@ -416,7 +416,9 @@ class Main {
                     tabDragThreshold: 5,
                     // Module tab strip title editing.
                     editingModuleTitleId: undefined,
-                    editingModuleTitleInput: undefined
+                    editingModuleTitleInput: undefined,
+                    // Account selection.
+                    accountDropdownVisible: false
                 };
             },
             async created() {
@@ -448,6 +450,9 @@ class Main {
                 },
                 listOfUsers() {
                     return this.$store.state.login.listOfUsers;
+                },
+                imitations() {
+                    return this.$store.state.login.imitations;
                 },
                 modules() {
                     return this.$store.state.modules.allModules;
@@ -1833,6 +1838,30 @@ class Main {
                 stopEditModuleTitle() {
                     this.editingModuleTitleId = undefined;
                     this.editingModuleTitleInput = undefined;
+                },
+
+                toggleAccountDropdown() {
+                    this.accountDropdownVisible = !this.accountDropdownVisible;
+                },
+                
+                closeAccountDropdown() {
+                    this.accountDropdownVisible = false;
+                },
+                
+                selectAccount(encryptedUserId) {
+                    this.closeAccountDropdown();
+                    this.$store.dispatch(IMITATE_ACCOUNT, encryptedUserId);
+                },
+                
+                initializeAccountDropdownEvents() {
+                    $(document).on("click.accountDropdown", (event) => {
+                        const target = $(event.target);
+                        
+                        if (target.closest($('#accountButton')).length || target.closest($('#accountDropdown')).length)
+                            return;
+
+                        this.accountDropdownVisible = false;
+                    });
                 }
             },
             mounted() {
@@ -1844,6 +1873,8 @@ class Main {
                 }
                 
                 $(document).on('click', this.quickSearchDialogHandleClickToClose);
+
+                this.initializeAccountDropdownEvents();
             },
             beforeUnmount() {
                 this.stopPendingActionsRefreshTimer();

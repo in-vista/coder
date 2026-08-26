@@ -780,6 +780,7 @@ namespace Api.Modules.Imports.Services
                 case "querybuilder":
                 case "button":
                 case "image-upload":
+                case "image-curator":
                 case "item-linker":
                 case "auto-increment":
                 case "linked-item":

@@ -1132,6 +1132,33 @@ ul.totp-backup-codes {
     }
 }
 
+.password-requirements-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 24px;
+    margin-bottom: 14px;
+}
+
+.password-requirement {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.password-requirement-check, .password-requirement-text {
+    line-height: normal;
+}
+
+.password-requirement-check {
+    flex: 0 0;
+}
+
+.password-requirement-text {
+    flex: 1 0;
+    font-size: 13px;
+}
+
 /* CODER v2 */
 $mdi-sizes: (
         1: 16px,
@@ -1335,6 +1362,7 @@ $mdi-sizes: (
         
         & > .coder-menu-item-popout-item-content {
             display: flex;
+            align-items: center;
             
             flex-grow: 1;
 
@@ -1362,6 +1390,32 @@ $mdi-sizes: (
             white-space: nowrap;
         }
     }
+}
+
+#accountButton {
+    anchor-name: --account-button;
+}
+
+.dropdown {
+    position: fixed;
+    min-width: 220px;
+    max-height: 300px;
+    overflow-y: auto;
+
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.15);
+
+    z-index: 1000;
+    
+    position-anchor: --account-button;
+    bottom: anchor(top);
+}
+
+.account-item {
+    padding: 10px 15px;
+    cursor: pointer;
 }
 
 .icon-container:has(> .mdi) {
