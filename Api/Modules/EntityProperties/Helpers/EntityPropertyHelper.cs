@@ -31,6 +31,7 @@ public class EntityPropertyHelper
             "date-time picker" => EntityPropertyInputTypes.DateTimePicker,
             "imagecoords" => EntityPropertyInputTypes.ImageCoordinates,
             "image-upload" => EntityPropertyInputTypes.ImageUpload,
+            "image-curator" => EntityPropertyInputTypes.ImageCurator,
             "gpslocation" => EntityPropertyInputTypes.GpsLocation,
             "daterange" => EntityPropertyInputTypes.DateRange,
             "sub-entities-grid" => EntityPropertyInputTypes.SubEntitiesGrid,

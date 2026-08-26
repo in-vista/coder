@@ -45,13 +45,31 @@
                     <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)">
                         <i class="mdi mdi-size-2 mdi-account"></i>
                     </div>
-                    <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event)">
+                    <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event); closeAccountDropdown()">
                         <p class="coder-menu-item-popout-title"><strong>Welkom</strong> <span class="coder-highlight">{{ user.name }}</span>.</p>
                         <div class="coder-menu-item-popout-items">
                             <div v-if="!!markerWidget" class="coder-menu-item-popout-item">
                                 <div @@click="openMarkerIoScreen" class="coder-menu-item-popout-item-content hover">
                                     <i class="mdi mdi-size-2 mdi-bug"></i>
                                     <span >Bug melden</span>
+                                </div>
+                            </div>
+                            <div v-if="imitations?.length" class="coder-menu-item-popout-item">
+                                <div @@click.stop="toggleAccountDropdown" id="accountButton" class="coder-menu-item-popout-item-content hover">
+                                    <i class="mdi mdi-size-2 mdi-account-convert"></i>
+                                    <span>Account wisselen</span>
+                                </div>
+                                <div
+                                    v-show="accountDropdownVisible"
+                                    id="accountDropdown"
+                                    class="dropdown"
+                                    @@mouseleave="closeAccountDropdown">
+                                    <div
+                                        v-for="imitation in imitations"
+                                        class="account-item hover"
+                                        @@click="selectAccount(imitation.encrypted_id)">
+                                        {{ imitation.name }}
+                                    </div>
                                 </div>
                             </div>
                             <div class="coder-menu-item-popout-item">
@@ -962,7 +980,7 @@
                 <div class="btn-row">
                     <button type="submit" :class="{ btn: true, 'btn-primary': true, loading: loginStatus === 'loading' }">Inloggen</button>
 
-                    <a href="#" @@click="togglePasswordForgottenScreen(true)" id="forgotten-password">Wachtwoord vergeten?</a>
+                    <a href="#forgotpassword" @@click="togglePasswordForgottenScreen(true)" id="forgotten-password">Wachtwoord vergeten?</a>
                 </div>
             </div>
             <div v-if="(loginStatus === 'totp' || loginStatus === 'totp_loading' || loginStatus === 'totp_error') && !showForgotPasswordScreen" class="totp">
@@ -1023,10 +1041,19 @@
                 <div class="form-row">
                     <input type="password" id="newPasswordRepeat" name="newPasswordRepeat" class="loginField passwordField" placeholder="Nogmaals uw nieuwe wachtwoord" v-model="changePasswordForm.newPasswordRepeat" />
                 </div>
-
+                <password-requirements v-model="passwordRequirementsValid">
+                    <password-requirement :accepted="changePasswordForm.newPassword?.length >= 8">Het wachtwoord is minimaal 8 karakters lang.</password-requirement>
+                    <password-requirement :accepted="/[A-Z]/.test(changePasswordForm.newPassword)">Het wachtwoord bevat een hoofdletter.</password-requirement>
+                    <password-requirement :accepted="/[a-z]/.test(changePasswordForm.newPassword)">Het wachtwoord bevat een kleine letter.</password-requirement>
+                    <password-requirement :accepted="/[0-9]/.test(changePasswordForm.newPassword)">Het wachtwoord bevat een cijfer.</password-requirement>
+                    <password-requirement
+                        :accepted="[changePasswordForm.newPassword, changePasswordForm.newPasswordRepeat].every(x => x?.length > 0) && changePasswordForm.newPassword === changePasswordForm.newPasswordRepeat">
+                        Beide wachtwoorden komen overeen.
+                    </password-requirement>
+                </password-requirements>
                 <div class="btn-row">
-                    <button id="submitPasswordChange" type="submit" :class="{ btn: true, 'btn-primary': true }">Wijzigen</button>
-                    <button id="cancelPasswordChange" :class="{ btn: true }">Annuleren</button>
+                    <button id="submitPasswordChange" type="submit" class="btn btn-primary" :disabled="!passwordRequirementsValid">Wijzigen</button>
+                    <button id="cancelPasswordChange" class="btn">Annuleren</button>
                 </div>
             </div>
         </form>

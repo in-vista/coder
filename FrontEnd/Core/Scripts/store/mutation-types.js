@@ -52,6 +52,9 @@ export const GENERATE_TOTP_BACKUP_CODES = "generateTotpBackupCodes";
 export const GENERATE_TOTP_BACKUP_CODES_SUCCESS = "generateTotpBackupCodesSuccess";
 export const GENERATE_TOTP_BACKUP_CODES_ERROR = "generateTotpBackupCodesError";
 export const CLEAR_LOCAL_TOTP_BACKUP_CODES = "clearLocalTotpBackupCodes";
+export const IMITATIONS_REQUEST = "imitationsRequest";
+export const IMITATIONS_LOADED = "imitationsLoaded";
+export const IMITATE_ACCOUNT = "imitateAccount";
 
 // Branches module.
 export const BRANCH_CHANGE_COMPLETED = "branchChangeCompleted";

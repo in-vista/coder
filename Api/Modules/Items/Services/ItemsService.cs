@@ -26,6 +26,7 @@ using Api.Modules.Items.Models;
 using Api.Modules.Kendo.Models;
 using Api.Modules.Templates.Interfaces;
 using Api.Modules.Tenants.Interfaces;
+using Api.Modules.Tenants.Models;
 using CM.Text.BusinessMessaging.Model;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Enums;
@@ -35,6 +36,7 @@ using GeeksCoreLibrary.Core.Helpers;
 using GeeksCoreLibrary.Core.Interfaces;
 using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
+using GeeksCoreLibrary.Modules.DataSelector.Models;
 using GeeksCoreLibrary.Modules.GclReplacements.Interfaces;
 using GeeksCoreLibrary.Modules.Languages.Interfaces;
 using GeeksCoreLibrary.Modules.Objects.Interfaces;
@@ -71,6 +73,7 @@ namespace Api.Modules.Items.Services
         private readonly IObjectsService objectsService;
         private readonly IServiceProvider serviceProvider;
         private readonly IBranchesService branchesService;
+        private readonly IEntityTypesService entityTypesService;
 
         /// <summary>
         /// Creates a new instance of <see cref="ItemsService"/>.
@@ -91,7 +94,8 @@ namespace Api.Modules.Items.Services
                             IGoogleTranslateService googleTranslateService,
                             IObjectsService objectsService,
                             IServiceProvider serviceProvider,
-                            IBranchesService branchesService)
+                            IBranchesService branchesService,
+                            IEntityTypesService entityTypesService)
         {
             this.templatesService = templatesService;
             this.wiserTenantsService = wiserTenantsService;
@@ -110,6 +114,7 @@ namespace Api.Modules.Items.Services
             this.objectsService = objectsService;
             this.serviceProvider = serviceProvider;
             this.branchesService = branchesService;
+            this.entityTypesService = entityTypesService;
         }
 
         /// <inheritdoc />
@@ -256,7 +261,7 @@ namespace Api.Modules.Items.Services
 					ORDER BY IFNULL(item.changed_on, item.added_on) DESC
                     LIMIT {(input.Page - 1) * input.PageSize}, {input.PageSize}
                 ) AS x
-                LEFT JOIN {WiserTableNames.WiserEntityProperty} AS property ON property.entity_name = x.entity_type AND property.inputtype NOT IN ('file-upload', 'querybuilder', 'grid', 'button', 'image-upload', 'sub-entities-grid', 'item-linker', 'linked-item', 'action-button', 'data-selector', 'chart', 'scheduler', 'timeline', 'empty', 'qr')
+                LEFT JOIN {WiserTableNames.WiserEntityProperty} AS property ON property.entity_name = x.entity_type AND property.inputtype NOT IN ('file-upload', 'querybuilder', 'grid', 'button', 'image-upload', 'image-curator', 'sub-entities-grid', 'item-linker', 'linked-item', 'action-button', 'data-selector', 'chart', 'scheduler', 'timeline', 'empty', 'qr')
                 LEFT JOIN {WiserTableNames.WiserItemDetail} AS field ON field.item_id = x.id AND field.`key` = IFNULL(property.property_name, property.display_name) AND field.language_code = property.language_code
                 GROUP BY x.id
 				ORDER BY IFNULL(x.changed_on, x.added_on) DESC
@@ -1472,6 +1477,53 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         }
                     }
                 }
+                
+                // Load associated files for image curator.
+                string imageCuratorPoolFiles = null;
+                string imageCuratorActiveFiles = null;
+                if (fieldType == "image-curator")
+                {
+                    string poolPropertyName = optionsObject.TryGetValue("poolPropertyName", out JToken poolPropertyNameTmp) ? poolPropertyNameTmp.Value<string>() : null;
+                    string activePropertyName = optionsObject.TryGetValue("activePropertyName", out JToken activePropertyNameTmp) ? activePropertyNameTmp.Value<string>() : null;
+                    
+                    string imageCuratorEntityType = optionsObject.TryGetValue("entityType", out JToken imageCuratorEntityTypeTmp) ? imageCuratorEntityTypeTmp.Value<string>() : null;
+                    string imageCuratorTablePrefix = !string.IsNullOrEmpty(imageCuratorEntityType) ? await entityTypesService.GetTablePrefixForEntityAsync(imageCuratorEntityType) : null;
+                    
+                    string imageCuratorQuery = $@"
+                        SELECT CONCAT('[', GROUP_CONCAT(
+                            JSON_OBJECT(
+                                'itemId', item_id,
+                                'itemLinkId', itemlink_id,
+                                'fileId', id,
+                                'name', REPLACE(file_name, '/', '-'),
+                                'title', title,
+                                'extension', extension,
+                                'size', IFNULL(OCTET_LENGTH(content), 0),
+                                'addedOn', added_on,
+                                'contentUrl', IFNULL(content_url, ''),
+                                'extraData', extra_data,
+                                'listType', ?listType,
+                                'entityType', ?entityType,
+                                'readonly', protected)
+                            ORDER BY ordering ASC), ']'
+                        )
+                        FROM {imageCuratorTablePrefix}{WiserTableNames.WiserItemFile}
+                        WHERE item_id = ?itemId AND property_name = ?propertyName
+                        GROUP BY property_name
+                        LIMIT 1";
+                    
+                    clientDatabaseConnection.AddParameter("itemId", itemId);
+                    clientDatabaseConnection.AddParameter("entityType", imageCuratorEntityType);
+                    
+                    clientDatabaseConnection.AddParameter("propertyName", poolPropertyName);
+                    clientDatabaseConnection.AddParameter("listType", "pool");
+                    imageCuratorPoolFiles = await clientDatabaseConnection.ExecuteScalarAsync<string>(imageCuratorQuery);
+                    
+                    clientDatabaseConnection.AddParameter("propertyName", activePropertyName);
+                    clientDatabaseConnection.AddParameter("listType", "active");
+                    imageCuratorActiveFiles = await clientDatabaseConnection.ExecuteScalarAsync<string>(imageCuratorQuery);
+                }
+
                 var fieldMode = "";
                 var containerCssClasses = new List<string>();
                 if (optionsObject.ContainsKey("mode"))
@@ -1804,7 +1856,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 
                 // Retrieve the "Pro6PP" field value.
                 string pro6PPField = optionsObject.ContainsKey("Pro6PPField") ? optionsObject["Pro6PPField"].ToString() : null;
-
+                
                 defaultValue = defaultValue.Replace("{itemId}", itemId.ToString()).Replace("{userId}", userId.ToString());
 
                 // Retrieve the subdomain that is currently being used.
@@ -1906,6 +1958,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                         .Replace("{moduleId}", (dataRow.Field<short?>("module_id") ?? 0).ToString())
                         .Replace("{options}", String.IsNullOrWhiteSpace(options) ? "{}" : options)
                         .Replace("{initialFiles}", String.IsNullOrWhiteSpace(filesJson) ? "[]" : filesJson)
+                        .Replace("{poolFiles}", String.IsNullOrWhiteSpace(imageCuratorPoolFiles) ? "[]" : imageCuratorPoolFiles)
+                        .Replace("{activeFiles}", String.IsNullOrWhiteSpace(imageCuratorActiveFiles) ? "[]" : imageCuratorActiveFiles)
                         .Replace("{propertyName}",
                             String.IsNullOrWhiteSpace(propertyName) ? displayName ?? "" : propertyName.Trim())
                         .Replace("{title}", String.IsNullOrWhiteSpace(displayName) ? propertyName ?? "" : displayName)
@@ -2373,6 +2427,10 @@ ORDER BY item.ordering ASC";
             
             var parentEntitySettings = await wiserItemsService.GetEntityTypeSettingsAsync(parentEntityType ?? String.Empty, moduleId);
             var parentTablePrefix = wiserItemsService.GetTablePrefixForEntity(parentEntitySettings);
+
+            LinkSettingsModel linkTypeSettings = linkType > 0 ? await wiserItemsService.GetLinkTypeSettingsAsync(linkType) : null;
+            bool useParentItemId = linkTypeSettings is { Type: 1, UseItemParentId: true };
+            string linkTablePrefix = linkTypeSettings?.UseDedicatedTable ?? false ? $"{linkType}_" : null;
             
             var firstChild = parentEntitySettings.AcceptedChildTypes.FirstOrDefault();
             if (firstChild is null)
@@ -2429,7 +2487,7 @@ ORDER BY item.ordering ASC";
             if (checkId > 0)
             {
                 checkIdJoin = $@"# Check if item needs to be checked in item-linker field.
-LEFT JOIN {WiserTableNames.WiserItemLink} AS checked ON checked.item_id = item.id AND checked.destination_item_id = ?checkId";
+LEFT JOIN {linkTablePrefix}{WiserTableNames.WiserItemLink} AS checked ON checked.item_id = item.id AND checked.destination_item_id = ?checkId";
                 if (linkType > 0)
                 {
                     clientDatabaseConnection.AddParameter("linkType", linkType);
@@ -2453,19 +2511,20 @@ LEFT JOIN {WiserTableNames.WiserItemLink} AS checked ON checked.item_id = item.i
 FROM {tablePrefix}{WiserTableNames.WiserItem} AS item
 JOIN {WiserTableNames.WiserEntity} AS entity ON entity.name = item.entity_type AND entity.show_in_tree_view = 1
 LEFT JOIN {WiserTableNames.WiserEntity} AS entityModule ON entityModule.name = item.entity_type AND entityModule.show_in_tree_view = 1 AND entityModule.module_id = item.moduleid
-JOIN {WiserTableNames.WiserItemLink} AS link_parent ON link_parent.item_id = item.id AND link_parent.destination_item_id = ?parentId AND link_parent.type NOT IN ({linkTypesToHideFromTreeViewList})
+JOIN {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link_parent ON link_parent.item_id = item.id {(useParentItemId ? string.Empty : "AND link_parent.destination_item_id = ?parentId")} AND link_parent.type NOT IN ({linkTypesToHideFromTreeViewList})
 
 # Check permissions. Default permissions are everything enabled, so if the user has no role or the role has no permissions on this item, they are allowed everything.
 LEFT JOIN {WiserTableNames.WiserUserRoles} AS user_role ON user_role.user_id = ?userId
 LEFT JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = user_role.role_id AND permission.item_id = item.id
 
 # Only get items that should actually be shown, based on accepted_childtypes from wiser_entity.
-LEFT JOIN {parentTablePrefix}{WiserTableNames.WiserItem} parent_item ON parent_item.id = link_parent.destination_item_id
+LEFT JOIN {parentTablePrefix}{WiserTableNames.WiserItem} parent_item ON parent_item.id = {(useParentItemId ? "item.parent_item_id" : "link_parent.destination_item_id")}
 JOIN {WiserTableNames.WiserEntity} AS parent_entity ON ((link_parent.destination_item_id = 0 AND parent_entity.`name` = '') OR parent_entity.`name` = parent_item.entity_type) AND (parent_entity.accepted_childtypes = '' OR FIND_IN_SET(item.entity_type, parent_entity.accepted_childtypes))
 
 {checkIdJoin}
 
 WHERE TRUE
+{(useParentItemId ? "AND item.parent_item_id = ?parentId" : string.Empty)}
 AND item.moduleid = ?moduleId
 AND (permission.id IS NULL OR (permission.permissions & 1) > 0)
 GROUP BY IF(item.original_item_id > 0, item.original_item_id, item.id)
@@ -2521,7 +2580,7 @@ ORDER BY {orderByClause}";
 	IF(MAX(item.published_environment) = 0, 'hiddenOnWebsite', '') AS nodeCssClass,
 	item.entity_type,
 	GROUP_CONCAT(DISTINCT IFNULL(entityModule.accepted_childtypes, entity.accepted_childtypes)) AS accepted_childtypes,
-    IF(item.parent_item_id > 0 AND item.parent_item_id = ?checkId, 1, 0) AS checked
+    IF(item.parent_item_id > 0 AND item.parent_item_id = ?checkId {(checkId > 0 ? "OR checked.id IS NOT NULL" : string.Empty)}, 1, 0) AS checked
 
 # Get the items linked to the parent.
 FROM {tablePrefix}{WiserTableNames.WiserItem} AS item
@@ -2537,8 +2596,10 @@ LEFT JOIN {parentTablePrefix}{WiserTableNames.WiserItem} parent_item ON parent_i
 JOIN {WiserTableNames.WiserEntity} AS parent_entity ON {(parentId == 0 ? "parent_entity.module_id = ?moduleId AND parent_entity.`name` = ''" : "parent_entity.`name` = parent_item.entity_type")} AND (parent_entity.accepted_childtypes = '' OR FIND_IN_SET(item.entity_type, parent_entity.accepted_childtypes))
 
 # Link settings to check if these links should be shown.
-LEFT JOIN {WiserTableNames.WiserLink} AS link_settings ON link_settings.destination_entity_type = parent_item.entity_type AND link_settings.connected_entity_type = item.entity_type
+LEFT JOIN {linkTablePrefix}{WiserTableNames.WiserLink} AS link_settings ON link_settings.destination_entity_type = parent_item.entity_type AND link_settings.connected_entity_type = item.entity_type
 
+{checkIdJoin}
+                                                                                 
 WHERE item.parent_item_id = ?parentId
 AND (?childEntityTypes = '' OR FIND_IN_SET(item.entity_type, ?childEntityTypes))
 AND item.moduleid = ?moduleId
@@ -2865,6 +2926,98 @@ ORDER BY {orderByClause}";
                 await clientDatabaseConnection.RollbackTransactionAsync();
                 throw;
             }
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<bool>> ChangeOrderAsync(ClaimsIdentity identity, ulong propertyId, string encryptedItemId, string entityType, bool currentItemIsSourceId, string beforeEncryptedItemId, int? linkTypeNumber)
+        {
+            if (string.IsNullOrWhiteSpace(encryptedItemId))
+            {
+                return new ServiceResult<bool>
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    ErrorMessage = "The parameter encryptedItemId needs to have a value"
+                };
+            }
+
+            TenantModel tenant = (await wiserTenantsService.GetSingleAsync(identity)).ModelObject;
+            ulong itemId = wiserTenantsService.DecryptValue<ulong>(encryptedItemId, tenant);
+            ulong? beforeItemId = !string.IsNullOrEmpty(beforeEncryptedItemId) ? wiserTenantsService.DecryptValue<ulong>(beforeEncryptedItemId, tenant) : null;
+            ulong userId = IdentityHelpers.GetWiserUserId(identity);
+            
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            
+            clientDatabaseConnection.ClearParameters();
+            
+            string tablePrefix = await wiserItemsService.GetTablePrefixForEntityAsync(entityType);
+            
+            WiserItemModel item = await wiserItemsService.GetItemDetailsAsync(itemId, skipPermissionsCheck: true);
+            ulong parentItemId = item.ParentItemId;
+            
+            if (linkTypeNumber.HasValue)
+            {
+                string sourceEntityType = currentItemIsSourceId ? entityType : null;
+                string destinationEntityType = !currentItemIsSourceId ? entityType : null;
+                LinkSettingsModel linkSettingsModel = await wiserItemsService.GetLinkTypeSettingsAsync(linkTypeNumber.Value, sourceEntityType, destinationEntityType);
+                string linkTablePrefix = await wiserItemsService.GetTablePrefixForLinkAsync(linkTypeNumber.Value, sourceEntityType, destinationEntityType);
+
+                bool useParentItemId = linkSettingsModel.UseItemParentId;
+                
+                clientDatabaseConnection.ClearParameters();
+                clientDatabaseConnection.AddParameter("itemId", itemId);
+                clientDatabaseConnection.AddParameter("beforeItemId", beforeItemId);
+                clientDatabaseConnection.AddParameter("parentItemId", parentItemId);
+                clientDatabaseConnection.AddParameter("linkTypeNumber", linkTypeNumber.Value);
+                
+                int oldOrdering = await clientDatabaseConnection.ExecuteScalarAsync<int>(@$"
+                    SELECT ordering FROM {(useParentItemId ? $"{tablePrefix}{WiserTableNames.WiserItem}" : $"{linkTablePrefix}{WiserTableNames.WiserItemLink}")}
+                    WHERE {(useParentItemId ? "id = ?itemId" : $"{(currentItemIsSourceId ? "item_id" : "destination_item_id")} = ?itemId AND type = ?linkTypeNumber")}");
+                int newOrdering = await clientDatabaseConnection.ExecuteScalarAsync<int>(beforeItemId.HasValue
+                    ? @$"
+                        SELECT ordering FROM {(useParentItemId ? $"{tablePrefix}{WiserTableNames.WiserItem}" : $"{linkTablePrefix}{WiserTableNames.WiserItemLink}")}
+                        WHERE {(useParentItemId ? "id = ?beforeItemId" : $"{(currentItemIsSourceId ? "item_id" : "destination_item_id")} = ?beforeItemId AND type = ?linkTypeNumber")}"
+                    : $@"
+                        SELECT MAX(ordering) + 1 FROM {(useParentItemId ? $"{tablePrefix}{WiserTableNames.WiserItem}" : $"{linkTablePrefix}{WiserTableNames.WiserItemLink}")}
+                        WHERE {(useParentItemId ? "parent_item_id = ?parentItemId" : "type = ?linkTypeNumber")}"
+                    );
+                
+                clientDatabaseConnection.AddParameter("oldOrdering", oldOrdering);
+                clientDatabaseConnection.AddParameter("newOrdering", newOrdering);
+                
+                string shiftItemsQuery = useParentItemId
+                    ? $"UPDATE {tablePrefix}{WiserTableNames.WiserItem}"
+                    : $"UPDATE {linkTablePrefix}{WiserTableNames.WiserItemLink}";
+
+                if (newOrdering < oldOrdering)
+                {
+                    shiftItemsQuery += @"
+                        SET ordering = ordering + 1
+                        WHERE ordering >= ?newOrdering AND ordering < ?oldOrdering";
+                }
+                else
+                {
+                    shiftItemsQuery += @"
+                        SET ordering = ordering - 1
+                        WHERE ordering > ?oldOrdering AND ordering <= ?newOrdering";
+                }
+                
+                shiftItemsQuery += $@"
+                    AND {(useParentItemId ? "parent_item_id = ?parentItemId" : "type = ?linkTypeNumber")};
+                    
+                    UPDATE {(useParentItemId ? $"{tablePrefix}{WiserTableNames.WiserItem}" : $"{linkTablePrefix}{WiserTableNames.WiserItemLink}")}
+                    SET ordering = ?newOrdering
+                    WHERE {(useParentItemId ? "id = ?itemId" : $"${(currentItemIsSourceId ? "item_id" : "destination_item_id")} = ?itemId AND type = ?linkTypeNumber")};";
+
+                await clientDatabaseConnection.ExecuteAsync(shiftItemsQuery);
+            }
+            else
+            {
+                // TODO: Logic for custom query grids.
+                // As of right now we simply do not support it due to its complexity. Maybe the future will bring us more peace and we will have to time to commence to this matter.
+                throw new NotSupportedException("Reordering grids with custom queries. Only grids with predefined link types are supported.");
+            }
+            
+            return new ServiceResult<bool>(true);
         }
 
         /// <inheritdoc />
@@ -3362,6 +3515,113 @@ VALUES(?itemId, ?entityType, ?actionButton, ?userId, ?moduleId, ?propertyId)";
             await clientDatabaseConnection.ExecuteAsync(query);
             
             return new ServiceResult<bool>(true);
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<JArray>> UpdateImageCuratorAsync(ClaimsIdentity identity, string encryptedId, ulong propertyId, ImageCuratorActiveFile[] activeFiles)
+        {
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            ulong itemId = await wiserTenantsService.DecryptValue<ulong>(encryptedId, identity);
+            ulong userId = IdentityHelpers.GetWiserUserId(identity);
+            
+            clientDatabaseConnection.ClearParameters();
+            clientDatabaseConnection.AddParameter("propertyId", propertyId);
+            string optionsRaw = await clientDatabaseConnection.ExecuteScalarAsync<string>($"SELECT options FROM {WiserTableNames.WiserEntityProperty} WHERE id = ?propertyId");
+            JObject options = JObject.Parse(optionsRaw);
+
+            string entityType = options.Value<string>("entityType");
+            string tablePrefix = await entityTypesService.GetTablePrefixForEntityAsync(entityType);
+
+            string poolPropertyName = options.Value<string>("poolPropertyName");
+            string activePropertyName = options.Value<string>("activePropertyName");
+            
+            await clientDatabaseConnection.EnsureOpenConnectionForWritingAsync();
+            
+            clientDatabaseConnection.ClearParameters();
+            clientDatabaseConnection.AddParameter("itemId", itemId);
+            clientDatabaseConnection.AddParameter("poolPropertyName", poolPropertyName);
+            clientDatabaseConnection.AddParameter("activePropertyName", activePropertyName);
+            
+            await clientDatabaseConnection.ExecuteAsync(@$"
+                DELETE FROM {tablePrefix}{WiserTableNames.WiserItemFile}
+                WHERE
+                    item_id = ?itemId AND
+                    property_name = ?activePropertyName
+                    {(activeFiles.Length > 0
+                        ? $"AND id NOT IN {clientDatabaseConnection.AddInParameters("fileId", activeFiles.Select(x => (object) x.FileId))}"
+                        : string.Empty)}
+                ");
+            
+            clientDatabaseConnection.ClearParameters();
+            clientDatabaseConnection.AddParameter("itemId", itemId);
+            clientDatabaseConnection.AddParameter("userId", userId);
+            clientDatabaseConnection.AddParameter("poolPropertyName", poolPropertyName);
+            clientDatabaseConnection.AddParameter("activePropertyName", activePropertyName);
+            clientDatabaseConnection.AddParameter("entityType", entityType);
+            
+            if (activeFiles.Length > 0)
+            {
+                await clientDatabaseConnection.ExecuteAsync(@$"
+                    INSERT IGNORE INTO {tablePrefix}{WiserTableNames.WiserItemFile}
+                    (item_id, content_type, content, content_url, width, height, file_name, extension, added_on, added_by, title, property_name, itemlink_id, protected, ordering, extra_data)
+                    SELECT
+	                    file.item_id,
+	                    file.content_type,
+	                    file.content,
+	                    file.content_url,
+	                    file.width,
+	                    file.height,
+	                    file.file_name,
+	                    file.extension,
+	                    NOW(),
+	                    (SELECT title FROM wiser_item WHERE id = ?userId LIMIT 1),
+	                    file.title,
+	                    ?activePropertyName,
+	                    file.itemlink_id,
+	                    file.protected,
+	                    IFNULL((
+		                    SELECT
+			                    MAX(inner_file.ordering) + 1
+		                    FROM {tablePrefix}{WiserTableNames.WiserItemFile} inner_file
+		                    WHERE inner_file.item_id = ?itemId AND inner_file.property_name = ?activePropertyName
+	                    ), 1),
+	                    file.extra_data
+                    FROM {tablePrefix}{WiserTableNames.WiserItemFile} file
+                    WHERE file.item_id = ?itemId AND file.property_name = ?poolPropertyName AND file.id IN {clientDatabaseConnection.AddInParameters("fileId", activeFiles.Select(x => (object) x.FileId))}"
+                    );
+
+                foreach (ImageCuratorActiveFile file in activeFiles)
+                {
+                    clientDatabaseConnection.AddParameter("fileId", file.FileId);
+                    clientDatabaseConnection.AddParameter("orderIndex", file.Ordering);
+                    await clientDatabaseConnection.ExecuteAsync($"UPDATE {tablePrefix}{WiserTableNames.WiserItemFile} SET ordering = ?orderIndex WHERE id = ?fileId");
+                }
+            }
+            
+            // Execute query to retrieve all item IDs of the active pool to return to the front end.
+            string currentActiveFilesJson = await clientDatabaseConnection.GetAsJsonAsync(@$"
+                SELECT
+                    item_id AS `itemId`,
+                    itemlink_id AS `itemLinkId`,
+                    id AS `fileId`,
+                    REPLACE(file_name, '/', '-') AS `name`,
+                    title AS `title`,
+                    extension AS `extension`,
+                    IFNULL(OCTET_LENGTH(content), 0) AS `size`,
+                    added_on AS `addedOn`,
+                    content_type AS `contentType`,
+                    IFNULL(content_url, '') AS `contentUrl`,
+                    extra_data AS `extraData`,
+                    'active' AS `listType`,
+                    ?entityType AS `entityType`,
+                    protected AS `readonly`
+                FROM {tablePrefix}{WiserTableNames.WiserItemFile}
+                WHERE item_id = ?itemId AND property_name = ?activePropertyName
+                ORDER BY ordering");
+
+            JArray currentActiveFiles = JArray.Parse(currentActiveFilesJson);
+            
+            return new ServiceResult<JArray>(currentActiveFiles);
         }
 
         /// <summary>

@@ -1089,6 +1089,8 @@ AND ordering < ?newOrderingStart";
                     return "imagecoords";
                 case EntityPropertyInputTypes.ImageUpload:
                     return "image-upload";
+                case EntityPropertyInputTypes.ImageCurator:
+                    return "image-curator";
                 case EntityPropertyInputTypes.GpsLocation:
                     return "gpslocation";
                 case EntityPropertyInputTypes.DateRange:

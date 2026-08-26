@@ -466,17 +466,44 @@ VALUES ({String.Join(", ", columnsForInsertQuery.Select(x => $"?{x}"))});
 SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
             var newItem = await dbConnection.GetAsync(query);
 
+            int newFileId = Convert.ToInt32(newItem.Rows[0]["newId"]);
+            
+            dbConnection.ClearParameters();
+            dbConnection.AddParameter("fileId", newFileId);
+            DataTable newFileDataTable = await dbConnection.GetAsync(@$"
+                SELECT
+                    item_id AS `itemId`,
+                    itemlink_id AS `itemLinkId`,
+                    id AS `fileId`,
+                    REPLACE(file_name, '/', '-') AS `name`,
+                    title AS `title`,
+                    extension AS `extension`,
+                    IFNULL(OCTET_LENGTH(content), 0) AS `size`,
+                    added_on AS `addedOn`,
+                    content_type AS `contentType`,
+                    IFNULL(content_url, '') AS `contentUrl`,
+                    extra_data AS `extraData`,
+                    protected AS `readonly`
+                FROM {tablePrefix}{WiserTableNames.WiserItemFile}
+                WHERE id = ?fileId
+                LIMIT 1");
+
+            DataRow newFileDataRow = newFileDataTable.Rows[0];
+            
             var result = new FileModel
             {
-                FileId = Convert.ToInt32(newItem.Rows[0]["newId"]),
-                Name = fileName,
-                Extension = fileExtension,
-                ItemId = await wiserTenantsService.EncryptValue(itemId, identity),
-                Size = fileBytes.Length,
-                Title = title,
-                ContentType = contentType,
+                FileId = newFileId,
+                Name = newFileDataRow.Field<string>("name"),
+                Extension = newFileDataRow.Field<string>("extension"),
+                ItemId = await wiserTenantsService.EncryptValue(newFileDataRow.Field<ulong>("itemId"), identity),
+                Size = newFileDataRow.Field<long>("size"),
+                Title = newFileDataRow.Field<string>("title"),
+                ContentType = newFileDataRow.Field<string>("contentType"),
                 EntityType = entityType,
-                LinkType = linkType
+                LinkType = linkType,
+                ItemLinkId = newFileDataRow.Field<ulong>("itemLinkId"),
+                AddedOn = newFileDataRow.Field<DateTime>("addedOn"),
+                ExtraData = newFileDataRow.Field<string>("extraData")
             };
 
             return new ServiceResult<FileModel>(result);
