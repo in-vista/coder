@@ -760,8 +760,39 @@
                     filter: '>tbody >tr:not(.k-grid-edit-row)',
                     container: kendoComponent.table,
                     axis: 'y',
+                    autoScroll: true,
+                    hint: function (element) {
+                        // Clone the grid table.
+                        const table = kendoComponent.table.clone();
+
+                        // Get the grid width.
+                        const wrapperWidth = kendoComponent.wrapper.width();
+                        const wrapper = $("<div class='k-grid k-widget'></div>").width(wrapperWidth);
+                        
+                        // Prepare the hint element.
+                        let hint;
+                        
+                        // Remove the grid header and existing rows from the hint.
+                        table.find("thead").remove();
+                        table.find("tbody").empty();
+                        
+                        // Wrap the table.
+                        table.wrap(wrapper);
+
+                        // Append the dragged element.
+                        table.append(element.clone().removeAttr("uid"));
+
+                        // Get the wrapper.
+                        hint = table.parent();
+
+                        // Return the hint element.
+                        return hint;
+                    },
+                    cursor: 'move',
                     placeholder: function(element) {
-                        return element.clone().addClass("k-hover").css("opacity", 0.65);
+                        return element.clone()
+                            .addClass('k-hover')
+                            .css('opacity', 0.65);
                     },
                     change: async function (event) {
                         if(event.action !== 'sort')
@@ -838,7 +869,7 @@
                 },
                 cursor: "move",
                 placeholder: function (element) {
-                    return element.clone().addClass("k-state-hover").css("opacity", 0.65);
+                    return element.clone().addClass("k-hover").css("opacity", 0.65);
                 },
                 container: "#overviewGrid{propertyIdWithSuffix}",
                 filter: ">tbody >tr",
