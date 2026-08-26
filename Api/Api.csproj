@@ -82,6 +82,8 @@
     <None Remove="Modules\Items\FieldTemplates\textbox.js" />
     <None Remove="Modules\Items\FieldTemplates\timeline.html" />
     <None Remove="Modules\Items\FieldTemplates\timeline.js" />
+    <None Remove="Modules\Items\FieldTemplates\checklistbox.html" />
+    <None Remove="Modules\Items\FieldTemplates\checklistbox.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -168,6 +170,8 @@
     <EmbeddedResource Include="Modules\Items\FieldTemplates\scheduler-timeline.html" />
     <None Remove="Modules\Items\FieldTemplates\scheduler-timeline.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\scheduler-timeline.js" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\checklistbox.html" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\checklistbox.js" />
     <None Remove="Modules\Items\FieldTemplates\image-curator.html" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\image-curator.html" />
     <None Remove="Modules\Items\FieldTemplates\image-curator.js" />

@@ -47,6 +47,7 @@ public class EntityPropertyHelper
             "empty" => EntityPropertyInputTypes.Empty,
             "qr" => EntityPropertyInputTypes.Qr,
             "iframe" => EntityPropertyInputTypes.Iframe,
+            "checkboxlist" => EntityPropertyInputTypes.CheckBoxList,
             _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
         };
     }
