@@ -26,6 +26,7 @@ using Api.Modules.Items.Models;
 using Api.Modules.Kendo.Models;
 using Api.Modules.Templates.Interfaces;
 using Api.Modules.Tenants.Interfaces;
+using Api.Modules.Tenants.Models;
 using CM.Text.BusinessMessaging.Model;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Enums;
@@ -35,6 +36,7 @@ using GeeksCoreLibrary.Core.Helpers;
 using GeeksCoreLibrary.Core.Interfaces;
 using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
+using GeeksCoreLibrary.Modules.DataSelector.Models;
 using GeeksCoreLibrary.Modules.GclReplacements.Interfaces;
 using GeeksCoreLibrary.Modules.Languages.Interfaces;
 using GeeksCoreLibrary.Modules.Objects.Interfaces;
@@ -2924,6 +2926,98 @@ ORDER BY {orderByClause}";
                 await clientDatabaseConnection.RollbackTransactionAsync();
                 throw;
             }
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<bool>> ChangeOrderAsync(ClaimsIdentity identity, ulong propertyId, string encryptedItemId, string entityType, bool currentItemIsSourceId, string beforeEncryptedItemId, int? linkTypeNumber)
+        {
+            if (string.IsNullOrWhiteSpace(encryptedItemId))
+            {
+                return new ServiceResult<bool>
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    ErrorMessage = "The parameter encryptedItemId needs to have a value"
+                };
+            }
+
+            TenantModel tenant = (await wiserTenantsService.GetSingleAsync(identity)).ModelObject;
+            ulong itemId = wiserTenantsService.DecryptValue<ulong>(encryptedItemId, tenant);
+            ulong? beforeItemId = !string.IsNullOrEmpty(beforeEncryptedItemId) ? wiserTenantsService.DecryptValue<ulong>(beforeEncryptedItemId, tenant) : null;
+            ulong userId = IdentityHelpers.GetWiserUserId(identity);
+            
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            
+            clientDatabaseConnection.ClearParameters();
+            
+            string tablePrefix = await wiserItemsService.GetTablePrefixForEntityAsync(entityType);
+            
+            WiserItemModel item = await wiserItemsService.GetItemDetailsAsync(itemId, skipPermissionsCheck: true);
+            ulong parentItemId = item.ParentItemId;
+            
+            if (linkTypeNumber.HasValue)
+            {
+                string sourceEntityType = currentItemIsSourceId ? entityType : null;
+                string destinationEntityType = !currentItemIsSourceId ? entityType : null;
+                LinkSettingsModel linkSettingsModel = await wiserItemsService.GetLinkTypeSettingsAsync(linkTypeNumber.Value, sourceEntityType, destinationEntityType);
+                string linkTablePrefix = await wiserItemsService.GetTablePrefixForLinkAsync(linkTypeNumber.Value, sourceEntityType, destinationEntityType);
+
+                bool useParentItemId = linkSettingsModel.UseItemParentId;
+                
+                clientDatabaseConnection.ClearParameters();
+                clientDatabaseConnection.AddParameter("itemId", itemId);
+                clientDatabaseConnection.AddParameter("beforeItemId", beforeItemId);
+                clientDatabaseConnection.AddParameter("parentItemId", parentItemId);
+                clientDatabaseConnection.AddParameter("linkTypeNumber", linkTypeNumber.Value);
+                
+                int oldOrdering = await clientDatabaseConnection.ExecuteScalarAsync<int>(@$"
+                    SELECT ordering FROM {(useParentItemId ? $"{tablePrefix}{WiserTableNames.WiserItem}" : $"{linkTablePrefix}{WiserTableNames.WiserItemLink}")}
+                    WHERE {(useParentItemId ? "id = ?itemId" : $"{(currentItemIsSourceId ? "item_id" : "destination_item_id")} = ?itemId AND type = ?linkTypeNumber")}");
+                int newOrdering = await clientDatabaseConnection.ExecuteScalarAsync<int>(beforeItemId.HasValue
+                    ? @$"
+                        SELECT ordering FROM {(useParentItemId ? $"{tablePrefix}{WiserTableNames.WiserItem}" : $"{linkTablePrefix}{WiserTableNames.WiserItemLink}")}
+                        WHERE {(useParentItemId ? "id = ?beforeItemId" : $"{(currentItemIsSourceId ? "item_id" : "destination_item_id")} = ?beforeItemId AND type = ?linkTypeNumber")}"
+                    : $@"
+                        SELECT MAX(ordering) + 1 FROM {(useParentItemId ? $"{tablePrefix}{WiserTableNames.WiserItem}" : $"{linkTablePrefix}{WiserTableNames.WiserItemLink}")}
+                        WHERE {(useParentItemId ? "parent_item_id = ?parentItemId" : "type = ?linkTypeNumber")}"
+                    );
+                
+                clientDatabaseConnection.AddParameter("oldOrdering", oldOrdering);
+                clientDatabaseConnection.AddParameter("newOrdering", newOrdering);
+                
+                string shiftItemsQuery = useParentItemId
+                    ? $"UPDATE {tablePrefix}{WiserTableNames.WiserItem}"
+                    : $"UPDATE {linkTablePrefix}{WiserTableNames.WiserItemLink}";
+
+                if (newOrdering < oldOrdering)
+                {
+                    shiftItemsQuery += @"
+                        SET ordering = ordering + 1
+                        WHERE ordering >= ?newOrdering AND ordering < ?oldOrdering";
+                }
+                else
+                {
+                    shiftItemsQuery += @"
+                        SET ordering = ordering - 1
+                        WHERE ordering > ?oldOrdering AND ordering <= ?newOrdering";
+                }
+                
+                shiftItemsQuery += $@"
+                    AND {(useParentItemId ? "parent_item_id = ?parentItemId" : "type = ?linkTypeNumber")};
+                    
+                    UPDATE {(useParentItemId ? $"{tablePrefix}{WiserTableNames.WiserItem}" : $"{linkTablePrefix}{WiserTableNames.WiserItemLink}")}
+                    SET ordering = ?newOrdering
+                    WHERE {(useParentItemId ? "id = ?itemId" : $"${(currentItemIsSourceId ? "item_id" : "destination_item_id")} = ?itemId AND type = ?linkTypeNumber")};";
+
+                await clientDatabaseConnection.ExecuteAsync(shiftItemsQuery);
+            }
+            else
+            {
+                // TODO: Logic for custom query grids.
+                // As of right now we simply do not support it due to its complexity. Maybe the future will bring us more peace and we will have to time to commence to this matter.
+                throw new NotSupportedException("Reordering grids with custom queries. Only grids with predefined link types are supported.");
+            }
+            
+            return new ServiceResult<bool>(true);
         }
 
         /// <inheritdoc />

@@ -31,7 +31,7 @@ jobs:
                 $dateTime = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
                 "datetime=$dateTime" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
             
-          - name: Create backup folders
+          - name: (Coder) Create backup folders
             env:
               PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
               PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
@@ -59,72 +59,87 @@ jobs:
                 "FOLDER_PATH_API=$folderPathApi" | Out-File -FilePath $env:GITHUB_ENV -Append
                 "FOLDER_PATH_FRONT_END=$folderPathFrontend" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-          - name: Copy contents to backup folder
+          - name: (Coder) Copy contents to backup folder
             env:
               PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
               PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
             shell: powershell
             run: |
                 if (Test-Path $env:PUBLISH_LOCATION_API) {
-                Copy-Item -Path "$env:PUBLISH_LOCATION_API\*" -Destination $env:FOLDER_PATH_API -Recurse -Force
+                  robocopy "$env:PUBLISH_LOCATION_API" "$env:FOLDER_PATH_API" /E /MT:32 /R:1 /W:1
+                  $exitCode = $LASTEXITCODE
+
+                  if ($exitCode -gt 7) {
+                    exit $exitCode
+                  }
                 }
 
                 if (Test-Path $env:PUBLISH_LOCATION_FRONT_END) {
-                Copy-Item -Path "$env:PUBLISH_LOCATION_FRONT_END\*" -Destination $env:FOLDER_PATH_FRONT_END -Recurse -Force
+                  robocopy "$env:PUBLISH_LOCATION_FRONT_END" "$env:FOLDER_PATH_FRONT_END" /E /MT:32 /R:1 /W:1
+                  $exitCode = $LASTEXITCODE
+
+                  if ($exitCode -gt 7) {
+                    exit $exitCode
+                  }
                 }
 
-          - name: Checkout
+                exit 0
+
+          - name: (ICL) Checkout
             uses: actions/checkout@v4
             with:
                 repository: in-vista/invista-core-library
                 path: invista-core-library
 
-          - name: Restore dependencies
-            run: dotnet restore
-            working-directory: invista-core-library
-
-          - name: Build
-            run: dotnet build --no-restore
-            working-directory: invista-core-library
-
-          - name: Empty destination folder
+          - name: (ICL) Empty destination folder
             run: |
                 $folderPath = "C:\invista-core-library"
                 if (-Not (Test-Path -Path $folderPath)) {
-                New-Item -ItemType Directory -Path $folderPath
+                  New-Item -ItemType Directory -Path $folderPath
                 } else {
-                Remove-Item -Path "$folderPath\*" -Force -Recurse
+                  Remove-Item -Path "$folderPath\*" -Force -Recurse
                 }
 
-          - name: Copy files to destination folder
+          - name: (ICL) Copy files to destination folder
             env:
               WORKER_LOCATION: ${{ secrets.WORKER_LOCATION }}
-            run: Copy-Item -Path "$env:WORKER_LOCATION\coder\coder\invista-core-library\*" -Destination "C:\invista-core-library" -Recurse
+            run: |
+              robocopy "$env:WORKER_LOCATION\coder\coder\invista-core-library" "C:\invista-core-library" /E /MT:32 /R:1 /W:1
+              if ($LASTEXITCODE -gt 7) {
+                exit $LASTEXITCODE
+              }
 
-          - name: Checkout
+              exit 0
+
+          - name: (Coder) Checkout
             uses: actions/checkout@v4
             with:
                 path: coder
-
-          - name: Restore dependencies
-            run: dotnet restore
-            working-directory: coder
 
           - name: Copy partner styles
             env:
               PARTNER_STYLES_LOCATION: ${{ secrets.PARTNER_STYLES_LOCATION }}
               WORKER_LOCATION: ${{ secrets.WORKER_LOCATION }}
-            run: Copy-Item -Path "$env:PARTNER_STYLES_LOCATION\*" -Destination "$env:WORKER_LOCATION\coder\coder\coder\FrontEnd\Core\Css\partner" -Recurse
+            run: |
+              robocopy "$env:PARTNER_STYLES_LOCATION" "$env:WORKER_LOCATION\coder\coder\coder\FrontEnd\Core\Css\partner" /E /MT:32 /R:1 /W:1
+              if ($LASTEXITCODE -gt 7) {
+                exit $LASTEXITCODE
+              }
 
-          - name: Build
-            run: dotnet build --no-restore
-            working-directory: coder
+              exit 0
 
-          - name: Install NPM modules
-            run: npm install
+          - name: (Coder) Setup Node
+            uses: actions/setup-node@v4
+            with:
+              node-version: 22
+              cache: npm
+              cache-dependency-path: coder/FrontEnd/package-lock.json
+
+          - name: (Coder) Install NPM modules
+            run: npm ci
             working-directory: 'coder/FrontEnd'
 
-          - name: Write Kendo UI license to file
+          - name: (Coder) Write Kendo UI license to file
             env:
               KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
             run: |
@@ -132,43 +147,17 @@ jobs:
             shell: powershell
             working-directory: coder/FrontEnd
 
-          - name: Activate Kendo UI License
+          - name: (Coder) Activate Kendo UI License
             run: npx kendo-ui-license activate
             working-directory: 'coder/FrontEnd'
 
-          - name: Compile scripts and styles with webpack
+          - name: (Coder) Compile scripts and styles with webpack
             env:
               ENVIRONMENT_NAME: ${{ inputs.environment }}
             run: |
               $mode = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'production' } else { 'development' }
               node_modules\.bin\webpack --mode=$mode
             working-directory: 'coder/FrontEnd'
-
-          - name: dotnet publish API to temp folder
-            env:
-              ENVIRONMENT_NAME: ${{ inputs.environment }}
-            run: |
-                $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'Live' } else { 'Development' }
-
-                $tempApi = "${{ github.workspace }}\publish\API"
-                Remove-Item $tempApi -Recurse -Force -ErrorAction SilentlyContinue
-                New-Item -ItemType Directory -Path $tempApi -Force
-
-                dotnet publish API -c Release -o $tempApi --self-contained true -r win-x64 /p:EnvironmentName=$environmentName
-            working-directory: coder
-
-          - name: dotnet publish FrontEnd to temp folder
-            env:
-              ENVIRONMENT_NAME: ${{ inputs.environment }}
-            run: |
-                $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'Live' } else { 'Development' }
-
-                $tempFrontend = "${{ github.workspace }}\publish\FrontEnd"
-                Remove-Item $tempFrontend -Recurse -Force -ErrorAction SilentlyContinue
-                New-Item -ItemType Directory -Path $tempFrontend -Force
-
-                dotnet publish FrontEnd -c Release -o $tempFrontend --self-contained true -r win-x64 /p:EnvironmentName=$environmentName
-            working-directory: coder
 
           - name: Disable Cloudflare origin
             if: ${{ inputs.cloudflare_account_id && inputs.cloudflare_pool_id && inputs.cloudflare_origin_id }}
@@ -205,7 +194,7 @@ jobs:
 
               Write-Host 'Done.'
 
-          - name: Place app_offline.htm
+          - name: (Coder) Place app_offline.htm
             shell: powershell
             env:
               PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
@@ -215,17 +204,42 @@ jobs:
               New-Item -Path (Join-Path $env:PUBLISH_LOCATION_FRONT_END "app_offline.htm") -ItemType File -Force
               Start-Sleep -Seconds 3
 
-          - name: Copy API to IIS folder
+          - name: (Coder) Publish
             env:
-              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
-            run: Copy-Item -Path "${{ github.workspace }}\publish\API\*" -Destination $env:PUBLISH_LOCATION_API -Recurse -Force
+              ENVIRONMENT_NAME: ${{ inputs.environment }}
+            run: |
+                $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'Live' } else { 'Development' }
 
-          - name: Copy FrontEnd to IIS folder
-            env:
-              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
-            run: Copy-Item -Path "${{ github.workspace }}\publish\FrontEnd\*" -Destination $env:PUBLISH_LOCATION_FRONT_END -Recurse -Force
+                $apiDestination = $env:PUBLISH_LOCATION_API
+                $frontEndDestination = $env:PUBLISH_LOCATION_FRONT_END
 
-          - name: Remove app_offline.htm
+                $apiJob = Start-Job {
+                  dotnet publish API `
+                    -c Release `
+                    -o $apiDestination `
+                    --self-contained true `
+                    -r win-x64 `
+                    /p:EnvironmentName=$environmentName
+                }
+
+                $frontEndJob = Start-Job {
+                  dotnet publish FrontEnd `
+                    -c Release `
+                    -o $frontEndDestination `
+                    --self-contained true `
+                    -r win-x64 `
+                    /p:EnvironmentName=$environmentName
+                }
+
+                Wait-Job $apiJob, $frontEndJob
+
+                Receive-Job $apiJob
+                Receive-Job $frontEndJob
+
+                Remove-Job $apiJob, $frontEndJob
+            working-directory: coder
+
+          - name: (Coder) Remove app_offline.htm
             if: always()
             shell: powershell
             env:
@@ -270,7 +284,7 @@ jobs:
 
               Write-Host 'Done.'
 
-          - name: Remove backups older than 30 days
+          - name: (Coder) Remove backups older than 30 days
             env:
               PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
               PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}

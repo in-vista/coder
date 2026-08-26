@@ -795,12 +795,13 @@ export class Grids {
                                     // Retrieve data of the button.
                                     const condition = action.condition;
                                     const roles = action.roles;
+                                    const hideForRoles = action.hideForRoles;
                                     const showOnReadOnly = action.showOnReadOnly;
                                     const minimumRows = action.minimumRows;
                                     const maximumRows = action.maximumRows;
                                     
                                     // Filter out if the action button should be hidden.
-                                    return !this.shouldHideActionButton([ dataItem ], condition, roles, showOnReadOnly, minimumRows, maximumRows);
+                                    return !this.shouldHideActionButton([ dataItem ], condition, roles, hideForRoles, showOnReadOnly, minimumRows, maximumRows);
                                 })
                                 .forEach(action => {
                                     if (!action.groupName) {
@@ -1454,6 +1455,11 @@ export class Grids {
             const rolesAttribute = rolesAttributeValue
                 ? `data-roles="${Misc.encodeHtml(rolesAttributeValue)}"`
                 : '';
+
+            const hideForRolesAttributeValue = customAction.roles?.join(',') ?? '';
+            const hideForRolesAttribute = hideForRolesAttributeValue
+                ? `data-hide-for-roles="${Misc.encodeHtml(hideForRolesAttributeValue)}"`
+                : '';
             
             const showOnReadOnlyValue = customAction.showOnReadOnly !== undefined ? customAction.showOnReadOnly : true;
             const showOnReadOnlyAttribute = `data-show-on-read-only="${Misc.encodeHtml(showOnReadOnlyValue)}"`;
@@ -1472,7 +1478,7 @@ export class Grids {
             
             const { condition, roles, showOnReadOnly, ...customActionData } = customAction;
             
-            const defaultAttributes = `${conditionAttribute} ${rolesAttribute} ${showOnReadOnlyAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute}`;
+            const defaultAttributes = `${conditionAttribute} ${rolesAttribute} ${hideForRolesAttribute} ${showOnReadOnlyAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute}`;
             
             if (customAction.groupName) {
                 let group = groups.filter(g => g.name === customAction.groupName)[0];
@@ -2066,12 +2072,13 @@ export class Grids {
             const button = $(this);
             const condition = button.data('condition');
             const roles = button.data('roles');
+            const hideForRoles = button.data('hide-for-roles');
             const showOnReadOnly = button.data('show-on-read-only');
             const minimumRows = button.data('minimum-rows');
             const maximumRows = button.data('maximum-rows');
             
             // Determine whether the action button should be hidden or not.
-            const shouldHide = that.shouldHideActionButton(selectedData, condition, roles, showOnReadOnly, minimumRows, maximumRows, readOnly);
+            const shouldHide = that.shouldHideActionButton(selectedData, condition, roles, hideForRoles, showOnReadOnly, minimumRows, maximumRows, readOnly);
             
             // Retrieve the amount of selected rows and determine whether it should be considered for this conditional button.
             const selectedRows = event.sender.select().length;
@@ -2191,7 +2198,15 @@ export class Grids {
     /**
      * 
      */
-    shouldHideActionButton(dataItems, condition = undefined, roles = undefined, showOnReadOnly = undefined, minimumRows = undefined, maximumRows = undefined, readOnly = false) {
+    shouldHideActionButton(
+        dataItems,
+        condition = undefined,
+        roles = undefined,
+        hideForRoles = undefined,
+        showOnReadOnly = undefined,
+        minimumRows = undefined,
+        maximumRows = undefined,
+        readOnly = false) {
         // Do not hide buttons by default.
         let shouldHide = false;
         
@@ -2210,7 +2225,7 @@ export class Grids {
         }
 
         // Roles check.
-        if(!shouldHide && roles !== undefined) {
+        if(!shouldHide && (roles !== undefined || hideForRoles !== undefined)) {
             // Retrieve the user data from the local storage.
             const userDataString = localStorage.getItem('userData');
             const userData = userDataString ? JSON.parse(userDataString) : [];
@@ -2218,8 +2233,16 @@ export class Grids {
             const userRole = userData.role;
 
             // Check whether the user's role is required by the action button.
-            const rolesArray = roles.split(',');
-            shouldHide = !rolesArray.includes(userRole);
+            if(roles !== undefined) {
+                const rolesArray = roles.split(',');
+                shouldHide = !rolesArray.includes(userRole);
+            }
+            
+            // Check whether one of the user's roles matches in the collection of roles to hide the button for.
+            if(hideForRoles !== undefined) {
+                const hideForRolesArray = hideForRoles.split(',');
+                shouldHide = hideForRolesArray.includes(userRole);
+            }
         }
 
         // Check whether any of the selected rows is set to be read-only and should be hidden.

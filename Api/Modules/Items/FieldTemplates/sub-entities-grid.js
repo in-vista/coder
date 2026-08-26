@@ -753,6 +753,89 @@
         }
     
         kendoComponent = field.kendoGrid(kendoGridOptions).data("kendoGrid");
+        
+        if(options.sortable) {
+            kendoComponent.table.kendoSortable({
+                ...{
+                    filter: '>tbody >tr:not(.k-grid-edit-row)',
+                    container: kendoComponent.table,
+                    axis: 'y',
+                    autoScroll: true,
+                    hint: function (element) {
+                        // Clone the grid table.
+                        const table = kendoComponent.table.clone();
+
+                        // Get the grid width.
+                        const wrapperWidth = kendoComponent.wrapper.width();
+                        const wrapper = $("<div class='k-grid k-widget'></div>").width(wrapperWidth);
+                        
+                        // Prepare the hint element.
+                        let hint;
+                        
+                        // Remove the grid header and existing rows from the hint.
+                        table.find("thead").remove();
+                        table.find("tbody").empty();
+                        
+                        // Wrap the table.
+                        table.wrap(wrapper);
+
+                        // Append the dragged element.
+                        table.append(element.clone().removeAttr("uid"));
+
+                        // Get the wrapper.
+                        hint = table.parent();
+
+                        // Return the hint element.
+                        return hint;
+                    },
+                    cursor: 'move',
+                    placeholder: function(element) {
+                        return element.clone()
+                            .addClass('k-hover')
+                            .css('opacity', 0.65);
+                    },
+                    change: async function (event) {
+                        if(event.action !== 'sort')
+                            return;
+                        
+                        const { item: target, newIndex } = event;
+                        
+                        const grid = target.closest('.k-grid').data('kendoGrid');
+                        
+                        setTimeout(async () => {
+                            const rows = grid.tbody.children('tr');
+                            const draggedDataItem = grid.dataSource.getByUid(rows.eq(newIndex).attr('data-uid'));
+                            const beforeDataItem = grid.dataSource.getByUid(rows.eq(newIndex + 1).attr('data-uid'));
+
+                            const getEncryptedItemId = dataItem => dataItem ? (dataItem.encryptedId || dataItem.encrypted_id) : null;
+
+                            const encryptedItemId = getEncryptedItemId(draggedDataItem);
+                            const beforeEncryptedItemId = getEncryptedItemId(beforeDataItem);
+
+                            const sortingRequestQueryParameters = {};
+                            if(options.linkTypeNumber)
+                                sortingRequestQueryParameters.linkTypeNumber = options.linkTypeNumber;
+                            if(options.currentItemIsSourceId)
+                                sortingRequestQueryParameters.currentItemIsSourceId = options.currentItemIsSourceId;
+
+                            const joinedSortingRequestQueryParameters = Object.entries(sortingRequestQueryParameters).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+                            const sortingRequestUrl = `${window.dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent({propertyId})}/change-order?${joinedSortingRequestQueryParameters}`;
+
+                            await Wiser.api({
+                                url: sortingRequestUrl,
+                                method: 'PUT',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    encryptedItemId: encryptedItemId,
+                                    beforeEncryptedItemId: beforeEncryptedItemId
+                                })
+                            });
+                        });
+                    }
+                },
+                ...options.sortable
+            });
+        }
     
         if (!options.disableOpeningOfItems) {
             field.on("dblclick", "tbody tr[data-uid] td", function (event) {
@@ -786,7 +869,7 @@
                 },
                 cursor: "move",
                 placeholder: function (element) {
-                    return element.clone().addClass("k-state-hover").css("opacity", 0.65);
+                    return element.clone().addClass("k-hover").css("opacity", 0.65);
                 },
                 container: "#overviewGrid{propertyIdWithSuffix}",
                 filter: ">tbody >tr",
