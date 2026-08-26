@@ -3013,6 +3013,8 @@ ORDER BY {orderByClause}";
             else
             {
                 // TODO: Logic for custom query grids.
+                // As of right now we simply do not support it due to its complexity. Maybe the future will bring us more peace and we will have to time to commence to this matter.
+                throw new NotSupportedException("Reordering grids with custom queries. Only grids with predefined link types are supported.");
             }
             
             return new ServiceResult<bool>(true);
