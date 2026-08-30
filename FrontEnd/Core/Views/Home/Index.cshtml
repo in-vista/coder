@@ -55,7 +55,7 @@
                                 </div>
                             </div>
                             <div v-if="imitations?.length" class="coder-menu-item-popout-item">
-                                <div @@click.stop="toggleAccountDropdown" id="accountButton" class="coder-menu-item-popout-item-content hover">
+                                <div @@mouseenter.stop="openAccountDropdown" @@mouseleave.stop="scheduleCloseAccountDropdown" id="accountButton" class="coder-menu-item-popout-item-content hover">
                                     <i class="mdi mdi-size-2 mdi-account-convert"></i>
                                     <span>Account wisselen</span>
                                 </div>
@@ -63,12 +63,13 @@
                                     v-show="accountDropdownVisible"
                                     id="accountDropdown"
                                     class="dropdown"
-                                    @@mouseleave="closeAccountDropdown">
+                                    @@mouseenter="cancelCloseAccountDropdown" 
+                                    @@mouseleave="scheduleCloseAccountDropdown">
                                     <div
                                         v-for="imitation in imitations"
                                         class="account-item hover"
                                         @@click="selectAccount(imitation.encrypted_id)">
-                                        {{ imitation.name }}
+                                        {{ imitation.account_name }}{{ imitation.account_name ? ' - ' : '' }}{{ imitation.name }}
                                     </div>
                                 </div>
                             </div>
