@@ -934,6 +934,10 @@ td.k-state-focused {
     box-shadow: inset 0 0 0 1px #b3b3b3;
 }
 
+.k-widget.k-input.k-state-default:has(#body-error) {
+    flex-direction: column;
+}
+
 .k-state-focused.k-state-selected,
 .k-list > .k-state-focused.k-state-selected,
 td.k-state-focused.k-state-selected {

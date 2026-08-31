@@ -26,6 +26,7 @@
     
         reservations = []; // internal for keeping reservations
         tableGroups = {}; // internal for keeping tables and table groups
+        customerUrl = "";
     
         container = null;
         activeDrag = null;
@@ -62,6 +63,7 @@
     
             // Open Flatpickr bij click
             currentDateSpan.addEventListener("click", () => {
+                fp.setDate(this.currentDate, false); // false = onChange niet triggeren                
                 fp.open();
             });
     
@@ -86,6 +88,10 @@
     
             currentDateSpan.innerText = this.formatDate(this.currentDate);
             this.createHeader();
+            this.initHeaderDragScroll();
+            
+            // Get customer URL
+            this.customerUrl = (await this.callApi(this.options.timelineSchedulerQueryCustomerUrl))?.[0]?.url ?? "";            
 
             // Load arrangements and cache for 1 hour            
             this.arrangements = (await this.callApi(this.options.timelineSchedulerQueryGetArrangements));
@@ -218,22 +224,28 @@
                 timelineScheduler.openReservationInCoder(reservationId, encryptedReservationId);
                 
                 // Open datum van reservering in timeline view en scroll naar hoogte van reservering en highlight reservering
-                timelineScheduler.currentDate = new Date(item.getAttribute('data-date'));                
-                await timelineScheduler.updateDateDisplay();
+                if (item.getAttribute('data-date')) {
+                    timelineScheduler.currentDate = new Date(item.getAttribute('data-date'));
+                    await timelineScheduler.updateDateDisplay();
+                }
                 timelineScheduler.highlightAndScrollToReservation(item.getAttribute('data-reservation-id'));
             });
             
-            // Change view when clicking list or timeline view
+            // Change view when clicking list, timeline or map view
             const timelineBtn = document.getElementById("timeline-view-btn");
             const listBtn = document.getElementById("list-view-btn");
+            const mapBtn = document.getElementById("map-view-btn");
             const timelineSchedulerEl = document.querySelector(".scheduler");
             const listView = document.getElementById("list-view");
+            const mapView = document.getElementById("map-view");
             timelineBtn.addEventListener("click", () => {
                 timelineBtn.classList.add("active");
                 listBtn.classList.remove("active");
+                mapBtn.classList.remove("active");
 
                 timelineSchedulerEl.classList.remove("hidden");
                 listView.classList.add("hidden");
+                mapView.classList.add("hidden");
 
                 this.renderReservations();
             });
@@ -241,11 +253,25 @@
             listBtn.addEventListener("click", () => {
                 listBtn.classList.add("active");
                 timelineBtn.classList.remove("active");
+                mapBtn.classList.remove("active");
 
                 timelineSchedulerEl.classList.add("hidden");
                 listView.classList.remove("hidden");
+                mapView.classList.add("hidden");
 
                 this.renderReservations(); 
+            });
+
+            mapBtn.addEventListener("click", () => {
+                mapBtn.classList.add("active");
+                timelineBtn.classList.remove("active");
+                listBtn.classList.remove("active");
+
+                timelineSchedulerEl.classList.add("hidden");
+                listView.classList.add("hidden");
+                mapView.classList.remove("hidden");
+
+                this.renderReservations();
             });
 
             // Automatic refresh every x minutes
@@ -265,6 +291,8 @@
             // BEGIN DRAG
             block.addEventListener("mousedown", (e) => {
                 if (e.target === handle) return;
+                if (e.button !== 0) return; // Alleen linker muisknop
+                
                 e.stopPropagation();
     
                 document.querySelectorAll(".hover").forEach(el => el.style.display = "none");
@@ -453,7 +481,7 @@
                 const element = Array.from(document.querySelectorAll(".timeLabel")).find(el => el.innerText === quarterLabel);
                 if (element) element.classList.add("activeTime");
             }
-            else {
+            else if (document.getElementById("timeline-view-btn").classList.contains("active")) {
                 // For timeline view
                 const line = document.getElementById('current-time-line');
 
@@ -485,6 +513,9 @@
                 } else {
                     line.style.display = 'none';
                 }    
+            }
+            else {
+                // map view, don't update current timeline
             }
         }
     
@@ -545,7 +576,7 @@
                     startDate: r.start.substring(0,10),
                     endDate: r.end.substring(0,10),
                     paid: r.paid,
-                    color:  r.event_color || timelineScheduler.arrangements.find(item => item.id === r.arrangement)?.color || "#4B99D2", // fallback kleur
+                    color:  r.event_color || timelineScheduler.arrangements.find(item => item.id === r.arrangement)?.color || "#031B53", // fallback kleur
                     textColor: r.text_color || timelineScheduler.arrangements.find(item => item.id === r.arrangement)?.text_color || "#FFFFFF",
                     numberOfPersons: parseInt(r.number_of_persons, 10) || 0,
                     arrangement: parseInt(r.arrangement, 10) || 0,
@@ -572,6 +603,8 @@
                 });
                 // Loop over elke groep van dezelfde reservationId
                 Object.values(reservationsById).forEach(group => {
+                    if (group.length > 1) return; // Alleen warnings toevoegen bij enkele tafels, geen reserveringen over meerdere tafels
+                    
                     // Pak het aantal personen uit de eerste reservering
                     const numberOfPersons = group[0].numberOfPersons;
 
@@ -595,7 +628,7 @@
                     if (numberOfPersons > totalCapacity) {
                         group.forEach(reservation => {
                             if (reservation.warning !== '') reservation.warning += ' - ';
-                            reservation.warning = `Tafels bieden niet genoeg plaats voor het aantal personen (${numberOfPersons}/${totalCapacity})`;
+                            reservation.warning = `Tafel biedt niet genoeg plaats voor het aantal personen (${numberOfPersons}/${totalCapacity})`;
                         });
                     }
                 });
@@ -719,14 +752,33 @@
             if (document.getElementById("list-view-btn").classList.contains("active")){
                 this.renderListView();
             }
-            else {
+            else if (document.getElementById("timeline-view-btn").classList.contains("active")){
                 this.renderTimelineView();   
             }
+            else { // map view
+                this.renderMapView();
+            }            
             this.updateCurrentTimeLine();
+        }
+
+        // For showing date controls when switching back form map view to timeline or list view
+        showDateControls() {            
+            document.querySelectorAll("#prev-day, #next-day, #today-button, #refresh-button").forEach(el => {
+                el.style.display = "inline-flex";
+            });
+            document.querySelectorAll("#current-date").forEach(el => {
+                el.style.display = "inline-block";
+            });
+            document.querySelectorAll(".timeline-search").forEach(el => {
+                el.style.display = "flex";
+            });
         }
         
         renderTimelineView() {
             this.container.innerHTML = "";
+
+            // Toon date-control weer (worden bij map view verborgen)
+            this.showDateControls();
 
             for(const [groupName, tables] of Object.entries(this.tableGroups)){
                 const groupHeader = document.createElement("div");
@@ -772,7 +824,7 @@
                     label.innerText = table.text;
                     row.appendChild(label);
 
-                    if (table.onlineState === '1') {
+                    if (table.onlineState === 1) {
                         const onlineState = document.createElement("div");
                         onlineState.classList.add("table-online-state");
                         label.appendChild(onlineState);
@@ -788,6 +840,10 @@
                     const timeline = document.createElement("div");
                     timeline.classList.add("timeline");
 
+                    if (table.onlineState === 0) {
+                        timeline.classList.add("disabled");
+                    }                   
+                  
                     for(let i=0;i<this.totalQuarters;i++){
                         const cell = document.createElement("div");
                         cell.classList.add("quarter-cell");
@@ -875,10 +931,10 @@
                         hover.id = `hover${res.reservationId}${res.table}`;
                         hover.dataset.id = res.reservationId;
                         hover.classList.add("hover");
-                        const left = getOffset(res.start, new Date(res.startDate).getDate() !== this.currentDate.getDate());
-                        const width = (res.end - res.start) * this.cellWidth * (60 / (60 / this.quartersPerHour));
-                        hover.style.left = (left + width / 2) + "px";
-                        hover.style.transform = "translateX(-50%)"; // mooi centreren
+                        const blockLeft = getOffset(res.start,new Date(res.startDate).getDate() !== this.currentDate.getDate());
+                        const blockWidth = getWidth(res.start, res.end);
+                        hover.style.left = (blockLeft + blockWidth / 2) + "px";
+                        hover.style.transform = "translateX(-50%)";
                         hover.addEventListener("mousedown", (e) => {
                             e.stopPropagation();   // voorkomt dat de scheduler drag start
                         });
@@ -887,9 +943,9 @@
                         });
                         hover.innerHTML = `<span class="hover-customer-name">${res.customerFullName}</span><span class="hover-number-of-visits">{numberOfVisits}</span><br />
                     {phoneNumbers}<hr class="hover-horizontal-line" />
-                    <span class="hover-arrangement">${this.arrangements.find(item => item.id === res.arrangement)?.title || ""}</span><span class="hover-paid-amount">&euro; ${res.paid}</span><br />
+                    <span class="hover-arrangement">${this.arrangements.find(item => item.id === res.arrangement)?.title || ""}</span><span class="hover-paid-amount">${res.paid ? `&euro; ${res.paid}` : ''}</span>
                     <div class="hover-notes">
-                      <div class="hover-reservation-notes">${res.notes || "<span style='color:#CCCCCC;'>Klik hier om notities toe te voegen</span>"}</div>
+                      <div class="hover-reservation-notes">${res.notes || "<span style='color:#999999;'>Klik hier om notities toe te voegen</span>"}</div>
                       <div class="hover-edit-area" style="display:none;">
                         <textarea class="hover-notes-textarea">${res.notes || ""}</textarea>
                         <div class="hover-edit-actions">
@@ -1189,7 +1245,7 @@
                         connectedIds.add(id);
 
                     const bg = getComputedStyle(el).backgroundColor;
-                    el.style.color = this.lightenColor(bg, 0.4);
+                    el.style.color = this.lightenColor(bg, 0.5);
                 } else {
                     seenIds.add(id);
                 }
@@ -1237,20 +1293,6 @@
             }
             else {
                 dynamicItems.windows.loadItemInWindow(false, reservationId, reservationIdEncrypted, 'reservation', '', false, dynamicItems.grids.mainGrid, { hideTitleColumn: true }, 0, null, null, 0, this.getReservations);
-
-                /*let target = window.location.href.includes('reservery.dev') || window.location.href.includes('localhost') ? 'https://maindev.coder.nl' : 'https://' + new URL(window.location.href).hostname.split('.')[0] + '.coder.nl';
-                window.top.postMessage({
-                    action: "OpenItem",
-                    actionData: {
-                        moduleId: 602,
-                        name: `Reservering: ${reservation.name}`,
-                        type: "dynamicItems",
-                        itemId: `${decodeURIComponent(reservation.reservationIdEncrypted)}`,
-                        entityType: "Reservation",
-                        queryString: `?itemId=${decodeURIComponent(reservation.reservationIdEncrypted)}&moduleId=602&iframe=true&entityType=Reservation`
-                    }
-                }, target);*/
-                
             }
         }
     
@@ -1484,7 +1526,11 @@
         renderListView() {
             const listView = document.getElementById("list-view");
             listView.innerHTML = ""; // leeg
+            
             const groups = this.groupReservationsByQuarter();
+
+            // Toon date-control weer (worden bij map view verborgen)
+            this.showDateControls();
             
             if (Object.keys(groups).length === 0){
                 listView.innerHTML = `<div style="margin: 25px;font-size:larger;">Geen reserveringen deze dag</div>`; 
@@ -1575,6 +1621,30 @@
                 listView.appendChild(panel);
             });
         }
+        
+        renderMapView() {                      
+            const mapView = document.getElementById("map-view");
+            
+            // Verberg alle elementen met class "date-control"
+            document.querySelectorAll(".date-control").forEach(el => {
+                el.style.display = "none";
+            });
+
+            mapView.innerHTML = `
+                <iframe
+                    src="${this.customerUrl}/plattegrond.html?scheduler=true"
+                    title="Plattegrond"
+                    style="
+                        width: 100%;
+                        height: 100%;
+                        border: 0;
+                        display: block;
+                    "
+                    loading="lazy"
+                    referrerpolicy="strict-origin-when-cross-origin">
+                </iframe>
+            `;
+        }
 
         checkIn(res) {
             timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryCheckIn,'{"reservationId": "' + res.reservationId + '"}').then(response => {
@@ -1649,6 +1719,52 @@
             } catch (error) {
                 console.error(error);                
             }
+        }
+
+        initHeaderDragScroll() {
+            const scheduler = document.querySelector(".scheduler");
+            if (!scheduler) return;
+
+            const headerRows = document.querySelectorAll(".scheduler-header");
+
+            headerRows.forEach(header => {
+                let isDragging = false;
+                let startX = 0;
+                let startScrollLeft = 0;
+
+                header.addEventListener("mousedown", (e) => {
+                    if (e.button !== 0) return; // alleen linker muisknop
+                    if (e.target.closest("button, input, a, textarea")) return;
+
+                    isDragging = true;
+                    startX = e.clientX;
+                    startScrollLeft = scheduler.scrollLeft;
+
+                    header.classList.add("dragging");
+                    document.body.style.userSelect = "none";
+
+                    e.preventDefault();
+                });
+
+                window.addEventListener("mousemove", (e) => {
+                    if (!isDragging) return;
+
+                    const dx = e.clientX - startX;
+                    scheduler.scrollLeft = startScrollLeft - dx;
+                });
+
+                window.addEventListener("mouseup", () => {
+                    if (!isDragging) return;
+
+                    isDragging = false;
+                    header.classList.remove("dragging");
+                    document.body.style.userSelect = "";
+                });
+
+                header.addEventListener("mouseleave", () => {
+                    // optioneel leeg laten; mouseup op window handelt het al af
+                });
+            });
         }
     }
 

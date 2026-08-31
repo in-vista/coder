@@ -549,7 +549,7 @@ dd {
 .imgTools button.imgDelete {
 	background-image: url(../../../wwwroot/img/delete.svg);
 }
-.product:hover .imgTools {
+.imagesContainer > .product:hover .imgTools {
 	bottom: 0;
 }
 .imgTools button:hover {

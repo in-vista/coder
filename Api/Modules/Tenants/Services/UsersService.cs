@@ -18,6 +18,7 @@ using Api.Modules.Modules.Models;
 using Api.Modules.Templates.Interfaces;
 using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Tenants.Models;
+using GeeksCoreLibrary.Components.Account.Interfaces;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Core.Helpers;
@@ -26,7 +27,6 @@ using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Communication.Interfaces;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using Google.Authenticator;
-using IdentityServer4.Models;
 using IdentityServer4.Stores;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -79,6 +79,7 @@ namespace Api.Modules.Tenants.Services
         private readonly IItemsService itemsService;
         private readonly IApiReplacementsService apiReplacementsService;
         private readonly IServiceProvider serviceProvider;
+        private readonly IAccountsService accountsService;
 
         /// <summary>
         /// Initializes a new instance of <see cref="UsersService"/>.
@@ -96,7 +97,8 @@ namespace Api.Modules.Tenants.Services
             IDatabaseHelpersService databaseHelpersService,
             IItemsService itemsService,
             IApiReplacementsService apiReplacementsService,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            IAccountsService accountsService)
         {
             this.wiserTenantsService = wiserTenantsService;
             this.databaseGrantsService = databaseGrantsService;
@@ -111,6 +113,7 @@ namespace Api.Modules.Tenants.Services
             this.itemsService = itemsService;
             this.apiReplacementsService = apiReplacementsService;
             this.serviceProvider = serviceProvider;
+            this.accountsService = accountsService;
 
             if (clientDatabaseConnection is ClientDatabaseConnection connection)
             {
@@ -789,6 +792,79 @@ ORDER BY name ASC";
             result.MainDomain = wiserSettings.MainDomain;
 
             return new ServiceResult<UserModel>(result);
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<UserModel>> GetUserByIdAsync(ulong userId)
+        {
+            var query = $@"SELECT 
+                            user.id, 
+                            IFNULL(NULLIF(user.title, ''), username.value) AS name, 
+                            username.`value` AS username, 
+                            password.`value` AS password,
+                            last_login_ip.value AS last_login_ip,
+                            IF(last_login_date.value IS NULL, ?now, STR_TO_DATE(last_login_date.value, '%Y-%m-%d %H:%i:%s')) AS last_login_date,
+                            IFNULL(require_password_change.value, '0') AS require_password_change,
+                            IFNULL(role.role_name, '') AS role,
+                            email.value AS emailAddress,
+                            IFNULL(totpEnabled.value, '0') = '1' AS totpEnabled,
+                            totpSecret.value as totpSecret,
+                            IFNULL(totpRequiresSetup.value, '1') = '1' AS totpRequiresSetup
+                        FROM {WiserTableNames.WiserItem} user
+                        JOIN {WiserTableNames.WiserItemDetail} username ON username.item_id = user.id
+                        JOIN {WiserTableNames.WiserItemDetail} password ON password.item_id = user.id AND password.`key` = '{UserPasswordKey}'
+                        LEFT JOIN {WiserTableNames.WiserItemDetail} last_login_ip ON last_login_ip.item_id = user.id AND last_login_ip.`key` = '{UserLastLoginIpKey}'
+                        LEFT JOIN {WiserTableNames.WiserItemDetail} last_login_date ON last_login_date.item_id = user.id AND last_login_date.`key` = '{UserLastLoginDateKey}'
+                        LEFT JOIN {WiserTableNames.WiserItemDetail} require_password_change ON require_password_change.item_id = user.id AND require_password_change.`key` = '{UserRequirePasswordChangeKey}'
+                        LEFT JOIN {WiserTableNames.WiserUserRoles} userRole ON userRole.user_id = user.id
+                        LEFT JOIN {WiserTableNames.WiserRoles} role ON role.id = userRole.role_id
+                        LEFT JOIN {WiserTableNames.WiserItemDetail} email ON email.item_id = user.id AND email.`key` = '{EmailAddressKey}'
+                        LEFT JOIN {WiserTableNames.WiserItemDetail} totpEnabled on totpEnabled.item_id = user.id and totpEnabled.`key` = '{TotpEnabledKey}'
+                        LEFT JOIN {WiserTableNames.WiserItemDetail} totpSecret on totpSecret.item_id = user.id and totpSecret.`key` = '{TotpSecretKey}'
+                        LEFT JOIN {WiserTableNames.WiserItemDetail} totpRequiresSetup on totpRequiresSetup.item_id = user.id and totpRequiresSetup.`key` = '{TotpRequiresSetupKey}'
+                        WHERE user.entity_type = '{WiserUserEntityType}'
+                        AND user.id = ?userId
+                        LIMIT 1";
+            
+            clientDatabaseConnection.AddParameter("userId", userId);
+            clientDatabaseConnection.AddParameter("now", DateTime.Now);
+            var dataTable = await clientDatabaseConnection.GetAsync(query);
+            if (dataTable.Rows.Count == 0)
+            {
+                return new ServiceResult<UserModel>
+                {
+                    ErrorMessage = "User could not be found",
+                    StatusCode = HttpStatusCode.NotFound
+                };
+            }
+
+            UserModel user = null;
+
+            // Find out if a user exists with the given credentials.
+            foreach (DataRow dataRow in dataTable.Rows)
+            {
+                Int32.TryParse(dataRow.Field<string>("require_password_change"), out var requirePasswordChange);
+                user = new UserModel
+                {
+                    Id = dataRow.Field<ulong>("id"),
+                    Username = dataRow.Field<string>("username"),
+                    Password = dataRow.Field<string>("password"),
+                    Name = dataRow.Field<string>("name"),
+                    LastLoginDate = dataRow.Field<DateTime?>("last_login_date"),
+                    LastLoginIpAddress = dataRow.Field<string>("last_login_ip"),
+                    RequirePasswordChange = requirePasswordChange > 0,
+                    Role = dataRow.Field<string>("role"),
+                    EmailAddress = dataRow.Field<string>("emailAddress"),
+                    TotpAuthentication = new TotpAuthenticationModel
+                    {
+                        RequiresSetup = Convert.ToBoolean(dataRow["totpRequiresSetup"]),
+                        Enabled = Convert.ToBoolean(dataRow["totpEnabled"]),
+                        SecretKey = dataRow.Field<string>("totpSecret")
+                    }
+                };
+            }
+
+            return new ServiceResult<UserModel>(user);
         }
 
         /// <inheritdoc />
@@ -1476,6 +1552,49 @@ VALUES {String.Join(", ", queryBuilder)}";
 
             // Return the new backup codes to the user, this is the only time that the user can see them!
             return new ServiceResult<List<string>>(results);
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<JArray>> GetImitationsAsync(ClaimsIdentity identity)
+        {
+            ulong userId = IdentityHelpers.GetWiserUserId(identity);
+            
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            clientDatabaseConnection.AddParameter("userId", userId);
+            string imitationsJson = await clientDatabaseConnection.GetAsJsonAsync(@$"
+                SELECT
+                    imitation.target_user_id AS `id`,
+                    `user`.title AS `name`,
+                    `parent`.title AS `account_name`
+                FROM {WiserTableNames.WiserUserImitation} imitation
+                JOIN wiser_item `user` ON `user`.id = imitation.target_user_id
+                LEFT JOIN wiser_item `parent` ON `parent`.id = `user`.parent_item_id
+                WHERE imitation.user_id = ?userId
+                ORDER BY `user`.title");
+
+            JArray imitations = JArray.Parse(imitationsJson);
+
+            foreach (JToken imitationToken in imitations)
+            {
+                if (imitationToken is not JObject imitation)
+                    continue;
+
+                ulong targetUserId = imitation.Value<ulong>("id");
+                string encryptedTargetUserId = await wiserTenantsService.EncryptValue(targetUserId, identity);
+                imitation["encrypted_id"] = encryptedTargetUserId;
+            }
+
+            return new ServiceResult<JArray>(imitations);
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<bool>> ImitateAsync(ClaimsIdentity identity, string encryptedUserId)
+        {
+            ulong userId = await wiserTenantsService.DecryptValue<ulong>(encryptedUserId, identity);
+
+            
+            
+            return new ServiceResult<bool>(true);
         }
 
         /// <summary>

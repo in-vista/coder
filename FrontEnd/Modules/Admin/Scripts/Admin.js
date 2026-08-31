@@ -104,7 +104,8 @@ const moduleSettings = {
                 TEXTBOX: "TextBox",
                 TIMELINE: "TimeLine",
                 QR : "Qr",
-                SCHEDULER : "Scheduler"
+                SCHEDULER : "Scheduler",
+                CHECKBOXLIST : "CheckBoxList"
             });
 
             this.dataSourceType = Object.freeze({

@@ -26,6 +26,7 @@
         const target = $(event.target);
         const matchesRegex = regex.test(target.val());
         regexFailedMessageElement[!matchesRegex ? 'text' : 'html'](!matchesRegex ? regexFailedMessage : '&nbsp;');
+        regexFailedMessageElement.toggleClass("hidden", matchesRegex);
     });
 
     {customScript}

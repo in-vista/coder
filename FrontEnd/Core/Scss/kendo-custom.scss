@@ -453,16 +453,26 @@
         background-color: $primary-color;
         color: $white-color;
 
-        &:hover {
+        &:not([disabled]):hover {
             background-color: darken($primary-color, 8%);
+        }
+        
+        &[disabled] {
+            background-color: rgba($primary-color, 0.5);
+            color: rgba($white-color, 0.5);
         }
     }
     &.btn-secundary {
         background-color: $line-color;
         color: $text-color;
 
-        &:hover {
+        &:not([disabled]):hover {
             background-color: darken($line-color, 8%);
+        }
+
+        &[disabled] {
+            background-color: rgba($line-color, 0.5);
+            color: rgba($text-color, 0.5);
         }
     }
     &.btn-right {
@@ -470,6 +480,10 @@
     }
     &.btn-left {
         margin-right: 16px;
+    }
+    
+    &[disabled] {
+        cursor: initial;
     }
 }
 

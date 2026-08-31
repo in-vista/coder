@@ -29,14 +29,54 @@ const options = $.extend(true, {
                 }
             }
         }
+    },
+    dataBound: async function(event) {
+        const multiSelect = event.sender;
+        
+        // If there is a "queryIdGetValue" is given, overwrite the default value with the value of the query.
+        if (options.queryIdGetValue) {
+            const propertyId = container.data().propertyId;
+            
+            const data = {
+                userId: window.dynamicItems.base.settings.userId,
+                propertyName: container.data().propertyName
+            };
+            
+            try {
+                const result = await Wiser.api({
+                    url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/${encodeURIComponent(propertyId)}?queryId=${encodeURIComponent(options.queryIdGetValue)}`,
+                    contentType: "application/json",
+                    dataType: "json",
+                    method: "POST",
+                    data: JSON.stringify(data)
+                });
+
+                // Retrieve the data from the query results.
+                const overrideEntry = result.otherData?.[0];
+
+                // Check whether an entry is present.
+                if (overrideEntry === undefined)
+                    return;
+
+                // Set the default value to the first value in the entry.
+                const overrideValue = Object.values(overrideEntry)[0];
+                const finalOverrideValue = typeof overrideValue === "string" ? overrideValue.split(",") : overrideValue;
+                multiSelect.value(finalOverrideValue);
+
+                // Handle dependency again after loading the value into the multiselect.
+                window.dynamicItems.fields.handleAllDependenciesOfContainer(window.dynamicItems.mainTabStrip.element, options.entityType, "", "mainScreen");
+            } catch(exception) {
+                console.warn('Query get overrule value error', exception);
+            }
+        }
     }
 }, fieldOptions);
 let kendoComponent;
 
+// If a value is set, and we are not relying on a query call from the "queryIdGetValue" property, we want to set the value immediately.
 const defaultValue = {default_value};
-if (defaultValue) {
+if (defaultValue && !options.queryIdGetValue)
     options.value = typeof defaultValue === "string" ? defaultValue.split(",") : defaultValue;
-}
 
 if(fieldOptions.optionLabel !== undefined) {
     const optionLabel = fieldOptions.optionLabel;
@@ -180,5 +220,64 @@ if (options.mode === "checkBoxGroup") {
         container.find('.k-multiselect').attr('readonly', 'readonly')
 }
 
+if (options.createItemFromInput && options.entityType) {
+    const $input = field
+        .closest(".flex-container")
+        .find(".k-multiselect .k-input-inner");
+
+    const $fieldList = $(`#${$input.attr("aria-controls")}`);
+    const parentId = "{itemIdEncrypted}";
+
+    const openCreateDialog = (itemName) => window.dynamicItems.dialogs.openCreateItemDialog.bind(
+        window.dynamicItems.dialogs,
+        parentId,
+        null,
+        options.entityType,
+        false,
+        true,
+        options.linkTypeNumber,
+        window.dynamicItems.settings.moduleId,
+        kendoComponent,
+        "",
+        itemName
+    );
+
+    let isCreateDialogOpening = false;
+    
+    $input.off("keydown.createItemFromInput");
+    $input.on("keydown.createItemFromInput", function (event) {
+        if (event.key !== "Enter" || isCreateDialogOpening || event.repeat)
+            return;
+
+        const typedValue = $(this).val().trim();
+
+        if (!typedValue)
+            return;
+
+        const fieldListIsExpanded = $input.attr("aria-expanded") === "true";
+        const activeDescendantId = $input.attr("aria-activedescendant");
+        const fieldListHasActiveDescendant = !!activeDescendantId;
+        const fieldListHasChildren = $fieldList.children().length > 0;
+
+        // If the multiselect is open, has options, and one is active,
+        // let Kendo handle Enter and select it.
+        if (fieldListIsExpanded && fieldListHasChildren && fieldListHasActiveDescendant)
+            return;
+
+        isCreateDialogOpening = true;
+        $(this).blur();
+        
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        openCreateDialog(typedValue)();
+
+        // After a timeout allow opening of the dialog again
+        setTimeout(() => {
+            isCreateDialogOpening = false;
+        }, 500);
+    });
+}
 {customScript}
 })();

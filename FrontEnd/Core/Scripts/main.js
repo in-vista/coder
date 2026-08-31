@@ -61,7 +61,7 @@ import {
     USER_BACKUP_CODES_GENERATED,
     MODULES_PENDING_ACTIONS_REQUEST,
     UPDATE_TAB_STRIP_MODULES,
-	UPDATE_TAB_STRIP_TITLE_ALIAS
+    UPDATE_TAB_STRIP_TITLE_ALIAS, IMITATIONS_REQUEST, IMITATE_ACCOUNT
 } from "./store/mutation-types";
 
 class Main {
@@ -416,7 +416,10 @@ class Main {
                     tabDragThreshold: 5,
                     // Module tab strip title editing.
                     editingModuleTitleId: undefined,
-                    editingModuleTitleInput: undefined
+                    editingModuleTitleInput: undefined,
+                    // Account selection.
+                    accountDropdownVisible: false,
+                    accountDropdownCloseTimeout: null
                 };
             },
             async created() {
@@ -448,6 +451,9 @@ class Main {
                 },
                 listOfUsers() {
                     return this.$store.state.login.listOfUsers;
+                },
+                imitations() {
+                    return this.$store.state.login.imitations;
                 },
                 modules() {
                     return this.$store.state.modules.allModules;
@@ -1819,17 +1825,74 @@ class Main {
                 },
 
                 startEditModuleTitle(module) {
-                    this.editingModuleTitleId = module.id;
+                    // TODO: Rethink functionality
+                    // Temporarily disabled the ability to edit tab names, due to this functionality being unwanted as of now.
+                    
+                    /*this.editingModuleTitleId = module.id;
                     this.editingModuleTitleInput = module.alias ?? module.name;
                     
                     this.$nextTick(() => {
                         $(`.modules-strip-tab-title[name="module_title_${module.id}"]`).focus();
-                    });
+                    });*/
                 },
                 
                 stopEditModuleTitle() {
                     this.editingModuleTitleId = undefined;
                     this.editingModuleTitleInput = undefined;
+                },
+
+                toggleAccountDropdown() {
+                    this.accountDropdownVisible = !this.accountDropdownVisible;
+                },
+
+                openAccountDropdown() {
+                    this.cancelCloseAccountDropdown();
+                    this.accountDropdownVisible = true;
+                },
+                
+                closeAccountDropdown() {
+                    this.accountDropdownVisible = false;
+                },
+
+                scheduleCloseAccountDropdown() {
+                    // Cancel any previously scheduled close.
+                    if (this.accountDropdownCloseTimeout) {
+                        clearTimeout(this.accountDropdownCloseTimeout);
+                    }
+
+                    // Start a short delay before hiding the dropdown.
+                    this.accountDropdownCloseTimeout = setTimeout(() => {
+                        this.accountDropdownVisible = false;
+                        this.accountDropdownCloseTimeout = null;
+                    }, 50);
+                },
+
+                cancelCloseAccountDropdown() {
+                    // If there is a closing sequence scheduled, cancel it.
+                    if (this.accountDropdownCloseTimeout) {
+                        clearTimeout(this.accountDropdownCloseTimeout);
+                        this.accountDropdownCloseTimeout = null;
+                    }
+                },
+                
+                selectAccount(encryptedUserId) {
+                    this.closeAccountDropdown();
+                    this.$store.dispatch(IMITATE_ACCOUNT, encryptedUserId);
+                },
+
+                reloadImitations() {
+                    this.$store.dispatch(IMITATIONS_REQUEST);
+                },
+                
+                initializeAccountDropdownEvents() {
+                    $(document).on("click.accountDropdown", (event) => {
+                        const target = $(event.target);
+                        
+                        if (target.closest($('#accountButton')).length || target.closest($('#accountDropdown')).length)
+                            return;
+
+                        this.accountDropdownVisible = false;
+                    });
                 }
             },
             mounted() {
@@ -1841,10 +1904,26 @@ class Main {
                 }
                 
                 $(document).on('click', this.quickSearchDialogHandleClickToClose);
+
+                this.initializeAccountDropdownEvents();
+
+                this.reloadImitationsHandler = () => {
+                    this.reloadImitations();
+                };
+
+                document.addEventListener(
+                    "reloadImitations",
+                    this.reloadImitationsHandler
+                );
             },
             beforeUnmount() {
                 this.stopPendingActionsRefreshTimer();
                 $(document).off('click', this.quickSearchDialogHandleClickToClose);
+                
+                document.removeEventListener(
+                    "reloadImitations",
+                    this.reloadImitationsHandler
+                );
             }
         });
 

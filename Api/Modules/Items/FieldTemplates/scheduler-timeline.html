@@ -53,7 +53,13 @@
         background: #f0f0f0;
         z-index: 16;
         border: 1px solid #ccc;
-        min-width: 2520px; /* TODO: DIT MOET NOG DYNAMISCH WORDEN OP BASIS VAN GETOOND AANTAL UUR */
+        cursor: grab;
+        user-select: none;
+        min-width: 2520px; /* TODO: DIT MOET NOG DYNAMISCH WORDEN OP BASIS VAN GETOOND AANTAL UUR */        
+    }
+
+    .scheduler-header.dragging {
+        cursor: grabbing;
     }
 
     .scheduler-header .hour {
@@ -65,8 +71,8 @@
         box-sizing: border-box;
         font-weight: bold;
         background: #f7f7f7;
-    }
-
+    } 
+    
     .timeline {
         position: relative;
         display: flex;
@@ -75,6 +81,11 @@
         border-top: 1px solid #ccc;
         border-bottom: 1px solid #ccc;
     }
+    
+    .timeline.disabled {
+        background: repeating-linear-gradient(-45deg,rgba(255, 255, 255, 0.8) 0px,rgba(255, 255, 255, 0.8) 10px,rgba(255, 255, 255, 0.4) 10px,rgba(255, 255, 255, 0.4) 20px);    
+    }
+
     #header-timeline, #header-sum-persons {
         border: none;
     }
@@ -209,9 +220,9 @@
         display: flex;
         align-items: center;
         cursor: pointer;
-        box-sizing: border-box;
-        /*z-index: 10;*/
-        font-size: 13px;
+        box-sizing: border-box;        
+        font-size: 14px;
+        font-weight: 400;
         overflow: hidden;
     }
     .reservation .resize-handle {
@@ -233,6 +244,8 @@
     .hover-reservation-notes {
         overflow: auto;
         height: 78px;
+        font-weight: 400;
+        font-size: 15px;
     }
     .hover-notes-textarea {
         padding: 0;
@@ -287,7 +300,7 @@
         font-size: smaller;
     }
     .hover-horizontal-line {
-        margin: 5px;
+        margin: 5px 0 5px 0;
     }
     .hover-arrangement {
         font-weight: bold;
@@ -301,7 +314,8 @@
     }
     .hover-edit-area textarea {
         width: 100%;
-        min-height: 50px;
+        border: solid 1px #EEEEEE;
+        padding: 5px;
         resize: vertical;
     }
     .hover-edit-actions {
@@ -430,10 +444,15 @@
         font-size: 20px;
     }
     
-    #timeline-view-btn, #list-view-btn {
+    #timeline-view-btn, #list-view-btn, #map-view-btn {
         margin: 0;
     }
-
+    
+    #map-view {
+        width: 100%;
+        height: 100%;
+    }
+    
     .hidden {
         display: none !important;
     }
@@ -774,13 +793,14 @@
         <div class="timeline-date-selector">
             <button id="timeline-view-btn" class="active"><i class="mdi mdi-size-2 mdi-chart-gantt"></i></button>
             <button id="list-view-btn"><i class="mdi mdi-size-2 mdi-format-list-bulleted-square"></i></button>
-            <button id="prev-day"><i class="mdi mdi-size-2 mdi-chevron-left"></i></button>
-            <span id="current-date" style="cursor:pointer;">Kies datum</span>
-            <button id="next-day"><i class="mdi mdi-size-2 mdi-chevron-right"></i></button>
-            <button id="today-button"><i class="mdi mdi-size-2 mdi-calendar-today"></i>Vandaag</button>
-            <button id="refresh-button"><i class="mdi mdi-size-2 mdi-refresh"></i>Verversen</button>
+            <button id="map-view-btn"><i class="mdi mdi-size-2 mdi-map-outline"></i></button>
+            <button id="prev-day" class="date-control"><i class="mdi mdi-size-2 mdi-chevron-left"></i></button>
+            <span id="current-date" class="date-control" style="cursor:pointer;">Kies datum</span>
+            <button id="next-day" class="date-control"><i class="mdi mdi-size-2 mdi-chevron-right"></i></button>
+            <button id="today-button" class="date-control"><i class="mdi mdi-size-2 mdi-calendar-today"></i>Vandaag</button>
+            <button id="refresh-button" class="date-control"><i class="mdi mdi-size-2 mdi-refresh"></i>Verversen</button>            
         </div>
-        <div class="timeline-search">            
+        <div class="timeline-search date-control">            
             <input type="text" placeholder="Begin met typen om te zoeken..." id="timeline-search" />            
             <div class="search-container" style="display: none;">                
                 <div id="search-container">
@@ -801,6 +821,7 @@
         <!--<div class="search-item-column" style="flex:1;color:darkorange;">{status}</div>-->
     </div>
     <div id="list-view" class="hidden"></div>
+    <div id="map-view" class="hidden"></div>
     <div class="scheduler">
         <div class="scheduler-header">            
             <div class="table-label" style="background:#f7f7f7;height:auto;"></div>

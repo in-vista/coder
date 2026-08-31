@@ -366,8 +366,12 @@ export class Fields {
         }
 
         // Remember the change.
-        const entityContainer = container.closest(".entity-container");
-        const windowId = entityContainer.hasClass("popup-container") ? entityContainer.attr("id") : "mainScreen";
+        let entityContainer = container.closest(".entity-container");
+        if(entityContainer.length === 0)
+            entityContainer = container.closest('.k-window').find('.entity-container');
+        const windowId = entityContainer.hasClass("popup-container")
+            ? entityContainer.attr("id")
+            : "mainScreen";
         const propertyName = container.data("propertyName");
         if (!this.unsavedItemValues[windowId]) {
             this.unsavedItemValues[windowId] = {};
@@ -916,13 +920,13 @@ export class Fields {
         const itemDetails = !itemId ? { encryptedId: this.base.settings.zeroEncrypted } : (await this.base.getItemDetails(itemId, entityType));
 
         const userParametersWithValues = {};
-        const success = await this.executeActionButtonActions(actionDetails.actions, userParametersWithValues, itemDetails, propertyId, entityType, selectedItems, senderGrid.element, $(event.currentTarget));
+        const actionButtonResults = await this.executeActionButtonActions(actionDetails.actions, userParametersWithValues, itemDetails, propertyId, entityType, selectedItems, senderGrid.element, $(event.currentTarget));
 
         if (senderGrid && senderGrid.element) {
             senderGrid.element.siblings(".grid-loader").removeClass("loading");
         }
 
-        if (success) {
+        if (actionButtonResults?.success) {
             if (senderGrid) {
                 const grids = this.base.grids;
 
@@ -947,15 +951,15 @@ export class Fields {
                     const gridData = senderGrid.dataSource.data();
                     const selectedRowUids = gridData.filter(row => selectedIds.includes(row.id)).map(row => row.uid);
                     const selectedRows = $(gridSelector).find(selectedRowUids.map(uid => `tr[data-uid="${uid}"]`).join(','));
-                    grids.mainGrid.select(selectedRows);
+                    senderGrid.select(selectedRows);
                     
                     // Force a 'change' event trigger to check the conditions for each action button's visiblity.
-                    grids.mainGrid.trigger('change');
+                    senderGrid.trigger('change');
                 }
             }
 
             if (!actionDetails.disableSuccessMessages) {
-                this.base.notification.show({ message: `Alle acties zijn uitgevoerd.` }, "success");
+                this.base.notification.show({ message: actionButtonResults.messages.join('<br/>') }, "success");
             }
         }
     }
@@ -1005,10 +1009,10 @@ export class Fields {
 
             // Execute all actions that are configured for this button.
             const userParametersWithValues = {};
-            const success = await this.executeActionButtonActions(options.actions, userParametersWithValues, itemDetails, propertyId, entityType, [], button, $(event.currentTarget));
+            const actionButtonResults = await this.executeActionButtonActions(options.actions, userParametersWithValues, itemDetails, propertyId, entityType, [], button, $(event.currentTarget));
             event.sender.element.removeClass("loading");
-            if (success && !options.disableSuccessMessages) {
-                this.base.notification.show({ message: `Alle acties zijn uitgevoerd.` }, "success");
+            if (actionButtonResults?.success && !options.disableSuccessMessages) {
+                this.base.notification.show({ message: actionButtonResults.messages.join('<br/>') }, "success");
             }
         } catch (exception) {
             console.error(exception);
@@ -1379,6 +1383,9 @@ export class Fields {
      * @param {any} button The action button that was clicked.
      */
     async executeActionButtonActions(actions, userParametersWithValues, mainItemDetails, propertyId, entityType, selectedItems = [], element = null, button = null) {
+        // Prepare an accumulator of result messages that can be populated by different actions.
+        let resultMessages = [];
+        
         button?.addClass('progress');
         
         // Prepare a function to set the progress of the action button execution.
@@ -1411,23 +1418,21 @@ export class Fields {
                     ? (await this.base.getItemDetails(itemEncryptedId, itemEntityType)) || mainItemDetails
                     : mainItemDetails;
                 
-                try {
-                    await Wiser.api({
-                        url: `${window.dynamicItems.settings.wiserApiRoot}items/log-action`,
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            item_id: itemDetails.encryptedId || null,
-                            entity_type: itemDetails.entityType || null,
-                            action_button: action,
-                            module_id: moduleId || null,
-                            property_id: propertyId || null
-                        })
-                    });
-                } catch(exception) {
+                Wiser.api({
+                    url: `${window.dynamicItems.settings.wiserApiRoot}items/log-action`,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        item_id: itemDetails.encryptedId || null,
+                        entity_type: itemDetails.entityType || null,
+                        action_button: action,
+                        module_id: moduleId || null,
+                        property_id: propertyId || null
+                    })
+                }).catch(exception => {
                     console.error(exception);
                     kendo.alert(`Er is een fout opgetreden bij het schrijven van een log van de action button voor actie '${action}'.`);
-                }
+                });
             }
 
             const getSuffixFromSelectedColumn = (selectedItem) => {
@@ -1517,8 +1522,21 @@ export class Fields {
                                         {
                                             const comboBox = dialog.element.find("select").data("kendoComboBox");
                                             const dataItem = comboBox.dataItem();
+                                            
+                                            let encryptedId;
+                                            
+                                            if(dataItem === undefined) {
+                                                const createItemFromInput =  action.userParameters[0]?.createItemFromInput ?? false;
+                                                if(createItemFromInput){
+                                                    value = comboBox._old.length > 0 ? comboBox._old : "undefined";
+                                                    break;
+                                                }
+                                            } else{
+                                                encryptedId = dataItem?.encryptedId || dataItem?.encryptedid || dataItem?.encrypted_id || comboBox.value();
+                                            }
+                                           
                                             // Decode here to prevent duplicate encoding, because the JCL already encodes the value and then javascript will do it again later.
-                                            value = decodeURIComponent(dataItem.encryptedId || dataItem.encryptedid || dataItem.encrypted_id || comboBox.value());
+                                            value = decodeURIComponent(encryptedId);
                                             break;
                                         }
                                         case "dropdownlist":
@@ -1576,6 +1594,13 @@ export class Fields {
                                             value = fileData.fileId;
                                             break;
                                         }
+                                    }
+                                    
+                                    const regex = parameter.regex;
+                                    if(regex !== undefined && !new RegExp(regex).test(value)) {
+                                        kendo.alert(parameter.regexFailedMessage ?? 'U heeft een ongeldig formaat ingevoerd.');
+                                        reject('Invalid input format based on given regex');
+                                        return;
                                     }
 
                                     resolve(value);
@@ -1640,7 +1665,7 @@ export class Fields {
                                     dialog.close(event);
                                 });
 
-                                const allowKeyAction = (event) => {
+                                const allowKeyAction = (event, inputFocusCheck) => {
                                     // Array of class names to ignore.
                                     const ignoreClasses = [
                                         "k-filter-menu-container"
@@ -1652,9 +1677,11 @@ export class Fields {
                                         return false;
 
                                     // Disallow key action if the user is currently focused in a text area.
-                                    const disallowedFocusedElements = [ 'INPUT', 'TEXTAREA' ];
-                                    if (disallowedFocusedElements.includes(event.target.tagName))
-                                        return false;
+                                    if(inputFocusCheck) {
+                                        const disallowedFocusedElements = [ 'TEXTAREA' ];
+                                        if (disallowedFocusedElements.includes(event.target.tagName))
+                                            return false;
+                                    }
 
                                     // Allow input.
                                     return true;
@@ -1665,7 +1692,7 @@ export class Fields {
                                     if (!event.key || event.key.toLowerCase() !== 'escape')
                                         return;
 
-                                    if(!allowKeyAction(event))
+                                    if(!allowKeyAction(event, false))
                                         return;
 
                                     reject({ userPressedCancel: true })
@@ -1677,7 +1704,7 @@ export class Fields {
                                     if (!event.key || event.key.toLowerCase() !== 'enter')
                                         return;
 
-                                    if(!allowKeyAction(event))
+                                    if(!allowKeyAction(event, true))
                                         return;
 
                                     // Trigger the OK button.
@@ -1933,12 +1960,10 @@ export class Fields {
                                         if (options.defaultValue)
                                             dialog.element.find("textarea").val(options.defaultValue);
                                         break;
-                                    default:
-                                        if (options.defaultValue) {
-                                            dialog.element.find("input").val(options.defaultValue);
-                                        }
-                                        break;
                                 }
+
+                                if (options.defaultValue)
+                                    dialog.element.find("input")?.val(options.defaultValue);
 
                                 dialog.open();
                             });
@@ -2252,6 +2277,10 @@ export class Fields {
                                 }
                             }
 
+                            // Push a result message to the accumulated result messages.
+                            if(queryActionResult.resultMessage)
+                                resultMessages.push(queryActionResult.resultMessage);
+
                             break;
                         }
 
@@ -2275,6 +2304,10 @@ export class Fields {
                                     return false;
                                 }
                             }
+                            
+                            // Push a result message to the accumulated result messages.
+                            if(queryActionResult.resultMessage)
+                                resultMessages.push(queryActionResult.resultMessage);
 
                             break;
                         }
@@ -2714,7 +2747,10 @@ export class Fields {
                                 // Retrieve the optional attribute whether this action has to be run iteratively.
                                 const isIterative = action.iterative ?? false;
                                 const hasItemsSelected = selectedItems && selectedItems.length > 0;
-
+                                
+                                // Prepare a results array for all executed API actions.
+                                let apiActionsResults = [];
+                                
                                 if(isIterative && hasItemsSelected) {
                                     // Loop over all the selected items from the grid.
                                     for(const selectedItem of selectedItems) {
@@ -2744,7 +2780,7 @@ export class Fields {
                                         extraData = {...extraData, ...userParametersWithValues};
 
                                         // Make an API call for the currently selected item in the iteration.
-                                        await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, extraData);
+                                        apiActionsResults = await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, extraData);
                                     }
                                 } else {
                                     // Combine all values of the selected items.
@@ -2752,7 +2788,13 @@ export class Fields {
                                         await combineValuesFromAllSelectedItemsAndAddToUserParameters();
 
                                     // Make an API call for all selected items.
-                                    await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, userParametersWithValues);
+                                    apiActionsResults = await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, userParametersWithValues);
+                                }
+
+                                // Push a result message to the accumulated result messages.
+                                for(const apiActionResults of apiActionsResults) {
+                                    if(apiActionResults.resultMessage)
+                                        resultMessages.push(apiActionResults.resultMessage);
                                 }
                             } catch (apiCallException) {
                                 if (typeof apiCallException === "string") {
@@ -2913,7 +2955,10 @@ export class Fields {
             setActionProgress(0, 2);
         }
 
-        return true;
+        return {
+            success: true,
+            messages: resultMessages.length ? resultMessages : [ 'Alle acties zijn uitgevoerd!' ]
+        }
     }
 
     /**
@@ -3196,27 +3241,44 @@ export class Fields {
                         click: async (event) => {
                             try {
                                 const dialogElement = $("#sendMailDialog");
-                                const validator = dialogElement.find(".formview").kendoValidator({
+                                const validators = dialogElement.find(".formview").map(function () {
+                                    const formView = $(this);
+                                    formView.kendoValidator({
                                     rules: {
                                         email: (input) => {
-                                            // Custom e-mail validation for allowing multiple e-mail addresses.
-                                            if (input.is("[type=email]") && input.val() !== "")
-                                            {
+                                            if (input.is("[type=email]") && input.val() !== "") {
                                                 const emailsArray = input.val().split(";");
-                                                for (let email of emailsArray)
-                                                {
+                                                for (let email of emailsArray) {
                                                     email = email.trim();
-                                                    if (email !== "" && !emailRegularExpression.test(email))
-                                                    {
+                                                    if (email !== "" && !emailRegularExpression.test(email)) {
                                                         return false;
                                                     }
                                                 }
                                             }
 
                                             return true;
+                                        },
+
+                                            editor: (input) => {
+                                                if (input.is("textarea.editor")) {
+                                                    const editor = input.data("kendoEditor") || dialogElement.find("textarea.editor").data("kendoEditor");
+                                                    const editorHtml = editor ? editor.value() : input.val();
+
+                                                    return /<img\b[^>]*>/i.test(editorHtml || "") ||
+                                                        /\S/.test(
+                                                            (editorHtml || "")
+                                                                .replace(/&nbsp;/gi, " ")
+                                                                .replace(/<[^>]*>/g, " ")
+                                                        );
+                                                }
+
+                                                return true;
+                                            }
                                         }
-                                    }
-                                }).data("kendoValidator");
+                                    });
+
+                                    return formView.data("kendoValidator");
+                                }).get();
                                 let mailDialog = dialogElement.data("kendoDialog");
                                 const uploadedFiles = [];
 
@@ -3235,6 +3297,11 @@ export class Fields {
 
                                 let emailBodyEditor = dialogElement.find("textarea.editor").data("kendoEditor");
                                 let attachmentsUploader = dialogElement.find("input[name=files]").data("kendoUpload");
+
+                                // Make sure to hide all previous form errors
+                                validators.forEach(function (validator) {
+                                    validator.hideMessages();
+                                });
 
                                 if (mailDialog) {
                                     mailDialog.destroy();
@@ -3257,7 +3324,14 @@ export class Fields {
                                             text: "Verstuur",
                                             primary: true,
                                             action: (event) => {
-                                                if (!validator.validate()) {
+                                                let isValid = true;
+
+                                                validators.forEach(function (validator) {
+                                                    if (!validator.validate()) 
+                                                        isValid = false;
+                                                });
+
+                                                if (!isValid) {
                                                     return false;
                                                 }
 
@@ -4104,11 +4178,46 @@ export class Fields {
         const saveOnChange = fieldContainer.data("saveOnChange");
         if (saveOnChange) {
             let saveButton = itemContainer.find(".saveBottomPopup");
-            if (!saveButton.length) {                
+            if (!saveButton.length) {
                 await dynamicItems.onSaveButtonClick(event);
             }
             else {
-                await dynamicItems.windows.onSaveItemPopupClick(event, false, false, event.sender.element.closest(".popup-container"));
+                let sourceElement = null;
+
+                // Kendo event
+                if (event?.sender?.element) {
+                    sourceElement = event.sender.element;
+                }
+                // jQuery / native DOM event
+                else if (event?.currentTarget) {
+                    sourceElement = event.currentTarget;
+                }
+                else if (event?.target) {
+                    sourceElement = event.target;
+                }
+                // Last fallback: use the save button we already found
+                else if (saveButton.length) {
+                    sourceElement = saveButton;
+                }
+
+                const $sourceElement = sourceElement
+                    ? $(sourceElement)
+                    : $();
+
+                let popupContainer = $sourceElement.closest(".popup-container");
+
+                // If the event source wasn't inside the popup,
+                // try resolving it from the save button instead.
+                if (!popupContainer.length) {
+                    popupContainer = saveButton.closest(".popup-container");
+                }
+
+                await dynamicItems.windows.onSaveItemPopupClick(
+                    event,
+                    false,
+                    false,
+                    popupContainer
+                );
             }
         }
 

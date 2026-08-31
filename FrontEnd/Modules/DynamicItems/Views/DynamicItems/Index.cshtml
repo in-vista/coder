@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="https://unpkg.com/@@progress/kendo-theme-material@11.1.0/dist/material-main.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-font-icons/dist/index.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-font-icons@4.9.0/dist/index.css" />
 
     <script>
         window.wiserVersion = "@Model.WiserVersion?.ToString()";
@@ -434,7 +434,7 @@
             <div class="item">
                 <h4><label for="sendMailDialogContent">Inhoud</label></h4>
                 <span class="k-widget k-input k-state-default">
-                    <textarea id="sendMailDialogContent" class="editor" name="subject"></textarea>
+                    <textarea id="sendMailDialogContent" class="editor" name="body" required></textarea>
                 </span>
             </div>
         </div>
@@ -594,6 +594,32 @@
             </div>
         </div>
     </script>
+    
+    <script id="imageCuratorTemplate" type="text/x-kendo-template">
+    <div class="product #: listType #" 
+         data-item-id="#: itemId #"
+         data-image-id="#: fileId #"
+         data-item-link-id="#: itemLinkId #"
+         data-file-name="#: name #"
+         data-title="#: title #"
+         data-entity-type="#: entityType || '' #"
+         data-extra-data="#: extraData || '' #"
+         data-added-on="#: addedOn || '' #"
+         data-image-key="#: fileId #">
+
+        <img src="#: window.dynamicItems.settings.wiserApiRoot #items/#: encodeURIComponent(itemId) #/files/#: fileId #/#: encodeURIComponent(name) #?encryptedCustomerId=#: encodeURIComponent(window.dynamicItems.settings.customerId) #&encryptedUserId=#: encodeURIComponent(window.dynamicItems.settings.userId) #&isTest=#: window.dynamicItems.settings.isTestEnvironment #&subDomain=#: encodeURIComponent(window.dynamicItems.settings.subDomain) #&itemLinkId=#: encodeURIComponent(itemLinkId) #&entityType=#: encodeURIComponent(entityType || '') #&linkType=0" alt="#: name # image"/>
+
+        <div class="imgTools">
+            <button type="button" class="imgZoom" title="Preview"></button>
+
+            # if(listType === "pool") { #
+                <button type="button" class="imgAdd" title="Activeren"></button>
+            # } else { #
+                <button type="button" class="imgRemove" title="Deactiveren"></button>
+            # } #
+        </div>
+    </div>
+</script>
 
     <div id="createNewItemDialog"></div>
     <script id="createNewItemDialogTemplate" type="text/x-kendo-template">

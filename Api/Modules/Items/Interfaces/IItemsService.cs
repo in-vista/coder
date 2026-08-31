@@ -7,6 +7,7 @@ using Api.Modules.EntityTypes.Models;
 using Api.Modules.Items.Models;
 using GeeksCoreLibrary.Core.Enums;
 using GeeksCoreLibrary.Core.Models;
+using Newtonsoft.Json.Linq;
 
 namespace Api.Modules.Items.Interfaces
 {
@@ -240,6 +241,18 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="destinationEntityType">The entity type of the item that it's being moved towards.</param>
         /// <param name="moduleId">The ID of the module.</param>
         Task<ServiceResult<bool>> MoveItemAsync(ClaimsIdentity identity, string encryptedSourceId, string encryptedDestinationId, string position, string encryptedSourceParentId, string encryptedDestinationParentId, string sourceEntityType, string destinationEntityType, int moduleId);
+        
+        /// <summary>
+        /// Move an item to a different ordering position in a grid.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <param name="propertyId">The ID of the property of the grid where the item belongs in.</param>
+        /// <param name="encryptedItemId">The encrypted ID of the item that is being moved.</param>
+        /// <param name="entityType">The entity type of the item.</param>
+        /// <param name="currentItemIsSourceId">Whether the given item is the source of the link if a link is present.</param>
+        /// <param name="beforeEncryptedItemId">The encrypted ID of the item that the currently dragged item is being placed behind.</param>
+        /// <param name="linkTypeNumber">(Optional) The link type number to change the ordering for.</param>
+        Task<ServiceResult<bool>> ChangeOrderAsync(ClaimsIdentity identity, ulong propertyId, string encryptedItemId, string entityType, bool currentItemIsSourceId, string beforeEncryptedItemId, int? linkTypeNumber);
 
         /// <summary>
         /// Link one or more items to one or more other items.
@@ -302,5 +315,15 @@ namespace Api.Modules.Items.Interfaces
         /// <param name="propertyId">The ID of the entity property that the action was performed in.</param>
         /// <returns>True if the action was logged in the database.</returns>
         Task<ServiceResult<bool>> LogActionAsync(ClaimsIdentity identity, string encryptedItemId, string entityType, string actionButton, ulong? moduleId, ulong? propertyId);
+        
+        /// <summary>
+        /// Adjusts the currently curated images in an image curator field type.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <param name="encryptedId">The encrypted ID of the item the image curator is presented in.</param>
+        /// <param name="propertyId">The property ID of the image curator in question.</param>
+        /// <param name="activeFiles">A collection of currently active files that are in the active pool of the image curator.</param>
+        /// <returns>True if the image curator could properly process.</returns>
+        Task<ServiceResult<JArray>> UpdateImageCuratorAsync(ClaimsIdentity identity, string encryptedId, ulong propertyId, ImageCuratorActiveFile[] activeFiles);
     }
 }

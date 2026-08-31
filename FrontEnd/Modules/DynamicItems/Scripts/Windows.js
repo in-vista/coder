@@ -123,7 +123,7 @@ export class Windows {
 
             // If the window still exists, we just want to bring that window to the front, to prevent people from opening an item in multiple windows.
             // This prevents confusion ("I thought I already closed this item before.") and also prevents problems with fields that would have duplicate IDs then.
-            if (currentItemWindow) {
+            if (currentItemWindow && currentItemWindow.element.data().entityType === entityType) {
                 currentItemWindow.maximize().center().open();
                 return;
             }
@@ -327,6 +327,20 @@ export class Windows {
                         if (role === "dropdownlist" || role === "combobox") {
                             kendoComponent.value(itemId);
                             validator.validateInput(kendoComponent.element);
+                        } else if(role === "multiselect"){
+                            const values = kendoComponent?.value();
+
+                            // Make sure the item doesn't exist before adding it.
+                            if (Array.isArray(values)) {
+                                const value = String(itemId);
+
+                                if (!values.includes(value)) {
+                                    values.push(value);
+                                    kendoComponent.value(values);
+                                }
+
+                                validator?.validateInput(kendoComponent.element);
+                            }
                         }
                     }
                 }
@@ -512,7 +526,20 @@ export class Windows {
                     });
                   
                     const showGenericTab = genericTabHasFields || !htmlData.tabs.length;
-                    $(currentItemTabStrip.items()[0]).toggle(genericTabHasFields || !htmlData.tabs.length);
+                    
+                    // Retrieve the item name field container element.
+                    const itemNameFieldContainer = currentItemWindow.element.find(".itemNameFieldContainer");
+                    
+                    // Decide whether to move the item name field if there are no items on the generic tab, but there
+                    // are items on other tabs, and we have set it up to show the title field to move it to the first
+                    // available tab in the tab strip. Otherwise, we want to hide the generic tab all together.
+                    if(!showGenericTab && itemNameFieldContainer.is(':visible') && htmlData.tabs.length > 1) {
+                        const container = currentItemTabStrip.contentHolder(1);
+                        itemNameFieldContainer.prependTo(container);
+                        $(currentItemTabStrip.items()[0]).toggle(false);
+                    } else {
+                        $(currentItemTabStrip.items()[0]).toggle(genericTabHasFields || !htmlData.tabs.length);
+                    }
 
                     if (!genericTabHasFields && !htmlData.tabs.length) {
                         nameField.keypress((event) => {

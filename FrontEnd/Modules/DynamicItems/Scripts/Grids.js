@@ -726,14 +726,18 @@ export class Grids {
                     // Invoke the grid selection change event.
                     this.onGridSelectionChange(event);
                 },
+                changing: event => this.onGridSelectionChanging(event),
                 resizable: true,
-                sortable: true,
+                sortable: {
+                    mode: 'mixed'
+                },
                 scrollable: usingDataSelector || (gridViewSettings.groupable && gridViewSettings.clientSidePaging) ? true : {
                     virtual: true
                 },
                 filterable: filterable,
                 filterMenuInit: this.onFilterMenuInit.bind(this),
-                filterMenuOpen: this.onFilterMenuOpen.bind(this)
+                filterMenuOpen: this.onFilterMenuOpen.bind(this),
+                allowCopy: true
             }, gridViewSettings);
 
             finalGridViewSettings.selectable = gridViewSettings.selectable || false;
@@ -791,12 +795,13 @@ export class Grids {
                                     // Retrieve data of the button.
                                     const condition = action.condition;
                                     const roles = action.roles;
+                                    const hideForRoles = action.hideForRoles;
                                     const showOnReadOnly = action.showOnReadOnly;
                                     const minimumRows = action.minimumRows;
                                     const maximumRows = action.maximumRows;
                                     
                                     // Filter out if the action button should be hidden.
-                                    return !this.shouldHideActionButton([ dataItem ], condition, roles, showOnReadOnly, minimumRows, maximumRows);
+                                    return !this.shouldHideActionButton([ dataItem ], condition, roles, hideForRoles, showOnReadOnly, minimumRows, maximumRows);
                                 })
                                 .forEach(action => {
                                     if (!action.groupName) {
@@ -1308,7 +1313,9 @@ export class Grids {
                 refresh: true
             },
             toolbar: toolbar,
-            sortable: true,
+            sortable: {
+                mode: 'mixed'
+            },
             resizable: true,
             editable: false,
             navigatable: true,
@@ -1448,6 +1455,11 @@ export class Grids {
             const rolesAttribute = rolesAttributeValue
                 ? `data-roles="${Misc.encodeHtml(rolesAttributeValue)}"`
                 : '';
+
+            const hideForRolesAttributeValue = customAction.roles?.join(',') ?? '';
+            const hideForRolesAttribute = hideForRolesAttributeValue
+                ? `data-hide-for-roles="${Misc.encodeHtml(hideForRolesAttributeValue)}"`
+                : '';
             
             const showOnReadOnlyValue = customAction.showOnReadOnly !== undefined ? customAction.showOnReadOnly : true;
             const showOnReadOnlyAttribute = `data-show-on-read-only="${Misc.encodeHtml(showOnReadOnlyValue)}"`;
@@ -1466,7 +1478,7 @@ export class Grids {
             
             const { condition, roles, showOnReadOnly, ...customActionData } = customAction;
             
-            const defaultAttributes = `${conditionAttribute} ${rolesAttribute} ${showOnReadOnlyAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute}`;
+            const defaultAttributes = `${conditionAttribute} ${rolesAttribute} ${hideForRolesAttribute} ${showOnReadOnlyAttribute} ${minimumRowsAttribute} ${maximumRowsAttribute}`;
             
             if (customAction.groupName) {
                 let group = groups.filter(g => g.name === customAction.groupName)[0];
@@ -2017,12 +2029,36 @@ export class Grids {
      * are supposed to be hidden if the item is read-only.
      */
     async onGridSelectionChange(event, readOnly = undefined) {
+        // Overwrite the default Kendo selection mode.
+        this.overwriteKendoGridCellSelection(event);
+        
         // Retrieve all buttons to check the condition for.
         let conditionalButtons = event.sender.wrapper.find('.k-button');
 
         // Retrieve the elements of the selected rows.
         const grid = event.sender;
-        const selectedData = grid.select().get().map(row => grid.dataItem(row).toJSON());
+        const selectedData = grid.select().get().map(selectedElement => {
+            const $selectedElement = $(selectedElement);
+            
+            // Check whether the selected item is a row or a cell and return data based on the behavior.
+            if($selectedElement.is('tr')) {
+                return grid.dataItem($selectedElement).toJSON();
+            } else if($selectedElement.is('td')) {
+                // Get the index of the column in the grid.
+                const columnIndex = $selectedElement.index();
+                
+                // Retrieve the column information of the grid of the column index of the selected cell.
+                const columnData = grid.columns[columnIndex];
+                const columnKey = columnData.field;
+                
+                // Get all the data of the row with the selected cell and retrieve the underlying value.
+                const dataRow = grid.dataItem($selectedElement.closest('tr'));
+                const columnValue = dataRow[columnKey];
+                
+                // Return the data as JSON of the selected cell.
+                return { [columnKey]: columnValue };
+            }
+        });
         
         // Determine whether any of the selected items are set to be readonly.
         if(readOnly === undefined)
@@ -2036,12 +2072,13 @@ export class Grids {
             const button = $(this);
             const condition = button.data('condition');
             const roles = button.data('roles');
+            const hideForRoles = button.data('hide-for-roles');
             const showOnReadOnly = button.data('show-on-read-only');
             const minimumRows = button.data('minimum-rows');
             const maximumRows = button.data('maximum-rows');
             
             // Determine whether the action button should be hidden or not.
-            const shouldHide = that.shouldHideActionButton(selectedData, condition, roles, showOnReadOnly, minimumRows, maximumRows, readOnly);
+            const shouldHide = that.shouldHideActionButton(selectedData, condition, roles, hideForRoles, showOnReadOnly, minimumRows, maximumRows, readOnly);
             
             // Retrieve the amount of selected rows and determine whether it should be considered for this conditional button.
             const selectedRows = event.sender.select().length;
@@ -2059,10 +2096,117 @@ export class Grids {
         }
     }
 
+    onGridSelectionChanging(event) {
+        const grid = event.sender;
+        const state = this.getSelectionState(grid);
+
+        const target = $(event.target);
+        const shift = event.originalEvent?.shiftKey ?? false;
+
+        if (!shift) {
+            state.anchor = target;
+            return;
+        }
+
+        state.shift = true;
+        state.target = target;
+    }
+
+    /**
+     * Overwrites Kendo's default cell selection by adjusting the area of selection based on the selection mode.
+     * @param event - The Kendo event object for the changing event of grids.
+     */
+    overwriteKendoGridCellSelection(event) {
+        // Retrieve the grid in question.
+        const grid = event.sender;
+        
+        // Get the state of the grid.
+        const state = this.getSelectionState(grid);
+        
+        // Ignore the selection overwrite behavior if the shift key was not pressed.
+        if (!state.shift)
+            return;
+        
+        // Retrieve necessary properties from the grid's selection options.
+        const { filter: selectionFilter } = grid.selectable.options;
+        
+        // Retrieve the selection mode (row / cell) based on the set filter on the grid.
+        const selectionFilterMap = {
+            '>tbody>tr': 'row',
+            '>tbody>tr:not(.k-grouping-row):not(.k-detail-row):not(.k-group-footer):not([data-skeleton-row]) > td:not(.k-group-cell):not(.k-hierarchy-cell)': 'cell'
+        }
+        const selectionMode = selectionFilterMap[selectionFilter];
+        
+        // Overwrite selection behavior based on the selection mode.
+        switch(selectionMode) {
+            // Deselect irrelevant cells from non-selected columns.
+            case 'cell':
+                // Retrieve the target of the selection.
+                const target = state.target;
+
+                // Retrieve the anchor element to base the selection area with the target for.
+                let anchor = state.anchor;
+                
+                // If there is no anchor nor target, we can ignore this behavior.
+                if (!anchor.length || !target.length)
+                    break;
+                
+                // Determine the area of selection based on the anchor and target of the selection.
+                const startRow = anchor.parent().index();
+                const endRow = target.parent().index();
+                const startCol = grid.cellIndex(anchor);
+                const endCol = grid.cellIndex(target);
+                const minRow = Math.min(startRow, endRow);
+                const maxRow = Math.max(startRow, endRow);
+                const minCol = Math.min(startCol, endCol);
+                const maxCol = Math.max(startCol, endCol);
+                
+                // Build a list of elements that are present within the calculated selection area.
+                const newSelection = [];
+                for (let r = minRow; r <= maxRow; r++) {
+                    const row = grid.tbody.children().eq(r);
+                    for (let c = minCol; c <= maxCol; c++) {
+                        const cell = row.children().eq(c);
+                        newSelection.push(cell[0]);
+                    }
+                }
+                
+                // Clear the selection.
+                grid.clearSelection();
+
+                // Reapply the selection based on the calculate selection area.
+                grid.select($(newSelection));
+                
+                // Reset the selection state.
+                state.shift = false;
+                state.target = null;
+                
+                break;
+        }
+    }
+    
+    getSelectionState(grid) {
+        if (!grid._selectionState) {
+            grid._selectionState = {
+                shift: false,
+                target: null
+            };
+        }
+        
+        return grid._selectionState;
+    }
     /**
      * 
      */
-    shouldHideActionButton(dataItems, condition = undefined, roles = undefined, showOnReadOnly = undefined, minimumRows = undefined, maximumRows = undefined, readOnly = false) {
+    shouldHideActionButton(
+        dataItems,
+        condition = undefined,
+        roles = undefined,
+        hideForRoles = undefined,
+        showOnReadOnly = undefined,
+        minimumRows = undefined,
+        maximumRows = undefined,
+        readOnly = false) {
         // Do not hide buttons by default.
         let shouldHide = false;
         
@@ -2081,7 +2225,7 @@ export class Grids {
         }
 
         // Roles check.
-        if(!shouldHide && roles !== undefined) {
+        if(!shouldHide && (roles !== undefined || hideForRoles !== undefined)) {
             // Retrieve the user data from the local storage.
             const userDataString = localStorage.getItem('userData');
             const userData = userDataString ? JSON.parse(userDataString) : [];
@@ -2089,8 +2233,16 @@ export class Grids {
             const userRole = userData.role;
 
             // Check whether the user's role is required by the action button.
-            const rolesArray = roles.split(',');
-            shouldHide = !rolesArray.includes(userRole);
+            if(roles !== undefined) {
+                const rolesArray = roles.split(',');
+                shouldHide = !rolesArray.includes(userRole);
+            }
+            
+            // Check whether one of the user's roles matches in the collection of roles to hide the button for.
+            if(hideForRoles !== undefined) {
+                const hideForRolesArray = hideForRoles.split(',');
+                shouldHide = hideForRolesArray.includes(userRole);
+            }
         }
 
         // Check whether any of the selected rows is set to be read-only and should be hidden.

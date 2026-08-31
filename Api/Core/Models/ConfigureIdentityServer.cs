@@ -75,9 +75,14 @@ namespace Api.Core.Models
                 {
                     ClientId = "wiser",
 
-                    AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
+                    AllowedGrantTypes = new[]
+                    {
+                        GrantType.ResourceOwnerPassword,
+                        GrantType.ClientCredentials,
+                        "force_login"
+                    },
                     AccessTokenType = AccessTokenType.Jwt,
-                    AccessTokenLifetime = 300,
+                    AccessTokenLifetime = 1800,
                     IdentityTokenLifetime = 3600,
                     UpdateAccessTokenClaimsOnRefresh = true,
                     AllowOfflineAccess = true,

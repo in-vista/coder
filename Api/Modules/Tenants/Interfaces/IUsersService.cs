@@ -106,6 +106,13 @@ namespace Api.Modules.Tenants.Interfaces
         /// <param name="identity">The <see cref="ClaimsIdentity"/> of the authenticated client.</param>
         /// <returns></returns>
         Task<ServiceResult<UserModel>> GetUserDataAsync(IUsersService usersService, ClaimsIdentity identity);
+        
+        /// <summary>
+        /// Retrieves user information based on the user ID and its corresponding subdomain.
+        /// </summary>
+        /// <param name="userId">The ID of the user to retrieve the information for.</param>
+        /// <returns></returns>
+        Task<ServiceResult<UserModel>> GetUserByIdAsync(ulong userId);
 
         /// <summary>
         /// Gets settings for the authenticated user for a specific group of settings.
@@ -260,5 +267,20 @@ namespace Api.Modules.Tenants.Interfaces
         /// <param name="settings">The JSON that represents the dashboard layout data.</param>
         /// <returns>A boolean whether the saving of the data was successful.</returns>
         Task<ServiceResult<bool>> SaveDashboardSettingsAsync(ClaimsIdentity identity, JToken settings);
+        
+        /// <summary>
+        /// Fetches all available imitations the users is allowed to.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <returns>A JSON instance representing a list of available imitations.</returns>
+        Task<ServiceResult<JArray>> GetImitationsAsync(ClaimsIdentity identity);
+        
+        /// <summary>
+        /// Forcefully logs the user in based on the given encrypted user ID.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <param name="encryptedUserId">The encrypted user ID to log the user in for.</param>
+        /// <returns>True, if the login was successful.</returns>
+        Task<ServiceResult<bool>> ImitateAsync(ClaimsIdentity identity, string encryptedUserId);
     }
 }

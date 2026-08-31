@@ -1089,6 +1089,8 @@ AND ordering < ?newOrderingStart";
                     return "imagecoords";
                 case EntityPropertyInputTypes.ImageUpload:
                     return "image-upload";
+                case EntityPropertyInputTypes.ImageCurator:
+                    return "image-curator";
                 case EntityPropertyInputTypes.GpsLocation:
                     return "gpslocation";
                 case EntityPropertyInputTypes.DateRange:
@@ -1119,6 +1121,8 @@ AND ordering < ?newOrderingStart";
                     return "qr";
                 case EntityPropertyInputTypes.Iframe:
                     return "iframe";
+                case EntityPropertyInputTypes.CheckBoxList:
+                    return "checkboxlist";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(value), value, null);
             }
