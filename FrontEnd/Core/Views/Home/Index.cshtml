@@ -13,9 +13,9 @@
                 <img v-if="tenantOptions" :src="tenantOptions.logo" alt="logo"/>
             </div>
             <div id="modules" class="coder-menu-group">
-                <template v-for="moduleGroup in [ ...pinnedModuleGroups, ...moduleGroups ]" :key="moduleGroup.name">
+                 <template v-for="moduleGroup in [ ...pinnedModuleGroups, ...moduleGroups ]" :key="moduleGroup.name">
                     <div v-if="moduleGroup.modules.length" class="coder-menu-item">
-                        <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)" :data-pending-actions="
+                        <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)" @@click="moduleGroup.modules.length === 1 && onOpenModuleClick($event, moduleGroup.modules[0])" :data-pending-actions="
                                 (moduleGroup.modules ?? []).reduce(
                                     (totalPendingActions, module) => totalPendingActions + Number(module?.pendingActionCount ?? 0),
                                     0
@@ -24,7 +24,7 @@
                             <i class="mdi mdi-size-2" :class="[ `mdi-${moduleGroup.icon ?? 'cog'}` ]"></i>
                         </div>
                         <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event)">
-                            <p class="coder-menu-item-popout-title">{{ moduleGroup.name }}</p>
+                            <p v-if="moduleGroup.modules.length > 1" class="coder-menu-item-popout-title">{{ moduleGroup.name }}</p>
                             <div class="coder-menu-item-popout-items">
                                 <div v-for="module in moduleGroup.modules" :key="module.moduleId" class="coder-menu-item-popout-item" @@click="onOpenModuleClick($event, module)">
                                     <div class="coder-menu-item-popout-item-content hover" :data-pending-actions="module.pendingActionCount ?? 0">
@@ -55,7 +55,7 @@
                                 </div>
                             </div>
                             <div v-if="imitations?.length" class="coder-menu-item-popout-item">
-                                <div @@click.stop="toggleAccountDropdown" id="accountButton" class="coder-menu-item-popout-item-content hover">
+                                <div @@mouseenter.stop="openAccountDropdown" @@mouseleave.stop="scheduleCloseAccountDropdown" id="accountButton" class="coder-menu-item-popout-item-content hover">
                                     <i class="mdi mdi-size-2 mdi-account-convert"></i>
                                     <span>Account wisselen</span>
                                 </div>
@@ -63,12 +63,13 @@
                                     v-show="accountDropdownVisible"
                                     id="accountDropdown"
                                     class="dropdown"
-                                    @@mouseleave="closeAccountDropdown">
+                                    @@mouseenter="cancelCloseAccountDropdown" 
+                                    @@mouseleave="scheduleCloseAccountDropdown">
                                     <div
                                         v-for="imitation in imitations"
                                         class="account-item hover"
                                         @@click="selectAccount(imitation.encrypted_id)">
-                                        {{ imitation.name }}
+                                        {{ imitation.account_name }}{{ imitation.account_name ? ' - ' : '' }}{{ imitation.name }}
                                     </div>
                                 </div>
                             </div>

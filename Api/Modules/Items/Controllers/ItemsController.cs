@@ -450,6 +450,21 @@ namespace Api.Modules.Items.Controllers
         {
             return (await itemsService.MoveItemAsync((ClaimsIdentity)User.Identity, encryptedSourceId, encryptedDestinationId, data.Position, data.EncryptedSourceParentId, data.EncryptedDestinationParentId, data.SourceEntityType, data.DestinationEntityType, data.ModuleId)).GetHttpResponseMessage();
         }
+        
+        /// <summary>
+        /// Move an item to a different ordering position in a grid.
+        /// </summary>
+        /// <param name="propertyId">The ID of the property where within an item is being moved.</param>
+        /// <param name="data">The data needed to know where the item should be moved to.</param>
+        /// <param name="currentItemIsSourceId">Whether the current item is the source if there is a link present.</param>
+        /// <param name="linkTypeNumber">The link type number to where the current item is connected to if relevent.</param>
+        [HttpPut]
+        [Route("{propertyId}/change-order")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> ChangeOrderAsync(ulong propertyId, [FromBody]ChangeItemOrderRequestModel data, [FromQuery] bool currentItemIsSourceId, [FromQuery] int? linkTypeNumber)
+        {
+            return (await itemsService.ChangeOrderAsync((ClaimsIdentity)User.Identity, propertyId, data.EncryptedItemId, data.EntityType, currentItemIsSourceId, data.BeforeEncryptedItemId, linkTypeNumber)).GetHttpResponseMessage();
+        }
 
         /// <summary>
         /// Link one or more items to one or more other items.

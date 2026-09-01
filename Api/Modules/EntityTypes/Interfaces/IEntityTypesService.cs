@@ -19,10 +19,11 @@ namespace Api.Modules.EntityTypes.Interfaces
         /// <param name="onlyEntityTypesWithDisplayName">Optional: Set to <see langword="false"/> to get all entity types, or <see langword="true"/> to get only entity types that have a display name. Default value is <see langword="true"/>.</param>
         /// <param name="includeCount">Optional: Whether to count how many items of each entity type exist in the database.</param>
         /// <param name="skipEntitiesWithoutItems">Optional: Whether to skip entities that have no items. Only works when includeCount is set to <see langword="true" />.</param>
+        /// <param name="isForSearch">Optional: Whether to only get entities meant for the search (show_in_search must be set to true in the entity's setting)</param>
         /// <param name="moduleId">Optional: If you only want entity types from a specific module, enter the ID of that module here.</param>
         /// <param name="branchId">Optional: If getting entity types for a branch, enter the ID of that branch here.</param>
         /// <returns>The list of entity types.</returns>
-        Task<ServiceResult<List<EntityTypeModel>>> GetAsync(ClaimsIdentity identity, bool onlyEntityTypesWithDisplayName = true, bool includeCount = false, bool skipEntitiesWithoutItems = false, int moduleId = 0, int branchId = 0);
+        Task<ServiceResult<List<EntityTypeModel>>> GetAsync(ClaimsIdentity identity, bool onlyEntityTypesWithDisplayName = true, bool includeCount = false, bool skipEntitiesWithoutItems = false, bool isForSearch = false, int moduleId = 0, int branchId = 0);
 
         /// <summary>
         /// Gets the settings for an entity type. These settings will be cached for 1 hour.

@@ -1564,9 +1564,11 @@ VALUES {String.Join(", ", queryBuilder)}";
             string imitationsJson = await clientDatabaseConnection.GetAsJsonAsync(@$"
                 SELECT
                     imitation.target_user_id AS `id`,
-                    `user`.title AS `name`
+                    `user`.title AS `name`,
+                    `parent`.title AS `account_name`
                 FROM {WiserTableNames.WiserUserImitation} imitation
                 JOIN wiser_item `user` ON `user`.id = imitation.target_user_id
+                LEFT JOIN wiser_item `parent` ON `parent`.id = `user`.parent_item_id
                 WHERE imitation.user_id = ?userId
                 ORDER BY `user`.title");
 
