@@ -211,7 +211,7 @@ jobs:
                 $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'production' } else { 'development' }
 
                 $apiDestination = $env:PUBLISH_LOCATION_API
-                $frontEndDestination = $env:PUBLISH_LOCATION_FRONT_END\
+                $frontEndDestination = $env:PUBLISH_LOCATION_FRONT_END
 
                 Write-Host "API destination: [$apiDestination]"
                 Write-Host "Frontend destination: [$frontEndDestination]"
