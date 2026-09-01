@@ -212,8 +212,8 @@ jobs:
 
                 dotnet publish API `
                   -c Release `
-                  -o $env:PUBLISH_LOCATION_API `
-                  --self-contained true `
+                  -o "$env:PUBLISH_LOCATION_API" `
+                  --self-contained `
                   -r win-x64 `
                   /p:EnvironmentName=$environmentName
 
@@ -223,8 +223,8 @@ jobs:
 
                 dotnet publish FrontEnd `
                   -c Release `
-                  -o $env:PUBLISH_LOCATION_FRONT_END `
-                  --self-contained true `
+                  -o "$env:PUBLISH_LOCATION_FRONT_END" `
+                  --self-contained `
                   -r win-x64 `
                   /p:EnvironmentName=$environmentName
 
