@@ -207,15 +207,13 @@ jobs:
           - name: (Coder) Publish
             env:
               ENVIRONMENT_NAME: ${{ inputs.environment }}
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
             run: |
                 $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'production' } else { 'development' }
 
                 $apiDestination = $env:PUBLISH_LOCATION_API
                 $frontEndDestination = $env:PUBLISH_LOCATION_FRONT_END
-
-                Write-Host "API destination: [$apiDestination]"
-                Write-Host "Frontend destination: [$frontEndDestination]"
-                Write-Host "Environment: [$environmentName]"
 
                 dotnet publish API `
                   -c Release `
