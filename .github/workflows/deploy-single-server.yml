@@ -208,35 +208,29 @@ jobs:
             env:
               ENVIRONMENT_NAME: ${{ inputs.environment }}
             run: |
-                $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'Live' } else { 'Development' }
+                $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'production' } else { 'development' }
 
-                $apiDestination = $env:PUBLISH_LOCATION_API
-                $frontEndDestination = $env:PUBLISH_LOCATION_FRONT_END
+                dotnet publish API `
+                  -c Release `
+                  -o $env:PUBLISH_LOCATION_API `
+                  --self-contained true `
+                  -r win-x64 `
+                  /p:EnvironmentName=$environmentName
 
-                $apiJob = Start-Job {
-                  dotnet publish API `
-                    -c Release `
-                    -o $apiDestination `
-                    --self-contained true `
-                    -r win-x64 `
-                    /p:EnvironmentName=$environmentName
+                if ($LASTEXITCODE -ne 0) {
+                  throw "API publish failed"
                 }
 
-                $frontEndJob = Start-Job {
-                  dotnet publish FrontEnd `
-                    -c Release `
-                    -o $frontEndDestination `
-                    --self-contained true `
-                    -r win-x64 `
-                    /p:EnvironmentName=$environmentName
+                dotnet publish FrontEnd `
+                  -c Release `
+                  -o $env:PUBLISH_LOCATION_FRONT_END `
+                  --self-contained true `
+                  -r win-x64 `
+                  /p:EnvironmentName=$environmentName
+
+                if ($LASTEXITCODE -ne 0) {
+                    throw "FrontEnd publish failed"
                 }
-
-                Wait-Job $apiJob, $frontEndJob
-
-                Receive-Job $apiJob
-                Receive-Job $frontEndJob
-
-                Remove-Job $apiJob, $frontEndJob
             working-directory: coder
 
           - name: (Coder) Remove app_offline.htm
