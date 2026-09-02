@@ -85,6 +85,39 @@
             document.getElementById("refresh-button").addEventListener("click", () => {
                 this.updateDateDisplay();
             });
+            
+            document.getElementById("new-item-btn").addEventListener("click", () => {
+                const self = this;
+
+                const now = new Date();
+                const nowHour = now.getHours() + now.getMinutes() / 60;
+                const startHour = nowHour % 24;
+                const endHour = (startHour + 1) % 24; // standaard 1 uur
+                
+                const newReservation = {
+                    reservationId: Date.now(),
+                    reservationIdEncrypted: "",
+                    name: 'Nieuwe reservering',
+                    table: 0,
+                    start: startHour,
+                    end: endHour,
+                    startDate: self.toDateString(self.currentDate),
+                    endDate: self.toDateString(self.currentDate),
+                    paid: 0,
+                    color: '#27ae60',
+                    textColor: '#ffffff',
+                    numberOfPersons: 0,
+                    arrangement: 0,
+                    notes: "",
+                    numberOfVisits: 0,
+                    warning: ""
+                };
+
+                self.reservations.push(newReservation);
+                //self.renderReservations();
+                
+                timelineScheduler.createNewReservation(newReservation);
+            });
     
             currentDateSpan.innerText = this.formatDate(this.currentDate);
             this.createHeader();
@@ -660,6 +693,17 @@
     
             return `${HH}:${MM}`;
         }
+        
+        async createNewReservation(newReservation) {
+            const response  = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryInsertReservation,JSON.stringify(newReservation));
+
+            if (response[0].id) {
+                // open the created reservation
+                newReservation.reservationId = response[0].id;
+                newReservation.reservationIdEncrypted = response[0].encryptedId;
+                timelineScheduler.openReservationInCoder(newReservation.reservationId, newReservation.reservationIdEncrypted);
+            }
+        }
     
         // Update a single reservation to the database. On moving, dragging, etc.
         async updateReservation(reservation){
@@ -763,7 +807,7 @@
 
         // For showing date controls when switching back form map view to timeline or list view
         showDateControls() {            
-            document.querySelectorAll("#prev-day, #next-day, #today-button, #refresh-button").forEach(el => {
+            document.querySelectorAll("#prev-day, #next-day, #today-button, #refresh-button, #new-item-btn").forEach(el => {
                 el.style.display = "inline-flex";
             });
             document.querySelectorAll("#current-date").forEach(el => {
@@ -1170,14 +1214,7 @@
                         //self.renderReservations();
 
                         // create reservation in database and open new reservation
-                        const response  = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryInsertReservation,JSON.stringify(newReservation));
-
-                        if (response[0].id) {
-                            // open the created reservation
-                            newReservation.reservationId = response[0].id;
-                            newReservation.reservationIdEncrypted = response[0].encryptedId;
-                            timelineScheduler.openReservationInCoder(newReservation.reservationId, newReservation.reservationIdEncrypted);
-                        }
+                        await timelineScheduler.createNewReservation(newReservation);
                     }
 
                     timeline.addEventListener('mousedown', startDrawing);
@@ -1214,14 +1251,7 @@
                         //self.renderReservations();
 
                         // create reservation in database and open new reservation                        
-                        const response  = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryInsertReservation, JSON.stringify(newReservation));
-
-                        if (response[0].id) {
-                            // open the created reservation
-                            newReservation.reservationId = response[0].id;
-                            newReservation.reservationIdEncrypted = response[0].encryptedId;
-                            timelineScheduler.openReservationInCoder(newReservation.reservationId, newReservation.reservationIdEncrypted);
-                        }
+                        await timelineScheduler.createNewReservation(newReservation);
                     });
 
                     row.appendChild(timeline);
