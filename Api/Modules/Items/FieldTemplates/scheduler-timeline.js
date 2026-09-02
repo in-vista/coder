@@ -569,7 +569,7 @@
                 timelineScheduler.reservations = reservationsResponse.map(r => ({
                     reservationId: r.id,
                     reservationIdEncrypted: r.encryptedId,
-                    name: r.customer_full_name==='' ? 'Walk-in' : r.customer_full_name,
+                    name: r.customer_full_name!=='' ? r.customer_full_name : r.customer_id===0 ? 'Walk-in' : 'Geen naam bekend',
                     table: r.table,
                     start: timelineScheduler.timeToDecimal(r.start),
                     end: timelineScheduler.timeToDecimal(r.end),
@@ -583,7 +583,7 @@
                     notes: r.notes,
                     numberOfVisits: parseInt(r.number_of_visits, 10) || 0,
                     warning: r.warning,
-                    customerFullName: r.customer_full_name==='' ? 'Walk-in' : r.customer_full_name,
+                    customerFullName: r.customer_full_name!=='' ? r.customer_full_name : r.customer_id===0 ? 'Walk-in' : 'Geen naam bekend',
                     customerPhoneNumber: r.customer_phone_number,
                     customerMobileNumber: r.customer_mobile_number,
                     customerEmailAddress: r.customer_email_address,
