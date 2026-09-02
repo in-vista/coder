@@ -72,12 +72,12 @@ namespace Api.Modules.Pusher.Services
         /// <inheritdoc />
         public async Task<ServiceResult<bool>> SendMessageToUserAsync(string subDomain, PusherMessageRequestModel data)
         {
-            if (data == null || (data.UserId == 0 && !data.IsGlobalMessage))
+            if (data == null || ((data.UserIds == null || data.UserIds.Length == 0) && !data.IsGlobalMessage))
             {
                 return new ServiceResult<bool>(false)
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "UserId must be greater than 0"
+                    ErrorMessage = "User ID(s) is/are not present or are invalid."
                 };
             }
 
@@ -96,51 +96,72 @@ namespace Api.Modules.Pusher.Services
                 data.Cluster = "eu";
             }
             
-            var pusherId = GeneratePusherIdForUser(data.UserId, subDomain).ModelObject;
             var options = new PusherOptions
             {
                 Cluster = data.Cluster,
                 Encrypted = true
             };
-            
-            // Global messages do not fire events for a specific user.
-            var eventName = !String.IsNullOrWhiteSpace(data.EventName) ? data.EventName : data.IsGlobalMessage ? data.Channel : $"{data.Channel}_{pusherId}";
-
             var pusher = new PusherServer.Pusher(apiSettings.PusherAppId, apiSettings.PusherAppKey, apiSettings.PusherAppSecret, options);
-            var result = await pusher.TriggerAsync(data.Channel, eventName, data.EventData);
-            var success = (int)result.StatusCode >= 200 && (int)result.StatusCode < 300;
             
-            var serviceResult = new ServiceResult<bool>(success)
+            if (data.UserIds != null)
             {
-                StatusCode = result.StatusCode,
-                ErrorMessage = success ? null : result.Body
-            };
-            
-            // TODO: Make it so that it doesn't use skipPermissionsCheck
-            WiserItemModel userDetails = await wiserItemsService.GetItemDetailsAsync(data.UserId, skipPermissionsCheck: true);
-            if (userDetails != null)
-            {
-                string emailAddress = userDetails.GetDetailValue("email_address");
-            
-                if (data.SendEmail && !string.IsNullOrWhiteSpace(emailAddress))
+                foreach (string userIdRaw in data.UserIds)
                 {
-                    Dictionary<string, string> dataDictionary = new Dictionary<string, string>();
+                    if(!ulong.TryParse(userIdRaw, out ulong userId))
+                        return new ServiceResult<bool>(false)
+                        {
+                            StatusCode = HttpStatusCode.BadRequest,
+                            ErrorMessage = "Invalid user ID."
+                        };
                     
-                    try
+                    var pusherId = GeneratePusherIdForUser(userId, subDomain).ModelObject;
+                    
+                    // Global messages do not fire events for a specific user.
+                    var eventName = !String.IsNullOrWhiteSpace(data.EventName) ? data.EventName : data.IsGlobalMessage ? data.Channel : $"{data.Channel}_{pusherId}";
+                    
+                    var result = await pusher.TriggerAsync(data.Channel, eventName, data.EventData);
+                    
+                    var success = (int)result.StatusCode >= 200 && (int)result.StatusCode < 300;
+                    if (!success)
                     {
-                        dataDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(data.EventData.ToString());
+                        return new ServiceResult<bool>(success)
+                        {
+                            StatusCode = result.StatusCode,
+                            ErrorMessage = result.Body
+                        };
                     }
-                    catch (Exception exception)
+                    
+                    // TODO: Make it so that it doesn't use skipPermissionsCheck
+                    WiserItemModel userDetails = await wiserItemsService.GetItemDetailsAsync(userId, skipPermissionsCheck: true);
+                    if (userDetails != null)
                     {
-                        // TODO: Proper error logging when the deserialization of the data failed.
-                    }
+                        string emailAddress = userDetails.GetDetailValue("email_address");
+                    
+                        if (data.SendEmail && !string.IsNullOrWhiteSpace(emailAddress))
+                        {
+                            Dictionary<string, string> dataDictionary = new Dictionary<string, string>();
+                            
+                            try
+                            {
+                                dataDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(data.EventData.ToString());
+                            }
+                            catch (Exception exception)
+                            {
+                                // TODO: Proper error logging when the deserialization of the data failed.
+                            }
 
-                    KeyValuePair<string, string> kvp = dataDictionary.FirstOrDefault(); // What is 'kvp'?
-                    await communicationsService.SendEmailAsync(receiverName: userDetails.Title, receiver: emailAddress, subject: "Agendering vanuit Coder", body: kvp.Value);
+                            KeyValuePair<string, string> kvp = dataDictionary.FirstOrDefault(); // What is 'kvp'?
+                            await communicationsService.SendEmailAsync(receiverName: userDetails.Title, receiver: emailAddress, subject: "Agendering vanuit Coder", body: kvp.Value);
+                        }
+                    }
                 }
             }
 
-            return serviceResult;
+            return new ServiceResult<bool>(true)
+            {
+                StatusCode = HttpStatusCode.NoContent,
+                ErrorMessage = null
+            };;
         }
     }
 }
