@@ -412,7 +412,7 @@ const moduleSettings = {
                     return;
                 }
 
-                const userIds = selectedUsers[i].map(user => user.id);
+                const userIds = selectedUsers.map(user => user.id);
                 const parentId = this.settings.zeroEncrypted;
                 const taskContent = document.getElementById("taskDescription").value;
 
@@ -453,7 +453,7 @@ const moduleSettings = {
                     contentType: "application/json",
                     data: JSON.stringify({
                         channel: "agendering",
-                        userId: userId,
+                        userIds: userIds,
                         sendEmail: sendEmail,
                         eventData: JSON.stringify({
                             message: taskContent
