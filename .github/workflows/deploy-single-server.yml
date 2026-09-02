@@ -220,7 +220,8 @@ jobs:
                   -o "$apiDestination" `
                   --self-contained true `
                   -r win-x64 `
-                  /p:EnvironmentName=$environmentName
+                  /p:EnvironmentName=$environmentName `
+                  /p:IsTransformWebConfigDisabled=true
 
                 if ($LASTEXITCODE -ne 0) {
                   throw "API publish failed"
@@ -231,7 +232,8 @@ jobs:
                   -o "$frontEndDestination" `
                   --self-contained true `
                   -r win-x64 `
-                  /p:EnvironmentName=$environmentName
+                  /p:EnvironmentName=$environmentName `
+                  /p:IsTransformWebConfigDisabled=true
 
                 if ($LASTEXITCODE -ne 0) {
                     throw "FrontEnd publish failed"
