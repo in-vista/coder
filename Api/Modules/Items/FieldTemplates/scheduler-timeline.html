@@ -613,8 +613,7 @@
     @media (min-width: 1316px) { 
         .timeline-search {
             right: unset;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 55%;
         }
     }
     
@@ -681,6 +680,12 @@
         background-color: #000000 !important;
         color: #FFFFFF !important;
     }
+    
+    #list-view-table-group-filter {
+        padding: 6px 8px;
+        cursor: pointer;
+    }
+    
     #timeline-search {
         border: none;
         width: 300px;
@@ -798,8 +803,12 @@
             <span id="current-date" class="date-control" style="cursor:pointer;">Kies datum</span>
             <button id="next-day" class="date-control"><i class="mdi mdi-size-2 mdi-chevron-right"></i></button>
             <button id="today-button" class="date-control"><i class="mdi mdi-size-2 mdi-calendar-today"></i>Vandaag</button>
-            <button id="refresh-button" class="date-control"><i class="mdi mdi-size-2 mdi-refresh"></i>Verversen</button>            
+            <button id="refresh-button" class="date-control"><i class="mdi mdi-size-2 mdi-refresh"></i>Verversen</button>
         </div>
+        &nbsp;
+        <select id="list-view-table-group-filter" class="hidden">
+            <option value="all" selected>Alle Ruimtes</option>
+        </select>
         <div class="timeline-search date-control">            
             <input type="text" placeholder="Begin met typen om te zoeken..." id="timeline-search" />            
             <div class="search-container" style="display: none;">                

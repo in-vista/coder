@@ -27,6 +27,9 @@
         reservations = []; // internal for keeping reservations
         tableGroups = {}; // internal for keeping tables and table groups
         customerUrl = "";
+        
+        tableGroupFilter = "all";
+        tableGroupFilteredTables = [];
     
         container = null;
         activeDrag = null;
@@ -237,6 +240,7 @@
             const mapBtn = document.getElementById("map-view-btn");
             const timelineSchedulerEl = document.querySelector(".scheduler");
             const listView = document.getElementById("list-view");
+            const listViewTableGroupFilter = document.getElementById("list-view-table-group-filter");
             const mapView = document.getElementById("map-view");
             timelineBtn.addEventListener("click", () => {
                 timelineBtn.classList.add("active");
@@ -245,6 +249,7 @@
 
                 timelineSchedulerEl.classList.remove("hidden");
                 listView.classList.add("hidden");
+                listViewTableGroupFilter.classList.add("hidden");
                 mapView.classList.add("hidden");
 
                 this.renderReservations();
@@ -257,6 +262,7 @@
 
                 timelineSchedulerEl.classList.add("hidden");
                 listView.classList.remove("hidden");
+                listViewTableGroupFilter.classList.remove("hidden");
                 mapView.classList.add("hidden");
 
                 this.renderReservations(); 
@@ -269,10 +275,27 @@
 
                 timelineSchedulerEl.classList.add("hidden");
                 listView.classList.add("hidden");
+                listViewTableGroupFilter.classList.add("hidden");
                 mapView.classList.remove("hidden");
 
                 this.renderReservations();
             });
+            
+            Object.keys(this.tableGroups).forEach((tableGroup) => {
+                listViewTableGroupFilter.options.add(new Option(tableGroup, tableGroup));
+            });
+            
+            listViewTableGroupFilter.addEventListener("change", () => {
+                this.tableGroupFilter = listViewTableGroupFilter.value;
+                
+                if (this.tableGroupFilter !== "all") {
+                    this.tableGroupFilteredTables = this.tableGroups[this.tableGroupFilter].map(tg => tg.id)
+                } else {
+                    this.tableGroupFilteredTables = [];
+                }
+
+                this.getReservations(this.toDateString(this.currentDate));
+            })
 
             // Automatic refresh every x minutes
             setInterval(() => this.updateDateDisplay(), 300*1000);            
@@ -749,13 +772,19 @@
         }
     
         renderReservations(){
+            const listViewTableGroupFilter = document.getElementById("list-view-table-group-filter");
+            
             if (document.getElementById("list-view-btn").classList.contains("active")){
                 this.renderListView();
             }
             else if (document.getElementById("timeline-view-btn").classList.contains("active")){
+                this.tableGroupFilteredTables = [];
+                listViewTableGroupFilter.value = "all";
                 this.renderTimelineView();   
             }
             else { // map view
+                this.tableGroupFilteredTables = [];
+                listViewTableGroupFilter.value = "all";
                 this.renderMapView();
             }            
             this.updateCurrentTimeLine();
@@ -1514,11 +1543,22 @@
         groupReservationsByQuarter() {
             const groups = {};
             const uniqueReservations = [...new Map(this.reservations.map(r => [r.reservationId, r])).values()];
-            uniqueReservations.forEach(r => {                
-                const slot = Math.floor(r.start * this.quartersPerHour);
-                if (!groups[slot]) groups[slot] = [];
-                groups[slot].push(r);
-            });
+            
+            if (this.tableGroupFilteredTables.length > 0) {
+                const filteredUniqueReservations = uniqueReservations.filter(r => this.tableGroupFilteredTables.includes(r.table));
+
+                filteredUniqueReservations.forEach(r => {
+                    const slot = Math.floor(r.start * this.quartersPerHour);
+                    if (!groups[slot]) groups[slot] = [];
+                    groups[slot].push(r);
+                });
+            } else {
+                uniqueReservations.forEach(r => {
+                    const slot = Math.floor(r.start * this.quartersPerHour);
+                    if (!groups[slot]) groups[slot] = [];
+                    groups[slot].push(r);
+                });
+            }
 
             return groups;
         }
