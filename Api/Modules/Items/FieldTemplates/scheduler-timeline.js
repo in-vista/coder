@@ -885,23 +885,14 @@
                             numberOfPersons.innerText = res.numberOfPersons;
                             block.appendChild(numberOfPersons);
                         }
-                        const now = new Date();
-
+                        
                         if (res.checkIn !== null) {
-                            const convertedCheckIn = Date.parse(res.checkIn);
-                            
-                            if (now > convertedCheckIn) {
-                                block.classList.add("checked-in");
-                            }
+                            block.classList.add("checked-in");
                         }
                         
                         if (res.checkOut !== null) {
-                            const convertedCheckOut = Date.parse(res.checkOut);
-
-                            if (now > convertedCheckOut) {
-                                block.classList.remove("checked-in");
-                                block.classList.add("checked-out");
-                            }
+                            block.classList.remove("checked-in");
+                            block.classList.add("checked-out");
                         }
                         
                         const content = document.createElement("span");
