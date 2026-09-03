@@ -885,6 +885,25 @@
                             numberOfPersons.innerText = res.numberOfPersons;
                             block.appendChild(numberOfPersons);
                         }
+                        const now = new Date();
+
+                        if (res.checkIn !== null) {
+                            const convertedCheckIn = Date.parse(res.checkIn);
+                            
+                            if (now > convertedCheckIn) {
+                                block.classList.add("checked-in");
+                            }
+                        }
+                        
+                        if (res.checkOut !== null) {
+                            const convertedCheckOut = Date.parse(res.checkOut);
+
+                            if (now > convertedCheckOut) {
+                                block.classList.remove("checked-in");
+                                block.classList.add("checked-out");
+                            }
+                        }
+                        
                         const content = document.createElement("span");
                         content.classList.add("single-line");
                         content.innerText = res.name;
@@ -1651,6 +1670,12 @@
                 timelineScheduler.reservations.find(r => r.reservationId === res.reservationId).checkIn = true;
                 
                 // Timeline view bijwerken
+                const block = document.querySelector(`.reservation[data-id="${res.reservationId}"]`)
+                if (block) {
+                    block.classList.remove("checked-out");
+                    block.classList.add("checked-in");
+                }
+                
                 const elementsIn = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-in`);
                 elementsIn.forEach(el => {
                     el.style.display = 'none';
@@ -1682,6 +1707,12 @@
                 timelineScheduler.reservations.find(r => r.reservationId === res.reservationId).checkOut = true;
                 
                 // Timeline view bijwerken
+                const block = document.querySelector(`.reservation[data-id="${res.reservationId}"]`)
+                if (block) {
+                    block.classList.remove("checked-in");
+                    block.classList.add("checked-out");
+                }
+                
                 const elements = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-out`);
                 elements.forEach(el => {
                     el.style.display = 'none';
