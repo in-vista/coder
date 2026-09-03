@@ -1351,6 +1351,11 @@
         getPersonsAtTime(time) {
             return this.reservations
                 .filter(r => r.start <= time && r.end >= time) // check of reservering actief is
+                .filter((r, i, self) => // filter reserveringen met meerdere tafels
+                    i === self.findIndex((linked_reservation) => (
+                        linked_reservation.reservationId === r.reservationId
+                        ))
+                )
                 .reduce((sum, r) => sum + (r.numberOfPersons || 0), 0); // tel alles op
         }
 
