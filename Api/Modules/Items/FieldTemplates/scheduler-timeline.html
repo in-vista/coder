@@ -681,6 +681,12 @@
         background-color: #000000 !important;
         color: #FFFFFF !important;
     }
+
+    #new-item-btn {
+        padding: 6px 8px;
+        cursor: pointer;
+    }
+    
     #timeline-search {
         border: none;
         width: 300px;
@@ -798,9 +804,10 @@
             <span id="current-date" class="date-control" style="cursor:pointer;">Kies datum</span>
             <button id="next-day" class="date-control"><i class="mdi mdi-size-2 mdi-chevron-right"></i></button>
             <button id="today-button" class="date-control"><i class="mdi mdi-size-2 mdi-calendar-today"></i>Vandaag</button>
-            <button id="refresh-button" class="date-control"><i class="mdi mdi-size-2 mdi-refresh"></i>Verversen</button>         
-            <button id="new-item-btn"><i class="mdi mdi-size-2 mdi-plus"></i>Nieuwe reservering aanmaken</button>
+            <button id="refresh-button" class="date-control"><i class="mdi mdi-size-2 mdi-refresh"></i>Verversen</button>
         </div>
+        &nbsp;
+        <button id="new-item-btn"><i class="mdi mdi-size-2 mdi-plus"></i>Nieuwe reservering aanmaken</button>
         <div class="timeline-search date-control">            
             <input type="text" placeholder="Begin met typen om te zoeken..." id="timeline-search" />            
             <div class="search-container" style="display: none;">                

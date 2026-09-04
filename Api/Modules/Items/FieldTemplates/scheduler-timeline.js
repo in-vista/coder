@@ -807,7 +807,7 @@
 
         // For showing date controls when switching back form map view to timeline or list view
         showDateControls() {            
-            document.querySelectorAll("#prev-day, #next-day, #today-button, #refresh-button, #new-item-btn").forEach(el => {
+            document.querySelectorAll("#prev-day, #next-day, #today-button, #refresh-button").forEach(el => {
                 el.style.display = "inline-flex";
             });
             document.querySelectorAll("#current-date").forEach(el => {
