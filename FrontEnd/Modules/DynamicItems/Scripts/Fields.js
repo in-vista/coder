@@ -1666,14 +1666,26 @@ export class Fields {
                                 });
 
                                 const allowKeyAction = (event, inputFocusCheck) => {
-                                    // Array of class names to ignore.
-                                    const ignoreClasses = [
+                                    // Array of class names to ignore if visible.
+                                    const ignoreClassesVisible = [
                                         "k-filter-menu-container"
                                     ];
 
                                     // Check if any of the ignored elements are visible.
-                                    const ignoreVisible = ignoreClasses.some(cls => $(`.${cls}:visible`).length);
+                                    const ignoreVisible = ignoreClassesVisible.some(cls => $(`.${cls}:visible`).length);
                                     if (ignoreVisible)
+                                        return false;
+
+                                    // Array of class names to ignore if focused element is child.
+                                    const ignoreClassesChildren = [
+                                        "k-filtercell"
+                                    ];
+
+                                    const ignoreChild = ignoreClassesChildren.some(className =>
+                                        event.target.closest(`.${className}`)
+                                    );
+
+                                    if (ignoreChild)
                                         return false;
 
                                     // Disallow key action if the user is currently focused in a text area.
@@ -1703,7 +1715,7 @@ export class Fields {
                                 dialog.element.on('keydown', function(event) {
                                     if (!event.key || event.key.toLowerCase() !== 'enter')
                                         return;
-
+                                 
                                     if(!allowKeyAction(event, true))
                                         return;
 
