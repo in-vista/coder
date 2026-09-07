@@ -14,6 +14,8 @@
     const hideCheckboxColumn = !options.checkboxes || options.checkboxes === "false" || options.checkboxes <= 0;
     const usingDataSelector = !!options.dataSelectorId;
     options.usingDataSelector = usingDataSelector;
+
+    const checkboxQueryId = options.checkboxQueryId;
     
     let gridMode = 0;
     if (options.fieldGroupName) {
@@ -848,6 +850,33 @@
         if (!options.disableOpeningOfItems) {
             field.on("dblclick", "tbody tr[data-uid] td", function (event) {
                 window.dynamicItems.grids.onShowDetailsClick(event, kendoComponent, options, false);
+            });
+        }
+        
+        // Attach listener to execute query after clicking a checkbox.
+        if(!hideCheckboxColumn) {
+            field.on('click', "tbody tr[data-uid] .k-select-checkbox", async function (event) {
+                const $checkbox = $(this);
+                const checked = $checkbox.is(':checked');
+                
+                const $row = $checkbox.closest('tr[data-uid]');
+                const dataItem = kendoComponent.dataItem($row);
+
+                const getEncryptedItemId = dataItem => dataItem ? (dataItem.encryptedId || dataItem.encrypted_id) : null;
+                const selectedItemEncryptedId = getEncryptedItemId(dataItem);
+                
+                if(checkboxQueryId) {
+                    await Wiser.api({
+                        method: "POST",
+                        contentType: "application/json",
+                        dataType: "json",
+                        url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(checkboxQueryId)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
+                        data: JSON.stringify({
+                            checkedItemId: selectedItemEncryptedId,
+                            checked: checked
+                        })
+                    });
+                }
             });
         }
     
