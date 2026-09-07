@@ -624,20 +624,28 @@
                 }
             },
             dataBound: async (event) => {
-                event.sender.tbody.find('tr.k-table-row').each(function (e) {
+                const grid = event.sender;
+
+                grid.tbody.find('tr.k-table-row').each(function (e) {
                     const row = $(this);
-                    const model = event.sender.dataItem(row);
+                    const model = grid.dataItem(row);
                     
-                    for(const column of event.sender.columns) {
+                    for(const column of grid.columns) {
                         const attributes = column.attributes;
-                        if(!attributes)
+                        if (!attributes)
                             continue;
-                        
-                        for(const [ attributeName, attributeValue ] of Object.entries(attributes)) {
+
+                        for (const [attributeName, attributeValue] of Object.entries(attributes)) {
                             const attributeTemplate = kendo.template(attributeValue);
                             const cell = row.find(`[${attributeName}="${attributeValue}"]`);
                             cell.attr(attributeName, attributeTemplate(model));
                         }
+                    }
+                    
+                    // Check the checkboxes in the row if this model is selected/checked.
+                    if(model.selected) {
+                        row.find('.k-select-checkbox').prop('checked', true);
+                        grid.select(row);
                     }
                 });
                 
