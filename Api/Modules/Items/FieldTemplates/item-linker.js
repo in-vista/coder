@@ -10,6 +10,8 @@ let readonly = {readonly};
 
 options.moduleId = options.moduleId || 0;
 
+const showGrid = options.showGrid ?? true;
+
 let startLoader = () => {
     loadingCount++;
     loader.addClass("loading");
@@ -24,9 +26,8 @@ let stopLoader = (reloadGridWhenDone) => {
     if (loadingCount === 0) {
         loader.removeClass("loading");
 
-        if (reloadGridWhenDone) {
+        if (reloadGridWhenDone && showGrid)
             checkGridElement.data("kendoGrid").dataSource.read();
-        }
     }
 };
 
@@ -67,7 +68,7 @@ checkTreeElement.kendoTreeView({
     dataValueField: !showStructure ? "id" : "encryptedItemId",
     dataTextField: !showStructure ? "name" : "title",
     checkboxes: readonly !== true,
-    check: function(event) {
+    check: async function(event) {
         if (readonly === true) {
             return;
         }
@@ -75,22 +76,43 @@ checkTreeElement.kendoTreeView({
         startLoader();
 
         let sourceItem = event.sender.dataItem(event.node);
-        let methodName = sourceItem.checked ? "add-links" : "remove-links";
-
-        Wiser.api({
-            url: `${window.dynamicItems.settings.wiserApiRoot}items/${methodName}`,
-            data: JSON.stringify({
-                encryptedSourceIds: [sourceItem.id],
-                encryptedDestinationIds: [currentItemId],
-                linkType: options.linkTypeNumber || 0,
-                sourceEntityType: sourceItem.entityType
-            }),
-            contentType: "application/json",
-            dataType: "json",
-            method: sourceItem.checked ? "POST" : "DELETE"
-        }).finally(() => {
+        const checked = sourceItem.checked;
+        let methodName = checked ? "add-links" : "remove-links";
+        const method = checked ? "POST" : "DELETE";
+        
+        try {
+            await Wiser.api({
+                url: `${window.dynamicItems.settings.wiserApiRoot}items/${methodName}`,
+                data: JSON.stringify({
+                    encryptedSourceIds: [sourceItem.id],
+                    encryptedDestinationIds: [currentItemId],
+                    linkType: options.linkTypeNumber || 0,
+                    sourceEntityType: sourceItem.entityType
+                }),
+                contentType: "application/json",
+                dataType: "json",
+                method: method
+            });
+            
+            const afterQueryId = options.afterQueryId;
+            if(afterQueryId) {
+                await Wiser.api({
+                    method: "POST",
+                    contentType: "application/json",
+                    dataType: "json",
+                    url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(afterQueryId)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
+                    data: JSON.stringify({
+                        sourceId: sourceItem.id,
+                        destinationId: currentItemId,
+                        linkType: options.linkTypeNumber || 0,
+                        sourceEntityType: sourceItem.entityType,
+                        checked: checked
+                    })
+                });
+            }
+        } finally {
             stopLoader(true);
-        });
+        }
     },
 
     dataSource: {
@@ -121,7 +143,6 @@ checkTreeElement.kendoTreeView({
     }
 });
 
-const showGrid = options.showGrid ?? true;
 if(showGrid) {
     let customColumns = null;
     try {
