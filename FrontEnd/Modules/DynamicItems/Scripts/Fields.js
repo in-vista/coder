@@ -305,10 +305,8 @@ export class Fields {
             tabStrip = container.closest(".k-tabstrip").data("kendoTabStrip");
 
             if (!selectedTab) {
-                if (!tabStrip) {
-                    console.error("Could not find kendoTabStrip and therefor cannot handle dependencies!", event.sender);
+                if (!tabStrip)
                     return;
-                }
 
                 selectedTab = tabStrip.select().text() || "Gegevens";
             }
@@ -323,10 +321,8 @@ export class Fields {
             tabStrip = container.closest(".k-tabstrip").data("kendoTabStrip");
 
             if (!selectedTab) {
-                if (!tabStrip) {
-                    console.error("Could not find kendoTabStrip and therefor cannot handle dependencies!", event.currentTarget);
+                if (!tabStrip)
                     return;
-                }
 
                 selectedTab = tabStrip.select().text();
             }
