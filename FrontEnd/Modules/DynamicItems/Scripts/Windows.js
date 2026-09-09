@@ -14,7 +14,6 @@ require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
  * Class for any and all functionality for windows (not dialogs).
  */
 export class Windows {
-
     /**
      * Initializes a new instance of the Windows class.
      * @param {DynamicItems} base An instance of the base class (DynamicItems).
@@ -60,24 +59,52 @@ export class Windows {
      * Do all initializations for the Windows class, such as adding bindings.
      */
     initialize() {
+        // Register an event that handles closing the currently opened window when navigating back in the browser.
+        window.addEventListener('popstate', event => {
+            if(!this.windowHistory?.length)
+                return;
+            
+            const windowId = this.windowHistory[this.windowHistory.length - 1];
+            if (!windowId)
+                return;
+
+            const windowElement = document.getElementById(windowId);
+
+            if (windowElement) {
+                $(windowElement)
+                    .data('kendoWindow')
+                    .close();
+            }
+        });
+        
         // Window for searching for items to link to another item.
-        this.historyGridWindow = $("#historyWindowGrid").kendoWindow({
+        const historyGridWindowId = 'historyWindowGrid';
+        this.historyGridWindow = $(`#${historyGridWindowId}`).kendoWindow({
             width: "90%",
             height: "90%",
             title: "History",
             visible: false,
             modal: true,
-            actions: ["Close"]
+            actions: ["Close"],
+            close: (closeEvent) => {
+                // Remove this window from the history.
+                this.removeWindowFromHistory(historyGridWindowId);
+            }
         }).data("kendoWindow");
 
         // Window for searching for items to link to another item.
-        this.searchItemsWindow = $("#searchItemsWindow").kendoWindow({
+        const searchItemsWindowId = 'searchItemsWindow';
+        this.searchItemsWindow = $(`#${searchItemsWindowId}`).kendoWindow({
             width: "90%",
             height: "90%",
             title: "Item zoeken",
             visible: false,
             modal: true,
-            actions: ["Close"]
+            actions: ["Close"],
+            close: (closeEvent) => {
+                // Remove this window from the history.
+                this.removeWindowFromHistory(searchItemsWindowId);
+            }
         }).data("kendoWindow");
 
         // Some things should not be done if we're in iframe mode.
@@ -118,7 +145,7 @@ export class Windows {
         try {
             // Clone the window template and initialize a new window from that clone, then open it.
             const windowId = `existingItemWindow_${itemId || decodeURIComponent(encryptedItemId).replace(/-/g, "").replace(/\+/g, "").replace(/=/g, "").replace(/\//g, "")}`;
-
+            
             currentItemWindow = $(`#${windowId}`).data("kendoWindow");
 
             // If the window still exists, we just want to bring that window to the front, to prevent people from opening an item in multiple windows.
@@ -127,6 +154,9 @@ export class Windows {
                 currentItemWindow.maximize().center().open();
                 return;
             }
+            
+            // Pushes this window to the window history.
+            this.pushWindowToHistory(windowId);
 
             currentItemWindow = $("#itemWindow_template")
                 .clone(true)
@@ -139,6 +169,9 @@ export class Windows {
                     modal: true,
                     actions: ["Verwijderen", "Terugzetten", "Verversen", "Vertalen", "Close"],
                     close: (closeEvent) => {
+                        // Remove this window from the history.
+                        this.removeWindowFromHistory(windowId);
+                        
                         const closeFunction = () => {
                             try {
                                 // If the current item is a new item and it's not being saved at the moment, then delete it because it was a temporary item.
@@ -1149,5 +1182,27 @@ export class Windows {
             console.error(exception);
             kendo.alert("Er is iets fout gegaan met het initialiseren van het overzicht. Probeer het a.u.b. nogmaals.");
         }
+    }
+
+    /**
+     * Add the opening of this window to the history state to affect the back button's behavior.
+     * @param windowId - The ID of the window element in the DOM.
+     */
+    pushWindowToHistory(windowId) {
+        this.windowHistory.push(windowId);
+        history.pushState(
+            {
+                window: windowId
+            },
+            '',
+            location.href);
+    }
+
+    /**
+     * Removes the given window from the history.
+     * @param windowId - The ID of the window element in the DOM.
+     */
+    removeWindowFromHistory(windowId) {
+        this.windowHistory.splice(this.windowHistory.indexOf(windowId), 1);
     }
 }
