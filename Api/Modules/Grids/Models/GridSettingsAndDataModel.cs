@@ -20,6 +20,13 @@ namespace Api.Modules.Grids.Models
         public List<GridColumn> Columns { get; set; } = new();
 
         /// <summary>
+        ///     Gets or sets whether columns loaded from the options should be merged
+        ///     with columns that have already been configured in <see cref="Columns" />.
+        ///     When false, the existing column behavior is used.
+        /// </summary>
+        public bool MergeColumnsFromOptions { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets the schema model, with information about fields and their types.
         /// </summary>
         public DataSourceSchemaModel SchemaModel { get; set; } = new();

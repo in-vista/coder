@@ -945,6 +945,8 @@ namespace Api.Modules.Grids.Services
                 {
                     // Normal grid data.
                     var hasColumnsFromOptions = results.Columns.Any();
+                    var columnsToMerge = new List<GridColumn>();
+                    
                     if (!hasColumnsFromOptions)
                     {
                         var filterable = new Dictionary<string, object> {{"extra", true}};
@@ -1170,12 +1172,21 @@ namespace Api.Modules.Grids.Services
                                 continue;
                             }
 
-                            if (!hasColumnsFromOptions)
-                            {
-                                results.Columns.Add(column);
-                            }
+                            columnsToMerge.Add(column);
 
                             results.SchemaModel.Fields.Add(fieldName, field);
+                        }
+
+                        if (!hasColumnsFromOptions)
+                        {
+                            results.Columns.AddRange(columnsToMerge);
+                        }
+                        else if (results.MergeColumnsFromOptions)
+                        {
+                            MergeColumnsFromOptions(results.Columns, columnsToMerge);
+                            var filterable = new Dictionary<string, object> { { "extra", true } };
+                            results.Columns.Insert(0, new GridColumn
+                                { Field = "title", Title = "Naam", Filterable = filterable });
                         }
                     }
 
@@ -1601,6 +1612,8 @@ namespace Api.Modules.Grids.Services
                     var rowData = new Dictionary<string, object>();
                     results.Data.Add(rowData);
 
+                    rowData["title"] = dataRow["title"];
+
                     foreach (DataColumn dataColumn in dataTable.Columns)
                     {
                         var columnName = dataColumn.ColumnName.ToLowerInvariant().Replace("_encrypt_withdate", "").Replace("_encrypt", "").Replace("_hide", "").MakeJsonPropertyName();
@@ -1758,8 +1771,69 @@ namespace Api.Modules.Grids.Services
             {
                 results.ExtraJavascript = extraJavascript.ToString();
             }
+            
+            
 
             return new ServiceResult<GridSettingsAndDataModel>(results);
+        }
+
+        private static void MergeColumnsFromOptions(
+            IList<GridColumn> targetColumns,
+            IEnumerable<GridColumn> columnsToMerge)
+        {
+            var configuredColumns = targetColumns
+                .Where(column => !string.IsNullOrWhiteSpace(column.Field))
+                .GroupBy(
+                    column => column.Field,
+                    StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.First(),
+                    StringComparer.OrdinalIgnoreCase);
+
+            var mergedColumns = new List<GridColumn>();
+            var databaseFields = new HashSet<string>(
+                StringComparer.OrdinalIgnoreCase);
+
+            foreach (var databaseColumn in columnsToMerge)
+            {
+                databaseFields.Add(databaseColumn.Field);
+
+                if (configuredColumns.TryGetValue(
+                        databaseColumn.Field,
+                        out var configuredColumn))
+                    MergeColumnProperties(
+                        databaseColumn,
+                        configuredColumn);
+
+                mergedColumns.Add(databaseColumn);
+            }
+
+            mergedColumns.AddRange(configuredColumns.Values.Where(configuredColumn =>
+                !databaseFields.Contains(configuredColumn.Field)));
+
+            Console.WriteLine(targetColumns);
+
+            targetColumns.Clear();
+
+            foreach (var mergedColumn in mergedColumns) targetColumns.Add(mergedColumn);
+        }
+
+
+        private static void MergeColumnProperties(
+            GridColumn databaseColumn,
+            GridColumn configuredColumn)
+        {
+            if (!string.IsNullOrWhiteSpace(configuredColumn.Format)) databaseColumn.Format = configuredColumn.Format;
+
+            if (!string.IsNullOrWhiteSpace(configuredColumn.Title)) databaseColumn.Title = configuredColumn.Title;
+
+            if (!string.IsNullOrWhiteSpace(configuredColumn.Width)) databaseColumn.Width = configuredColumn.Width;
+
+            if (!string.IsNullOrWhiteSpace(configuredColumn.Template))
+                databaseColumn.Template = configuredColumn.Template;
+
+            if (!string.IsNullOrWhiteSpace(configuredColumn.Editor)) databaseColumn.Editor = configuredColumn.Editor;
         }
 
         /// <inheritdoc />
