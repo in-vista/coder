@@ -766,8 +766,10 @@
             try {
                 const res = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryGetGroupFilter);
                 const listViewTableGroupFilter = document.getElementById("list-view-table-group-filter");
-                listViewTableGroupFilter.value = res[0].value;
-                this.tableGroupFilter = res[0].value;
+                if (res[0]?.value != null) {
+                    listViewTableGroupFilter.value = res[0].value;
+                    this.tableGroupFilter = res[0].value;
+                }
             } catch(exception) {
                 timelineScheduler.showToast("Ruimtefilter laden mislukt", { type: "error" });
                 console.error(exception);
