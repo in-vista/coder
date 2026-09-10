@@ -723,6 +723,26 @@ export class Windows {
                 });
             }
 
+            if (window.LandingPageEditor !== undefined) {
+                const landingEditorContainers = popupWindowContainer.find('[data-topol-landing-editor="true"]');
+
+                for (const element of landingEditorContainers.toArray()) {
+                    const landingEditorContainer = $(element);
+                    const editorReady = landingEditorContainer.data("topolLandingEditorReady");
+
+                    if (editorReady) {
+                        await editorReady;
+                    }
+
+                    // This calls landingEditor.save() and waits for onSave to finish.
+                    const waitForLandingEditorSave = landingEditorContainer.data("topolLandingEditorSave");
+
+                    if (typeof waitForLandingEditorSave === "function") {
+                        await waitForLandingEditorSave();
+                    }
+                }
+            }
+
             const data = kendoWindow.element.data();
             const titleField = popupWindowContainer.find(".itemNameField");
             const newTitle = titleField.val();

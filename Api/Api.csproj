@@ -111,6 +111,8 @@
     <EmbeddedResource Include="Modules\Items\FieldTemplates\color-picker.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\combobox.html" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\combobox.js" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\landing-editor.html" />
+    <EmbeddedResource Include="Modules\Items\FieldTemplates\landing-editor.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\page-builder.html" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\page-builder.js" />
     <EmbeddedResource Include="Modules\Items\FieldTemplates\data-selector.html" />

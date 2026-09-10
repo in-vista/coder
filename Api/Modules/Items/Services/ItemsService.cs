@@ -1939,7 +1939,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 if (!String.IsNullOrWhiteSpace(scriptTemplate))
                 {
                     // Replace API key for Topol.
-                    if (fieldType.Equals("mail-editor", StringComparison.OrdinalIgnoreCase))
+                    if (fieldType.Equals("mail-editor", StringComparison.OrdinalIgnoreCase) ||
+                        fieldType.Equals("landing-editor", StringComparison.OrdinalIgnoreCase))
                     {
                         string topolApiKey = GclSettings.Current.TopolApiKey;
 
