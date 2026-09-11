@@ -27,3 +27,10 @@ jobs:
     with:
       runner: cluster4_transip
       environment: Development
+
+  deploy-linux:
+    uses: ./.github/workflows/deploy-single-linux-server.yml
+    secrets: inherit
+    with:
+      runner: linux_transip
+      environment: Development
