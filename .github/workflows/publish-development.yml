@@ -8,6 +8,7 @@ on:
 
 jobs:
   deploy-cluster1:
+    if: false
     uses: ./.github/workflows/deploy-single-server.yml
     secrets: inherit
     with:
@@ -15,6 +16,7 @@ jobs:
       environment: Development
 
   deploy-cluster3:
+    if: false
     uses: ./.github/workflows/deploy-single-server.yml
     secrets: inherit
     with:
@@ -22,8 +24,17 @@ jobs:
       environment: Development
 
   deploy-cluster4:
+    if: false
     uses: ./.github/workflows/deploy-single-server.yml
     secrets: inherit
     with:
       runner: cluster4_transip
+      environment: Development
+
+  deploy-linux:
+    if: github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/deploy-single-linux-server.yml
+    secrets: inherit
+    with:
+      runner: linux_transip
       environment: Development
