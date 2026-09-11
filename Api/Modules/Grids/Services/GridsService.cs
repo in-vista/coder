@@ -944,8 +944,8 @@ namespace Api.Modules.Grids.Services
                 default:
                 {
                     // Normal grid data.
-                    var hasColumnsFromOptions = results.Columns.Any();
-                    var columnsToMerge = new List<GridColumn>();
+                    bool hasColumnsFromOptions = results.Columns.Any();
+                    List<GridColumn> columnsToMerge = [];
                     
                     if (!hasColumnsFromOptions)
                     {
@@ -1184,7 +1184,7 @@ namespace Api.Modules.Grids.Services
                         else if (results.MergeColumnsFromOptions)
                         {
                             MergeColumnsFromOptions(results.Columns, columnsToMerge);
-                            var filterable = new Dictionary<string, object> { { "extra", true } };
+                            Dictionary<string, object> filterable = new() { { "extra", true } };
                             results.Columns.Insert(0, new GridColumn
                                 { Field = "title", Title = "Naam", Filterable = filterable });
                         }
@@ -1609,21 +1609,25 @@ namespace Api.Modules.Grids.Services
                 // Build the results dictionary.
                 foreach (DataRow dataRow in dataTable.Rows)
                 {
-                    var rowData = new Dictionary<string, object>();
+                    Dictionary<string, object> rowData = new();
                     results.Data.Add(rowData);
 
                     rowData["title"] = dataRow["title"];
 
                     foreach (DataColumn dataColumn in dataTable.Columns)
                     {
-                        var columnName = dataColumn.ColumnName.ToLowerInvariant().Replace("_encrypt_withdate", "").Replace("_encrypt", "").Replace("_hide", "").MakeJsonPropertyName();
+                        string columnName = dataColumn.ColumnName.ToLowerInvariant().Replace("_encrypt_withdate", "")
+                            .Replace("_encrypt", "").Replace("_hide", "")
+                            .MakeJsonPropertyName();
 
                         if (dataColumn.ColumnName.Contains("_encrypt", StringComparison.OrdinalIgnoreCase)
                             || dataColumn.ColumnName.Contains("_encrypt_hide", StringComparison.OrdinalIgnoreCase)
                             || dataColumn.ColumnName.Contains("_encrypt_withdate", StringComparison.OrdinalIgnoreCase)
                             || dataColumn.ColumnName.Contains("_encrypt_withdate_hide", StringComparison.OrdinalIgnoreCase))
                         {
-                            var value = dataRow.IsNull(dataColumn.ColumnName) ? "" : dataRow[dataColumn.ColumnName].ToString();
+                            string value = dataRow.IsNull(dataColumn.ColumnName)
+                                ? ""
+                                : dataRow[dataColumn.ColumnName].ToString();
                             rowData[columnName] = wiserTenantsService.EncryptValue(value, tenant.ModelObject);
                         }
                         else if (dataColumn.ColumnName.Contains("_decrypt", StringComparison.OrdinalIgnoreCase)
@@ -1766,74 +1770,100 @@ namespace Api.Modules.Grids.Services
                 }
             }
 
-
             if (extraJavascript.Length > 0)
             {
                 results.ExtraJavascript = extraJavascript.ToString();
             }
-            
-            
 
             return new ServiceResult<GridSettingsAndDataModel>(results);
         }
 
+        /// <summary>
+        /// Use this to merge the columns of a sub-entity-grid in order to:
+        /// Merge columns from columnsToMerge into targetColumns so that columns set in the database
+        /// options array are added to and override the targetColumns.
+        /// </summary>
+        /// <param name="targetColumns">The columns from the wiser_entityproperty options</param>
+        /// <param name="columnsToMerge">Standard columns retrieved for the sub-entity-grid</param>
         private static void MergeColumnsFromOptions(
             IList<GridColumn> targetColumns,
             IEnumerable<GridColumn> columnsToMerge)
         {
-            var configuredColumns = targetColumns
-                .Where(column => !string.IsNullOrWhiteSpace(column.Field))
+            // Create a lookup of option columns by field name.
+            // If the same field is configured more than once, only the first configuration is used.
+            Dictionary<string, GridColumn> optionColumns = targetColumns
+                .Where(column => !string
+                    .IsNullOrWhiteSpace(column.Field))
                 .GroupBy(
                     column => column.Field,
-                    StringComparer.OrdinalIgnoreCase)
+                    StringComparer.Ordinal)
                 .ToDictionary(
                     group => group.Key,
                     group => group.First(),
-                    StringComparer.OrdinalIgnoreCase);
+                    StringComparer.Ordinal);
 
-            var mergedColumns = new List<GridColumn>();
-            var databaseFields = new HashSet<string>(
-                StringComparer.OrdinalIgnoreCase);
+            List<GridColumn> mergedColumns = [];
 
-            foreach (var databaseColumn in columnsToMerge)
+            // Keep track of the fields that are present in the database columns.
+            // This is used later to find configured columns that do not exist in the database result.
+            HashSet<string> databaseFields = new(StringComparer.Ordinal);
+
+            foreach (GridColumn columnToMerge in columnsToMerge)
             {
-                databaseFields.Add(databaseColumn.Field);
+                databaseFields.Add(columnToMerge.Field);
 
-                if (configuredColumns.TryGetValue(
-                        databaseColumn.Field,
-                        out var configuredColumn))
-                    MergeColumnProperties(
-                        databaseColumn,
-                        configuredColumn);
+                if (optionColumns.TryGetValue(columnToMerge.Field, out GridColumn configuredColumn))
+                {
+                    MergeColumnProperties(columnToMerge, configuredColumn);
+                }
 
-                mergedColumns.Add(databaseColumn);
+                mergedColumns.Add(columnToMerge);
             }
 
-            mergedColumns.AddRange(configuredColumns.Values.Where(configuredColumn =>
+            mergedColumns.AddRange(optionColumns.Values.Where(configuredColumn =>
                 !databaseFields.Contains(configuredColumn.Field)));
-
-            Console.WriteLine(targetColumns);
 
             targetColumns.Clear();
 
-            foreach (var mergedColumn in mergedColumns) targetColumns.Add(mergedColumn);
+            foreach (GridColumn mergedColumn in mergedColumns)
+            {
+                targetColumns.Add(mergedColumn);
+            }
         }
 
-
+        /// <summary>
+        /// Merge the properties of columnToMerge, if not empty, into targetColumn
+        /// </summary>
+        /// <param name="targetColumn"></param>
+        /// <param name="columnToMerge"></param>
         private static void MergeColumnProperties(
-            GridColumn databaseColumn,
-            GridColumn configuredColumn)
+            GridColumn targetColumn,
+            GridColumn columnToMerge)
         {
-            if (!string.IsNullOrWhiteSpace(configuredColumn.Format)) databaseColumn.Format = configuredColumn.Format;
+            if (!string.IsNullOrWhiteSpace(columnToMerge.Format))
+            {
+                targetColumn.Format = columnToMerge.Format;
+            }
 
-            if (!string.IsNullOrWhiteSpace(configuredColumn.Title)) databaseColumn.Title = configuredColumn.Title;
+            if (!string.IsNullOrWhiteSpace(columnToMerge.Title))
+            {
+                targetColumn.Title = columnToMerge.Title;
+            }
 
-            if (!string.IsNullOrWhiteSpace(configuredColumn.Width)) databaseColumn.Width = configuredColumn.Width;
+            if (!string.IsNullOrWhiteSpace(columnToMerge.Width))
+            {
+                targetColumn.Width = columnToMerge.Width;
+            }
 
-            if (!string.IsNullOrWhiteSpace(configuredColumn.Template))
-                databaseColumn.Template = configuredColumn.Template;
+            if (!string.IsNullOrWhiteSpace(columnToMerge.Template))
+            {
+                targetColumn.Template = columnToMerge.Template;
+            }
 
-            if (!string.IsNullOrWhiteSpace(configuredColumn.Editor)) databaseColumn.Editor = configuredColumn.Editor;
+            if (!string.IsNullOrWhiteSpace(columnToMerge.Editor))
+            {
+                targetColumn.Editor = columnToMerge.Editor;
+            }
         }
 
         /// <inheritdoc />
