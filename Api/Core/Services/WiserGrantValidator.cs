@@ -161,6 +161,7 @@ namespace Api.Core.Services
                 { "adminLogin", adminAccountId > 0 },
                 { "name", loginResult.ModelObject.Name },
                 { "role", loginResult.ModelObject.Role },
+                { "roles", loginResult.ModelObject.Roles },
                 { "lastLoginIpAddress", loginResult.ModelObject.LastLoginIpAddress ?? "" },
                 { "lastLoginDate", (loginResult.ModelObject.LastLoginDate ?? DateTime.Now).ToString("dd-MM-yyyy HH:mm:ss") },
                 { "oldStyleUserId", loginResult.ModelObject.Id.ToString().EncryptWithAesWithSalt() },

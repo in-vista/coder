@@ -359,6 +359,7 @@ ORDER BY name ASC";
                             IF(last_login_date.value IS NULL, ?now, STR_TO_DATE(last_login_date.value, '%Y-%m-%d %H:%i:%s')) AS last_login_date,
                             IFNULL(require_password_change.value, '0') AS require_password_change,
                             IFNULL(role.role_name, '') AS role,
+                            GROUP_CONCAT(role.role_name SEPARATOR ',') AS roles,
                             email.value AS emailAddress,
                             IFNULL(totpEnabled.value, '0') = '1' AS totpEnabled,
                             totpSecret.value as totpSecret,
@@ -377,7 +378,8 @@ ORDER BY name ASC";
                         LEFT JOIN {WiserTableNames.WiserItemDetail} totpRequiresSetup on totpRequiresSetup.item_id = user.id and totpRequiresSetup.`key` = '{TotpRequiresSetupKey}'
                         WHERE user.entity_type = '{WiserUserEntityType}'
                         {(parentId != 0 ? "AND user.parent_item_id=?parentid" : "")}
-                        AND user.published_environment > 0";
+                        AND user.published_environment > 0
+                        GROUP BY userRole.user_id";
 
             var dataTable = await clientDatabaseConnection.GetAsync(query);
             if (dataTable.Rows.Count == 0)
@@ -406,6 +408,7 @@ ORDER BY name ASC";
                     LastLoginIpAddress = dataRow.Field<string>("last_login_ip"),
                     RequirePasswordChange = requirePasswordChange > 0 && !validAdminAccount, // Only require to change the password if the actual user is logged in.
                     Role = dataRow.Field<string>("role"),
+                    Roles = dataRow.Field<string>("roles"),
                     EmailAddress = dataRow.Field<string>("emailAddress"),
                     TotpAuthentication = new TotpAuthenticationModel
                     {

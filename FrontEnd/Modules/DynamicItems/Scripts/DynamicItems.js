@@ -1535,7 +1535,13 @@ const moduleSettings = {
         async loadHistoryGrid(itemId, entityType, moduleId) {
             const kendoHistoryGridWindow = this.windows.historyGridWindow;
             const historyGridElement = $("#historyWindowGrid");
+            
             kendoHistoryGridWindow.maximize().open();
+
+            // Pushes this window to the window history.
+            const searchItemsWindowId = kendoHistoryGridWindow.element.attr('id');
+            this.base.windows.pushWindowToHistory(searchItemsWindowId);
+            
             if (historyGridElement) historyGridElement.empty();
 
             try {
