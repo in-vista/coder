@@ -94,6 +94,11 @@ namespace Api.Modules.Tenants.Models
         /// Gets or sets the role of the user.
         /// </summary>
         public string Role { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the roles of the user.
+        /// </summary>
+        public string Roles { get; set; }
 
         /// <summary>
         /// Gets or sets the number 0, encrypted with the user's encryption ID.

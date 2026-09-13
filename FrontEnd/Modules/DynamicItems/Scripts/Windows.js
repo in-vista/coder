@@ -53,6 +53,8 @@ export class Windows {
             files: "files",
             templates: "templates"
         });
+        
+        this.windowHistory = [];
     }
 
     /**
