@@ -1539,8 +1539,7 @@ const moduleSettings = {
             kendoHistoryGridWindow.maximize().open();
 
             // Pushes this window to the window history.
-            const searchItemsWindowId = kendoHistoryGridWindow.element.attr('id');
-            this.base.windows.pushWindowToHistory(searchItemsWindowId);
+            this.base.windows.pushWindowToHistory(kendoHistoryGridWindow);
             
             if (historyGridElement) historyGridElement.empty();
 

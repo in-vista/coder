@@ -1973,6 +1973,8 @@ export class Fields {
                                     dialog.element.find("input")?.val(options.defaultValue);
 
                                 dialog.open();
+                                
+                                this.base.windows.pushWindowToHistory(dialog);
                             });
                         };
 

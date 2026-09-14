@@ -1680,8 +1680,7 @@ export class Grids {
         this.base.windows.searchItemsWindow.maximize().open();
 
         // Pushes this window to the window history.
-        const searchItemsWindowId = this.base.windows.searchItemsWindow.element.attr('id');
-        this.base.windows.pushWindowToHistory(searchItemsWindowId);
+        this.base.windows.pushWindowToHistory(this.base.windows.searchItemsWindow);
         
         this.base.windows.searchItemsWindow.title(`${this.base.getEntityTypeFriendlyName(entityType)} zoeken en koppelen`);
         this.base.windows.initializeSearchItemsGrid(entityType, encryptedParentId, propertyId, gridOptions);

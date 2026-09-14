@@ -1612,7 +1612,8 @@ namespace Api.Modules.Grids.Services
                     Dictionary<string, object> rowData = new();
                     results.Data.Add(rowData);
 
-                    rowData["title"] = dataRow["title"];
+                    if(dataRow.Table.Columns.Contains("title"))
+                        rowData["title"] = dataRow["title"];
 
                     foreach (DataColumn dataColumn in dataTable.Columns)
                     {
