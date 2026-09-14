@@ -945,7 +945,7 @@ namespace Api.Modules.Grids.Services
                 {
                     // Normal grid data.
                     bool hasColumnsFromOptions = results.Columns.Any();
-                    List<GridColumn> columnsToMerge = [];
+                    List<GridColumn> columnsToMerge = new();
                     
                     if (!hasColumnsFromOptions)
                     {
@@ -1802,7 +1802,7 @@ namespace Api.Modules.Grids.Services
                     group => group.First(),
                     StringComparer.Ordinal);
 
-            List<GridColumn> mergedColumns = [];
+            List<GridColumn> mergedColumns = new();
 
             // Keep track of the fields that are present in the database columns.
             // This is used later to find configured columns that do not exist in the database result.
