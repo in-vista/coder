@@ -493,6 +493,10 @@ export class Windows {
                             genericTabHasFields = true;
                             const container = currentItemWindow.element.find(".right-pane-content-popup").html(tabData.htmlTemplate);
                             await this.base.loadKendoScripts(tabData.scriptTemplate);
+
+                            // Mark the tab to be loaded.
+                            container.closest('.k-tabstrip-content').data('loaded', true);
+                            
                             $.globalEval(tabData.scriptTemplate);
 
                             await Utils.sleep(150);
