@@ -1,0 +1,986 @@
+name: Deploy single Linux server
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+
+      environment:
+        required: true
+        type: string
+
+      runtime:
+        required: false
+        type: string
+        default: linux-x64
+
+      service_user:
+        required: false
+        type: string
+        default: invista
+
+      core_library_location:
+        required: false
+        type: string
+        default: /opt/invista-core-library
+
+      backup_location:
+        required: false
+        type: string
+        default: /var/backups/projects
+
+      log_location:
+        required: false
+        type: string
+        default: /var/log/projects
+
+      api_listen_url:
+        required: false
+        type: string
+        default: ''
+
+      frontend_listen_url:
+        required: false
+        type: string
+        default: ''
+
+      api_healthcheck_url:
+        required: false
+        type: string
+        default: ''
+
+      frontend_healthcheck_url:
+        required: false
+        type: string
+        default: ''
+
+      cloudflare_account_id:
+        required: false
+        type: string
+        default: ''
+
+      cloudflare_pool_id:
+        required: false
+        type: string
+        default: ''
+
+      cloudflare_origin_id:
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ${{ inputs.runner }}
+    environment: ${{ inputs.environment }}
+
+    timeout-minutes: 30
+
+    concurrency:
+      group: linux-deploy-${{ inputs.runner }}-${{ inputs.environment }}
+      cancel-in-progress: false
+
+    steps:
+      - name: (ICL) Checkout
+        uses: actions/checkout@v6
+        with:
+          repository: in-vista/invista-core-library
+          path: invista-core-library
+          persist-credentials: false
+
+      - name: (Coder) Checkout
+        uses: actions/checkout@v6
+        with:
+          path: coder
+          persist-credentials: false
+
+      - name: Configure deployment
+        id: configure
+        shell: bash
+        env:
+          ENVIRONMENT_NAME: ${{ inputs.environment }}
+        run: |
+          set -euo pipefail
+
+          environmentSlug="$(
+            printf '%s' "$ENVIRONMENT_NAME" |
+              tr '[:upper:]' '[:lower:]' |
+              sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//'
+          )"
+
+          if [ -z "$environmentSlug" ]; then
+            echo "::error::Could not derive a valid environment slug from '$ENVIRONMENT_NAME'."
+            exit 1
+          fi
+
+          apiFramework="$(
+            sed -nE 's#.*<TargetFramework>(net[0-9]+\.[0-9]+)(-[^<]+)?</TargetFramework>.*#\1#p' \
+              "$GITHUB_WORKSPACE/coder/Api/Api.csproj" |
+              head -n 1
+          )"
+
+          frontendFramework="$(
+            sed -nE 's#.*<TargetFramework>(net[0-9]+\.[0-9]+)(-[^<]+)?</TargetFramework>.*#\1#p' \
+              "$GITHUB_WORKSPACE/coder/FrontEnd/FrontEnd.csproj" |
+              head -n 1
+          )"
+
+          if [ -z "$apiFramework" ]; then
+            echo "::error::Could not determine TargetFramework from Api/Api.csproj."
+            exit 1
+          fi
+
+          if [ -z "$frontendFramework" ]; then
+            echo "::error::Could not determine TargetFramework from FrontEnd/FrontEnd.csproj."
+            exit 1
+          fi
+
+          if [ "$apiFramework" != "$frontendFramework" ]; then
+            echo "::error::API targets $apiFramework while FrontEnd targets $frontendFramework."
+            exit 1
+          fi
+
+          dotnetVersion="${apiFramework#net}.x"
+
+          echo "ENVIRONMENT_SLUG=$environmentSlug" >> "$GITHUB_ENV"
+          echo "API_SERVICE=coder-${environmentSlug}-api.service" >> "$GITHUB_ENV"
+          echo "FRONTEND_SERVICE=coder-${environmentSlug}-frontend.service" >> "$GITHUB_ENV"
+          echo "DOTNET_SDK_VERSION=$dotnetVersion" >> "$GITHUB_ENV"
+          echo "DOTNET_INSTALL_DIR=$RUNNER_TOOL_CACHE/dotnet" >> "$GITHUB_ENV"
+
+          echo "dotnet_version=$dotnetVersion" >> "$GITHUB_OUTPUT"
+
+          echo "Environment:       $ENVIRONMENT_NAME"
+          echo "Environment slug:  $environmentSlug"
+          echo ".NET target:       $apiFramework"
+          echo ".NET SDK selector: $dotnetVersion"
+          echo "API service:       coder-${environmentSlug}-api.service"
+          echo "FrontEnd service:  coder-${environmentSlug}-frontend.service"
+
+      - name: (Coder) Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ steps.configure.outputs.dotnet_version }}
+
+      - name: (Coder) Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: coder/FrontEnd/package-lock.json
+
+      - name: Validate deployment configuration
+        id: validate
+        shell: bash
+        env:
+          PUBLISH_LOCATION_API_LINUX: ${{ secrets.PUBLISH_LOCATION_API_LINUX }}
+          PUBLISH_LOCATION_FRONT_END_LINUX: ${{ secrets.PUBLISH_LOCATION_FRONT_END_LINUX }}
+          PARTNER_STYLES_LOCATION_LINUX: ${{ secrets.PARTNER_STYLES_LOCATION_LINUX }}
+          CORE_LIBRARY_LOCATION: ${{ inputs.core_library_location }}
+          BACKUP_LOCATION: ${{ inputs.backup_location }}
+          LOG_LOCATION: ${{ inputs.log_location }}
+          SERVICE_USER: ${{ inputs.service_user }}
+        run: |
+          set -euo pipefail
+
+          fail() {
+            printf '::error::%s\n' "$1" >&2
+            exit 1
+          }
+
+          validate_destination() {
+            local name="$1"
+            local value="$2"
+
+            if [ -z "$value" ]; then
+              fail "$name is empty."
+            fi
+
+            if [[ "$value" != /* ]]; then
+              fail "$name must be an absolute Linux path."
+            fi
+
+            local resolved
+            resolved="$(realpath -m -- "$value")"
+
+            case "$resolved" in
+              /|/bin|/boot|/dev|/etc|/home|/lib|/lib64|/opt|/proc|/root|/run|/sbin|/srv|/sys|/tmp|/usr|/var)
+                fail "Refusing dangerous destination for $name: $resolved"
+                ;;
+            esac
+
+            printf '%s' "$resolved"
+          }
+
+          API_PATH="$(validate_destination PUBLISH_LOCATION_API_LINUX "$PUBLISH_LOCATION_API_LINUX")"
+          FRONTEND_PATH="$(validate_destination PUBLISH_LOCATION_FRONT_END_LINUX "$PUBLISH_LOCATION_FRONT_END_LINUX")"
+          CORE_PATH="$(validate_destination CORE_LIBRARY_LOCATION "$CORE_LIBRARY_LOCATION")"
+          BACKUP_PATH="$(validate_destination BACKUP_LOCATION "$BACKUP_LOCATION")"
+          LOG_PATH="$(validate_destination LOG_LOCATION "$LOG_LOCATION")"
+
+          if [ "$API_PATH" = "$FRONTEND_PATH" ]; then
+            fail "API and FrontEnd publish locations cannot be the same."
+          fi
+
+          if [[ "$API_PATH" == "$FRONTEND_PATH"/* ]] ||
+             [[ "$FRONTEND_PATH" == "$API_PATH"/* ]]; then
+            fail "API and FrontEnd publish locations cannot contain each other."
+          fi
+
+          if [[ "$BACKUP_PATH" == "$API_PATH"/* ]] ||
+             [[ "$BACKUP_PATH" == "$FRONTEND_PATH"/* ]]; then
+            fail "Backup location cannot be inside a publish location."
+          fi
+
+          PARTNER_PATH="$(realpath -e -- "$PARTNER_STYLES_LOCATION_LINUX")"
+
+          if [ "$PARTNER_PATH" = "/" ]; then
+            fail "PARTNER_STYLES_LOCATION_LINUX cannot point to /."
+          fi
+
+
+          if ! id "$SERVICE_USER" >/dev/null 2>&1; then
+            fail "Service user does not exist: $SERVICE_USER"
+          fi
+
+          for command in git curl jq rsync dotnet npm systemctl sudo python3 sed; do
+            if ! command -v "$command" >/dev/null 2>&1; then
+              fail "Required command is not installed: $command"
+            fi
+          done
+
+          echo "PUBLISH_LOCATION_API_LINUX=$API_PATH" >> "$GITHUB_ENV"
+          echo "PUBLISH_LOCATION_FRONT_END_LINUX=$FRONTEND_PATH" >> "$GITHUB_ENV"
+          echo "CORE_LIBRARY_LOCATION=$CORE_PATH" >> "$GITHUB_ENV"
+          echo "BACKUP_LOCATION=$BACKUP_PATH" >> "$GITHUB_ENV"
+          echo "LOG_LOCATION=$LOG_PATH" >> "$GITHUB_ENV"
+          echo "PARTNER_STYLES_LOCATION_LINUX=$PARTNER_PATH" >> "$GITHUB_ENV"
+
+          echo "Configuration validation successful."
+          echo "API destination:      $API_PATH"
+          echo "FrontEnd destination: $FRONTEND_PATH"
+          echo "Core library:         $CORE_PATH"
+          echo "Backup location:      $BACKUP_PATH"
+          echo "Log location:         $LOG_PATH"
+          echo "API service:          $API_SERVICE"
+          echo "FrontEnd service:     $FRONTEND_SERVICE"
+
+      - name: Prepare deployment directories
+        shell: bash
+        env:
+          SERVICE_USER: ${{ inputs.service_user }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p \
+            "$PUBLISH_LOCATION_API_LINUX" \
+            "$PUBLISH_LOCATION_FRONT_END_LINUX" \
+            "$CORE_LIBRARY_LOCATION" \
+            "$BACKUP_LOCATION/$ENVIRONMENT_SLUG/api" \
+            "$BACKUP_LOCATION/$ENVIRONMENT_SLUG/frontend"
+
+          apiLogDirectory="$LOG_LOCATION/coder-$ENVIRONMENT_SLUG/api"
+          frontendLogDirectory="$LOG_LOCATION/coder-$ENVIRONMENT_SLUG/frontend"
+
+          sudo -n install -d -m 2775 -o "$SERVICE_USER" -g deployments \
+            "$apiLogDirectory" \
+            "$frontendLogDirectory"
+
+          # Keep deploy/runtime-created files writable by both the service user
+          # and the GitHub runner through the shared deployments group.
+          sudo -n chgrp deployments \
+            "$PUBLISH_LOCATION_API_LINUX" \
+            "$PUBLISH_LOCATION_FRONT_END_LINUX"
+
+          sudo -n chmod 2775 \
+            "$PUBLISH_LOCATION_API_LINUX" \
+            "$PUBLISH_LOCATION_FRONT_END_LINUX"
+
+      - name: (ICL) Synchronize core library
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rsync \
+            --archive \
+            --delete-after \
+            --no-owner \
+            --no-group \
+            --no-perms \
+            --omit-dir-times \
+          "$GITHUB_WORKSPACE/invista-core-library/" \
+          "$CORE_LIBRARY_LOCATION/"
+
+      - name: (Coder) Copy partner styles
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          destination="$PUBLISH_LOCATION_FRONT_END_LINUX/Core/Css/partner"
+          destinationWorker="$GITHUB_WORKSPACE/coder/FrontEnd/Core/Css/partner"
+
+          mkdir -p "$destination"
+          mkdir -p "$destinationWorker"
+
+          rsync \
+            --archive \
+            --delete \
+            --no-owner \
+            --no-group \
+            "$PARTNER_STYLES_LOCATION_LINUX/" \
+            "$destination/"
+
+          rsync \
+            --archive \
+            --delete \
+            --no-owner \
+            --no-group \
+            "$PARTNER_STYLES_LOCATION_LINUX/" \
+            "$destinationWorker/"
+
+      - name: (Coder) Fix Linux core-library project references
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 <<'PY'
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["GITHUB_WORKSPACE"]) / "coder"
+          replacement = os.environ["CORE_LIBRARY_LOCATION"].rstrip("/") + "/"
+          windows_prefix = "C:\\invista-core-library\\"
+
+          changed = []
+
+          for path in root.rglob("*.csproj"):
+              text = path.read_text(encoding="utf-8")
+
+              if windows_prefix not in text:
+                  continue
+
+              updated = text.replace(windows_prefix, replacement)
+              path.write_text(updated, encoding="utf-8")
+              changed.append(str(path.relative_to(root)))
+
+          if changed:
+              print("Adjusted Windows-only core-library project references for Linux:")
+              for path in changed:
+                  print(f"  - {path}")
+          else:
+              print("No Windows-only core-library project references required adjustment.")
+          PY
+
+      - name: (Coder) Install NPM modules
+        run: npm ci
+        working-directory: coder/FrontEnd
+
+      - name: (Coder) Write Kendo UI license
+        shell: bash
+        env:
+          KENDO_UI_LICENSE: ${{ secrets.KENDO_UI_LICENSE }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$KENDO_UI_LICENSE" ]; then
+            echo "::error::KENDO_UI_LICENSE is empty."
+            exit 1
+          fi
+
+          printf '%s' "$KENDO_UI_LICENSE" > telerik-license.txt
+        working-directory: coder/FrontEnd
+
+      - name: (Coder) Activate Kendo UI license
+        run: npx kendo-ui-license activate
+        working-directory: coder/FrontEnd
+
+      - name: (Coder) Remove Kendo UI license file
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$GITHUB_WORKSPACE/coder/FrontEnd/telerik-license.txt"
+
+      - name: (Coder) Add Linux compatibility symlinks
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          modulesRoot="$GITHUB_WORKSPACE/coder/FrontEnd/Modules"
+
+          find "$modulesRoot" -type d -name "Css" -print0 |
+            while IFS= read -r -d '' directory; do
+              parent="$(dirname "$directory")"
+              alias="$parent/css"
+
+              if [ ! -e "$alias" ]; then
+                ln -s "Css" "$alias"
+                echo "Created: $alias -> Css"
+              fi
+            done
+
+      - name: (Coder) Compile scripts and styles with webpack
+        shell: bash
+        env:
+          ENVIRONMENT_NAME: ${{ inputs.environment }}
+        run: |
+          set -euo pipefail
+
+          if [ "$ENVIRONMENT_NAME" = "Production" ]; then
+            mode="production"
+          else
+            mode="development"
+          fi
+
+          ./node_modules/.bin/webpack --mode="$mode"
+        working-directory: coder/FrontEnd
+
+      - name: (Coder) Publish to staging
+        id: publish
+        shell: bash
+        env:
+          ENVIRONMENT_NAME: ${{ inputs.environment }}
+          RUNTIME: ${{ inputs.runtime }}
+        run: |
+          set -euo pipefail
+
+          environmentName="$(printf '%s' "$ENVIRONMENT_NAME" | tr '[:upper:]' '[:lower:]')"
+
+          stagingRoot="$RUNNER_TEMP/coder-deploy-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          apiStaging="$stagingRoot/api"
+          frontendStaging="$stagingRoot/frontend"
+
+          rm -rf -- "$stagingRoot"
+          mkdir -p "$apiStaging" "$frontendStaging"
+
+          echo "Publishing API to staging..."
+
+          dotnet publish "$GITHUB_WORKSPACE/coder/Api/Api.csproj" \
+            -c Release \
+            -o "$apiStaging" \
+            --self-contained true \
+            -r "$RUNTIME" \
+            /p:EnvironmentName="$environmentName" \
+            /p:IsTransformWebConfigDisabled=true
+
+          echo "Publishing FrontEnd to staging..."
+
+          dotnet publish "$GITHUB_WORKSPACE/coder/FrontEnd/FrontEnd.csproj" \
+            -c Release \
+            -o "$frontendStaging" \
+            --self-contained true \
+            -r "$RUNTIME" \
+            /p:EnvironmentName="$environmentName" \
+            /p:IsTransformWebConfigDisabled=true
+
+          if [ ! -x "$apiStaging/Api" ]; then
+            echo "::error::Published API executable was not found: $apiStaging/Api"
+            exit 1
+          fi
+
+          if [ ! -x "$frontendStaging/FrontEnd" ]; then
+            echo "::error::Published FrontEnd executable was not found: $frontendStaging/FrontEnd"
+            exit 1
+          fi
+
+          echo "STAGING_ROOT=$stagingRoot" >> "$GITHUB_ENV"
+          echo "API_STAGING=$apiStaging" >> "$GITHUB_ENV"
+          echo "FRONTEND_STAGING=$frontendStaging" >> "$GITHUB_ENV"
+
+      - name: Ensure systemd services
+        shell: bash
+        env:
+          ENVIRONMENT_NAME: ${{ inputs.environment }}
+          SERVICE_USER: ${{ inputs.service_user }}
+          API_LISTEN_URL: ${{ inputs.api_listen_url }}
+          FRONTEND_LISTEN_URL: ${{ inputs.frontend_listen_url }}
+        run: |
+          set -euo pipefail
+
+          apiUnit="$RUNNER_TEMP/$API_SERVICE"
+          frontendUnit="$RUNNER_TEMP/$FRONTEND_SERVICE"
+          apiLogPath="$LOG_LOCATION/coder-$ENVIRONMENT_SLUG/api/log.txt"
+          frontendLogPath="$LOG_LOCATION/coder-$ENVIRONMENT_SLUG/frontend/log.txt"
+
+          {
+            echo "[Unit]"
+            echo "Description=Coder $ENVIRONMENT_NAME API"
+            echo "After=network-online.target"
+            echo "Wants=network-online.target"
+            echo
+            echo "[Service]"
+            echo "Type=simple"
+            echo "User=$SERVICE_USER"
+            echo "WorkingDirectory=$PUBLISH_LOCATION_API_LINUX"
+            echo "ExecStart=$PUBLISH_LOCATION_API_LINUX/Api"
+            echo "Restart=always"
+            echo "RestartSec=5"
+            echo "KillSignal=SIGINT"
+            echo "SyslogIdentifier=coder-$ENVIRONMENT_SLUG-api"
+            echo "Environment=ASPNETCORE_ENVIRONMENT=$ENVIRONMENT_NAME"
+            echo "Environment=DOTNET_ENVIRONMENT=$ENVIRONMENT_NAME"
+            echo "Environment=Serilog__WriteTo__0__Args__path=$apiLogPath"
+            echo "UMask=0002"
+
+            if [ -n "$API_LISTEN_URL" ]; then
+              echo "Environment=ASPNETCORE_URLS=$API_LISTEN_URL"
+            fi
+
+            echo "NoNewPrivileges=true"
+            echo "PrivateTmp=true"
+            echo
+            echo "[Install]"
+            echo "WantedBy=multi-user.target"
+          } > "$apiUnit"
+
+          {
+            echo "[Unit]"
+            echo "Description=Coder $ENVIRONMENT_NAME FrontEnd"
+            echo "After=network-online.target"
+            echo "Wants=network-online.target"
+            echo
+            echo "[Service]"
+            echo "Type=simple"
+            echo "User=$SERVICE_USER"
+            echo "WorkingDirectory=$PUBLISH_LOCATION_FRONT_END_LINUX"
+            echo "ExecStart=$PUBLISH_LOCATION_FRONT_END_LINUX/FrontEnd"
+            echo "Restart=always"
+            echo "RestartSec=5"
+            echo "KillSignal=SIGINT"
+            echo "SyslogIdentifier=coder-$ENVIRONMENT_SLUG-frontend"
+            echo "Environment=ASPNETCORE_ENVIRONMENT=$ENVIRONMENT_NAME"
+            echo "Environment=DOTNET_ENVIRONMENT=$ENVIRONMENT_NAME"
+            echo "Environment=Serilog__WriteTo__0__Args__path=$frontendLogPath"
+            echo "UMask=0002"
+
+            if [ -n "$FRONTEND_LISTEN_URL" ]; then
+              echo "Environment=ASPNETCORE_URLS=$FRONTEND_LISTEN_URL"
+            fi
+
+            echo "NoNewPrivileges=true"
+            echo "PrivateTmp=true"
+            echo
+            echo "[Install]"
+            echo "WantedBy=multi-user.target"
+          } > "$frontendUnit"
+
+          sudo -n tee "/etc/systemd/system/$API_SERVICE" < "$apiUnit" >/dev/null
+          sudo -n tee "/etc/systemd/system/$FRONTEND_SERVICE" < "$frontendUnit" >/dev/null
+
+          sudo -n systemctl daemon-reload
+          sudo -n systemctl enable "$API_SERVICE" "$FRONTEND_SERVICE"
+
+          echo "Systemd services ready:"
+          echo "  $API_SERVICE"
+          echo "  $FRONTEND_SERVICE"
+
+      - name: Retrieve deployment timestamp
+        id: datetime
+        shell: bash
+        run: |
+          echo "datetime=$(date '+%Y-%m-%d_%H-%M-%S')" >> "$GITHUB_OUTPUT"
+
+      - name: (Coder) Create backups
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          folderPathApi="$BACKUP_LOCATION/$ENVIRONMENT_SLUG/api/${{ steps.datetime.outputs.datetime }}"
+          folderPathFrontend="$BACKUP_LOCATION/$ENVIRONMENT_SLUG/frontend/${{ steps.datetime.outputs.datetime }}"
+
+          mkdir -p "$folderPathApi" "$folderPathFrontend"
+
+          hadApiDeployment=false
+          hadFrontendDeployment=false
+
+          if find "$PUBLISH_LOCATION_API_LINUX" -mindepth 1 -maxdepth 1 -print -quit | grep -q .; then
+            hadApiDeployment=true
+            rsync --archive --no-owner --no-group --omit-dir-times --exclude="/C:/" "$PUBLISH_LOCATION_API_LINUX/" "$folderPathApi/"
+          fi
+
+          if find "$PUBLISH_LOCATION_FRONT_END_LINUX" -mindepth 1 -maxdepth 1 -print -quit | grep -q .; then
+            hadFrontendDeployment=true
+            rsync --archive --no-owner --no-group --omit-dir-times --exclude="/C:/" --exclude="/Core/Css/partner/" "$PUBLISH_LOCATION_FRONT_END_LINUX/" "$folderPathFrontend/"
+          fi
+
+          echo "FOLDER_PATH_API=$folderPathApi" >> "$GITHUB_ENV"
+          echo "FOLDER_PATH_FRONT_END=$folderPathFrontend" >> "$GITHUB_ENV"
+          echo "HAD_API_DEPLOYMENT=$hadApiDeployment" >> "$GITHUB_ENV"
+          echo "HAD_FRONTEND_DEPLOYMENT=$hadFrontendDeployment" >> "$GITHUB_ENV"
+
+      - name: Disable Cloudflare origin
+        id: disable_cloudflare
+        if: ${{ inputs.cloudflare_account_id != '' && inputs.cloudflare_pool_id != '' && inputs.cloudflare_origin_id != '' }}
+        shell: bash
+        env:
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
+          POOL_ID: ${{ inputs.cloudflare_pool_id }}
+          ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
+        run: |
+          set -euo pipefail
+
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+
+          if [ -z "$CLOUDFLARE_API_KEY" ]; then
+            echo "::error::CLOUDFLARE_API_KEY is empty."
+            exit 1
+          fi
+
+          uri="https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/load_balancers/pools/$POOL_ID"
+
+          pool="$(curl \
+            --fail \
+            --silent \
+            --show-error \
+            -H "Authorization: Bearer $CLOUDFLARE_API_KEY" \
+            -H "Content-Type: application/json" \
+            "$uri")"
+
+          if [ "$(jq -r '.success' <<< "$pool")" != "true" ]; then
+            echo "::error::Cloudflare did not return a successful response."
+            exit 1
+          fi
+
+          originCount="$(jq \
+            --arg originId "$ORIGIN_ID" \
+            '[.result.origins[] | select(.name == $originId)] | length' \
+            <<< "$pool")"
+
+          if [ "$originCount" -ne 1 ]; then
+            echo "::error::Expected exactly one Cloudflare origin named '$ORIGIN_ID', found $originCount."
+            exit 1
+          fi
+
+          enabled="$(jq -r \
+            --arg originId "$ORIGIN_ID" \
+            '.result.origins[] | select(.name == $originId) | .enabled' \
+            <<< "$pool")"
+
+          if [ "$enabled" != "true" ]; then
+            echo "Origin was already disabled."
+            exit 0
+          fi
+
+          body="$(jq \
+            --arg originId "$ORIGIN_ID" \
+            '{
+              origins: [
+                .result.origins[] |
+                if .name == $originId then
+                  .enabled = false
+                else
+                  .
+                end
+              ]
+            }' <<< "$pool")"
+
+          response="$(curl \
+            --fail \
+            --silent \
+            --show-error \
+            -X PATCH \
+            -H "Authorization: Bearer $CLOUDFLARE_API_KEY" \
+            -H "Content-Type: application/json" \
+            --data "$body" \
+            "$uri")"
+
+          if [ "$(jq -r '.success' <<< "$response")" != "true" ]; then
+            echo "::error::Failed to disable Cloudflare origin."
+            exit 1
+          fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "Cloudflare origin disabled."
+
+      - name: (Coder) Deploy and verify
+        id: deploy_files
+        shell: bash
+        env:
+          ENVIRONMENT_NAME: ${{ inputs.environment }}
+          API_HEALTHCHECK_URL: ${{ inputs.api_healthcheck_url }}
+          FRONTEND_HEALTHCHECK_URL: ${{ inputs.frontend_healthcheck_url }}
+        run: |
+          set -uo pipefail
+
+          echo "safe_to_enable=false" >> "$GITHUB_OUTPUT"
+
+          verify_url() {
+            local name="$1"
+            local url="$2"
+
+            if [ -z "$url" ]; then
+              return 0
+            fi
+
+            echo "Checking $name health endpoint: $url"
+
+            for attempt in {1..10}; do
+              if curl \
+                --fail \
+                --silent \
+                --show-error \
+                --max-time 5 \
+                "$url" >/dev/null; then
+
+                echo "$name health check succeeded."
+                return 0
+              fi
+
+              echo "$name health check failed, attempt $attempt/10."
+              sleep 2
+            done
+
+            return 1
+          }
+
+          verify_services() {
+            sleep 2
+
+            if ! systemctl is-active --quiet "$API_SERVICE"; then
+              echo "::error::$API_SERVICE is not active."
+              systemctl --no-pager --full status "$API_SERVICE" || true
+              return 1
+            fi
+
+            if ! systemctl is-active --quiet "$FRONTEND_SERVICE"; then
+              echo "::error::$FRONTEND_SERVICE is not active."
+              systemctl --no-pager --full status "$FRONTEND_SERVICE" || true
+              return 1
+            fi
+
+            verify_url "API" "$API_HEALTHCHECK_URL" || return 1
+            verify_url "FrontEnd" "$FRONTEND_HEALTHCHECK_URL" || return 1
+
+            return 0
+          }
+
+          deploymentFailed=0
+
+          echo "Stopping services..."
+
+          sudo -n systemctl stop "$FRONTEND_SERVICE" || deploymentFailed=1
+          sudo -n systemctl stop "$API_SERVICE" || deploymentFailed=1
+
+          if [ "$deploymentFailed" -eq 0 ]; then
+            # Older Linux runs interpreted the Windows Serilog path
+            # C:/temp/... as a relative path and created a literal C:
+            # directory inside the publish folders. Remove the entire stale C:
+            # tree after stopping the services, before rsync performs deletion.
+            sudo -n rm -rf -- \
+              "$PUBLISH_LOCATION_API_LINUX/C:" \
+              "$PUBLISH_LOCATION_FRONT_END_LINUX/C:"
+          fi
+
+          if [ "$deploymentFailed" -eq 0 ]; then
+            echo "Deploying API..."
+
+            rsync \
+              --archive \
+              --delete-after \
+              --no-owner \
+              --no-group \
+              --omit-dir-times \
+              --chmod=Dg+rwx,Dg+s,Fg+rw \
+              --exclude="/appsettings.${ENVIRONMENT_NAME}.json" \
+              --exclude="/appsettings-secrets.json" \
+              --exclude="/appsettings.json" \
+              --exclude="/tempkey.jwk" \
+              "$API_STAGING/" \
+              "$PUBLISH_LOCATION_API_LINUX/" || deploymentFailed=1
+          fi
+
+          if [ "$deploymentFailed" -eq 0 ]; then
+            echo "Deploying FrontEnd..."
+
+            rsync \
+              --archive \
+              --delete-after \
+              --no-owner \
+              --no-group \
+              --omit-dir-times \
+              --chmod=Dg+rwx,Dg+s,Fg+rw \
+              --exclude="/appsettings.${ENVIRONMENT_NAME}.json" \
+              --exclude="/appsettings-secrets.json" \
+              --exclude="/appsettings.json" \
+              --exclude="/tempkey.jwk" \
+              --exclude="/Core/Css/partner/" \
+              "$FRONTEND_STAGING/" \
+              "$PUBLISH_LOCATION_FRONT_END_LINUX/" || deploymentFailed=1
+          fi
+
+          if [ "$deploymentFailed" -eq 0 ]; then
+            sudo -n systemctl start "$API_SERVICE" || deploymentFailed=1
+          fi
+
+          if [ "$deploymentFailed" -eq 0 ]; then
+            sudo -n systemctl start "$FRONTEND_SERVICE" || deploymentFailed=1
+          fi
+
+          if [ "$deploymentFailed" -eq 0 ] && ! verify_services; then
+            deploymentFailed=1
+          fi
+
+          if [ "$deploymentFailed" -eq 0 ]; then
+            echo "Deployment succeeded."
+            echo "safe_to_enable=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "::error::Deployment failed."
+
+          sudo -n systemctl stop "$FRONTEND_SERVICE" || true
+          sudo -n systemctl stop "$API_SERVICE" || true
+
+          rollbackFailed=0
+
+          if [ "$HAD_API_DEPLOYMENT" = "true" ]; then
+            rsync \
+              --archive \
+              --delete-after \
+              --no-owner \
+              --no-group \
+              --omit-dir-times \
+              --chmod=Dg+rwx,Dg+s,Fg+rw \
+              "$FOLDER_PATH_API/" \
+              "$PUBLISH_LOCATION_API_LINUX/" || rollbackFailed=1
+          else
+            sudo -n rm -rf -- "$PUBLISH_LOCATION_API_LINUX"/*
+          fi
+
+          if [ "$HAD_FRONTEND_DEPLOYMENT" = "true" ]; then
+            rsync \
+              --archive \
+              --delete-after \
+              --no-owner \
+              --no-group \
+              --omit-dir-times \
+              --chmod=Dg+rwx,Dg+s,Fg+rw \
+              --exclude="/Core/Css/partner/" \
+              "$FOLDER_PATH_FRONT_END/" \
+              "$PUBLISH_LOCATION_FRONT_END_LINUX/" || rollbackFailed=1
+          else
+            sudo -n rm -rf -- "$PUBLISH_LOCATION_FRONT_END_LINUX"/*
+          fi
+
+          if [ "$HAD_API_DEPLOYMENT" = "true" ] &&
+             [ "$HAD_FRONTEND_DEPLOYMENT" = "true" ]; then
+
+            sudo -n systemctl start "$API_SERVICE" || rollbackFailed=1
+            sudo -n systemctl start "$FRONTEND_SERVICE" || rollbackFailed=1
+
+            if [ "$rollbackFailed" -eq 0 ] && verify_services; then
+              echo "Previous deployment restored successfully."
+              echo "safe_to_enable=true" >> "$GITHUB_OUTPUT"
+            else
+              rollbackFailed=1
+            fi
+          else
+            echo "No complete previous deployment existed; services remain stopped."
+          fi
+
+          if [ "$rollbackFailed" -ne 0 ]; then
+            echo "::error::Automatic rollback also failed."
+          fi
+
+          exit 1
+
+      - name: Enable Cloudflare origin
+        if: >-
+          ${{
+            always() &&
+            steps.disable_cloudflare.outputs.changed == 'true' &&
+            steps.deploy_files.outputs.safe_to_enable == 'true'
+          }}
+        shell: bash
+        env:
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
+          POOL_ID: ${{ inputs.cloudflare_pool_id }}
+          ORIGIN_ID: ${{ inputs.cloudflare_origin_id }}
+        run: |
+          set -euo pipefail
+
+          uri="https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/load_balancers/pools/$POOL_ID"
+
+          pool="$(curl \
+            --fail \
+            --silent \
+            --show-error \
+            -H "Authorization: Bearer $CLOUDFLARE_API_KEY" \
+            -H "Content-Type: application/json" \
+            "$uri")"
+
+          body="$(jq \
+            --arg originId "$ORIGIN_ID" \
+            '{
+              origins: [
+                .result.origins[] |
+                if .name == $originId then
+                  .enabled = true
+                else
+                  .
+                end
+              ]
+            }' <<< "$pool")"
+
+          response="$(curl \
+            --fail \
+            --silent \
+            --show-error \
+            -X PATCH \
+            -H "Authorization: Bearer $CLOUDFLARE_API_KEY" \
+            -H "Content-Type: application/json" \
+            --data "$body" \
+            "$uri")"
+
+          if [ "$(jq -r '.success' <<< "$response")" != "true" ]; then
+            echo "::error::Failed to enable Cloudflare origin."
+            exit 1
+          fi
+
+          echo "Cloudflare origin enabled."
+
+      - name: (Coder) Keep two most recent backups
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for project in api frontend; do
+            projectFolder="$BACKUP_LOCATION/$ENVIRONMENT_SLUG/$project"
+
+            if [ ! -d "$projectFolder" ]; then
+              continue
+            fi
+
+            mapfile -t backups < <(
+              find "$projectFolder" \
+                -mindepth 1 \
+                -maxdepth 1 \
+                -type d \
+                -printf '%T@ %p\n' |
+              sort -rn |
+              cut -d' ' -f2-
+            )
+
+            if [ "${#backups[@]}" -gt 2 ]; then
+              for backup in "${backups[@]:2}"; do
+                echo "Deleting old backup: $backup"
+                rm -rf -- "$backup"
+              done
+            fi
+          done
+
+      - name: Clean staging directory
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "${STAGING_ROOT:-}" ] &&
+             [[ "$STAGING_ROOT" == "$RUNNER_TEMP/"* ]]; then
+            rm -rf -- "$STAGING_ROOT"
+          fi
