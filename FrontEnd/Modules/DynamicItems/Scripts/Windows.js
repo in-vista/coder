@@ -746,11 +746,13 @@ export class Windows {
             const inputData = this.base.fields.getInputData(popupWindowContainer.find(".right-pane-content-popup, .dynamicTabContent"));
 
             let titleToSave = newTitle || data.title || null;
-           const promises = [this.base.updateItem(itemId, inputData, popupWindowContainer, isNewItemWindow, titleToSave, true, true, entityType.entityType || entityType.name)];
 
-            await Promise.all(promises);
+            const updateResult = await this.base.updateItem(itemId, inputData, popupWindowContainer, isNewItemWindow, titleToSave, true, true, entityType.entityType || entityType.name)
 
             popupWindowContainer.find(".popup-loader").removeClass("loading");
+            
+            if(!updateResult)
+                return false;
 
             if (alsoCloseWindow) {
                 kendoWindow.close();
