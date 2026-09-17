@@ -60,7 +60,7 @@ namespace Api.Modules.Pusher.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "UserId must be greater than 0"
+                    Error = "UserId must be greater than 0"
                 };
             }
 
@@ -77,7 +77,7 @@ namespace Api.Modules.Pusher.Services
                 return new ServiceResult<bool>(false)
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "User ID(s) is/are not present or are invalid."
+                    Error = "User ID(s) is/are not present or are invalid."
                 };
             }
 
@@ -111,7 +111,7 @@ namespace Api.Modules.Pusher.Services
                         return new ServiceResult<bool>(false)
                         {
                             StatusCode = HttpStatusCode.BadRequest,
-                            ErrorMessage = "Invalid user ID."
+                            Error = "Invalid user ID."
                         };
                     
                     var pusherId = GeneratePusherIdForUser(userId, subDomain).ModelObject;
@@ -124,10 +124,10 @@ namespace Api.Modules.Pusher.Services
                     var success = (int)result.StatusCode >= 200 && (int)result.StatusCode < 300;
                     if (!success)
                     {
-                        return new ServiceResult<bool>(success)
+                        return new ServiceResult<bool>(false)
                         {
                             StatusCode = result.StatusCode,
-                            ErrorMessage = result.Body
+                            Error = result.Body
                         };
                     }
                     
@@ -159,9 +159,8 @@ namespace Api.Modules.Pusher.Services
 
             return new ServiceResult<bool>(true)
             {
-                StatusCode = HttpStatusCode.NoContent,
-                ErrorMessage = null
-            };;
+                StatusCode = HttpStatusCode.NoContent
+            };
         }
     }
 }

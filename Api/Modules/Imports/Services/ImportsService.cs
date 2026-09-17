@@ -65,7 +65,7 @@ namespace Api.Modules.Imports.Services
                 return new ServiceResult<ImportResultModel>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "File path is either empty, or the file does not exist."
+                    Error = "File path is either empty, or the file does not exist."
                 };
             }
 

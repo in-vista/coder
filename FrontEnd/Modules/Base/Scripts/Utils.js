@@ -59,6 +59,21 @@ export class Utils {
         }
         return returnString.length === 0 ? "" : `${prependQuestionMarkOnData ? "?" : ""}${returnString}`;
     }
+    
+    static getErrorFromException(exception) {
+        const responseText = exception.responseText;
+        
+        const defaultResult = {
+            title: undefined,
+            message: responseText
+        }
+        
+        try {
+            return JSON.parse(responseText) ?? defaultResult;
+        } catch(innerException) {
+            return defaultResult
+        }
+    }
 }
 
 /**
@@ -1137,7 +1152,7 @@ export class Wiser {
             console.error(exception);
             let error = exception;
             if (exception.responseText) {
-                error = exception.responseText;
+                error = Utils.getErrorFromException(exception).message;
             } else if (exception.statusText) {
                 error = exception.statusText;
             }
@@ -1199,11 +1214,11 @@ export class Wiser {
             console.error(exception);
 
             // If the action isn't forbidden or the exception doesn't have a response text display the default message
-            let message = exception.responseText;
+            let { message, title } = Utils.getErrorFromException(exception);
             if(!message || exception.status !== 403) 
                 message = "Er is iets fout gegaan tijdens opslaan van de wijzigingen. Probeer het a.u.b. nogmaals.";
             
-            kendo.alert(message);
+            kendo.alert(message, title);
             return false;
         }
     }

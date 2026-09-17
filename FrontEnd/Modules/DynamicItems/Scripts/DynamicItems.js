@@ -1,5 +1,5 @@
 ﻿import {TrackJS} from "trackjs";
-import {Dates, Modules, Wiser} from "../../Base/Scripts/Utils.js";
+import {Dates, Modules, Utils, Wiser} from "../../Base/Scripts/Utils.js";
 import "../../Base/Scripts/Processing.js";
 import {DateTime} from "luxon";
 import {Fields} from "./Fields.js";
@@ -1090,7 +1090,7 @@ const moduleSettings = {
                             } catch (exception) {
                                 console.error(exception);
 
-                                let message = exception.responseText;
+                                let message = Utils.getErrorFromException(exception).message;
                                 if(!message) {
                                     switch(exception.status) {
                                         case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
@@ -1252,14 +1252,17 @@ const moduleSettings = {
                 return true;
             } catch (exception) {
                 console.error(exception);
+
+                let message = Utils.getErrorFromException(exception).message;
+                
                 switch (exception.status) {
                     case 409: {
-                        const message = exception.responseText || "Het is niet meer mogelijk om aanpassingen te maken in dit item.";
+                        message ||= "Het is niet meer mogelijk om aanpassingen te maken in dit item.";
                         kendo.alert(message);
                         break;
                     }
                     case 403: {
-                        const message = exception.responseText || "U heeft niet de juiste rechten om dit item te wijzigen.";
+                        message ||= "U heeft niet de juiste rechten om dit item te wijzigen.";
                         kendo.alert(message);
                         break;
                     }
@@ -1512,7 +1515,7 @@ const moduleSettings = {
                 sourceDataItem.destinationItemId = destinationDataItem.destinationItemId;
             } catch (exception) {
                 console.error(exception);
-                kendo.alert(`Er is iets fout gegaan met het verplaatsen van dit item. De fout was:<br>${exception.responseText || exception.statusText}`);
+                kendo.alert(`Er is iets fout gegaan met het verplaatsen van dit item. De fout was:<br>${Utils.getErrorFromException(exception).message || exception.statusText}`);
                 event.setValid(false);
             }
         }
@@ -1555,7 +1558,12 @@ const moduleSettings = {
         async loadHistoryGrid(itemId, entityType, moduleId) {
             const kendoHistoryGridWindow = this.windows.historyGridWindow;
             const historyGridElement = $("#historyWindowGrid");
+            
             kendoHistoryGridWindow.maximize().open();
+
+            // Pushes this window to the window history.
+            this.base.windows.pushWindowToHistory(kendoHistoryGridWindow);
+            
             if (historyGridElement) historyGridElement.empty();
 
             try {
@@ -1873,7 +1881,7 @@ const moduleSettings = {
             } catch (exception) {
                 console.error(exception);
 
-                let message = exception.responseText;
+                let message = Utils.getErrorFromException(exception).message;
                 if(!message) {
                     switch(exception.status) {
                         case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
@@ -1933,7 +1941,7 @@ const moduleSettings = {
                 popupWindowContainer.find(".popup-loader").removeClass("loading");
 
                 if (exception.status === 409) {
-                    const message = exception.responseText || "Het is niet meer mogelijk om het verwijderen ongedaan te maken.";
+                    const message = Utils.getErrorFromException(exception).message || "Het is niet meer mogelijk om het verwijderen ongedaan te maken.";
                     kendo.alert(message);
                 } else {
                     kendo.alert("Er is iets fout gegaan tijdens het verwijderen ongedaan maken van dit item. Probeer het a.u.b. nogmaals.");
@@ -2030,7 +2038,7 @@ const moduleSettings = {
                                         if (error.responseJSON && error.responseJSON.error) {
                                             errorMessage = error.responseJSON.error;
                                         } else if (error.responseText) {
-                                            errorMessage = error.responseText;
+                                            errorMessage = Utils.getErrorFromException(error).message;
                                         } else if (error.statusText) {
                                             errorMessage = error.statusText;
                                         }
@@ -2245,6 +2253,8 @@ const moduleSettings = {
             if (updateResult && showSuccessMessage) {
                 this.notification.show({ message: "Opslaan is gelukt" }, "success");
             }
+            
+            return updateResult;
         }
 
         /**

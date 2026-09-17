@@ -69,7 +69,7 @@ public class CommitService : ICommitService, IScopedService
             return new ServiceResult<CommitModel>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                ErrorMessage = "Please enter a description"
+                Error = "Please enter a description"
             };
         }
 
@@ -78,7 +78,7 @@ public class CommitService : ICommitService, IScopedService
             return new ServiceResult<CommitModel>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                ErrorMessage = "Please select at least one template or dynamic content to commit"
+                Error = "Please select at least one template or dynamic content to commit"
             };
         }
 
@@ -99,7 +99,7 @@ public class CommitService : ICommitService, IScopedService
             return new ServiceResult<CommitModel>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                ErrorMessage = "You cannot commit to live if you have requested reviews."
+                Error = "You cannot commit to live if you have requested reviews."
             };
         }
 
@@ -118,7 +118,7 @@ public class CommitService : ICommitService, IScopedService
                 return new ServiceResult<CommitModel>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Commit with ID '{data.Id}' not found."
+                    Error = $"Commit with ID '{data.Id}' not found."
                 };
             }
 
@@ -132,7 +132,7 @@ public class CommitService : ICommitService, IScopedService
                 return new ServiceResult<CommitModel>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "You cannot commit to live until the changes have been approved by the requested code reviewer(s)."
+                    Error = "You cannot commit to live until the changes have been approved by the requested code reviewer(s)."
                 };
             }
 
@@ -143,7 +143,7 @@ public class CommitService : ICommitService, IScopedService
                     var currentPublished = await templatesService.GetTemplateEnvironmentsAsync(template.TemplateId);
                     if (currentPublished.StatusCode != HttpStatusCode.OK)
                     {
-                        throw new Exception($"Could not get environments of template '{template.TemplateId}'. Error was: {currentPublished.ErrorMessage}");
+                        throw new Exception($"Could not get environments of template '{template.TemplateId}'. Error was: {currentPublished.Error?.Message}");
                     }
                     
                     if (!AllowedToPublishToTargetedEnvironment(template.Version, data.Environment, currentPublished.ModelObject))
@@ -165,7 +165,7 @@ public class CommitService : ICommitService, IScopedService
                     var currentPublished = await dynamicContentService.GetEnvironmentsAsync(dynamicContent.DynamicContentId);
                     if (currentPublished.StatusCode != HttpStatusCode.OK)
                     {
-                        throw new Exception($"Could not get environments of dynamic content '{dynamicContent.DynamicContentId}'. Error was: {currentPublished.ErrorMessage}");
+                        throw new Exception($"Could not get environments of dynamic content '{dynamicContent.DynamicContentId}'. Error was: {currentPublished.Error?.Message}");
                     }
 
                     if (!AllowedToPublishToTargetedEnvironment(dynamicContent.Version, data.Environment, currentPublished.ModelObject))
@@ -228,7 +228,7 @@ public class CommitService : ICommitService, IScopedService
                 return new ServiceResult<bool>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Commit with ID '{commitId}' not found."
+                    Error = $"Commit with ID '{commitId}' not found."
                 };
             }
 
@@ -241,7 +241,7 @@ public class CommitService : ICommitService, IScopedService
             return new ServiceResult<bool>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                ErrorMessage = "You cannot commit to live until the changes have been approved by the requested code reviewer(s)."
+                Error = "You cannot commit to live until the changes have been approved by the requested code reviewer(s)."
             };
         }
 
@@ -257,7 +257,7 @@ public class CommitService : ICommitService, IScopedService
             var currentPublished = await templatesService.GetTemplateEnvironmentsAsync(template.TemplateId);
             if (currentPublished.StatusCode != HttpStatusCode.OK)
             {
-                throw new Exception($"Could not get environments of template '{template.TemplateId}'. Error was: {currentPublished.ErrorMessage}");
+                throw new Exception($"Could not get environments of template '{template.TemplateId}'. Error was: {currentPublished.Error?.Message}");
             }
 
             if (!AllowedToPublishToTargetedEnvironment(template.Version, data.Environment, currentPublished.ModelObject))
@@ -277,7 +277,7 @@ public class CommitService : ICommitService, IScopedService
             var currentPublished = await dynamicContentService.GetEnvironmentsAsync(dynamicContent.DynamicContentId);
             if (currentPublished.StatusCode != HttpStatusCode.OK)
             {
-                throw new Exception($"Could not get environments of dynamic content '{dynamicContent.DynamicContentId}'. Error was: {currentPublished.ErrorMessage}");
+                throw new Exception($"Could not get environments of dynamic content '{dynamicContent.DynamicContentId}'. Error was: {currentPublished.Error?.Message}");
             }
 
             if (!AllowedToPublishToTargetedEnvironment(dynamicContent.Version, data.Environment, currentPublished.ModelObject))

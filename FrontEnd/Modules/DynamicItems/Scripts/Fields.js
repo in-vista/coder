@@ -305,10 +305,8 @@ export class Fields {
             tabStrip = container.closest(".k-tabstrip").data("kendoTabStrip");
 
             if (!selectedTab) {
-                if (!tabStrip) {
-                    console.error("Could not find kendoTabStrip and therefor cannot handle dependencies!", event.sender);
+                if (!tabStrip)
                     return;
-                }
 
                 selectedTab = tabStrip.select().text() || "Gegevens";
             }
@@ -323,10 +321,8 @@ export class Fields {
             tabStrip = container.closest(".k-tabstrip").data("kendoTabStrip");
 
             if (!selectedTab) {
-                if (!tabStrip) {
-                    console.error("Could not find kendoTabStrip and therefor cannot handle dependencies!", event.currentTarget);
+                if (!tabStrip)
                     return;
-                }
 
                 selectedTab = tabStrip.select().text();
             }
@@ -1107,7 +1103,7 @@ export class Fields {
 
         let errorMessage = "Er is iets fout gegaan met het uploaden. Probeer het a.u.b. nogmaals.";
         if (event && event.XMLHttpRequest) {
-            if (event.XMLHttpRequest.responseText === "File is to large for database.") {
+            if (Utils.getErrorFromException(event.XMLHttpRequest).message === "File is to large for database.") {
                 errorMessage = "Het bestand dat u probeert te uploaden is te groot. Kies a.u.b. een kleiner bestand.";
             } else {
                 try {
@@ -1666,14 +1662,26 @@ export class Fields {
                                 });
 
                                 const allowKeyAction = (event, inputFocusCheck) => {
-                                    // Array of class names to ignore.
-                                    const ignoreClasses = [
+                                    // Array of class names to ignore if visible.
+                                    const ignoreClassesVisible = [
                                         "k-filter-menu-container"
                                     ];
 
                                     // Check if any of the ignored elements are visible.
-                                    const ignoreVisible = ignoreClasses.some(cls => $(`.${cls}:visible`).length);
+                                    const ignoreVisible = ignoreClassesVisible.some(cls => $(`.${cls}:visible`).length);
                                     if (ignoreVisible)
+                                        return false;
+
+                                    // Array of class names to ignore if focused element is child.
+                                    const ignoreClassesChildren = [
+                                        "k-filtercell"
+                                    ];
+
+                                    const ignoreChild = ignoreClassesChildren.some(className =>
+                                        event.target.closest(`.${className}`)
+                                    );
+
+                                    if (ignoreChild)
                                         return false;
 
                                     // Disallow key action if the user is currently focused in a text area.
@@ -1703,7 +1711,7 @@ export class Fields {
                                 dialog.element.on('keydown', function(event) {
                                     if (!event.key || event.key.toLowerCase() !== 'enter')
                                         return;
-
+                                 
                                     if(!allowKeyAction(event, true))
                                         return;
 
@@ -1715,8 +1723,16 @@ export class Fields {
                                 // Build the options object for the kendo component.
                                 const options = $.extend({ culture: "nl-NL" }, parameter);
                                 
-                                if ([ parameter.value, parameter.defaultValue ].includes("NOW()"))
-                                    options.value = options.defaultValue = new Date();
+                                if ([ parameter.value, parameter.defaultValue ].includes("NOW()")) {
+                                    const currentDate = new Date();
+
+                                    const formattedCurrentDate =
+                                        String(currentDate.getDate()).padStart(2, '0')
+                                        + '-' + String(currentDate.getMonth() + 1).padStart(2, '0')
+                                        + '-' + currentDate.getFullYear();
+                                    
+                                    options.value = options.defaultValue = formattedCurrentDate;
+                                }
 
                                 let extraData = {};
 
@@ -1965,6 +1981,8 @@ export class Fields {
                                     dialog.element.find("input")?.val(options.defaultValue);
 
                                 dialog.open();
+                                
+                                this.base.windows.pushWindowToHistory(dialog);
                             });
                         };
 
@@ -2939,7 +2957,7 @@ export class Fields {
                     console.error(exception);
                     let error = exception;
                     if (exception.responseText) {
-                        error = exception.responseText;
+                        error = Utils.getErrorFromException(exception).message;
                     } else if (exception.statusText) {
                         error = exception.statusText;
                     }
@@ -3580,7 +3598,7 @@ export class Fields {
                                 console.error(exception);
                                 let error = exception;
                                 if (exception.responseText) {
-                                    error = exception.responseText;
+                                    error = Utils.getErrorFromException(exception).message;
                                 } else if (exception.statusText) {
                                     error = exception.statusText;
                                 }
@@ -3597,7 +3615,7 @@ export class Fields {
                 console.error(exception);
                 let error = exception;
                 if (exception.responseText) {
-                    error = exception.responseText;
+                    error = Utils.getErrorFromException(exception).message;
                 } else if (exception.statusText) {
                     error = exception.statusText;
                 }

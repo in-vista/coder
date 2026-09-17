@@ -1,4 +1,5 @@
 ﻿import { LinkSettingsModel } from "../Scripts/LinkSettingsModel.js";
+import {Utils} from "../../Base/Scripts/Utils";
 
 export class WiserLinkTab {
     constructor(base) {
@@ -308,7 +309,7 @@ export class WiserLinkTab {
         }
         catch (exception) {
             console.error(exception);
-            if (exception.responseText.indexOf("Duplicate entry")) {
+            if (Utils.getErrorFromException(exception).message.indexOf("Duplicate entry")) {
                 this.base.showNotification("notification", `Er bestaat al een link met type '${linkSettingsModel.type}' met entiteit van '${linkSettingsModel.destinationEntityType}' naar '${linkSettingsModel.sourceEntityType}'`, "error");
             } else {
                 this.base.showNotification("notification", "Coder link is niet succesvol aangemaakt, probeer het opnieuw", "error");
@@ -348,7 +349,7 @@ export class WiserLinkTab {
         }
         catch (exception) {
             console.error(exception);
-            if (exception.responseText.indexOf("Duplicate entry")) {
+            if (Utils.getErrorFromException(exception).message.indexOf("Duplicate entry")) {
                 this.base.showNotification("notification", `Er bestaat al een link met type '${linkSettingsModel.type}' met entiteit van '${linkSettingsModel.destinationEntityType}' naar '${linkSettingsModel.sourceEntityType}'`, "error");
             } else {
                 this.base.showNotification("notification", "Coder link is niet succesvol aangepast, probeer het opnieuw", "error");

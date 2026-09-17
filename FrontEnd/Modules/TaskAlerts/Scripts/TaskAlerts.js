@@ -1,5 +1,5 @@
 ﻿import { TrackJS } from "trackjs";
-import { Wiser } from "../../Base/Scripts/Utils.js";
+import {Utils, Wiser} from "../../Base/Scripts/Utils.js";
 import { TaskUtils } from "./TaskUtils.js";
 import "../../Base/Scripts/Processing.js";
 
@@ -609,7 +609,7 @@ const moduleSettings = {
                 console.error(exception);
                 let error = exception;
                 if (exception.responseText) {
-                    error = exception.responseText;
+                    error = Utils.getErrorFromException(exception).message;
                 } else if (exception.statusText) {
                     error = exception.statusText;
                 }
