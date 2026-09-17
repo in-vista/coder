@@ -1723,8 +1723,16 @@ export class Fields {
                                 // Build the options object for the kendo component.
                                 const options = $.extend({ culture: "nl-NL" }, parameter);
                                 
-                                if ([ parameter.value, parameter.defaultValue ].includes("NOW()"))
-                                    options.value = options.defaultValue = new Date();
+                                if ([ parameter.value, parameter.defaultValue ].includes("NOW()")) {
+                                    const currentDate = new Date();
+
+                                    const formattedCurrentDate =
+                                        String(currentDate.getDate()).padStart(2, '0')
+                                        + '-' + String(currentDate.getMonth() + 1).padStart(2, '0')
+                                        + '-' + currentDate.getFullYear();
+                                    
+                                    options.value = options.defaultValue = formattedCurrentDate;
+                                }
 
                                 let extraData = {};
 
