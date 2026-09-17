@@ -50,7 +50,7 @@ namespace Api.Modules.LinkSettings.Services
             {
                 return new ServiceResult<List<LinkSettingsModel>>
                 {
-                    ErrorMessage = databaseConnectionResult.ErrorMessage,
+                    Error = databaseConnectionResult.Error,
                     StatusCode = databaseConnectionResult.StatusCode
                 };
             }
@@ -75,7 +75,7 @@ namespace Api.Modules.LinkSettings.Services
                 return new ServiceResult<LinkSettingsModel>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Link setting with ID '{id}' does not exist."
+                    Error = $"Link setting with ID '{id}' does not exist."
                 };
             }
 
@@ -90,7 +90,7 @@ namespace Api.Modules.LinkSettings.Services
                 return new ServiceResult<LinkSettingsModel>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = $"The properties '{nameof(linkSettings.Type)}', '{nameof(linkSettings.DestinationEntityType)}', '{nameof(linkSettings.SourceEntityType)}' and '{nameof(linkSettings.Name)}' need to contain a value."
+                    Error = $"The properties '{nameof(linkSettings.Type)}', '{nameof(linkSettings.DestinationEntityType)}', '{nameof(linkSettings.SourceEntityType)}' and '{nameof(linkSettings.Name)}' need to contain a value."
                 };
             }
 
@@ -149,7 +149,7 @@ namespace Api.Modules.LinkSettings.Services
                     return new ServiceResult<LinkSettingsModel>
                     {
                         StatusCode = HttpStatusCode.Conflict,
-                        ErrorMessage = $"An entry already exists with {nameof(linkSettings.Type)} = '{linkSettings.Type}', {nameof(linkSettings.DestinationEntityType)} = '{linkSettings.DestinationEntityType}' and {nameof(linkSettings.SourceEntityType)} = '{linkSettings.SourceEntityType}'"
+                        Error = $"An entry already exists with {nameof(linkSettings.Type)} = '{linkSettings.Type}', {nameof(linkSettings.DestinationEntityType)} = '{linkSettings.DestinationEntityType}' and {nameof(linkSettings.SourceEntityType)} = '{linkSettings.SourceEntityType}'"
                     };
                 }
 
@@ -167,7 +167,7 @@ namespace Api.Modules.LinkSettings.Services
                 return new ServiceResult<bool>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = $"The properties '{nameof(linkSettings.Type)}', '{nameof(linkSettings.DestinationEntityType)}', '{nameof(linkSettings.SourceEntityType)}' and '{nameof(linkSettings.Name)}' need to contain a value."
+                    Error = $"The properties '{nameof(linkSettings.Type)}', '{nameof(linkSettings.DestinationEntityType)}', '{nameof(linkSettings.SourceEntityType)}' and '{nameof(linkSettings.Name)}' need to contain a value."
                 };
             }
 
@@ -232,7 +232,7 @@ CREATE TABLE `{tablePrefix}{WiserTableNames.WiserItemFile}{WiserTableNames.Archi
                     return new ServiceResult<bool>
                     {
                         StatusCode = HttpStatusCode.Conflict,
-                        ErrorMessage = $"An entry already exists with {nameof(linkSettings.Type)} = '{linkSettings.Type}', {nameof(linkSettings.DestinationEntityType)} = '{linkSettings.DestinationEntityType}' and {nameof(linkSettings.SourceEntityType)} = '{linkSettings.SourceEntityType}'"
+                        Error = $"An entry already exists with {nameof(linkSettings.Type)} = '{linkSettings.Type}', {nameof(linkSettings.DestinationEntityType)} = '{linkSettings.DestinationEntityType}' and {nameof(linkSettings.SourceEntityType)} = '{linkSettings.SourceEntityType}'"
                     };
                 }
 

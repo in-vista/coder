@@ -32,7 +32,7 @@ public class GeoLocationService : IGeoLocationService, IScopedService
             return new ServiceResult<Pro6PPAddress>
             {
                 StatusCode = HttpStatusCode.Unauthorized,
-                ErrorMessage = "Unauthorized"
+                Error = "Unauthorized"
             };
         
         // Prepare an empty address response.
@@ -69,7 +69,7 @@ public class GeoLocationService : IGeoLocationService, IScopedService
                 return new ServiceResult<Pro6PPAddress>
                 {
                     StatusCode = addressResponse.StatusCode,
-                    ErrorMessage = await addressResponse.Content.ReadAsStringAsync()
+                    Error = await addressResponse.Content.ReadAsStringAsync()
                 };
             
             // Retrieve the content of the response and deserialize it into the address model.

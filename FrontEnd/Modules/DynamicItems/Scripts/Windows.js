@@ -493,6 +493,10 @@ export class Windows {
                             genericTabHasFields = true;
                             const container = currentItemWindow.element.find(".right-pane-content-popup").html(tabData.htmlTemplate);
                             await this.base.loadKendoScripts(tabData.scriptTemplate);
+
+                            // Mark the tab to be loaded.
+                            container.closest('.k-tabstrip-content').data('loaded', true);
+                            
                             $.globalEval(tabData.scriptTemplate);
 
                             await Utils.sleep(150);
@@ -667,7 +671,7 @@ export class Windows {
             popupWindowContainer.find(".popup-loader").removeClass("loading");
             popupWindowContainer.data("saving", false);
             
-            let message = exception.responseText;
+            let message = Utils.getErrorFromException(exception).message;
             if(!message) {
                 switch(exception.status) {
                     case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
@@ -735,6 +739,26 @@ export class Windows {
                 });
             }
 
+            if (window.LandingPageEditor !== undefined) {
+                const landingEditorContainers = popupWindowContainer.find('[data-topol-landing-editor="true"]');
+
+                for (const element of landingEditorContainers.toArray()) {
+                    const landingEditorContainer = $(element);
+                    const editorReady = landingEditorContainer.data("topolLandingEditorReady");
+
+                    if (editorReady) {
+                        await editorReady;
+                    }
+
+                    // This calls landingEditor.save() and waits for onSave to finish.
+                    const waitForLandingEditorSave = landingEditorContainer.data("topolLandingEditorSave");
+
+                    if (typeof waitForLandingEditorSave === "function") {
+                        await waitForLandingEditorSave();
+                    }
+                }
+            }
+
             const data = kendoWindow.element.data();
             const titleField = popupWindowContainer.find(".itemNameField");
             const newTitle = titleField.val();
@@ -742,11 +766,13 @@ export class Windows {
             const inputData = this.base.fields.getInputData(popupWindowContainer.find(".right-pane-content-popup, .dynamicTabContent"));
 
             let titleToSave = newTitle || data.title || null;
-           const promises = [this.base.updateItem(itemId, inputData, popupWindowContainer, isNewItemWindow, titleToSave, true, true, entityType.entityType || entityType.name)];
 
-            await Promise.all(promises);
+            const updateResult = await this.base.updateItem(itemId, inputData, popupWindowContainer, isNewItemWindow, titleToSave, true, true, entityType.entityType || entityType.name)
 
             popupWindowContainer.find(".popup-loader").removeClass("loading");
+            
+            if(!updateResult)
+                return false;
 
             if (alsoCloseWindow) {
                 kendoWindow.close();
@@ -779,15 +805,17 @@ export class Windows {
             console.error(exception);
             popupWindowContainer.find(".popup-loader").removeClass("loading");
             popupWindowContainer.data("saving", false);
+            
+            let message = Utils.getErrorFromException(exception).message;
 
             switch (exception.status) {
                 case 409: {
-                    const message = exception.responseText || "Het is niet meer mogelijk om aanpassingen te maken in dit item.";
+                    message ||= "Het is niet meer mogelijk om aanpassingen te maken in dit item.";
                     kendo.alert(message);
                     break;
                 }
                 case 403: {
-                    const message = exception.responseText || "U heeft niet de juiste rechten om dit item te wijzigen.";
+                    message ||= "U heeft niet de juiste rechten om dit item te wijzigen.";
                     kendo.alert(message);
                     break;
                 }

@@ -78,7 +78,7 @@ namespace Api.Modules.Templates.Services
                 return new ServiceResult<List<ComponentModeModel>>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Name cannot be empty"
+                    Error = "Name cannot be empty"
                 };
             }
 
@@ -88,7 +88,7 @@ namespace Api.Modules.Templates.Services
                 return new ServiceResult<List<ComponentModeModel>>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Component with type '{name}' not found."
+                    Error = $"Component with type '{name}' not found."
                 };
             }
 
@@ -317,7 +317,7 @@ namespace Api.Modules.Templates.Services
                 {
                     ModelObject = false,
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "The current branch is not the main branch. This functionality can only be used from the main branch."
+                    Error = "The current branch is not the main branch. This functionality can only be used from the main branch."
                 };
             }
 
@@ -329,7 +329,7 @@ namespace Api.Modules.Templates.Services
                 {
                     ModelObject = false,
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Branch with ID {branchId} does not exist"
+                    Error = $"Branch with ID {branchId} does not exist"
                 };
             }
 
@@ -340,7 +340,7 @@ namespace Api.Modules.Templates.Services
                 {
                     ModelObject = false,
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = $"You don't have permissions to access a branch with ID {branchId}"
+                    Error = $"You don't have permissions to access a branch with ID {branchId}"
                 };
             }
 
@@ -361,7 +361,7 @@ namespace Api.Modules.Templates.Services
                         return new ServiceResult<bool>
                         {
                             StatusCode = HttpStatusCode.Conflict,
-                            ErrorMessage = "The tables for the template module are not up-to-date in the selected branch. Please open the template module in that branch once, so that the tables will be automatically updated."
+                            Error = "The tables for the template module are not up-to-date in the selected branch. Please open the template module in that branch once, so that the tables will be automatically updated."
                         };
                     default:
                         throw;

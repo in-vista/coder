@@ -396,7 +396,7 @@ namespace Api.Modules.Grids.Services
                         return new ServiceResult<GridSettingsAndDataModel>
                         {
                             StatusCode = customQueryResult.StatusCode,
-                            ErrorMessage = customQueryResult.ErrorMessage
+                            Error = customQueryResult.Error
                         };
                     }
 
@@ -456,7 +456,7 @@ namespace Api.Modules.Grids.Services
                     {
                         return new ServiceResult<GridSettingsAndDataModel>
                         {
-                            ErrorMessage = "Search grid needs to have at least one value to search for.",
+                            Error = "Search grid needs to have at least one value to search for.",
                             StatusCode = HttpStatusCode.BadRequest
                         };
                     }
@@ -870,7 +870,7 @@ namespace Api.Modules.Grids.Services
                     return new ServiceResult<GridSettingsAndDataModel>
                     {
                         StatusCode = HttpStatusCode.BadRequest,
-                        ErrorMessage = "FieldGroupName is required for mode 6 (ItemDetailsGroup)"
+                        Error = "FieldGroupName is required for mode 6 (ItemDetailsGroup)"
                     };
                 case EntityGridModes.ItemDetailsGroup:
                 {
@@ -1895,7 +1895,7 @@ namespace Api.Modules.Grids.Services
                 return new ServiceResult<GridSettingsAndDataModel>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"No grid data available for module {moduleId}"
+                    Error = $"No grid data available for module {moduleId}"
                 };
             }
 
@@ -2354,7 +2354,7 @@ namespace Api.Modules.Grids.Services
                     return new ServiceResult<GridSettingsAndDataModel>
                     {
                         StatusCode = customQueryResult.StatusCode,
-                        ErrorMessage = customQueryResult.ErrorMessage
+                        Error = customQueryResult.Error
                     };
                 }
 
@@ -2614,7 +2614,7 @@ namespace Api.Modules.Grids.Services
                 return new ServiceResult<Dictionary<string, object>>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Dit item bestaat al en kan niet nogmaals toegevoegd worden."
+                    Error = "Dit item bestaat al en kan niet nogmaals toegevoegd worden."
                 };
             }
         }
@@ -2651,7 +2651,7 @@ namespace Api.Modules.Grids.Services
                 return new ServiceResult<bool>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Dit item bestaat al en kan niet nogmaals toegevoegd worden."
+                    Error = "Dit item bestaat al en kan niet nogmaals toegevoegd worden."
                 };
             }
         }
