@@ -1,4 +1,4 @@
-﻿import {Wiser} from "../../Base/Scripts/Utils.js";
+﻿import {Utils, Wiser} from "../../Base/Scripts/Utils.js";
 import "../../Base/Scripts/Processing.js";
 
 require("@progress/kendo-ui/js/kendo.tooltip.js");
@@ -1734,7 +1734,7 @@ export class Grids {
             console.error(exception);
             let error = exception;
             if (exception.responseText) {
-                error = exception.responseText;
+                error = Utils.getErrorFromException(exception).message;
             } else if (exception.statusText) {
                 error = exception.statusText;
             }
@@ -1810,7 +1810,7 @@ export class Grids {
                                     } catch (exception) {
                                         console.error(exception);
 
-                                        let message = exception.responseText;
+                                        let message = Utils.getErrorFromException(exception).message;
                                         if(!message) {
                                             switch(exception.status) {
                                                 case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
@@ -1849,7 +1849,7 @@ export class Grids {
                     } catch (exception) {
                         console.error(exception);
 
-                        let message = exception.responseText;
+                        let message = Utils.getErrorFromException(exception).message;
                         if(!message) {
                             switch(exception.status) {
                                 case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;

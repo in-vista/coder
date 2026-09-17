@@ -1103,7 +1103,7 @@ export class Fields {
 
         let errorMessage = "Er is iets fout gegaan met het uploaden. Probeer het a.u.b. nogmaals.";
         if (event && event.XMLHttpRequest) {
-            if (event.XMLHttpRequest.responseText === "File is to large for database.") {
+            if (Utils.getErrorFromException(event.XMLHttpRequest).message === "File is to large for database.") {
                 errorMessage = "Het bestand dat u probeert te uploaden is te groot. Kies a.u.b. een kleiner bestand.";
             } else {
                 try {
@@ -2949,7 +2949,7 @@ export class Fields {
                     console.error(exception);
                     let error = exception;
                     if (exception.responseText) {
-                        error = exception.responseText;
+                        error = Utils.getErrorFromException(exception).message;
                     } else if (exception.statusText) {
                         error = exception.statusText;
                     }
@@ -3590,7 +3590,7 @@ export class Fields {
                                 console.error(exception);
                                 let error = exception;
                                 if (exception.responseText) {
-                                    error = exception.responseText;
+                                    error = Utils.getErrorFromException(exception).message;
                                 } else if (exception.statusText) {
                                     error = exception.statusText;
                                 }
@@ -3607,7 +3607,7 @@ export class Fields {
                 console.error(exception);
                 let error = exception;
                 if (exception.responseText) {
-                    error = exception.responseText;
+                    error = Utils.getErrorFromException(exception).message;
                 } else if (exception.statusText) {
                     error = exception.statusText;
                 }

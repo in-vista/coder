@@ -671,7 +671,7 @@ export class Windows {
             popupWindowContainer.find(".popup-loader").removeClass("loading");
             popupWindowContainer.data("saving", false);
             
-            let message = exception.responseText;
+            let message = Utils.getErrorFromException(exception).message;
             if(!message) {
                 switch(exception.status) {
                     case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
@@ -785,15 +785,17 @@ export class Windows {
             console.error(exception);
             popupWindowContainer.find(".popup-loader").removeClass("loading");
             popupWindowContainer.data("saving", false);
+            
+            let message = Utils.getErrorFromException(exception).message;
 
             switch (exception.status) {
                 case 409: {
-                    const message = exception.responseText || "Het is niet meer mogelijk om aanpassingen te maken in dit item.";
+                    message ||= "Het is niet meer mogelijk om aanpassingen te maken in dit item.";
                     kendo.alert(message);
                     break;
                 }
                 case 403: {
-                    const message = exception.responseText || "U heeft niet de juiste rechten om dit item te wijzigen.";
+                    message ||= "U heeft niet de juiste rechten om dit item te wijzigen.";
                     kendo.alert(message);
                     break;
                 }

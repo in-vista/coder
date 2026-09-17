@@ -1,4 +1,5 @@
 ﻿import {ModuleSettingsModel} from "../Scripts/ModuleSettingsModel.js";
+import {Utils} from "../../Base/Scripts/Utils";
 
 export class ModuleTab {
     constructor(base) {
@@ -751,7 +752,7 @@ export class ModuleTab {
             await this.base.reloadModulesOnParentFrame();
         } catch(exception) {
             console.error(exception);
-            if (exception.responseText.includes("Duplicate entry")) {
+            if (Utils.getErrorFromException(exception).message.includes("Duplicate entry")) {
                 this.base.showNotification("notification", `Het bijwerken van de module is mislukt, de ID van de module bestaat al.`, "error");
             } else {
                 this.base.showNotification("notification", `Het bijwerken van de module is mislukt, probeer het opnieuw`, "error");

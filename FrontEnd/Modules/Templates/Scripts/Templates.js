@@ -1,5 +1,5 @@
 import {TrackJS} from "trackjs";
-import {Wiser} from "../../Base/Scripts/Utils.js";
+import {Utils, Wiser} from "../../Base/Scripts/Utils.js";
 import "../../Base/Scripts/Processing.js";
 import {TemplateConnectedUsers} from "./TemplateConnectedUsers.js";
 import "../Css/Templates.css";
@@ -618,7 +618,7 @@ const moduleSettings = {
                 });
             } catch (exception) {
                 console.error(exception);
-                kendo.alert(`Er is iets fout gegaan met het verplaatsen van dit item. De fout was:<br>${exception.responseText || exception.statusText}`);
+                kendo.alert(`Er is iets fout gegaan met het verplaatsen van dit item. De fout was:<br>${Utils.getErrorFromException(exception).message || exception.statusText}`);
                 event.setValid(false);
             }
         }
@@ -1088,7 +1088,7 @@ const moduleSettings = {
                 dynamicGridDiv.on("dblclick", "tr.k-selected", this.onDynamicContentOpenClick.bind(this));
             } catch (exception) {
                 console.error(exception);
-                kendo.alert(`Er is iets fout gegaan. Probeer het a.u.b. opnieuw.<br>${exception.responseText || exception}`);
+                kendo.alert(`Er is iets fout gegaan. Probeer het a.u.b. opnieuw.<br>${Utils.getErrorFromException(exception).message || exception}`);
                 window.processing.removeProcess(process);
             }
         }
@@ -1175,7 +1175,7 @@ const moduleSettings = {
                     conflictedWith: conflictedWith
                 };
             } catch (exception) {
-                kendo.alert(`Er is iets fout gegaan. Probeer het a.u.b. opnieuw.<br>${exception.responseText || exception}`);
+                kendo.alert(`Er is iets fout gegaan. Probeer het a.u.b. opnieuw.<br>${Utils.getErrorFromException(exception).message || exception}`);
                 window.processing.removeProcess(process);
             }
         }
@@ -1763,7 +1763,7 @@ const moduleSettings = {
                     }).fail((jqXhr, textStatus, errorThrown) => {
                         console.error(errorThrown);
                         
-                        const message = errorThrown.responseText || 'Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals.';
+                        const message = Utils.getErrorFromException(errorThrown).message || 'Er is iets fout gegaan tijdens het verwijderen van dit item. Probeer het a.u.b. nogmaals.';
                         kendo.alert(message);
                     });
             })
@@ -1963,7 +1963,7 @@ const moduleSettings = {
                 await this.reloadMetaData(templateId);
             } catch (exception) {
                 console.error(exception);
-                kendo.alert(`Er is een fout opgetreden bij het deployen van de template: ${exception.responseText || exception}`);
+                kendo.alert(`Er is een fout opgetreden bij het deployen van de template: ${Utils.getErrorFromException(exception).message || exception}`);
             }
         }
 
@@ -2233,7 +2233,7 @@ const moduleSettings = {
             catch (exception) {
                 console.error(exception);
                 if (exception.responseText) {
-                    kendo.alert(`Er is iets fout gegaan met deployen naar de gekozen branch:<br><pre>${exception.responseText}</pre>`);
+                    kendo.alert(`Er is iets fout gegaan met deployen naar de gekozen branch:<br><pre>${Utils.getErrorFromException(exception).message}</pre>`);
                 } else {
                     kendo.alert("Er is iets fout gegaan met deployen naar de gekozen branch. Probeer het a.u.b. opnieuw.");
                 }
@@ -2277,7 +2277,7 @@ const moduleSettings = {
             catch (exception) {
                 console.error(exception);
                 if (exception.responseText) {
-                    kendo.alert(`Er is iets fout gegaan met deployen naar de gekozen branch:<br><pre>${exception.responseText}</pre>`);
+                    kendo.alert(`Er is iets fout gegaan met deployen naar de gekozen branch:<br><pre>${Utils.getErrorFromException(exception).message}</pre>`);
                 } else {
                     kendo.alert("Er is iets fout gegaan met deployen naar de gekozen branch. Probeer het a.u.b. opnieuw.");
                 }
