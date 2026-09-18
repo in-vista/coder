@@ -53,7 +53,7 @@
                             <div v-if="!!markerWidget" class="coder-menu-item-popout-item">
                                 <div @@click="openMarkerIoScreen" class="coder-menu-item-popout-item-content hover">
                                     <i class="mdi mdi-size-2 mdi-bug"></i>
-                                    <span >Bug melden</span>
+                                    <span data-translation-value="common.button.reportBug">Bug melden</span>
                                 </div>
                             </div>
                             <div v-if="imitations?.length" class="coder-menu-item-popout-item">
@@ -1042,7 +1042,10 @@
                 <div class="btn-row">
                     <a href="#" class="btn btn-secundary" @@click="logout()"
                        data-translation-value="common.button.cancel">Annuleren</a>
-                    <button type="submit" :class="{ btn: true, 'btn-primary': true, loading: loginStatus === 'totp_loading' }">Verder</button>
+                    <button type="submit"
+                            :class="{ btn: true, 'btn-primary': true, loading: loginStatus === 'totp_loading' }"
+                            data-translation-value="next">Verder
+                    </button>
                 </div>
             </div>
             <div v-if="(loginStatus === 'list' || loginStatus === 'list_loading') && !showForgotPasswordScreen">
@@ -1074,7 +1077,9 @@
                 </div>
 
                 <div class="btn-row">
-                    <button type="submit" :class="{ btn: true, 'btn-primary': true }">Verzenden</button>
+                    <button type="submit" :class="{ btn: true, 'btn-primary': true }"
+                            data-translation-value="common.button.send">Verzenden
+                    </button>
                     <div :class="{ btn: true }" v-on:click="togglePasswordForgottenScreen(false)"
                          data-translation-value="common.button.cancel">
                         Annuleren

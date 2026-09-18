@@ -20,7 +20,14 @@
     "yes": "Yes"
   },
   "error": {
-    "invalidSubdomain": "You have entered an invalid subdomain. Please check the subdomain."
+    "invalidCredentials": "You entered invalid credentials. Please try again.",
+    "invalidSubdomain": "You used an invalid subdomain. Please check the subdomain.",
+    "unknownGetImitatorsError": "An unknown error occurred while retrieving impersonators. Please try again.",
+    "unknownLoggedInUserRetrievalError": "An unknown error occurred while retrieving information about the logged-in user. Please try again.",
+    "unknownLoginError": "An unknown error occurred while logging in. Please try again.",
+    "unknownNewTotpGenerationError": "An unknown error occurred while regenerating 2FA backup codes. Please try again.",
+    "unknownPasswordChangeError": "An unknown error occurred while changing your password. Please try again.",
+    "usernameBlockedTooManyAttempts": "The username has been blocked due to too many failed login attempts."
   },
   "label": {
     "email": "Email address",

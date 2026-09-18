@@ -55,22 +55,22 @@ export default class UsersService extends BaseService {
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
                 if (error.response.status !== 400 || error.response.data.error === "server_error") {
-                    result.message = "Er is een onbekende fout opgetreden tijdens het inloggen. Probeer het a.u.b. nogmaals.";
+                    result.message = this.base.localization.t("common.error.unknownLoginError");
                 } else if(error.response.data && error.response.data.error_description && error.response.data.error_description.toLowerCase().includes("blocked")) {
-                    result.message = "Gebruikersnaam is geblokkeerd vanwege te veel mislukte inlogpogingen.";
+                    result.message = this.base.localization.t("common.error.usernameBlockedTooManyAttempts");
                 } else {
-                    result.message = "U heeft ongeldige gegevens ingevuld. Probeer het a.u.b. opnieuw.";
+                    result.message = this.base.localization.t("common.error.invalidCredentials");
                 }
             } else if (error.request) {
                 // The request was made but no response was received
                 // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
                 // http.ClientRequest in node.js
                 console.warn(error.request);
-                result.message = "Er is een onbekende fout opgetreden tijdens het inloggen. Probeer het a.u.b. nogmaals.";
+                result.message = this.base.localization.t("common.error.unknownLoginError");
             } else {
                 // Something happened in setting up the request that triggered an Error
                 console.warn(error.message);
-                result.message = "Er is een onbekende fout opgetreden tijdens het inloggen. Probeer het a.u.b. nogmaals.";
+                result.message = this.base.localization.t("common.error.unknownLoginError");
             }
         }
 
@@ -106,22 +106,22 @@ export default class UsersService extends BaseService {
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
                 if (error.response.status !== 400 || error.response.data.error === "server_error") {
-                    result.message = "Er is een onbekende fout opgetreden tijdens het inloggen. Probeer het a.u.b. nogmaals.";
+                    result.message = this.base.localization.t("common.error.unknownLoginError");
                 } else if(error.response.data && error.response.data.error_description && error.response.data.error_description.toLowerCase().includes("blocked")) {
-                    result.message = "Gebruikersnaam is geblokkeerd vanwege te veel mislukte inlogpogingen.";
+                    result.message = this.base.localization.t("common.error.usernameBlockedTooManyAttempts");
                 } else {
-                    result.message = "U heeft ongeldige gegevens ingevuld. Probeer het a.u.b. opnieuw.";
+                    result.message = this.base.localization.t("common.error.invalidCredentials");
                 }
             } else if (error.request) {
                 // The request was made but no response was received
                 // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
                 // http.ClientRequest in node.js
                 console.warn(error.request);
-                result.message = "Er is een onbekende fout opgetreden tijdens het inloggen. Probeer het a.u.b. nogmaals.";
+                result.message = this.base.localization.t("common.error.unknownLoginError");
             } else {
                 // Something happened in setting up the request that triggered an Error
                 console.warn(error.message);
-                result.message = "Er is een onbekende fout opgetreden tijdens het inloggen. Probeer het a.u.b. nogmaals.";
+                result.message = this.base.localization.t("common.error.unknownLoginError");
             }
         }
 
@@ -158,7 +158,7 @@ export default class UsersService extends BaseService {
             result = result || {};
             result.success = false;
             console.error("Error getLoggedInUserData", error);
-            result.message = "Er is een onbekende fout opgetreden tijdens het ophalen van informatie over de ingelogde gebruiker. Probeer het a.u.b. nogmaals.";
+            result.message = this.base.localization.t("common.error.unknownLoggedInUserRetrievalError");
 
             if (error.response) {
                 // The request was made and the server responded with a status code
@@ -199,9 +199,9 @@ export default class UsersService extends BaseService {
             });
         } catch (error) {
             if ((error.response.status !== 400 && error.response.status !== 401) || error.response.data.error === "server_error") {
-                result.error = "Er is een onbekende fout opgetreden tijdens het wijzigen van uw wachtwoord. Probeer het a.u.b. nogmaals.";
+                result.error = this.base.localization.t("common.error.unknownPasswordChangeError");
             } else {
-                result.error = "U heeft ongeldige gegevens ingevuld. Probeer het a.u.b. opnieuw.";
+                result.error = this.base.localization.t("common.error.invalidCredentials");
             }
         }
 
@@ -287,7 +287,7 @@ export default class UsersService extends BaseService {
         } catch (error) {
             result.success = false;
             console.error("Error generating new TOTP backup codes", typeof(error.toJSON) === "function" ? error.toJSON() : error);
-            result.message = "Er is een onbekende fout opgetreden tijdens het opnieuw genereren van 2FA-backup-codes. Probeer het a.u.b. nogmaals.";
+            result.message = this.base.localization.t("common.error.unknownNewTotpGenerationError");
 
             if (error.response) {
                 // The request was made and the server responded with a status code
@@ -316,7 +316,7 @@ export default class UsersService extends BaseService {
             result.data = response.data;
         } catch(exception) {
             result.success = false;
-            result.message = `Er is een onbekende fout opgetreden bij het ophalen van imitators. Probeer het a.u.b. nogmaals.`;
+            result.message = this.base.localization.t("common.error.unknownGetImitatorsError");
             console.error(exception);
         }
         

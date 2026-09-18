@@ -20,7 +20,14 @@
     "yes": "Ja"
   },
   "error": {
-    "invalidSubdomain": "U heeft een ongeldig subdomein gebruikt. Controleer a.u.b. het subdomein."
+    "invalidCredentials": "U heeft ongeldige gegevens ingevuld. Probeer het a.u.b. opnieuw.",
+    "invalidSubdomain": "U heeft een ongeldig subdomein gebruikt. Controleer a.u.b. het subdomein.",
+    "unknownGetImitatorsError": "Er is een onbekende fout opgetreden bij het ophalen van imitators. Probeer het a.u.b. nogmaals.",
+    "unknownLoggedInUserRetrievalError": "Er is een onbekende fout opgetreden tijdens het ophalen van informatie over de ingelogde gebruiker. Probeer het a.u.b. nogmaals.",
+    "unknownLoginError": "Er is een onbekende fout opgetreden tijdens het inloggen. Probeer het a.u.b. nogmaals.",
+    "unknownNewTotpGenerationError": "Er is een onbekende fout opgetreden tijdens het opnieuw genereren van 2FA-backup-codes. Probeer het a.u.b. nogmaals.",
+    "unknownPasswordChangeError": "Er is een onbekende fout opgetreden tijdens het wijzigen van uw wachtwoord. Probeer het a.u.b. nogmaals.",
+    "usernameBlockedTooManyAttempts": "Gebruikersnaam is geblokkeerd vanwege te veel mislukte inlogpogingen."
   },
   "label": {
     "email": "E-mailadres",
