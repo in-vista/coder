@@ -1,0 +1,51 @@
+﻿{
+  "button": {
+    "back": "Terug",
+    "cancel": "Annuleren",
+    "changePassword": "Wachtwoord wijzigen",
+    "delete": "Verwijder",
+    "edit": "Wijzigen",
+    "login": "Inloggen",
+    "loginViaBackupCode": "Inloggen via backup-code",
+    "logout": "Uitloggen",
+    "next": "Verder",
+    "no": "Nee",
+    "passwordForgotten": "Wachtwoord vergeten?",
+    "reportBug": "Bug melden",
+    "send": "Verzenden",
+    "switchAccount": "Account wisselen",
+    "yes": "Ja"
+  },
+  "error": {
+    "invalidSubdomain": "U heeft een ongeldig subdomein gebruikt. Controleer a.u.b. het subdomein."
+  },
+  "label": {
+    "email": "E-mailadres",
+    "password": {
+      "": "Wachtwoord",
+      "changeRequired": "U moet een nieuw wachtwoord kiezen, vul dit a.u.b. hier in",
+      "current": "Uw huidige wachtwoord",
+      "new": "Uw nieuwe wachtwoord",
+      "newSent": "Een email is verstuurd met uw nieuwe wachtwoord.",
+      "repeatNew": "Nogmaals uw nieuwe wachtwoord"
+    },
+    "stayLoggedIn": "Ingelogd blijven",
+    "username": "Gebruikersnaam",
+    "userSelection": "Kies de gebruiker waarmee u wilt inloggen",
+    "welcome": "Welkom"
+  },
+  "validation": {
+    "password": {
+      "valid": {
+        "length": "Het wachtwoord is minimaal 8 karakters lang.",
+        "lowerCase": "Het wachtwoord bevat een kleine letter.",
+        "number": "Het wachtwoord bevat een cijfer.",
+        "repeatPassword": "Beide wachtwoorden komen overeen.",
+        "upperCase": "Het wachtwoord bevat een hoofdletter."
+      }
+    }
+  },
+  "warning": {
+    "capsLock": "Caps lock staat aan"
+  }
+}

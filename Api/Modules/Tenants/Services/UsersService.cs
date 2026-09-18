@@ -63,6 +63,8 @@ namespace Api.Modules.Tenants.Services
         private const string UserPinnedModulesKey = "pinnedModules";
         private const string UserAutoLoadModulesKey = "autoLoadModules";
 
+        private const string LanguageKey = "language";
+
         private const string TotpEnabledKey = "totp_enabled";
         private const string TotpSecretKey = "totp_secret";
         private const string TotpRequiresSetupKey = "totp_requires_setup";
@@ -363,7 +365,8 @@ ORDER BY name ASC";
                             email.value AS emailAddress,
                             IFNULL(totpEnabled.value, '0') = '1' AS totpEnabled,
                             totpSecret.value as totpSecret,
-                            IFNULL(totpRequiresSetup.value, '1') = '1' AS totpRequiresSetup
+                            IFNULL(totpRequiresSetup.value, '1') = '1' AS totpRequiresSetup,
+                            language.value AS language
                         FROM {WiserTableNames.WiserItem} user
                         JOIN {WiserTableNames.WiserItemDetail} username ON username.item_id = user.id AND username.`key` = '{UserUsernameKey}' AND username.value = ?username
                         JOIN {WiserTableNames.WiserItemDetail} password ON password.item_id = user.id AND password.`key` = '{UserPasswordKey}'
@@ -376,6 +379,7 @@ ORDER BY name ASC";
                         LEFT JOIN {WiserTableNames.WiserItemDetail} totpEnabled on totpEnabled.item_id = user.id and totpEnabled.`key` = '{TotpEnabledKey}'
                         LEFT JOIN {WiserTableNames.WiserItemDetail} totpSecret on totpSecret.item_id = user.id and totpSecret.`key` = '{TotpSecretKey}'
                         LEFT JOIN {WiserTableNames.WiserItemDetail} totpRequiresSetup on totpRequiresSetup.item_id = user.id and totpRequiresSetup.`key` = '{TotpRequiresSetupKey}'
+                        LEFT JOIN {WiserTableNames.WiserItemDetail} language on language.item_id = user.id and language.`key` = '{LanguageKey}'
                         WHERE user.entity_type = '{WiserUserEntityType}'
                         {(parentId != 0 ? "AND user.parent_item_id=?parentid" : "")}
                         AND user.published_environment > 0
@@ -410,6 +414,7 @@ ORDER BY name ASC";
                     Role = dataRow.Field<string>("role"),
                     Roles = dataRow.Field<string>("roles"),
                     EmailAddress = dataRow.Field<string>("emailAddress"),
+                    Language = dataRow.Field<string>("language"),
                     TotpAuthentication = new TotpAuthenticationModel
                     {
                         RequiresSetup = Convert.ToBoolean(dataRow["totpRequiresSetup"]),
@@ -1597,6 +1602,46 @@ VALUES {String.Join(", ", queryBuilder)}";
 
             
             
+            return new ServiceResult<bool>(true);
+        }
+
+        /// <inheritdoc />
+        public async Task<ServiceResult<string>> GetLanguageAsync(ClaimsIdentity identity)
+        {
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            clientDatabaseConnection.ClearParameters();
+            clientDatabaseConnection.AddParameter("userId", IdentityHelpers.GetWiserUserId(identity));
+
+            string query = $"""
+                            SELECT language.`value`
+                            FROM {WiserTableNames.WiserItemDetail} AS language
+                            WHERE language.item_id = ?userId
+                            AND language.`key` = '{LanguageKey}'
+                            """;
+
+            DataTable dataTable = await clientDatabaseConnection.GetAsync(query);
+
+            return new ServiceResult<string>(dataTable.Rows.Count > 0
+                ? dataTable.Rows[0].Field<string>("value")
+                : null);
+        }
+
+        /// <inheritdoc />
+        public async Task<ServiceResult<bool>> SaveLanguageAsync(ClaimsIdentity identity, string language)
+        {
+            await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
+            clientDatabaseConnection.ClearParameters();
+            clientDatabaseConnection.AddParameter("userId", IdentityHelpers.GetWiserUserId(identity));
+            clientDatabaseConnection.AddParameter("language", language);
+
+            string query = $"""
+                            INSERT INTO {WiserTableNames.WiserItemDetail} (item_id, `key`, value)
+                            VALUES (?userId, '{LanguageKey}', ?language)
+                            ON DUPLICATE KEY UPDATE value = VALUES(value);
+                            """;
+
+            await clientDatabaseConnection.ExecuteAsync(query);
+
             return new ServiceResult<bool>(true);
         }
 

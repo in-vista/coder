@@ -282,5 +282,20 @@ namespace Api.Modules.Tenants.Interfaces
         /// <param name="encryptedUserId">The encrypted user ID to log the user in for.</param>
         /// <returns>True, if the login was successful.</returns>
         Task<ServiceResult<bool>> ImitateAsync(ClaimsIdentity identity, string encryptedUserId);
+
+        /// <summary>
+        /// Gets the language of the authenticated user.
+        /// </summary>
+        /// <param name="identity">The <see cref="ClaimsIdentity"/> of the authenticated client.</param>
+        /// <returns>The language of the authenticated user.</returns>
+        Task<ServiceResult<string>> GetLanguageAsync(ClaimsIdentity identity);
+
+        /// <summary>
+        /// Saves the language of the authenticated user.
+        /// </summary>
+        /// <param name="identity">The <see cref="ClaimsIdentity"/> of the authenticated client.</param>
+        /// <param name="language">The language to save.</param>
+        /// <returns>A boolean indicating whether the language was saved successfully.</returns>
+        Task<ServiceResult<bool>> SaveLanguageAsync(ClaimsIdentity identity, string language);
     }
 }

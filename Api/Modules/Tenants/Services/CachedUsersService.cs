@@ -265,5 +265,17 @@ namespace Api.Modules.Tenants.Services
         {
             return await usersService.ImitateAsync(identity, encryptedUserId);
         }
+
+        /// <inheritdoc />
+        public Task<ServiceResult<string>> GetLanguageAsync(ClaimsIdentity identity)
+        {
+            return usersService.GetLanguageAsync(identity);
+        }
+
+        /// <inheritdoc />
+        public Task<ServiceResult<bool>> SaveLanguageAsync(ClaimsIdentity identity, string language)
+        {
+            return usersService.SaveLanguageAsync(identity, language);
+        }
     }
 }

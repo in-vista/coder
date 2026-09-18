@@ -1,0 +1,51 @@
+﻿{
+  "button": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "changePassword": "Change password",
+    "delete": "Delete",
+    "edit": "Edit",
+    "login": "Sign in",
+    "loginViaBackupCode": "Sign in with backup code",
+    "logout": "Sign out",
+    "next": "Next",
+    "no": "No",
+    "passwordForgotten": "Forgot your password?",
+    "reportBug": "Report a bug",
+    "send": "Send",
+    "switchAccount": "Switch account",
+    "yes": "Yes"
+  },
+  "error": {
+    "invalidSubdomain": "You have entered an invalid subdomain. Please check the subdomain."
+  },
+  "label": {
+    "email": "Email address",
+    "password": {
+      "": "Password",
+      "changeRequired": "You must choose a new password. Please enter it here.",
+      "current": "Your current password",
+      "new": "Your new password",
+      "newSent": "An email has been sent with your new password.",
+      "repeatNew": "Repeat your new password"
+    },
+    "stayLoggedIn": "Stay signed in",
+    "username": "Username",
+    "userSelection": "Choose the user you want to sign in as",
+    "welcome": "Welcome"
+  },
+  "validation": {
+    "password": {
+      "valid": {
+        "length": "The password is at least 8 characters long.",
+        "lowerCase": "The password contains a lowercase letter.",
+        "number": "The password contains a number.",
+        "repeatPassword": "Both passwords match.",
+        "upperCase": "The password contains an uppercase letter."
+      }
+    }
+  },
+  "warning": {
+    "capsLock": "Caps Lock is on"
+  }
+}

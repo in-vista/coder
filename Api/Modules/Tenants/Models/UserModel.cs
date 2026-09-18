@@ -56,6 +56,11 @@ namespace Api.Modules.Tenants.Models
         public string LastLoginIpAddress { get; set; }
 
         /// <summary>
+        /// Gets or sets the application language in the following format: nl-NL
+        /// </summary>
+        public string Language { get; set; }
+
+        /// <summary>
         /// Gets or sets the TOTP settings (2FA).
         /// </summary>
         public TotpAuthenticationModel TotpAuthentication { get; set; }

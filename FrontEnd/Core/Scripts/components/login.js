@@ -115,6 +115,10 @@ export default {
                 user: Object.assign({}, this.loginForm),
                 loginStatus: this.loginStatus
             });
+
+            if (this.loginStatus === "success" && this.user?.language) {
+                await this.applyLanguage(this.user.language);
+            }
             
             if (this.loginStatus === "error") {
                 this.loginForm.selectedUser = "";

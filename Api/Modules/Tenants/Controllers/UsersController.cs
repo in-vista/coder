@@ -287,5 +287,30 @@ namespace Api.Modules.Tenants.Controllers
         {
             return (await usersService.ImitateAsync((ClaimsIdentity) User.Identity, encryptedUserId)).GetHttpResponseMessage();
         }
+
+        /// <summary>
+        /// Gets the language of the authenticated user.
+        /// </summary>
+        /// <returns>The language of the authenticated user.</returns>
+        [HttpGet]
+        [Route("language")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetLanguageAsync()
+        {
+            return (await usersService.GetLanguageAsync((ClaimsIdentity)User.Identity)).GetHttpResponseMessage();
+        }
+
+        /// <summary>
+        /// Saves the language of the authenticated user.
+        /// </summary>
+        /// <param name="language">The language to save.</param>
+        [HttpPut]
+        [Route("language")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> SaveLanguageAsync([FromBody] string language)
+        {
+            return (await usersService.SaveLanguageAsync((ClaimsIdentity)User.Identity, language))
+                .GetHttpResponseMessage();
+        }
     }
 }

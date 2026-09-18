@@ -46,7 +46,8 @@
                         <i class="mdi mdi-size-2 mdi-account"></i>
                     </div>
                     <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event); closeAccountDropdown()">
-                        <p class="coder-menu-item-popout-title"><strong>Welkom</strong> <span class="coder-highlight">{{ user.name }}</span>.</p>
+                        <p class="coder-menu-item-popout-title"><strong>{{ t('common.label.welcome') }}</strong> <span
+                                class="coder-highlight">{{ user.name }}</span>.</p>
                         <div class="coder-menu-item-popout-items">
                             <div v-if="!!markerWidget" class="coder-menu-item-popout-item">
                                 <div @@click="openMarkerIoScreen" class="coder-menu-item-popout-item-content hover">
@@ -57,7 +58,7 @@
                             <div v-if="imitations?.length" class="coder-menu-item-popout-item">
                                 <div @@mouseenter.stop="openAccountDropdown" @@mouseleave.stop="scheduleCloseAccountDropdown" id="accountButton" class="coder-menu-item-popout-item-content hover">
                                     <i class="mdi mdi-size-2 mdi-account-convert"></i>
-                                    <span>Account wisselen</span>
+                                    <span>{{ t('common.button.switchAccount') }}</span>
                                 </div>
                                 <div
                                     v-show="accountDropdownVisible"
@@ -76,7 +77,7 @@
                             <div class="coder-menu-item-popout-item">
                                 <div @@click="logout" class="coder-menu-item-popout-item-content hover">
                                     <i class="mdi mdi-size-2 mdi-logout"></i>
-                                    <span>Uitloggen</span>
+                                    <span>{{ t('common.button.logout') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -85,6 +86,7 @@
             </div>
         </div>
         <div id="coder-container">
+            <language-selector :logged-out="true" v-if="!user.loggedIn"></language-selector>
             <div v-if="user.loggedIn && !requirePasswordChange" id="coder-tab-strip">
                 <div id="modules-strip">
                     <div
@@ -126,6 +128,7 @@
                         <ins class="mdi mdi-size-2 mdi-fullscreen"></ins>
                     </div>
                     <task-alerts ref="taskAlerts"></task-alerts>
+                    <language-selector></language-selector>
                 </div>
             </div>
             <main :class="{ login: !user.loggedIn || requirePasswordChange, 'scrollable': tenantManagementIsOpened }">
@@ -148,15 +151,22 @@
                 {{ generalMessagePromptText }}
             </div>
         </wiser-dialog>
-        <wiser-dialog class="change-password-prompt" :modal="true" :width="'400px'" :title="'Wachtwoord wijzigen'" ref="changePasswordPrompt" :visible="false" :actions="[{ text: 'Annuleren' }, { text: 'Opslaan', primary: true, action: changePassword }]">
+        <wiser-dialog class="change-password-prompt" :modal="true" :width="'400px'"
+                      :title="t('common.button.changePassword')" ref="changePasswordPrompt" :visible="false"
+                      :actions="[{ text: t('common.button.cancel') }, { text: 'Opslaan', primary: true, action: changePassword }]">
             <div class="form-row">
-                <input type="password" id="oldPassword" name="oldPassword" class="loginField passwordField" placeholder="Uw huidig wachtwoord" v-model="changePasswordPromptOldPasswordValue"/>
+                <input type="password" id="oldPassword" name="oldPassword" class="loginField passwordField"
+                       :placeholder="t('common.label.password.current')"
+                       v-model="changePasswordPromptOldPasswordValue"/>
             </div>
             <div class="form-row">
-                <input type="password" id="newPassword" name="newPassword" class="loginField passwordField" placeholder="Uw nieuwe wachtwoord" v-model="changePasswordPromptNewPasswordValue"/>
+                <input type="password" id="newPassword" name="newPassword" class="loginField passwordField"
+                       :placeholder="t('common.label.password.new')" v-model="changePasswordPromptNewPasswordValue"/>
             </div>
             <div class="form-row">
-                <input type="password" id="newPasswordRepeat" name="newPasswordRepeat" class="loginField passwordField" placeholder="Nogmaals uw nieuwe wachtwoord" v-model="changePasswordPromptNewPasswordRepeatValue"/>
+                <input type="password" id="newPasswordRepeat" name="newPasswordRepeat" class="loginField passwordField"
+                       :placeholder="t('common.label.password.repeatNew')"
+                       v-model="changePasswordPromptNewPasswordRepeatValue"/>
             </div>
             <div class="error" v-if="changePasswordError">{{ changePasswordError }}</div>
         </wiser-dialog>
@@ -243,11 +253,11 @@
                         <input type="number" id="newBranchDatabasePort" autocomplete="off" autocapitalize="none" v-model="createBranchSettings.databasePort">
                     </div>
                     <div class="col col-6">
-                        <label for="newBranchDatabaseUsername">Gebruikersnaam</label>
+                        <label for="newBranchDatabaseUsername">{{ t('common.label.username') }}</label>
                         <input type="text" id="newBranchDatabaseUsername" autocomplete="off" autocapitalize="none" v-model="createBranchSettings.databaseUsername">
                     </div>
                     <div class="col col-6">
-                        <label for="newBranchDatabasePassword">Wachtwoord</label>
+                        <label for="newBranchDatabasePassword">{{ t('common.label.password') }}</label>
                         <input type="password" id="newBranchDatabasePassword" autocomplete="off" autocapitalize="none" v-model="createBranchSettings.databasePassword">
                     </div>
                     <div class="col col-12 form-row no-bottom-margin">
@@ -805,18 +815,22 @@
                 </footer>
             </div>
         </wiser-dialog>
-        <wiser-dialog :modal="true" :width="'400px'" :title="'Vul een ID in'" ref="wiserIdPrompt" :visible="false" :actions="[{ text: 'Annuleren' }, { text: 'Openen', primary: true, action: openWiserItem }]" @@open="onWiserIdPromptOpen">
+        <wiser-dialog :modal="true" :width="'400px'" :title="'Vul een ID in'" ref="wiserIdPrompt" :visible="false"
+                      :actions="[{ text: t('common.button.cancel') }, { text: 'Openen', primary: true, action: openWiserItem }]"
+                      @@open="onWiserIdPromptOpen">
             <div class="form-row">
                 <input type="number" id="wiserId" autocomplete="off" autofocus="autofocus" autocapitalize="none" v-model="wiserIdPromptValue" min="1" step="1" @@keypress="onWiserIdFieldKeyPress" required>
             </div>
         </wiser-dialog>
-        <wiser-dialog :modal="true" :width="'400px'" :title="'Entiteit'" ref="wiserEntityTypePrompt" :visible="false" :actions="[{ text: 'Annuleren' }, { text: 'Openen', primary: true, action: openWiserItem }]">
+        <wiser-dialog :modal="true" :width="'400px'" :title="'Entiteit'" ref="wiserEntityTypePrompt" :visible="false"
+                      :actions="[{ text: t('common.button.cancel') }, { text: 'Openen', primary: true, action: openWiserItem }]">
             <p>Het opgegeven ID komt meerdere keren voor. Kies welk type u wilt openen:</p>
             <div class="form-row">
                 <dropdownlist :data-items="listOfEntityTypes" :text-field="'displayName'" :data-item-key="'id'" v-model="wiserEntityTypePromptValue"></dropdownlist>
             </div>
         </wiser-dialog>
-        <wiser-dialog :modal="true" :width="'400px'" :title="'Cache legen'" ref="clearCachePrompt" :visible="false" :actions="[{ text: 'Annuleren' }, { text: 'OK', primary: true, action: clearWebsiteCache }]">
+        <wiser-dialog :modal="true" :width="'400px'" :title="'Cache legen'" ref="clearCachePrompt" :visible="false"
+                      :actions="[{ text: t('common.button.cancel') }, { text: 'OK', primary: true, action: clearWebsiteCache }]">
             <div class="form-row">
                 <label class="checkbox" for="cache_all">
                     <input type="checkbox" id="cache_all" name="cache_all" value="all" v-model="clearCacheSettings.areas" @@change="onCacheTypeChecked($event, 'all')"/>
@@ -962,11 +976,13 @@
 
             <div v-if="validSubDomain && loginStatus !== 'list' && loginStatus !== 'list_loading' && loginStatus !== 'totp' && loginStatus !== 'totp_loading' && loginStatus !== 'totp_error' && !showForgotPasswordScreen && !requirePasswordChange">
                 <div class="form-row">
-                    <input type="text" id="username" placeholder="Gebruikersnaam" autocomplete="off" autofocus="autofocus" autocapitalize="none" v-model="loginForm.username" required>
+                    <input type="text" id="username" :placeholder="t('common.label.username')" autocomplete="off"
+                           autofocus="autofocus" autocapitalize="none" v-model="loginForm.username" required>
                 </div>
 
                 <div class="form-row">
-                    <input type="password" id="password" placeholder="Wachtwoord" autocomplete="off" v-model="loginForm.password" @@keydown="checkCapslock($event)" required>
+                    <input type="password" id="password" :placeholder="t('common.label.password')" autocomplete="off"
+                           v-model="loginForm.password" @@keydown="checkCapslock($event)" required>
                     <ins id="password-toggle" class="icon-eye-visible" v-on:click="togglePassword()"></ins>
 
                     <div class="pwd-message" v-if="loginForm.capslock">Caps lock staat aan</div>
@@ -974,14 +990,19 @@
 
                 <div class="form-row">
                     <label id="remember" class="check-box">
-                        <input type="checkbox" name="remember" class="no-form" v-model="loginForm.rememberMe"><span>Ingelogd blijven</span>
+                        <input type="checkbox" name="remember" class="no-form"
+                               v-model="loginForm.rememberMe"><span>{{ t('common.label.stayLoggedIn') }}</span>
                     </label>
                 </div>
 
                 <div class="btn-row">
-                    <button type="submit" :class="{ btn: true, 'btn-primary': true, loading: loginStatus === 'loading' }">Inloggen</button>
+                    <button type="submit"
+                            :class="{ btn: true, 'btn-primary': true, loading: loginStatus === 'loading' }">
+                        {{ t('common.button.login') }}
+                    </button>
 
-                    <a href="#forgotpassword" @@click="togglePasswordForgottenScreen(true)" id="forgotten-password">Wachtwoord vergeten?</a>
+                    <a href="#forgotpassword" @@click="togglePasswordForgottenScreen(true)"
+                       id="forgotten-password">{{ t('common.button.passwordForgotten') }}</a>
                 </div>
             </div>
             <div v-if="(loginStatus === 'totp' || loginStatus === 'totp_loading' || loginStatus === 'totp_error') && !showForgotPasswordScreen" class="totp">
@@ -999,62 +1020,80 @@
                     <input type="text" name="totpPin" v-model="loginForm.totpPin" />
                 </div>
 
-                <a v-if="!totpQrImageUrl && !showTotpBackupCodeScreen && !user.adminLogin" href="#" @@click="toggleTotpBackupCodeScreen(true)" id="totpBackupCode">Inloggen via backup-code?</a>
+                <a v-if="!totpQrImageUrl && !showTotpBackupCodeScreen && !user.adminLogin" href="#"
+                   @@click="toggleTotpBackupCodeScreen(true)"
+                   id="totpBackupCode">{{ t('common.button.loginViaBackupCode') }}</a>
 
                 <div class="btn-row">
-                    <a href="#" class="btn btn-secundary" @@click="logout()">Annuleren</a>
+                    <a href="#" class="btn btn-secundary" @@click="logout()">{{ t('common.button.cancel') }}</a>
                     <button type="submit" :class="{ btn: true, 'btn-primary': true, loading: loginStatus === 'totp_loading' }">Verder</button>
                 </div>
             </div>
             <div v-if="(loginStatus === 'list' || loginStatus === 'list_loading') && !showForgotPasswordScreen">
-                <p>Kies de gebruiker waarmee u wilt inloggen</p>
+                <p>{{ t('common.label.userSelection') }}</p>
 
                 <div class="form-row">
                     <combobox :data-items="listOfUsers" :text-field="'Title'" :data-item-key="'username'" v-model="loginForm.selectedUser" :filterable="true" @@filterchange="userFilterChange"></combobox>
                 </div>
 
                 <div class="btn-row">
-                    <a href="#" class="btn btn-secundary" @@click="logout()">Annuleren</a>
+                    <a href="#" class="btn btn-secundary" @@click="logout()">{{ t('common.button.cancel') }}</a>
                     <button type="submit" :class="{ btn: true, 'btn-primary': true, loading: loginStatus === 'list_loading' }">Verder</button>
                 </div>
             </div>
             <div v-if="showForgotPasswordScreen" class="forgotPasswordScreen">
                 <section class="success" v-if="resetPassword">
-                    <span>Een email is verstuurd met uw nieuwe wachtwoord.</span>
+                    <span>{{ t('common.label.password.newSent') }}</span>
                 </section>
                 <div class="form-row">
-                    <input type="text" class="loginField usernameField" placeholder="Gebruikersnaam" v-model="forgotPasswordForm.username" />
+                    <input type="text" class="loginField usernameField" :placeholder="t('common.label.username')"
+                           v-model="forgotPasswordForm.username"/>
                 </div>
                 <div class="form-row">
-                    <input type="text" class="loginField passwordField" placeholder="E-mailadres" v-model="forgotPasswordForm.email" />
+                    <input type="text" class="loginField passwordField" :placeholder="t('common.label.email')"
+                           v-model="forgotPasswordForm.email"/>
                 </div>
 
                 <div class="btn-row">
                     <button type="submit" :class="{ btn: true, 'btn-primary': true }">Verzenden</button>
-                    <div :class="{ btn: true }" v-on:click="togglePasswordForgottenScreen(false)">Annuleren</div>
+                    <div :class="{ btn: true }" v-on:click="togglePasswordForgottenScreen(false)">
+                        {{ t('common.button.cancel')
+                        }}
+                    </div>
                 </div>
             </div>
             <div class="changePasswordAfterLogin" v-if="requirePasswordChange">
-                <h3>U moet een nieuw wachtwoord kiezen, vul dit a.u.b. hier in</h3>
+                <h3>{{ t('common.label.password.changeRequired') }}</h3>
                 <div class="form-row">
-                    <input type="password" id="newPassword" name="newPassword" class="loginField passwordField" placeholder="Uw nieuwe wachtwoord" v-model="changePasswordForm.newPassword" />
+                    <input type="password" id="newPassword" name="newPassword" class="loginField passwordField"
+                           :placeholder="t('common.label.password.new')" v-model="changePasswordForm.newPassword"/>
                 </div>
                 <div class="form-row">
-                    <input type="password" id="newPasswordRepeat" name="newPasswordRepeat" class="loginField passwordField" placeholder="Nogmaals uw nieuwe wachtwoord" v-model="changePasswordForm.newPasswordRepeat" />
+                    <input type="password" id="newPasswordRepeat" name="newPasswordRepeat"
+                           class="loginField passwordField" :placeholder="t('common.label.password.repeatNew')"
+                           v-model="changePasswordForm.newPasswordRepeat"/>
                 </div>
                 <password-requirements v-model="passwordRequirementsValid">
-                    <password-requirement :accepted="changePasswordForm.newPassword?.length >= 8">Het wachtwoord is minimaal 8 karakters lang.</password-requirement>
-                    <password-requirement :accepted="/[A-Z]/.test(changePasswordForm.newPassword)">Het wachtwoord bevat een hoofdletter.</password-requirement>
-                    <password-requirement :accepted="/[a-z]/.test(changePasswordForm.newPassword)">Het wachtwoord bevat een kleine letter.</password-requirement>
-                    <password-requirement :accepted="/[0-9]/.test(changePasswordForm.newPassword)">Het wachtwoord bevat een cijfer.</password-requirement>
+                    <password-requirement :accepted="changePasswordForm.newPassword?.length >= 8">
+                        {{ t('common.validation.password.valid.length') }}
+                    </password-requirement>
+                    <password-requirement :accepted="/[A-Z]/.test(changePasswordForm.newPassword)">
+                        {{ t('common.validation.password.valid.upperCase') }}
+                    </password-requirement>
+                    <password-requirement :accepted="/[a-z]/.test(changePasswordForm.newPassword)">
+                        {{ t('common.validation.password.valid.lowerCase') }}
+                    </password-requirement>
+                    <password-requirement :accepted="/[0-9]/.test(changePasswordForm.newPassword)">
+                        {{ t('common.validation.password.valid.number') }}
+                    </password-requirement>
                     <password-requirement
                         :accepted="[changePasswordForm.newPassword, changePasswordForm.newPasswordRepeat].every(x => x?.length > 0) && changePasswordForm.newPassword === changePasswordForm.newPasswordRepeat">
-                        Beide wachtwoorden komen overeen.
+                        {{ t('common.validation.password.valid.repeatPassword') }}
                     </password-requirement>
                 </password-requirements>
                 <div class="btn-row">
                     <button id="submitPasswordChange" type="submit" class="btn btn-primary" :disabled="!passwordRequirementsValid">Wijzigen</button>
-                    <button id="cancelPasswordChange" class="btn">Annuleren</button>
+                    <button id="cancelPasswordChange" class="btn">{{ t('common.button.cancel') }}</button>
                 </div>
             </div>
         </form>
@@ -1204,7 +1243,7 @@
                     </div>
 
                     <div class="form-row" v-if="!newTenantData.createNewDatabase">
-                        <label for="databasePassword">Wachtwoord <strong>*</strong></label>
+                        <label for="databasePassword">{{ t('common.label.password') }} <strong>*</strong></label>
                         <input type="text" id="databasePassword" autocomplete="off" autofocus="autofocus" autocapitalize="none" v-model="newTenantData.databasePassword" required>
                     </div>
 

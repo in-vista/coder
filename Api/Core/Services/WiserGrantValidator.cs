@@ -170,7 +170,8 @@ namespace Api.Core.Services
                 { "totpEnabled", loginResult.ModelObject.TotpAuthentication.Enabled },
                 { "totpQrImageUrl", loginResult.ModelObject.TotpAuthentication.QrImageUrl },
                 { "totpSuccess", totpSuccess },
-                { "totpFirstTime", adminAccountId == 0 && loginResult.ModelObject.TotpAuthentication.RequiresSetup }
+                { "totpFirstTime", adminAccountId == 0 && loginResult.ModelObject.TotpAuthentication.RequiresSetup },
+                { "language", loginResult.ModelObject.Language ?? "nl-NL" }
             };
 
             // Set access token and refresh token to null to make sure people can't somehow login anyway, when they haven't entered their 2FA PIN yet.

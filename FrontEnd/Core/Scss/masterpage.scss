@@ -1556,6 +1556,17 @@ $mdi-sizes: (
     height: 32px;
 }
 
+.language-selector {
+    padding: 6px 8px;
+    cursor: pointer;
+}
+
+.language-selector-logged-out {
+    display: block;
+    width: fit-content;
+    margin: 8px 8px 8px auto;
+}
+
 #coder-container {
     min-width: 0;
     

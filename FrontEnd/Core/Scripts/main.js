@@ -12,10 +12,13 @@ import BranchesService from "./shared/branches.service";
 import CacheService from "./shared/cache.service";
 import DatabasesService from "./shared/databases.service";
 
+import Localization from "../localization/Localization";
+
 import store from "./store/index";
 import login from "./components/login";
 import taskAlerts from "./components/task-alerts";
 import vhover from "./components/vhover";
+import languageSelector from "./components/language-selector.js";
 
 import {DropDownList} from "@progress/kendo-vue-dropdowns";
 import WiserDialog from "./components/wiser-dialog";
@@ -69,6 +72,8 @@ class Main {
         this.vueApp = null;
         this.appSettings = null;
 
+        this.localization = new Localization(this);
+
         this.usersService = new UsersService(this);
         this.modulesService = new ModulesService(this);
         this.tenantsService = new TenantsService(this);
@@ -90,6 +95,8 @@ class Main {
     async onPageReady() {
         const configElement = document.getElementById("vue-config");
         this.appSettings = JSON.parse(configElement.innerHTML);
+
+        await this.localization.initialize();
 
         if (this.appSettings.trackJsToken) {
             try {
@@ -704,6 +711,14 @@ class Main {
                         cursor: 'grabbing',
                         opacity: 0.5
                     };
+                },
+                selectedLanguage: {
+                    get() {
+                        return this.getLanguage();
+                    },
+                    set(language) {
+                        this.setLanguage(language);
+                    }
                 }
             },
             components: {
@@ -712,7 +727,8 @@ class Main {
                 "tenantManagement": defineAsyncComponent(() => import(/* webpackChunkName: "tenant-management" */"./components/tenant-management")),
                 "login": login,
                 "taskAlerts": taskAlerts,
-                "v-hover": vhover
+                "v-hover": vhover,
+                "languageSelector": languageSelector,
             },
             watch: {
                 async loginStatus(newValue, oldValue) {
@@ -786,6 +802,8 @@ class Main {
                 }
             },
             methods: {
+                t: (key, params) => this.localization.t(key, params),
+
                 onAppKeyDown(event) {
                     // Open Wiser ID prompt when the user presses CTRL+O.
                     if (event.ctrlKey && event.key === "o") {
@@ -1922,10 +1940,15 @@ class Main {
                 
                 document.removeEventListener(
                     "reloadImitations",
-                    this.reloadImitationsHandler
+                    this.reloadImitationsHandler``
                 );
             }
         });
+
+        this.vueApp.config.globalProperties.t = (key, params) => this.localization.t(key, params);
+        this.vueApp.config.globalProperties.setLanguage = (language) => this.localization.setLanguage(language);
+        this.vueApp.config.globalProperties.getLanguage = () => this.localization.getLanguage();
+        this.vueApp.config.globalProperties.applyLanguage = (language) => this.localization.applyLanguage(language);
 
         // Let Vue know about our store.
         this.vueApp.use(store);
