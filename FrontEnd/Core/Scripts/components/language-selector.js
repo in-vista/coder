@@ -2,6 +2,11 @@
     name: "language-selector",
 
     props: {
+        localization: {
+            type: Object,
+            required: true
+        },
+
         loggedOut: {
             type: Boolean,
             default: false
@@ -11,22 +16,32 @@
     computed: {
         selectedLanguage: {
             get() {
-                return this.getLanguage();
+                return this.localization.language;
             },
-            set(language) {
-                this.setLanguage(language);
+
+            async set(language) {
+                await this.localization.setLanguage(language);
             }
+        },
+
+        supportedLanguages() {
+            return this.localization.supportedLanguages;
         }
     },
 
     template: `
-        <select
-            class="language-selector"
-            :class="{ 'language-selector-logged-out': loggedOut }"
-            v-model="selectedLanguage"
+      <select
+          class="language-selector"
+          :class="{ 'language-selector-logged-out': loggedOut }"
+          v-model="selectedLanguage"
+      >
+        <option
+            v-for="language in supportedLanguages"
+            :key="language.code"
+            :value="language.code"
         >
-            <option value="nl-NL">Nederlands</option>
-            <option value="en-US">English</option>
-        </select>
+          {{ language.name }}
+        </option>
+      </select>
     `
 };

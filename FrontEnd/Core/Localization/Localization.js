@@ -6,10 +6,10 @@
 export default class Localization {
     static DEFAULT_LANGUAGE = "nl-NL";
     static CULTURE_COOKIE = ".AspNetCore.Culture";
-    
+
     static SUPPORTED_LANGUAGES = [
-        "nl-NL",
-        "en-US"
+        {code: "nl-NL", name: "Nederlands"},
+        {code: "en-US", name: "English"}
     ];
 
     constructor(base, language = Localization.DEFAULT_LANGUAGE) {
@@ -30,18 +30,25 @@ export default class Localization {
 
         const databaseLanguage = await this.loadLanguageFromDatabase();
 
-        if (Localization.SUPPORTED_LANGUAGES.includes(databaseLanguage)) {
+        if (this.supportedLanguages.some(x => x.code === databaseLanguage)) {
             language = databaseLanguage;
             this.setLanguageCookie(language);
         }
 
-        this.language = Localization.SUPPORTED_LANGUAGES.includes(language)
+        this.language = this.supportedLanguages.some(x => x.code === language)
             ? language
             : Localization.DEFAULT_LANGUAGE;
 
         this.translations = await this.loadLanguage(this.language);
 
+        this.updateTranslations();
+        this.startTranslationObserver();
+
         return this;
+    }
+
+    get supportedLanguages() {
+        return Localization.SUPPORTED_LANGUAGES;
     }
 
     /**
@@ -50,12 +57,21 @@ export default class Localization {
      * @param {string} language
      */
     async setLanguage(language) {
-        this.setLanguageCookie(language)
-        await this.saveLanguage(language);
-        window.location.reload();
+        if (!this.supportedLanguages.some(x => x.code === language)) {
+            return;
+        }
+
+        this.language = language;
+        this.setLanguageCookie(language);
+
+        await this.saveLanguageToDatabase(language);
+
+        this.translations = await this.loadLanguage(language);
+
+        this.updateTranslations();
     }
 
-    async saveLanguage(language) {
+    async saveLanguageToDatabase(language) {
         const apiUrl = this.base.appSettings.apiBase + "api/v3/";
 
         const userData = JSON.parse(localStorage.getItem("userData"));
@@ -80,10 +96,6 @@ export default class Localization {
         const value = `c=${language}|uic=${language}`;
 
         document.cookie = `${Localization.CULTURE_COOKIE}=${encodeURIComponent(value)}; path=/; SameSite=Lax`;
-    }
-    
-    getLanguage() {
-        return this.language;
     }
 
     getLanguageFromCookie() {
@@ -117,34 +129,6 @@ export default class Localization {
         } catch (error) {
             console.warn("Could not load language from database", error);
             return null;
-        }
-    }
-
-    /**
-     * Apply the langues retreived from the user when logging in
-     * @param language
-     * @returns {Promise<void>}
-     */
-    async applyLanguage(language) {
-        if (!Localization.SUPPORTED_LANGUAGES.includes(language)) {
-            return;
-        }
-
-        this.setLanguageCookie(language);
-        window.location.reload();
-    }
-
-    isUserLoggedIn() {
-        const userSettings = sessionStorage.getItem("userSettings");
-
-        if (!userSettings) {
-            return false;
-        }
-
-        try {
-            return !!JSON.parse(userSettings);
-        } catch {
-            return false;
         }
     }
 
@@ -186,6 +170,66 @@ export default class Localization {
         }
 
         return this.interpolate(value, params);
+    }
+
+    startTranslationObserver() {
+        if (this.translationObserver || !document.body) {
+            return;
+        }
+
+        this.translationObserver = new MutationObserver(mutations => {
+            for (const mutation of mutations) {
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        this.updateTranslations(node);
+                    }
+                }
+            }
+        });
+
+        this.translationObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    updateTranslations(root = document) {
+        const elements = [];
+
+        if (
+            root.nodeType === Node.ELEMENT_NODE &&
+            root.matches("[data-translation-value]")
+        ) {
+            elements.push(root);
+        }
+
+        if (root.querySelectorAll) {
+            elements.push(
+                ...root.querySelectorAll("[data-translation-value]")
+            );
+        }
+
+        elements.forEach(element => {
+            const key = element.dataset.translationValue;
+            const translation = this.t(key);
+
+            // No translation found: keep the fallback text.
+            if (translation === key) {
+                return;
+            }
+
+            const attribute = element.dataset.translationAttribute;
+
+            if (attribute) {
+                if (element.getAttribute(attribute) !== translation) {
+                    element.setAttribute(attribute, translation);
+                }
+            } else {
+                if (element.textContent !== translation) {
+                    element.textContent = translation;
+                }
+            }
+        });
     }
 
     /**

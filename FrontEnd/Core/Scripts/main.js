@@ -12,7 +12,7 @@ import BranchesService from "./shared/branches.service";
 import CacheService from "./shared/cache.service";
 import DatabasesService from "./shared/databases.service";
 
-import Localization from "../localization/Localization";
+import Localization from "../Localization/Localization";
 
 import store from "./store/index";
 import login from "./components/login";
@@ -248,6 +248,7 @@ class Main {
             data: () => {
                 return {
                     appSettings: this.appSettings,
+                    localization: this.localization,
                     wiserIdPromptValue: null,
                     wiserEntityTypePromptValue: null,
                     markerWidget: this.markerWidget,
@@ -711,14 +712,6 @@ class Main {
                         cursor: 'grabbing',
                         opacity: 0.5
                     };
-                },
-                selectedLanguage: {
-                    get() {
-                        return this.getLanguage();
-                    },
-                    set(language) {
-                        this.setLanguage(language);
-                    }
                 }
             },
             components: {
@@ -732,8 +725,19 @@ class Main {
             },
             watch: {
                 async loginStatus(newValue, oldValue) {
-                    if (oldValue !== newValue && newValue === "success" && this.user.totpFirstTime && this.user.totpEnabled && !this.user.adminLogin) {
-                        // If the user just finished setting up TOTP (2FA) authentication, then immediately generate backup codes for them.
+                    if (oldValue === newValue || newValue !== "success") {
+                        return;
+                    }
+
+                    const databaseLanguage = await this.localization.loadLanguageFromDatabase();
+
+                    if (this.localization.supportedLanguages.some(x => x.code === databaseLanguage)) {
+                        await this.localization.setLanguage(databaseLanguage);
+                    }
+
+                    if (this.user.totpFirstTime && this.user.totpEnabled && !this.user.adminLogin) {
+                        // If the user just finished setting up TOTP (2FA) authentication,
+                        // then immediately generate backup codes for them.
                         this.openGenerateTotpBackupCodesPrompt();
                         await this.generateNewTotpBackupCodes();
                     }
@@ -1945,10 +1949,8 @@ class Main {
             }
         });
 
+        // Add functions for localization to globalProperties
         this.vueApp.config.globalProperties.t = (key, params) => this.localization.t(key, params);
-        this.vueApp.config.globalProperties.setLanguage = (language) => this.localization.setLanguage(language);
-        this.vueApp.config.globalProperties.getLanguage = () => this.localization.getLanguage();
-        this.vueApp.config.globalProperties.applyLanguage = (language) => this.localization.applyLanguage(language);
 
         // Let Vue know about our store.
         this.vueApp.use(store);

@@ -10,8 +10,11 @@
     "logout": "Sign out",
     "next": "Next",
     "no": "No",
+    "ok": "OK",
+    "open": "Open",
     "passwordForgotten": "Forgot your password?",
     "reportBug": "Report a bug",
+    "save": "Save",
     "send": "Send",
     "switchAccount": "Switch account",
     "yes": "Yes"
@@ -32,7 +35,7 @@
     "stayLoggedIn": "Stay signed in",
     "username": "Username",
     "userSelection": "Choose the user you want to sign in as",
-    "welcome": "Welcome"
+    "welcome": "Welcome "
   },
   "validation": {
     "password": {

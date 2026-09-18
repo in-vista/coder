@@ -10,8 +10,11 @@
     "logout": "Uitloggen",
     "next": "Verder",
     "no": "Nee",
+    "ok": "OK",
+    "open": "Openen",
     "passwordForgotten": "Wachtwoord vergeten?",
     "reportBug": "Bug melden",
+    "save": "Opslaan",
     "send": "Verzenden",
     "switchAccount": "Account wisselen",
     "yes": "Ja"
@@ -32,7 +35,7 @@
     "stayLoggedIn": "Ingelogd blijven",
     "username": "Gebruikersnaam",
     "userSelection": "Kies de gebruiker waarmee u wilt inloggen",
-    "welcome": "Welkom"
+    "welcome": "Welkom "
   },
   "validation": {
     "password": {

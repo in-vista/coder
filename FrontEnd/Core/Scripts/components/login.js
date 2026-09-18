@@ -117,7 +117,7 @@ export default {
             });
 
             if (this.loginStatus === "success" && this.user?.language) {
-                await this.applyLanguage(this.user.language);
+                await this.setLanguage(this.user.language);
             }
             
             if (this.loginStatus === "error") {

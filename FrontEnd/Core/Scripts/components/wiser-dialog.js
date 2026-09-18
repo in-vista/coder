@@ -7,7 +7,11 @@ export default {
         visible: { type: Boolean, default: false }, 
         modal: { type: Boolean, default: false }, 
         width: { type: String, default: "500px" },
-        actions: { type: Array, default: () => [{ text: "Ok", primary: true }] }
+        actions: {type: Array, default: () => [{text: "Ok", primary: true}]},
+        translationKey: {
+            type: String,
+            default: null
+        }
     },
     data() {
         return {
@@ -30,14 +34,18 @@ export default {
             this.$emit("close", this);
         }
     },
-    template: `<div v-if="mutableVisible" class="w-dialog-container">
-    <div v-if="modal" class="w-overlay"></div>
-    <div class="w-dialog" :style="{ width: width }">
-        <button class="close-dialog" data-toggle="info" @click="close"><ins class="icon-line-close"></ins></button>
-        <h1>{{ title }}</h1>
-        <slot></slot>
-        <wiser-dialog-action v-for="dialogAction in actions" :key="dialogAction.text" v-bind="dialogAction" :closeDialog="close"></wiser-dialog-action>
-    </div>
-</div>
+    template: `
+      <div v-if="mutableVisible" class="w-dialog-container">
+        <div v-if="modal" class="w-overlay"></div>
+        <div class="w-dialog" :style="{ width: width }">
+          <button class="close-dialog" data-toggle="info" @click="close">
+            <ins class="icon-line-close"></ins>
+          </button>
+          <h1 :data-translation-value="translationKey">{{ title }}</h1>
+          <slot></slot>
+          <wiser-dialog-action v-for="dialogAction in actions" :key="dialogAction.text" v-bind="dialogAction"
+                               :closeDialog="close"></wiser-dialog-action>
+        </div>
+      </div>
 `
 };
