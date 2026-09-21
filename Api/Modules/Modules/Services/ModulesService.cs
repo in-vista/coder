@@ -742,7 +742,7 @@ SELECT @newID;";
             {
                 return new ServiceResult<byte[]>
                 {
-                    ErrorMessage = gridResult.ErrorMessage,
+                    Error = gridResult.Error,
                     StatusCode = gridResult.StatusCode
                 };
             }
@@ -778,7 +778,7 @@ SELECT @newID;";
             {
                 return new ServiceResult<byte[]>
                 {
-                    ErrorMessage = gridResult.ErrorMessage,
+                    Error = gridResult.Error,
                     StatusCode = gridResult.StatusCode
                 };
             }

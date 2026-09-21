@@ -566,7 +566,7 @@ namespace Api.Core.Services
         }
         
         /// <inheritdoc />
-        public string AddInParameters(string key, IEnumerable<object> collection)
+        public string AddInParameters<T>(string key, IEnumerable<T> collection)
         {
             string joinedEntries = string.Join(", ", collection.Select((entry, entryIndex) =>
             {

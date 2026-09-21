@@ -234,7 +234,7 @@ ORDER BY name ASC";
             {
                 return new ServiceResult<AdminAccountModel>
                 {
-                    ErrorMessage = "Invalid credentials",
+                    Error = "Invalid credentials",
                     StatusCode = HttpStatusCode.Unauthorized
                 };
             }
@@ -270,7 +270,7 @@ ORDER BY name ASC";
             {
                 return new ServiceResult<AdminAccountModel>
                 {
-                    ErrorMessage = "Invalid credentials",
+                    Error = "Invalid credentials",
                     StatusCode = HttpStatusCode.Unauthorized
                 };
             }
@@ -280,7 +280,7 @@ ORDER BY name ASC";
             {
                 return new ServiceResult<AdminAccountModel>
                 {
-                    ErrorMessage = "Invalid credentials",
+                    Error = "Invalid credentials",
                     StatusCode = HttpStatusCode.Unauthorized
                 };
             }
@@ -302,7 +302,7 @@ ORDER BY name ASC";
                 await AddFailedLoginAttemptAsync(ipAddress, username);
                 return new ServiceResult<AdminAccountModel>
                 {
-                    ErrorMessage = "Invalid credentials",
+                    Error = "Invalid credentials",
                     StatusCode = HttpStatusCode.Unauthorized
                 };
             }
@@ -326,7 +326,7 @@ ORDER BY name ASC";
             {
                 return new ServiceResult<UserModel>
                 {
-                    ErrorMessage = "User is blocked due to too many failed login attempts",
+                    Error = "User is blocked due to too many failed login attempts",
                     StatusCode = HttpStatusCode.Unauthorized
                 };
             }
@@ -336,7 +336,7 @@ ORDER BY name ASC";
                 await AddFailedLoginAttemptAsync(ipAddress, username);
                 return new ServiceResult<UserModel>
                 {
-                    ErrorMessage = "Invalid credentials",
+                    Error = "Invalid credentials",
                     StatusCode = HttpStatusCode.Unauthorized
                 };
             }
@@ -359,6 +359,7 @@ ORDER BY name ASC";
                             IF(last_login_date.value IS NULL, ?now, STR_TO_DATE(last_login_date.value, '%Y-%m-%d %H:%i:%s')) AS last_login_date,
                             IFNULL(require_password_change.value, '0') AS require_password_change,
                             IFNULL(role.role_name, '') AS role,
+                            GROUP_CONCAT(role.role_name SEPARATOR ',') AS roles,
                             email.value AS emailAddress,
                             IFNULL(totpEnabled.value, '0') = '1' AS totpEnabled,
                             totpSecret.value as totpSecret,
@@ -377,7 +378,8 @@ ORDER BY name ASC";
                         LEFT JOIN {WiserTableNames.WiserItemDetail} totpRequiresSetup on totpRequiresSetup.item_id = user.id and totpRequiresSetup.`key` = '{TotpRequiresSetupKey}'
                         WHERE user.entity_type = '{WiserUserEntityType}'
                         {(parentId != 0 ? "AND user.parent_item_id=?parentid" : "")}
-                        AND user.published_environment > 0";
+                        AND user.published_environment > 0
+                        GROUP BY userRole.user_id";
 
             var dataTable = await clientDatabaseConnection.GetAsync(query);
             if (dataTable.Rows.Count == 0)
@@ -385,7 +387,7 @@ ORDER BY name ASC";
                 await AddFailedLoginAttemptAsync(ipAddress, username);
                 return new ServiceResult<UserModel>
                 {
-                    ErrorMessage = "Invalid credentials",
+                    Error = "Invalid credentials",
                     StatusCode = HttpStatusCode.Unauthorized
                 };
             }
@@ -406,6 +408,7 @@ ORDER BY name ASC";
                     LastLoginIpAddress = dataRow.Field<string>("last_login_ip"),
                     RequirePasswordChange = requirePasswordChange > 0 && !validAdminAccount, // Only require to change the password if the actual user is logged in.
                     Role = dataRow.Field<string>("role"),
+                    Roles = dataRow.Field<string>("roles"),
                     EmailAddress = dataRow.Field<string>("emailAddress"),
                     TotpAuthentication = new TotpAuthenticationModel
                     {
@@ -432,7 +435,7 @@ ORDER BY name ASC";
                 await AddFailedLoginAttemptAsync(ipAddress, username);
                 return new ServiceResult<UserModel>
                 {
-                    ErrorMessage = "Invalid credentials",
+                    Error = "Invalid credentials",
                     StatusCode = HttpStatusCode.Unauthorized
                 };
             }
@@ -454,7 +457,7 @@ ORDER BY name ASC";
                     await AddFailedLoginAttemptAsync(ipAddress, username);
                     return new ServiceResult<UserModel>
                     {
-                        ErrorMessage = "Invalid credentials",
+                        Error = "Invalid credentials",
                         StatusCode = HttpStatusCode.Unauthorized
                     };
                 }
@@ -538,7 +541,7 @@ ORDER BY name ASC";
             {
                 return new ServiceResult<ValidateCookieModel>
                 {
-                    ErrorMessage = "Cookie value is required",
+                    Error = "Cookie value is required",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -548,7 +551,7 @@ ORDER BY name ASC";
             {
                 return new ServiceResult<ValidateCookieModel>
                 {
-                    ErrorMessage = "Invalid cookie value",
+                    Error = "Invalid cookie value",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -634,7 +637,7 @@ ORDER BY name ASC";
                 return new ServiceResult<UserModel>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Provided old password and new password are not allowed to match"
+                    Error = "Provided old password and new password are not allowed to match"
                 };
             }
 
@@ -658,7 +661,7 @@ ORDER BY name ASC";
                 return new ServiceResult<UserModel>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = "User not found"
+                    Error = "User not found"
                 };
             }
 
@@ -668,7 +671,7 @@ ORDER BY name ASC";
                 return new ServiceResult<UserModel>
                 {
                     StatusCode = HttpStatusCode.Unauthorized,
-                    ErrorMessage = "Old password is incorrect."
+                    Error = "Old password is incorrect."
                 };
             }
 
@@ -718,7 +721,7 @@ ORDER BY name ASC";
             {
                 return new ServiceResult<UserModel>
                 {
-                    ErrorMessage = tenant.ErrorMessage,
+                    Error = tenant.Error,
                     StatusCode = tenant.StatusCode
                 };
             }
@@ -774,7 +777,7 @@ ORDER BY name ASC";
                 {
                     return new ServiceResult<UserModel>
                     {
-                        ErrorMessage = productionTenant.ErrorMessage,
+                        Error = productionTenant.Error,
                         StatusCode = productionTenant.StatusCode
                     };
                 }
@@ -833,7 +836,7 @@ ORDER BY name ASC";
             {
                 return new ServiceResult<UserModel>
                 {
-                    ErrorMessage = "User could not be found",
+                    Error = "User could not be found",
                     StatusCode = HttpStatusCode.NotFound
                 };
             }
@@ -1117,7 +1120,7 @@ ORDER BY name ASC";
             {
                 logger.LogError($"UpdateUserTimeActiveAsync: Error trying to decrypt encrypted log ID '{encryptedLoginLogId}': {exception}");
                 result.StatusCode = HttpStatusCode.BadRequest;
-                result.ErrorMessage = $"Error trying to decrypt encrypted log ID '{encryptedLoginLogId}'";
+                result.Error = $"Error trying to decrypt encrypted log ID '{encryptedLoginLogId}'";
                 return result;
             }
 
@@ -1126,7 +1129,7 @@ ORDER BY name ASC";
             {
                 logger.LogError($"UpdateUserTimeActiveAsync: Could not parse log ID '{decryptedLogId}' to a UInt64.");
                 result.StatusCode = HttpStatusCode.BadRequest;
-                result.ErrorMessage = $"Error trying to decrypt encrypted log ID '{encryptedLoginLogId}'";
+                result.Error = $"Error trying to decrypt encrypted log ID '{encryptedLoginLogId}'";
                 return result;
             }
 
@@ -1135,7 +1138,7 @@ ORDER BY name ASC";
             {
                 logger.LogError("UpdateUserTimeActiveAsync: Log ID should be higher than 0.");
                 result.StatusCode = HttpStatusCode.BadRequest;
-                result.ErrorMessage = "Log ID should be higher than 0";
+                result.Error = "Log ID should be higher than 0";
                 return result;
             }
 
@@ -1157,7 +1160,7 @@ ORDER BY name ASC";
                 {
                     logger.LogError("UpdateUserTimeActiveAsync: Log ID '{decryptedLogId}' does not exist or doesn't belong to the current user.", decryptedLogId);
                     result.StatusCode = HttpStatusCode.BadRequest;
-                    result.ErrorMessage = $"Log ID '{decryptedLogId}' does not exist or doesn't belong to the current user";
+                    result.Error = $"Log ID '{decryptedLogId}' does not exist or doesn't belong to the current user";
                     return result;
                 }
 
@@ -1178,7 +1181,7 @@ ORDER BY name ASC";
             {
                 logger.LogError($"Error while updating user active time: {exception}");
                 result.StatusCode = HttpStatusCode.BadRequest;
-                result.ErrorMessage = "Error while updating user active time";
+                result.Error = "Error while updating user active time";
                 return result;
             }
         }
@@ -1198,7 +1201,7 @@ ORDER BY name ASC";
             {
                 logger.LogError($"ResetTimeActiveChangedAsync: Error trying to decrypt encrypted log ID '{encryptedLoginLogId}': {exception}");
                 result.StatusCode = HttpStatusCode.BadRequest;
-                result.ErrorMessage = $"Error trying to decrypt encrypted log ID '{encryptedLoginLogId}'";
+                result.Error = $"Error trying to decrypt encrypted log ID '{encryptedLoginLogId}'";
                 return result;
             }
 
@@ -1207,7 +1210,7 @@ ORDER BY name ASC";
             {
                 logger.LogError($"ResetTimeActiveChangedAsync: Could not parse log ID '{decryptedLoginLogId}' to a UInt64.");
                 result.StatusCode = HttpStatusCode.BadRequest;
-                result.ErrorMessage = $"Error trying to decrypt encrypted log ID '{encryptedLoginLogId}'";
+                result.Error = $"Error trying to decrypt encrypted log ID '{encryptedLoginLogId}'";
                 return result;
             }
 
@@ -1216,7 +1219,7 @@ ORDER BY name ASC";
             {
                 logger.LogError("ResetTimeActiveChangedAsync: Log ID should be higher than 0.");
                 result.StatusCode = HttpStatusCode.BadRequest;
-                result.ErrorMessage = "Log ID should be higher than 0";
+                result.Error = "Log ID should be higher than 0";
                 return result;
             }
 
@@ -1238,7 +1241,7 @@ ORDER BY name ASC";
                 {
                     logger.LogError($"ResetTimeActiveChangedAsync: Log ID '{decryptedLoginLogId}' does not exist or doesn't belong to the current user.");
                     result.StatusCode = HttpStatusCode.BadRequest;
-                    result.ErrorMessage = $"Log ID '{decryptedLoginLogId}' does not exist or doesn't belong to the current user";
+                    result.Error = $"Log ID '{decryptedLoginLogId}' does not exist or doesn't belong to the current user";
                     return result;
                 }
 
@@ -1254,7 +1257,7 @@ ORDER BY name ASC";
             {
                 logger.LogError($"Error while updating time active changed on timestamp: {exception}");
                 result.StatusCode = HttpStatusCode.BadRequest;
-                result.ErrorMessage = "Error while updating time active changed on timestamp";
+                result.Error = "Error while updating time active changed on timestamp";
                 return result;
             }
         }
@@ -1310,7 +1313,7 @@ ORDER BY name ASC";
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = "Only administrators are allowed to do this.",
+                    Error = "Only administrators are allowed to do this.",
                     StatusCode = HttpStatusCode.Unauthorized
                 };
             }
@@ -1564,9 +1567,11 @@ VALUES {String.Join(", ", queryBuilder)}";
             string imitationsJson = await clientDatabaseConnection.GetAsJsonAsync(@$"
                 SELECT
                     imitation.target_user_id AS `id`,
-                    `user`.title AS `name`
+                    `user`.title AS `name`,
+                    `parent`.title AS `account_name`
                 FROM {WiserTableNames.WiserUserImitation} imitation
                 JOIN wiser_item `user` ON `user`.id = imitation.target_user_id
+                LEFT JOIN wiser_item `parent` ON `parent`.id = `user`.parent_item_id
                 WHERE imitation.user_id = ?userId
                 ORDER BY `user`.title");
 

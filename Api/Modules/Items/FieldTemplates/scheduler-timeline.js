@@ -27,6 +27,9 @@
         reservations = []; // internal for keeping reservations
         tableGroups = {}; // internal for keeping tables and table groups
         customerUrl = "";
+        
+        tableGroupFilter = "";
+        tableGroupFilteredTables = [];
     
         container = null;
         activeDrag = null;
@@ -85,6 +88,39 @@
             document.getElementById("refresh-button").addEventListener("click", () => {
                 this.updateDateDisplay();
             });
+            
+            document.getElementById("new-item-btn").addEventListener("click", () => {
+                const self = this;
+
+                const now = new Date();
+                const nowHour = now.getHours() + now.getMinutes() / 60;
+                const startHour = nowHour % 24;
+                const endHour = (startHour + 1) % 24; // standaard 1 uur
+                
+                const newReservation = {
+                    reservationId: Date.now(),
+                    reservationIdEncrypted: "",
+                    name: 'Nieuwe reservering',
+                    table: 0,
+                    start: startHour,
+                    end: endHour,
+                    startDate: self.toDateString(self.currentDate),
+                    endDate: self.toDateString(self.currentDate),
+                    paid: 0,
+                    color: '#27ae60',
+                    textColor: '#ffffff',
+                    numberOfPersons: 0,
+                    arrangement: 0,
+                    notes: "",
+                    numberOfVisits: 0,
+                    warning: ""
+                };
+
+                self.reservations.push(newReservation);
+                //self.renderReservations();
+                
+                timelineScheduler.createNewReservation(newReservation);
+            });
     
             currentDateSpan.innerText = this.formatDate(this.currentDate);
             this.createHeader();
@@ -97,7 +133,7 @@
             this.arrangements = (await this.callApi(this.options.timelineSchedulerQueryGetArrangements));
     
             // Get tables and reservations
-            await this.getTables();    
+            await this.getTables();
             
             // Get and render reservations
             this.getReservations(this.toDateString(this.currentDate))
@@ -237,6 +273,7 @@
             const mapBtn = document.getElementById("map-view-btn");
             const timelineSchedulerEl = document.querySelector(".scheduler");
             const listView = document.getElementById("list-view");
+            const listViewTableGroupFilter = document.getElementById("list-view-table-group-filter");
             const mapView = document.getElementById("map-view");
             timelineBtn.addEventListener("click", () => {
                 timelineBtn.classList.add("active");
@@ -245,6 +282,7 @@
 
                 timelineSchedulerEl.classList.remove("hidden");
                 listView.classList.add("hidden");
+                listViewTableGroupFilter.classList.add("hidden");
                 mapView.classList.add("hidden");
 
                 this.renderReservations();
@@ -257,6 +295,7 @@
 
                 timelineSchedulerEl.classList.add("hidden");
                 listView.classList.remove("hidden");
+                listViewTableGroupFilter.classList.remove("hidden");
                 mapView.classList.add("hidden");
 
                 this.renderReservations(); 
@@ -269,10 +308,32 @@
 
                 timelineSchedulerEl.classList.add("hidden");
                 listView.classList.add("hidden");
+                listViewTableGroupFilter.classList.add("hidden");
                 mapView.classList.remove("hidden");
 
                 this.renderReservations();
             });
+            
+            Object.keys(this.tableGroups).forEach((tableGroup) => {
+                listViewTableGroupFilter.options.add(new Option(tableGroup, tableGroup));
+            });
+
+            // Get the table group filter for list view
+            await this.getTableGroupFilter();
+            
+            listViewTableGroupFilter.addEventListener("change", () => {
+                this.tableGroupFilter = listViewTableGroupFilter.value;
+                
+                if (this.tableGroupFilter !== "all" && this.tableGroupFilter !== "") {
+                    this.tableGroupFilteredTables = this.tableGroups[this.tableGroupFilter].map(tg => tg.id)
+                } else {
+                    this.tableGroupFilteredTables = [];
+                }
+                
+                this.callApi(this.options.timelineSchedulerQuerySaveGroupFilter,'{"activeGroup": "' +  this.tableGroupFilter + '"}');
+
+                this.getReservations(this.toDateString(this.currentDate));
+            })
 
             // Automatic refresh every x minutes
             setInterval(() => this.updateDateDisplay(), 300*1000);            
@@ -569,7 +630,7 @@
                 timelineScheduler.reservations = reservationsResponse.map(r => ({
                     reservationId: r.id,
                     reservationIdEncrypted: r.encryptedId,
-                    name: r.customer_id===0 ? 'Walk-in' : r.customer_full_name==='' ? 'Geen naam bekend' : r.customer_full_name,
+                    name: r.customer_full_name!=='' ? r.customer_full_name : r.customer_id===0 ? 'Walk-in' : 'Geen naam bekend',
                     table: r.table,
                     start: timelineScheduler.timeToDecimal(r.start),
                     end: timelineScheduler.timeToDecimal(r.end),
@@ -583,7 +644,7 @@
                     notes: r.notes,
                     numberOfVisits: parseInt(r.number_of_visits, 10) || 0,
                     warning: r.warning,
-                    customerFullName: r.customer_id===0 ? 'Walk-in' : r.customer_full_name==='' ? 'Geen naam bekend' : r.customer_full_name,
+                    customerFullName: r.customer_full_name!=='' ? r.customer_full_name : r.customer_id===0 ? 'Walk-in' : 'Geen naam bekend',
                     customerPhoneNumber: r.customer_phone_number,
                     customerMobileNumber: r.customer_mobile_number,
                     customerEmailAddress: r.customer_email_address,
@@ -660,6 +721,17 @@
     
             return `${HH}:${MM}`;
         }
+        
+        async createNewReservation(newReservation) {
+            const response  = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryInsertReservation,JSON.stringify(newReservation));
+
+            if (response[0].id) {
+                // open the created reservation
+                newReservation.reservationId = response[0].id;
+                newReservation.reservationIdEncrypted = response[0].encryptedId;
+                timelineScheduler.openReservationInCoder(newReservation.reservationId, newReservation.reservationIdEncrypted);
+            }
+        }
     
         // Update a single reservation to the database. On moving, dragging, etc.
         async updateReservation(reservation){
@@ -733,6 +805,20 @@
                 console.error(exception);
             }
         }
+        
+        async getTableGroupFilter() {
+            try {
+                const res = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryGetGroupFilter);
+                const listViewTableGroupFilter = document.getElementById("list-view-table-group-filter");
+                if (res[0]?.value != null) {
+                    listViewTableGroupFilter.value = res[0].value;
+                    this.tableGroupFilter = res[0].value;
+                }
+            } catch(exception) {
+                timelineScheduler.showToast("Ruimtefilter laden mislukt", { type: "error" });
+                console.error(exception);
+            }
+        }
     
         createHeader(){
             const headerTimeline = document.getElementById("header-timeline");
@@ -748,7 +834,7 @@
             }
         }
     
-        renderReservations(){
+        renderReservations(){            
             if (document.getElementById("list-view-btn").classList.contains("active")){
                 this.renderListView();
             }
@@ -885,6 +971,16 @@
                             numberOfPersons.innerText = res.numberOfPersons;
                             block.appendChild(numberOfPersons);
                         }
+                        
+                        if (res.checkIn !== null) {
+                            block.classList.add("checked-in");
+                        }
+                        
+                        if (res.checkOut !== null) {
+                            block.classList.remove("checked-in");
+                            block.classList.add("checked-out");
+                        }
+                        
                         const content = document.createElement("span");
                         content.classList.add("single-line");
                         content.innerText = res.name;
@@ -1160,14 +1256,7 @@
                         //self.renderReservations();
 
                         // create reservation in database and open new reservation
-                        const response  = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryInsertReservation,JSON.stringify(newReservation));
-
-                        if (response[0].id) {
-                            // open the created reservation
-                            newReservation.reservationId = response[0].id;
-                            newReservation.reservationIdEncrypted = response[0].encryptedId;
-                            timelineScheduler.openReservationInCoder(newReservation.reservationId, newReservation.reservationIdEncrypted);
-                        }
+                        await timelineScheduler.createNewReservation(newReservation);
                     }
 
                     timeline.addEventListener('mousedown', startDrawing);
@@ -1204,14 +1293,7 @@
                         //self.renderReservations();
 
                         // create reservation in database and open new reservation                        
-                        const response  = await timelineScheduler.callApi(timelineScheduler.options.timelineSchedulerQueryInsertReservation, JSON.stringify(newReservation));
-
-                        if (response[0].id) {
-                            // open the created reservation
-                            newReservation.reservationId = response[0].id;
-                            newReservation.reservationIdEncrypted = response[0].encryptedId;
-                            timelineScheduler.openReservationInCoder(newReservation.reservationId, newReservation.reservationIdEncrypted);
-                        }
+                        await timelineScheduler.createNewReservation(newReservation);
                     });
 
                     row.appendChild(timeline);
@@ -1351,6 +1433,11 @@
         getPersonsAtTime(time) {
             return this.reservations
                 .filter(r => r.start <= time && r.end >= time) // check of reservering actief is
+                .filter((r, i, self) => // filter reserveringen met meerdere tafels
+                    i === self.findIndex((linked_reservation) => (
+                        linked_reservation.reservationId === r.reservationId
+                        ))
+                )
                 .reduce((sum, r) => sum + (r.numberOfPersons || 0), 0); // tel alles op
         }
 
@@ -1514,11 +1601,22 @@
         groupReservationsByQuarter() {
             const groups = {};
             const uniqueReservations = [...new Map(this.reservations.map(r => [r.reservationId, r])).values()];
-            uniqueReservations.forEach(r => {                
-                const slot = Math.floor(r.start * this.quartersPerHour);
-                if (!groups[slot]) groups[slot] = [];
-                groups[slot].push(r);
-            });
+            
+            if (this.tableGroupFilteredTables.length > 0) {
+                const filteredUniqueReservations = uniqueReservations.filter(r => this.tableGroupFilteredTables.includes(r.table));
+
+                filteredUniqueReservations.forEach(r => {
+                    const slot = Math.floor(r.start * this.quartersPerHour);
+                    if (!groups[slot]) groups[slot] = [];
+                    groups[slot].push(r);
+                });
+            } else {
+                uniqueReservations.forEach(r => {
+                    const slot = Math.floor(r.start * this.quartersPerHour);
+                    if (!groups[slot]) groups[slot] = [];
+                    groups[slot].push(r);
+                });
+            }
 
             return groups;
         }
@@ -1651,6 +1749,12 @@
                 timelineScheduler.reservations.find(r => r.reservationId === res.reservationId).checkIn = true;
                 
                 // Timeline view bijwerken
+                const block = document.querySelector(`.reservation[data-id="${res.reservationId}"]`)
+                if (block) {
+                    block.classList.remove("checked-out");
+                    block.classList.add("checked-in");
+                }
+                
                 const elementsIn = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-in`);
                 elementsIn.forEach(el => {
                     el.style.display = 'none';
@@ -1682,6 +1786,12 @@
                 timelineScheduler.reservations.find(r => r.reservationId === res.reservationId).checkOut = true;
                 
                 // Timeline view bijwerken
+                const block = document.querySelector(`.reservation[data-id="${res.reservationId}"]`)
+                if (block) {
+                    block.classList.remove("checked-in");
+                    block.classList.add("checked-out");
+                }
+                
                 const elements = document.querySelectorAll(`[data-id="${res.reservationId}"] .check-out`);
                 elements.forEach(el => {
                     el.style.display = 'none';

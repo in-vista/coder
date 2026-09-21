@@ -424,7 +424,7 @@ ORDER BY name ASC");
                 return new ServiceResult<JToken>
                 {
                     StatusCode = statusCode,
-                    ErrorMessage = error
+                    Error = error
                 };
             }
 
@@ -501,7 +501,7 @@ ORDER BY name ASC");
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "No data selector, path AND entity type found! Please make sure you supply either a valid JSON object or an ID of a valid selector, or a path + entity type."
+                    Error = "No data selector, path AND entity type found! Please make sure you supply either a valid JSON object or an ID of a valid selector, or a path + entity type."
                 };
             }
 
@@ -517,7 +517,7 @@ ORDER BY name ASC");
                 return new ServiceResult<string>
                 {
                     StatusCode = statusCode,
-                    ErrorMessage = error
+                    Error = error
                 };
             }
 
@@ -545,7 +545,7 @@ ORDER BY name ASC");
                 return new ServiceResult<byte[]>
                 {
                     StatusCode = statusCode,
-                    ErrorMessage = error
+                    Error = error
                 };
             }
 
@@ -561,7 +561,7 @@ ORDER BY name ASC");
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "No data received"
+                    Error = "No data received"
                 };
             }
 
@@ -589,7 +589,7 @@ ORDER BY name ASC");
                 return new ServiceResult<string>
                 {
                     StatusCode = statusCode,
-                    ErrorMessage = error
+                    Error = error
                 };
             }
 
@@ -616,7 +616,7 @@ ORDER BY name ASC");
                 return new ServiceResult<FileContentResult>
                 {
                     StatusCode = statusCode,
-                    ErrorMessage = error
+                    Error = error
                 };
             }
 
@@ -643,7 +643,7 @@ ORDER BY name ASC");
                 return new ServiceResult<byte[]>
                 {
                     StatusCode = statusCode,
-                    ErrorMessage = error
+                    Error = error
                 };
             }
             
@@ -760,7 +760,7 @@ ORDER BY name ASC");
                 return new ServiceResult<JToken>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Data selector with ID '{id}' does not exist."
+                    Error = $"Data selector with ID '{id}' does not exist."
                 };
             }
 
@@ -769,7 +769,7 @@ ORDER BY name ASC");
                 return new ServiceResult<JToken>
                 {
                     StatusCode = HttpStatusCode.Unauthorized,
-                    ErrorMessage = $"Coder user '{IdentityHelpers.GetUserName(identity)}' has no permission to execute this data selector."
+                    Error = $"Coder user '{IdentityHelpers.GetUserName(identity)}' has no permission to execute this data selector."
                 };
             }
 
@@ -787,7 +787,7 @@ ORDER BY name ASC");
                 return new ServiceResult<JToken>
                 {
                     StatusCode = response.StatusCode,
-                    ErrorMessage = response.Error
+                    Error = response.Error
                 };
             }
 

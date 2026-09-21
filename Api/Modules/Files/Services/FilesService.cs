@@ -74,12 +74,12 @@ namespace Api.Modules.Files.Services
         {
             var userId = IdentityHelpers.GetWiserUserId(identity);
             await databaseConnection.EnsureOpenConnectionForReadingAsync();
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(parentId, EntityActions.Read, userId, entityType: Constants.FilesDirectoryEntityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(parentId, EntityActions.Read, userId, entityType: Constants.FilesDirectoryEntityType);
             if (!success)
             {
                 return new ServiceResult<List<FileTreeViewModel>>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -119,19 +119,19 @@ namespace Api.Modules.Files.Services
                 return new ServiceResult<List<FileModel>>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "No files found in the request"
+                    Error = "No files found in the request"
                 };
             }
 
             try
             {
                 await databaseConnection.EnsureOpenConnectionForReadingAsync();
-                var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
+                var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
                 if (!success)
                 {
                     return new ServiceResult<List<FileModel>>
                     {
-                        ErrorMessage = errorMessage,
+                        Error = error,
                         StatusCode = HttpStatusCode.Forbidden
                     };
                 }
@@ -202,7 +202,7 @@ namespace Api.Modules.Files.Services
                         return new ServiceResult<List<FileModel>>
                         {
                             StatusCode = fileResult.StatusCode,
-                            ErrorMessage = fileResult.ErrorMessage
+                            Error = fileResult.Error
                         };
                     }
 
@@ -214,7 +214,7 @@ namespace Api.Modules.Files.Services
                     return new ServiceResult<List<FileModel>>(result)
                     {
                         StatusCode = HttpStatusCode.OK,
-                        ErrorMessage = "Partial success: file uploaded but not all images tinified"
+                        Error = new InvistaError("File uploaded but not all images tinified", "Partial success")
                     };
                 }
 
@@ -227,7 +227,7 @@ namespace Api.Modules.Files.Services
                     return new ServiceResult<List<FileModel>>
                     {
                         StatusCode = HttpStatusCode.BadRequest,
-                        ErrorMessage = "File is to large for database."
+                        Error = new InvistaError("File is to large for database.", "Partial success")
                     };
                 }
 
@@ -307,7 +307,7 @@ namespace Api.Modules.Files.Services
                         return new ServiceResult<FileModel>
                         {
                             StatusCode = HttpStatusCode.InternalServerError,
-                            ErrorMessage = errorMessage
+                            Error = errorMessage
                         };
                     }
 
@@ -327,7 +327,7 @@ namespace Api.Modules.Files.Services
                     return new ServiceResult<FileModel>
                     {
                         StatusCode = HttpStatusCode.InternalServerError,
-                        ErrorMessage = errorMessage
+                        Error = errorMessage
                     };
                 }
             }
@@ -347,7 +347,7 @@ namespace Api.Modules.Files.Services
             {
                 return new ServiceResult<FileModel>
                 {
-                    ErrorMessage = $"Failed to upload file in main branch. Directory with ID {itemId} does not exist in main branch and can therefore not (safely) be mapped.",
+                    Error = $"Failed to upload file in main branch. Directory with ID {itemId} does not exist in main branch and can therefore not (safely) be mapped.",
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -560,7 +560,7 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
                 return new ServiceResult<(string ContentType, byte[] Data, string Url)>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = "File not found"
+                    Error = "File not found"
                 };
             }
 
@@ -579,7 +579,7 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
                 return new ServiceResult<(string ContentType, byte[] Data, string Url)>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = "File not found"
+                    Error = "File not found"
                 };
             }
 
@@ -673,12 +673,12 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
                 : await wiserItemsService.GetTablePrefixForEntityAsync(entityType);
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
             if (!success)
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -788,12 +788,12 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
             await databaseConnection.EnsureOpenConnectionForReadingAsync();
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
             if (!success)
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -835,12 +835,12 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
             await databaseConnection.EnsureOpenConnectionForReadingAsync();
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
             if (!success)
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -882,12 +882,12 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
             await databaseConnection.EnsureOpenConnectionForReadingAsync();
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
             if (!success)
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -920,7 +920,7 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
                 return new ServiceResult<FileModel>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "No files found in the request"
+                    Error = "No files found in the request"
                 };
             }
 
@@ -931,12 +931,12 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
                 : await wiserItemsService.GetTablePrefixForEntityAsync(entityType);
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
             if (!success)
             {
                 return new ServiceResult<FileModel>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -995,12 +995,12 @@ SELECT LAST_INSERT_ID() AS newId;";
             await databaseConnection.EnsureOpenConnectionForReadingAsync();
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId);
             if (!success)
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }

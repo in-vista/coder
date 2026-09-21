@@ -418,7 +418,8 @@ class Main {
                     editingModuleTitleId: undefined,
                     editingModuleTitleInput: undefined,
                     // Account selection.
-                    accountDropdownVisible: false
+                    accountDropdownVisible: false,
+                    accountDropdownCloseTimeout: null
                 };
             },
             async created() {
@@ -1843,14 +1844,44 @@ class Main {
                 toggleAccountDropdown() {
                     this.accountDropdownVisible = !this.accountDropdownVisible;
                 },
+
+                openAccountDropdown() {
+                    this.cancelCloseAccountDropdown();
+                    this.accountDropdownVisible = true;
+                },
                 
                 closeAccountDropdown() {
                     this.accountDropdownVisible = false;
+                },
+
+                scheduleCloseAccountDropdown() {
+                    // Cancel any previously scheduled close.
+                    if (this.accountDropdownCloseTimeout) {
+                        clearTimeout(this.accountDropdownCloseTimeout);
+                    }
+
+                    // Start a short delay before hiding the dropdown.
+                    this.accountDropdownCloseTimeout = setTimeout(() => {
+                        this.accountDropdownVisible = false;
+                        this.accountDropdownCloseTimeout = null;
+                    }, 50);
+                },
+
+                cancelCloseAccountDropdown() {
+                    // If there is a closing sequence scheduled, cancel it.
+                    if (this.accountDropdownCloseTimeout) {
+                        clearTimeout(this.accountDropdownCloseTimeout);
+                        this.accountDropdownCloseTimeout = null;
+                    }
                 },
                 
                 selectAccount(encryptedUserId) {
                     this.closeAccountDropdown();
                     this.$store.dispatch(IMITATE_ACCOUNT, encryptedUserId);
+                },
+
+                reloadImitations() {
+                    this.$store.dispatch(IMITATIONS_REQUEST);
                 },
                 
                 initializeAccountDropdownEvents() {
@@ -1875,10 +1906,24 @@ class Main {
                 $(document).on('click', this.quickSearchDialogHandleClickToClose);
 
                 this.initializeAccountDropdownEvents();
+
+                this.reloadImitationsHandler = () => {
+                    this.reloadImitations();
+                };
+
+                document.addEventListener(
+                    "reloadImitations",
+                    this.reloadImitationsHandler
+                );
             },
             beforeUnmount() {
                 this.stopPendingActionsRefreshTimer();
                 $(document).off('click', this.quickSearchDialogHandleClickToClose);
+                
+                document.removeEventListener(
+                    "reloadImitations",
+                    this.reloadImitationsHandler
+                );
             }
         });
 

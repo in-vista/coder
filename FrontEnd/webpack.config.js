@@ -8,6 +8,7 @@ module.exports = {
     context: path.join(__dirname, "Core/Scripts"),
     entry: {
         main: "./main.js",
+        custom: "./custom.js",
         Utils: "../../Modules/Base/Scripts/Utils.js",
         Processing: "../../Modules/Base/Scripts/Processing.js",
         DynamicItems: "../../Modules/DynamicItems/Scripts/DynamicItems.js",

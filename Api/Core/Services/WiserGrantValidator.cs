@@ -87,7 +87,7 @@ namespace Api.Core.Services
                 var adminAccountLoginResult = await usersService.LoginAdminAccountAsync(context.UserName, context.Password, totpPin: totpPin);
                 if (adminAccountLoginResult.StatusCode != HttpStatusCode.OK)
                 {
-                    context.Result = new GrantValidationResult(TokenRequestErrors.InvalidClient, loginResult.ErrorMessage);
+                    context.Result = new GrantValidationResult(TokenRequestErrors.InvalidClient, loginResult.Error?.Message);
                     return;
                 }
 
@@ -149,7 +149,7 @@ namespace Api.Core.Services
             // If we still haven't been able to login, return a login error.
             if (loginResult.StatusCode != HttpStatusCode.OK)
             {
-                context.Result = new GrantValidationResult(TokenRequestErrors.InvalidClient, loginResult.ErrorMessage);
+                context.Result = new GrantValidationResult(TokenRequestErrors.InvalidClient, loginResult.Error?.Message);
                 return;
             }
 
@@ -160,6 +160,7 @@ namespace Api.Core.Services
                 { "adminLogin", adminAccountId > 0 },
                 { "name", loginResult.ModelObject.Name },
                 { "role", loginResult.ModelObject.Role },
+                { "roles", loginResult.ModelObject.Roles },
                 { "lastLoginIpAddress", loginResult.ModelObject.LastLoginIpAddress ?? "" },
                 { "lastLoginDate", (loginResult.ModelObject.LastLoginDate ?? DateTime.Now).ToString("dd-MM-yyyy HH:mm:ss") },
                 { "oldStyleUserId", loginResult.ModelObject.Id.ToString().EncryptWithAesWithSalt() },

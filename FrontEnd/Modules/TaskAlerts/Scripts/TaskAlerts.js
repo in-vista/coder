@@ -1,5 +1,5 @@
 ﻿import { TrackJS } from "trackjs";
-import { Wiser } from "../../Base/Scripts/Utils.js";
+import {Utils, Wiser} from "../../Base/Scripts/Utils.js";
 import { TaskUtils } from "./TaskUtils.js";
 import "../../Base/Scripts/Processing.js";
 
@@ -412,7 +412,7 @@ const moduleSettings = {
                     return;
                 }
 
-                const userIds = selectedUsers[i].map(user => user.id);
+                const userIds = selectedUsers.map(user => user.id);
                 const parentId = this.settings.zeroEncrypted;
                 const taskContent = document.getElementById("taskDescription").value;
 
@@ -453,7 +453,7 @@ const moduleSettings = {
                     contentType: "application/json",
                     data: JSON.stringify({
                         channel: "agendering",
-                        userId: userId,
+                        userIds: userIds,
                         sendEmail: sendEmail,
                         eventData: JSON.stringify({
                             message: taskContent
@@ -609,7 +609,7 @@ const moduleSettings = {
                 console.error(exception);
                 let error = exception;
                 if (exception.responseText) {
-                    error = exception.responseText;
+                    error = Utils.getErrorFromException(exception).message;
                 } else if (exception.statusText) {
                     error = exception.statusText;
                 }

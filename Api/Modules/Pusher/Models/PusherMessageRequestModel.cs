@@ -27,9 +27,9 @@
         public string Cluster { get; set; }
 
         /// <summary>
-        /// Gets or sets the ID of the user to send the message to.
+        /// Gets or sets the collection of user IDs of the user(s) to send the message to.
         /// </summary>
-        public ulong UserId { get; set; }
+        public string[] UserIds { get; set; }
         
         /// <summary>
         /// Gets or sets the whether an email has to be sent to the user.

@@ -103,12 +103,12 @@ namespace Api.Modules.Queries.Services
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                logger.LogError($"Non-OK response in GetStyledOutputResultJsonAsync: {response.ErrorMessage}");
+                logger.LogError($"Non-OK response in GetStyledOutputResultJsonAsync: {response.Error?.Message}");
 
                 return new ServiceResult<JToken>
                 {
                     StatusCode = response.StatusCode,
-                    ErrorMessage = response.ErrorMessage
+                    Error = response.Error
                 };
             }
 
@@ -138,7 +138,7 @@ namespace Api.Modules.Queries.Services
                 return new ServiceResult<JToken>
                 {
                     StatusCode = HttpStatusCode.InternalServerError,
-                    ErrorMessage =  errorMsg
+                    Error =  errorMsg
                 };
             }
         }
@@ -169,7 +169,7 @@ namespace Api.Modules.Queries.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.LoopDetected,
-                    ErrorMessage = errorMsg
+                    Error = errorMsg
                 };
             }
 
@@ -188,7 +188,7 @@ namespace Api.Modules.Queries.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = e.Message
+                    Error = e.Message
                 };
             }
 
@@ -209,7 +209,7 @@ namespace Api.Modules.Queries.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = errorMsg
+                    Error = errorMsg
                 };
             }
 
@@ -222,7 +222,7 @@ namespace Api.Modules.Queries.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.NotImplemented,
-                    ErrorMessage = errorMsg
+                    Error = errorMsg
                 };
             }
 
@@ -237,7 +237,7 @@ namespace Api.Modules.Queries.Services
                     return new ServiceResult<string>
                     {
                         StatusCode = HttpStatusCode.Unauthorized,
-                        ErrorMessage = errorMsg
+                        Error = errorMsg
                     };
                 }
             }
@@ -248,7 +248,7 @@ namespace Api.Modules.Queries.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.Unauthorized,
-                    ErrorMessage = e.Message
+                    Error = e.Message
                 };
             }
 

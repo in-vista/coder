@@ -111,23 +111,6 @@ jobs:
 
               exit 0
 
-          - name: (Coder) Checkout
-            uses: actions/checkout@v4
-            with:
-                path: coder
-
-          - name: Copy partner styles
-            env:
-              PARTNER_STYLES_LOCATION: ${{ secrets.PARTNER_STYLES_LOCATION }}
-              WORKER_LOCATION: ${{ secrets.WORKER_LOCATION }}
-            run: |
-              robocopy "$env:PARTNER_STYLES_LOCATION" "$env:WORKER_LOCATION\coder\coder\coder\FrontEnd\Core\Css\partner" /E /MT:32 /R:1 /W:1
-              if ($LASTEXITCODE -gt 7) {
-                exit $LASTEXITCODE
-              }
-
-              exit 0
-
           - name: (Coder) Setup Node
             uses: actions/setup-node@v4
             with:
@@ -207,36 +190,37 @@ jobs:
           - name: (Coder) Publish
             env:
               ENVIRONMENT_NAME: ${{ inputs.environment }}
+              PUBLISH_LOCATION_API: ${{ secrets.PUBLISH_LOCATION_API }}
+              PUBLISH_LOCATION_FRONT_END: ${{ secrets.PUBLISH_LOCATION_FRONT_END }}
             run: |
-                $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'Live' } else { 'Development' }
+                $environmentName = if ($env:ENVIRONMENT_NAME -eq 'Production') { 'production' } else { 'development' }
 
                 $apiDestination = $env:PUBLISH_LOCATION_API
                 $frontEndDestination = $env:PUBLISH_LOCATION_FRONT_END
 
-                $apiJob = Start-Job {
-                  dotnet publish API `
-                    -c Release `
-                    -o $apiDestination `
-                    --self-contained true `
-                    -r win-x64 `
-                    /p:EnvironmentName=$environmentName
+                dotnet publish API `
+                  -c Release `
+                  -o "$apiDestination" `
+                  --self-contained true `
+                  -r win-x64 `
+                  /p:EnvironmentName=$environmentName `
+                  /p:IsTransformWebConfigDisabled=true
+
+                if ($LASTEXITCODE -ne 0) {
+                  throw "API publish failed"
                 }
 
-                $frontEndJob = Start-Job {
-                  dotnet publish FrontEnd `
-                    -c Release `
-                    -o $frontEndDestination `
-                    --self-contained true `
-                    -r win-x64 `
-                    /p:EnvironmentName=$environmentName
+                dotnet publish FrontEnd `
+                  -c Release `
+                  -o "$frontEndDestination" `
+                  --self-contained true `
+                  -r win-x64 `
+                  /p:EnvironmentName=$environmentName `
+                  /p:IsTransformWebConfigDisabled=true
+
+                if ($LASTEXITCODE -ne 0) {
+                    throw "FrontEnd publish failed"
                 }
-
-                Wait-Job $apiJob, $frontEndJob
-
-                Receive-Job $apiJob
-                Receive-Job $frontEndJob
-
-                Remove-Job $apiJob, $frontEndJob
             working-directory: coder
 
           - name: (Coder) Remove app_offline.htm

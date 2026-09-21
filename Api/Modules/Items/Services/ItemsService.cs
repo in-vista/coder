@@ -353,7 +353,7 @@ namespace Api.Modules.Items.Services
             {
                 return new ServiceResult<WiserItemDuplicationResultModel>
                 {
-                    ErrorMessage = exception.Message,
+                    Error = exception.Message,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -402,7 +402,7 @@ namespace Api.Modules.Items.Services
                     return new ServiceResult<WiserItemModel>
                     {
                         StatusCode = HttpStatusCode.BadRequest,
-                        ErrorMessage = $"Multiple environments functionality is disabled for entity type '{item.EntityType}'."
+                        Error = $"Multiple environments functionality is disabled for entity type '{item.EntityType}'."
                     };
                 }
 
@@ -622,7 +622,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 await clientDatabaseConnection.RollbackTransactionAsync(false);
                 return new ServiceResult<WiserItemModel>
                 {
-                    ErrorMessage = exception.Message,
+                    Error = exception.Message,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -668,7 +668,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             {
                 return new ServiceResult<bool>(false)
                 {
-                    ErrorMessage = exception.Message,
+                    Error = exception.Message,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -713,7 +713,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                     {
                         return new ServiceResult<CreateItemResultModel>
                         {
-                            ErrorMessage = $"Failed to create item in main branch. Parent item with ID {parentId} does not exist in main branch and can therefore not (safely) be mapped.",
+                            Error = $"Failed to create item in main branch. Parent item with ID {parentId} does not exist in main branch and can therefore not (safely) be mapped.",
                             StatusCode = HttpStatusCode.Forbidden
                         };
                     }
@@ -790,7 +790,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             {
                 return new ServiceResult<CreateItemResultModel>
                 {
-                    ErrorMessage = exception.Message,
+                    Error = exception.Message,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -820,7 +820,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 return new ServiceResult<WiserItemModel>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Id must be greater than zero."
+                    Error = "Id must be greater than zero."
                 };
             }
 
@@ -835,7 +835,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             {
                 return new ServiceResult<WiserItemModel>
                 {
-                    ErrorMessage = exception.Message,
+                    Error = exception.Error ?? exception.Message,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -843,7 +843,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             {
                 return new ServiceResult<WiserItemModel>
                 {
-                    ErrorMessage = exception.Message,
+                    Error = exception.Message,
                     StatusCode = HttpStatusCode.Conflict
                 };
             }
@@ -876,7 +876,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = exception.Message,
+                    Error = exception.Message,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -884,7 +884,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = "Het is niet mogelijk om dit item te verwijderen.",
+                    Error = "Het is niet mogelijk om dit item te verwijderen.",
                     StatusCode = HttpStatusCode.Conflict
                 };
             }
@@ -918,7 +918,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = errorMessage,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -981,7 +981,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                     return new ServiceResult<string>
                     {
                         StatusCode = HttpStatusCode.NotFound,
-                        ErrorMessage = "Query ID does not exist or query not found."
+                        Error = "Query ID does not exist or query not found."
                     };
                 }
 
@@ -991,7 +991,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                     errorResult = new ServiceResult<string>
                     {
                         StatusCode = HttpStatusCode.NotFound,
-                        ErrorMessage = "Data query is empty!"
+                        Error = "Data query is empty!"
                     };
                 }
             }
@@ -1017,7 +1017,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 return new ServiceResult<ActionButtonResultModel>
                 {
                     StatusCode = customQueryResult.StatusCode,
-                    ErrorMessage = customQueryResult.ErrorMessage
+                    Error = customQueryResult.Error
                 };
             }
 
@@ -1030,7 +1030,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 return new ServiceResult<ActionButtonResultModel>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = "Query 'GET_ITEM_DETAILS' not found or empty."
+                    Error = "Query 'GET_ITEM_DETAILS' not found or empty."
                 };
             }
 
@@ -1129,7 +1129,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 return new ServiceResult<ActionButtonResultModel>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Dit item bestaat al en kan niet nogmaals toegevoegd worden."
+                    Error = "Dit item bestaat al en kan niet nogmaals toegevoegd worden."
                 };
             }
             
@@ -1245,7 +1245,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 return new ServiceResult<ItemHtmlAndScriptModel>(results)
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Invalid item ID."
+                    Error = "Invalid item ID."
                 };
             }
 
@@ -1939,7 +1939,8 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 if (!String.IsNullOrWhiteSpace(scriptTemplate))
                 {
                     // Replace API key for Topol.
-                    if (fieldType.Equals("mail-editor", StringComparison.OrdinalIgnoreCase))
+                    if (fieldType.Equals("mail-editor", StringComparison.OrdinalIgnoreCase) ||
+                        fieldType.Equals("landing-editor", StringComparison.OrdinalIgnoreCase))
                     {
                         string topolApiKey = GclSettings.Current.TopolApiKey;
 
@@ -2188,7 +2189,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 errorResult = new ServiceResult<T>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Property with id '{propertyId}' not found."
+                    Error = $"Property with id '{propertyId}' not found."
                 };
 
                 return (null, errorResult, null);
@@ -2209,7 +2210,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
             errorResult = new ServiceResult<T>
             {
                 StatusCode = HttpStatusCode.NotFound,
-                ErrorMessage = $"No query found for the grid with property id '{propertyId}'."
+                Error = $"No query found for the grid with property id '{propertyId}'."
             };
 
             return (null, errorResult, options);
@@ -2241,7 +2242,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                     return new ServiceResult<string>
                     {
                         StatusCode = HttpStatusCode.Forbidden,
-                        ErrorMessage = "Insufficient permissions"
+                        Error = "Insufficient permissions"
                     };
             }
             catch (Exception exception)
@@ -2249,7 +2250,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = $"{exception.Message}:\n{exception.InnerException}"
+                    Error = $"{exception.Message}:\n{exception.InnerException}"
                 };
             }
             finally
@@ -2413,7 +2414,7 @@ ORDER BY item.ordering ASC";
                 return new ServiceResult<List<TreeViewItemModel>>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Invalid module ID"
+                    Error = "Invalid module ID"
                 };
             }
 
@@ -2596,7 +2597,7 @@ LEFT JOIN {parentTablePrefix}{WiserTableNames.WiserItem} parent_item ON parent_i
 JOIN {WiserTableNames.WiserEntity} AS parent_entity ON {(parentId == 0 ? "parent_entity.module_id = ?moduleId AND parent_entity.`name` = ''" : "parent_entity.`name` = parent_item.entity_type")} AND (parent_entity.accepted_childtypes = '' OR FIND_IN_SET(item.entity_type, parent_entity.accepted_childtypes))
 
 # Link settings to check if these links should be shown.
-LEFT JOIN {linkTablePrefix}{WiserTableNames.WiserLink} AS link_settings ON link_settings.destination_entity_type = parent_item.entity_type AND link_settings.connected_entity_type = item.entity_type
+LEFT JOIN {WiserTableNames.WiserLink} AS link_settings ON link_settings.destination_entity_type = parent_item.entity_type AND link_settings.connected_entity_type = item.entity_type
 
 {checkIdJoin}
                                                                                  
@@ -2745,7 +2746,7 @@ ORDER BY {orderByClause}";
                 return new ServiceResult<bool>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "The parameters encryptedSourceId, encryptedDestinationId, position, encryptedSourceParentId, encryptedDestinationParentId, sourceEntityType and destinationEntityType need to have a value"
+                    Error = "The parameters encryptedSourceId, encryptedDestinationId, position, encryptedSourceParentId, encryptedDestinationParentId, sourceEntityType and destinationEntityType need to have a value"
                 };
             }
 
@@ -2757,12 +2758,12 @@ ORDER BY {orderByClause}";
             var userId = IdentityHelpers.GetWiserUserId(identity);
 
             await clientDatabaseConnection.EnsureOpenConnectionForReadingAsync();
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(sourceId, EntityActions.Update, userId, entityType: sourceEntityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(sourceId, EntityActions.Update, userId, entityType: sourceEntityType);
             if (!success)
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -2794,7 +2795,7 @@ ORDER BY {orderByClause}";
                 {
                     return new ServiceResult<bool>
                     {
-                        ErrorMessage = $"Items van type '{sourceEntityType}' mogen niet toegevoegd worden onder items van type '{destinationEntityType}'.",
+                        Error = $"Items van type '{sourceEntityType}' mogen niet toegevoegd worden onder items van type '{destinationEntityType}'.",
                         StatusCode = HttpStatusCode.BadRequest
                     };
                 }
@@ -2936,7 +2937,7 @@ ORDER BY {orderByClause}";
                 return new ServiceResult<bool>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "The parameter encryptedItemId needs to have a value"
+                    Error = "The parameter encryptedItemId needs to have a value"
                 };
             }
 
@@ -3047,7 +3048,7 @@ ORDER BY {orderByClause}";
                     return new ServiceResult<bool>
                     {
                         StatusCode = HttpStatusCode.BadRequest,
-                        ErrorMessage = "Received more or less than 1 destination item ID for a link type that is set to use parent_item_id, this is not possible."
+                        Error = "Received more or less than 1 destination item ID for a link type that is set to use parent_item_id, this is not possible."
                     };
                 }
 
@@ -3132,7 +3133,7 @@ ORDER BY {orderByClause}";
                     return new ServiceResult<bool>
                     {
                         StatusCode = HttpStatusCode.BadRequest,
-                        ErrorMessage = "Received more or less than 1 destination item ID for a link type that is set to use parent_item_id, this is not possible."
+                        Error = "Received more or less than 1 destination item ID for a link type that is set to use parent_item_id, this is not possible."
                     };
                 }
 
@@ -3196,7 +3197,7 @@ ORDER BY {orderByClause}";
                 {
                     return new ServiceResult<bool>
                     {
-                        ErrorMessage = $"Er zijn geen ingevulde velden gevonden met de taal '{settings.SourceLanguageCode}'. Heeft u het item opgeslagen?"
+                        Error = $"Er zijn geen ingevulde velden gevonden met de taal '{settings.SourceLanguageCode}'. Heeft u het item opgeslagen?"
                     };
                 }
 
@@ -3206,7 +3207,7 @@ ORDER BY {orderByClause}";
                 {
                     return new ServiceResult<bool>
                     {
-                        ErrorMessage = properties.ErrorMessage,
+                        Error = properties.Error,
                         StatusCode = properties.StatusCode
                     };
                 }
@@ -3259,7 +3260,7 @@ ORDER BY {orderByClause}";
                         {
                             return new ServiceResult<bool>
                             {
-                                ErrorMessage = translations.ErrorMessage,
+                                Error = translations.Error,
                                 StatusCode = translations.StatusCode
                             };
                         }
@@ -3281,7 +3282,7 @@ ORDER BY {orderByClause}";
                         {
                             return new ServiceResult<bool>
                             {
-                                ErrorMessage = translations.ErrorMessage,
+                                Error = translations.Error,
                                 StatusCode = translations.StatusCode
                             };
                         }
@@ -3308,7 +3309,7 @@ ORDER BY {orderByClause}";
                 logger.LogWarning(invalidAccessPermissionsException, $"User tried to translate fields for item '{invalidAccessPermissionsException.ItemId}', but did not have the required permissions ({invalidAccessPermissionsException.Action}).");
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = invalidAccessPermissionsException.Message,
+                    Error = invalidAccessPermissionsException.Message,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }

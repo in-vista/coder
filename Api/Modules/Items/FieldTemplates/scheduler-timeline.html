@@ -543,14 +543,14 @@
         text-align: center;
     }
 
-    .status-badge.checked-in {
-        background-color: #2ecc71;
-        color: #fff;
+    .checked-in {
+        background-color: #2ecc71 !important;
+        color: #fff !important;
     }
 
-    .status-badge.checked-out {
-        background-color: #999;
-        color: #fff;
+    .checked-out {
+        background-color: #999 !important;
+        color: #fff !important;
     }
 
     /* Icon buttons */
@@ -607,15 +607,6 @@
         align-items: center;
         gap: 6px;
         right:3%;
-    }
-
-    /* Zoekbalk in het midden op groter scherm */
-    @media (min-width: 1316px) { 
-        .timeline-search {
-            right: unset;
-            left: 50%;
-            transform: translateX(-50%);
-        }
     }
     
     /* Zoekbalk kleiner op kleinere schermen
@@ -680,7 +671,17 @@
     .reservation.highlight {
         background-color: #000000 !important;
         color: #FFFFFF !important;
+    }     
+    
+    #new-item-btn {
+        cursor: pointer;
     }
+
+    #list-view-table-group-filter {
+        padding: 6px 8px;
+        cursor: pointer;
+    }
+    
     #timeline-search {
         border: none;
         width: 300px;
@@ -798,8 +799,13 @@
             <span id="current-date" class="date-control" style="cursor:pointer;">Kies datum</span>
             <button id="next-day" class="date-control"><i class="mdi mdi-size-2 mdi-chevron-right"></i></button>
             <button id="today-button" class="date-control"><i class="mdi mdi-size-2 mdi-calendar-today"></i>Vandaag</button>
-            <button id="refresh-button" class="date-control"><i class="mdi mdi-size-2 mdi-refresh"></i>Verversen</button>            
+            <button id="refresh-button" class="date-control"><i class="mdi mdi-size-2 mdi-refresh"></i>Verversen</button>
+            <button id="new-item-btn"><i class="mdi mdi-size-2 mdi-plus"></i>Nieuwe reservering aanmaken</button>
         </div>
+        &nbsp;        
+        <select id="list-view-table-group-filter" class="hidden">
+            <option value="all">Alle Ruimtes</option>
+        </select>
         <div class="timeline-search date-control">            
             <input type="text" placeholder="Begin met typen om te zoeken..." id="timeline-search" />            
             <div class="search-container" style="display: none;">                
