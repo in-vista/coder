@@ -1051,10 +1051,10 @@
                       </div>
                     </div>
                     <span class="hover-icons">
-                        <a href="#" title="Inchecken" class="check-in" style="${res.checkIn!==null ? `display:none;` : ""}">📥</a>
-                        <a href="#" title="Uitchecken" class="check-out" style="${res.checkIn===null || res.checkOut!==null ? `display:none;` : ""}">📤</a>                    
-                        ${res.warning ? `<a href="#" title="${res.warning}">⚠️</a>` : ""}
-                        <!--<a href="#" title="Reservering bewerken" class="edit-button">✏️️</a>-->
+                        <a href="javascript:void(0)" title="Inchecken" class="check-in" style="${res.checkIn!==null ? `display:none;` : ""}">📥</a>
+                        <a href="javascript:void(0)" title="Uitchecken" class="check-out" style="${res.checkIn===null || res.checkOut!==null ? `display:none;` : ""}">📤</a>                    
+                        ${res.warning ? `<a href="javascript:void(0)" title="${res.warning}">⚠️</a>` : ""}
+                        <!--<a href="javascript:void(0)" title="Reservering bewerken" class="edit-button">✏️️</a>-->
                     </span>`;
                         if (res.numberOfVisits>0){
                             hover.innerHTML = hover.innerHTML.replace("{numberOfVisits}", `⭐ ${res.numberOfVisits} bezoeken`);
