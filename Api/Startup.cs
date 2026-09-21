@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using Api.Core.Filters;
@@ -18,12 +19,10 @@ using Api.Modules.Templates.Interfaces;
 using Api.Modules.Templates.Services;
 using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Tenants.Services;
-using Api.Modules.Topol;
-using Api.Modules.Topol.Interfaces;
+using Duende.IdentityServer.Services;
 using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using GeeksCoreLibrary.Modules.Databases.Services;
-using IdentityServer4.Services;
 using JavaScriptEngineSwitcher.ChakraCore;
 using JavaScriptEngineSwitcher.Extensions.MsDependencyInjection;
 using Microsoft.AspNetCore.Builder;
@@ -210,9 +209,18 @@ namespace Api
                 .AddResourceOwnerValidator<WiserGrantValidator>()
                 .AddExtensionGrantValidator<WiserForceGrantValidator>();
 
+            services.AddSingleton<HttpClient>(sp =>
+            {
+                HttpClientHandler clientHandler = new HttpClientHandler();
+
+                if (webHostEnvironment.IsDevelopment())
+                    clientHandler.ServerCertificateCustomValidationCallback = (request, certificate, chain, errors) => true;
+
+                return new HttpClient(clientHandler);
+            });
+            
             if (webHostEnvironment.IsDevelopment())
             {
-                System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
                 identityServerBuilder.AddDeveloperSigningCredential();
             }
             else
@@ -260,9 +268,9 @@ namespace Api
             });
 
             // Enable CORS for Identityserver 4.
-            services.AddSingleton<ICorsPolicyService>((container) =>
+            services.AddSingleton<ICorsPolicyService>(container =>
             {
-                var logger = container.GetRequiredService<ILogger<DefaultCorsPolicyService>>();
+                ILogger<DefaultCorsPolicyService> logger = container.GetRequiredService<ILogger<DefaultCorsPolicyService>>();
                 return new DefaultCorsPolicyService(logger)
                 {
                     AllowAll = true

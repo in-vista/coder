@@ -1,5 +1,8 @@
 namespace Api.Modules.Items.Models;
 
+/// <summary>
+/// The request model containing information on adjusting the order of items within a grid.
+/// </summary>
 public class ChangeItemOrderRequestModel
 {
     /// <summary>

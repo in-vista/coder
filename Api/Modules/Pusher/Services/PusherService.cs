@@ -145,7 +145,7 @@ namespace Api.Modules.Pusher.Services
                             {
                                 dataDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(data.EventData.ToString());
                             }
-                            catch (Exception exception)
+                            catch (Exception)
                             {
                                 // TODO: Proper error logging when the deserialization of the data failed.
                             }

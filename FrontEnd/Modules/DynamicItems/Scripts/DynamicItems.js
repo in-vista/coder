@@ -1360,7 +1360,7 @@ const moduleSettings = {
                 const newCrumbTrailNode = $("<li/>");
 
                 if (counter < amountOfItems) {
-                    const link = $("<a href='#' />").appendTo(newCrumbTrailNode);
+                    const link = $("<a href='javascript:void(0)' />").appendTo(newCrumbTrailNode);
                     link.text(text);
                     link.click((event) => {
                         event.preventDefault();

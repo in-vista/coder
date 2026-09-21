@@ -3,27 +3,32 @@ using System.Collections.Generic;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Api.Core.Helpers;
 using Api.Core.Models;
 using Api.Modules.Tenants.Interfaces;
 using Api.Modules.Tenants.Models;
+using Duende.IdentityModel;
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Validation;
 using GeeksCoreLibrary.Core.Extensions;
 using GeeksCoreLibrary.Core.Models;
-using IdentityModel;
-using IdentityServer4.Models;
-using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
 namespace Api.Core.Services;
 
+/// <summary>
+/// Identity validator that utilizes an imitation protocol to force users to login based on a given encrypted user ID.
+/// </summary>
 public class WiserForceGrantValidator : IExtensionGrantValidator
 {
     private readonly IUsersService usersService;
     private readonly GclSettings gclSettings;
     private readonly IHttpContextAccessor httpContextAccessor;
     private readonly IWiserTenantsService wiserTenantsService;
-
+    
+    /// <summary>
+    /// Constructor for the <see cref="WiserForceGrantValidator"/> class.
+    /// </summary>
     public WiserForceGrantValidator(
         IUsersService usersService,
         IOptions<GclSettings> gclSettings,
@@ -35,9 +40,11 @@ public class WiserForceGrantValidator : IExtensionGrantValidator
         this.httpContextAccessor = httpContextAccessor;
         this.wiserTenantsService = wiserTenantsService;
     }
-
+    
+    /// <inheritdoc/>
     public string GrantType => "force_login";
-
+    
+    /// <inheritdoc/>
     public async Task ValidateAsync(ExtensionGrantValidationContext context)
     {
         string encryptedUserId = context.Request.Raw.Get("token");

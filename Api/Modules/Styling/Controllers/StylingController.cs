@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Modules.Styling.Controllers;
 
+/// <summary>
+/// The API controller to handle incoming requests related to styling for the front-end.
+/// </summary>
 [Route("api/v3/[controller]")]
 [ApiController]
 [Authorize]
@@ -16,7 +19,11 @@ namespace Api.Modules.Styling.Controllers;
 public class StylingController : ControllerBase
 {
     private readonly IStylingService stylingService;
-
+    
+    /// <summary>
+    /// The controller for the <see cref="StylingController"/> class.
+    /// </summary>
+    /// <param name="stylingService"></param>
     public StylingController(IStylingService stylingService)
     {
         this.stylingService = stylingService;

@@ -68,6 +68,7 @@ namespace Api.Modules.Items.Controllers
         /// Get the HTML and javascript for single Wiser item, to show the item in Wiser.
         /// </summary>
         /// <param name="encryptedId">The encrypted ID of the item to get.</param>
+        /// <param name="isNew">Indicates whether the given item is new.</param>
         /// <param name="propertyIdSuffix">Optional: The suffix of every field on the item. This is used to give each field a unique ID, when multiple items are opened at the same time. Default value is <see langword="null"/>.</param>
         /// <param name="itemLinkId">Optional: The id of the item link from wiser_itemlink. This should be used when opening an item via a sub-entities-grid, to show link fields. Default value is 0.</param>
         /// <param name="entityType">Optional: The entity type of the item. Default value is <see langword="null"/>.</param>
@@ -153,6 +154,7 @@ namespace Api.Modules.Items.Controllers
         /// <param name="item">The item to create.</param>
         /// <param name="parentId">Optional: The encrypted ID of the parent to create this item under.</param>
         /// <param name="linkType">Optional: The link type of the link to the parent.</param>
+        /// <param name="alsoCreateInMainBranch">Optional: Whether to create the item in the main branch.</param>
         /// <returns>A CreateItemResultModel with information about the newly created item.</returns>
         [HttpPost]
         [ProducesResponseType(typeof(CreateItemResultModel), StatusCodes.Status200OK)]
@@ -317,6 +319,7 @@ namespace Api.Modules.Items.Controllers
         /// <param name="encryptedId">The encrypted ID of the currently opened item that contains the sub-entities-grid.</param>
         /// <param name="queryId">Optional: The encrypted ID of the query to execute for getting the data.</param>
         /// <param name="countQueryId">Optional: The encrypted ID of the query to execute for counting the total amount of items.</param>
+        /// <param name="showHiddenItems">Optional: Indicates whether to show hidden items. Defaults to <c>false</c>.</param>
         /// <returns>The data of the grid, as a <see cref="GridSettingsAndDataModel"/>.</returns>
         [HttpGet]
         [Route("{encryptedId}/grids/{propertyId:int}")]
@@ -531,7 +534,11 @@ namespace Api.Modules.Items.Controllers
         {
             return (await itemsService.SearchAsync((ClaimsIdentity)User.Identity, parentId, data)).GetHttpResponseMessage();
         }
-
+        
+        /// <summary>
+        /// Logs an action that has been invoked through an action button from the front-end.
+        /// </summary>
+        /// <param name="logActionRequest">The model containing information about the invoked action.</param>
         [HttpPost]
         [Route("log-action")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -541,7 +548,13 @@ namespace Api.Modules.Items.Controllers
                     logActionRequest.EntityType, logActionRequest.ActionButton, logActionRequest.ModuleId, logActionRequest.PropertyId))
                 .GetHttpResponseMessage();
         }
-
+        
+        /// <summary>
+        /// Updates the current state of the given image curator field template.
+        /// </summary>
+        /// <param name="encryptedId">The encrypted ID of the item the image curator is presented in.</param>
+        /// <param name="propertyId">The ID of the property of the image curator.</param>
+        /// <param name="request">The model containing information on the current state of the image curator.</param>
         [HttpPut]
         [Route("{encryptedId}/image-curator/{propertyId:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

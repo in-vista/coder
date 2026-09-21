@@ -4,6 +4,9 @@ using Api.Core.Services;
 
 namespace Api.Modules.Styling.Interfaces;
 
+/// <summary>
+/// The service that handles all related to styling for the front-end.
+/// </summary>
 public interface IStylingService
 {
     /// <summary>

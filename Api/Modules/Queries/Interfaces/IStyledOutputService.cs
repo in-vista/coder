@@ -21,6 +21,7 @@ namespace Api.Modules.Queries.Interfaces
         /// <summary>
         /// Find a styled output in the wiser_styled_output table and returns the result
         /// </summary>
+        /// <param name="identity">The HTTP identity of the current request.</param>
         /// <param name="id">The ID from wiser_styled_output.</param>
         /// <param name="parameters">The parameters to set before executing the styled output.</param>
         /// <param name="stripNewlinesAndTabs">replaces \r\n \n and \t when encountered in the format.</param>

@@ -85,10 +85,18 @@ jobs:
 
                 exit 0
 
+          - name: (Coder) Checkout
+            uses: actions/checkout@v4
+            with:
+                repository: in-vista/coder
+                ref: ${{ github.ref }}
+                path: coder
+
           - name: (ICL) Checkout
             uses: actions/checkout@v4
             with:
                 repository: in-vista/invista-core-library
+                ref: ${{ github.ref }}
                 path: invista-core-library
 
           - name: (ICL) Empty destination folder

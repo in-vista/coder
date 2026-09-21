@@ -64,17 +64,21 @@ namespace Api.Modules.Queries.Services
         /// <inheritdoc />
         public async Task<ServiceResult<List<QueryModel>>> GetForExportModuleAsync(ClaimsIdentity identity)
         {
-            var results = await GetQueriesForModuleAsync(identity, "show_in_export_module").ToListAsync();
+            List<QueryModel> list = [];
+            await foreach(QueryModel queryModelItem in GetQueriesForModuleAsync(identity, "show_in_export_module"))
+                list.Add(queryModelItem);
 
-            return new ServiceResult<List<QueryModel>>(results);
+            return new ServiceResult<List<QueryModel>>(list);
         }
 
         /// <inheritdoc />
         public async Task<ServiceResult<List<QueryModel>>> GetForCommunicationModuleAsync(ClaimsIdentity identity)
         {
-            var results = await GetQueriesForModuleAsync(identity, "show_in_communication_module").ToListAsync();
+            List<QueryModel> list = [];
+            await foreach(QueryModel queryModelItem in GetQueriesForModuleAsync(identity, "show_in_communication_module"))
+                list.Add(queryModelItem);
 
-            return new ServiceResult<List<QueryModel>>(results);
+            return new ServiceResult<List<QueryModel>>(list);
         }
 
         /// <inheritdoc />
@@ -187,8 +191,6 @@ WHERE query.id = ?id";
             var isOnBranch = !branchesService.IsMainBranch(tenant.ModelObject).ModelObject; 
             
             var mainTenant = await wiserTenantsService.GetSingleAsync(tenant.ModelObject.TenantId, true);
-            
-            var id = -1;
 
             if (isOnBranch)
             {
@@ -238,7 +240,7 @@ WHERE query.id = ?id";
                 await targetDatabase.ExecuteAsync(lockQuery);
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -252,7 +254,7 @@ WHERE query.id = ?id";
                 await targetDatabase.ExecuteAsync(unlockQuery);
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }

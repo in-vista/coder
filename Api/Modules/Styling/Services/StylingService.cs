@@ -12,6 +12,7 @@ using GeeksCoreLibrary.Modules.Objects.Interfaces;
 
 namespace Api.Modules.Styling.Services;
 
+/// <inheritdoc cref="IStylingService"/>
 public class StylingService : IStylingService, IScopedService
 {
     private readonly IObjectsService objectsService;
@@ -21,7 +22,10 @@ public class StylingService : IStylingService, IScopedService
     private readonly IStringReplacementsService stringReplacementsService;
     
     private readonly IDatabaseConnection databaseConnection;
-
+    
+    /// <summary>
+    /// The constructor for the <see cref="StylingService"/> class.
+    /// </summary>
     public StylingService(
         IObjectsService objectsService,
         IApiReplacementsService apiReplacementsService,

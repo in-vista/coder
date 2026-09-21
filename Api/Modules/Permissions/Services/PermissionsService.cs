@@ -130,7 +130,11 @@ ORDER BY objectName ASC";
         databaseConnection.ClearParameters();
         databaseConnection.AddParameter("roleId", roleId);
 
-        return await GetPermissionsDataAsync<PermissionData>(query).ToListAsync();
+        List<PermissionData> list = [];
+        await foreach(PermissionData permissionItem in GetPermissionsDataAsync<PermissionData>(query))
+            list.Add(permissionItem);
+        
+        return list;
     }
 
     private async Task<IList<PermissionData>> GetModulePermissionsAsync(int roleId)
@@ -149,7 +153,11 @@ ORDER BY objectName ASC";
         databaseConnection.ClearParameters();
         databaseConnection.AddParameter("roleId", roleId);
 
-        return await GetPermissionsDataAsync<PermissionData>(query).ToListAsync();
+        List<PermissionData> list = [];
+        await foreach(PermissionData permissionItem in GetPermissionsDataAsync<PermissionData>(query))
+            list.Add(permissionItem);
+        
+        return list;
     }
 
     private async Task<IList<PermissionData>> GetEndpointPermissionsAsync(int roleId)
