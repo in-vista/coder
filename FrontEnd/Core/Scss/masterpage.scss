@@ -1280,40 +1280,45 @@ $mdi-sizes: (
 }
 
 /* Pending actions notification styling */
-.coder-menu-item-content::after,
-.coder-menu-item-popout-item-content::after {
-    display: none;
-}
-
-.coder-menu-item-content[data-pending-actions]:not([data-pending-actions="0"])::after,
-.coder-menu-item-popout-item-content[data-pending-actions]:not([data-pending-actions="0"])::after {
+.coder-menu-item-content[data-pending-actions]:not([data-pending-actions="0"])::after, .coder-menu-item-popout-item-content[data-pending-actions]:not([data-pending-actions="0"])::after {
     display: block;
     content: attr(data-pending-actions);
-}
-
-.coder-menu-item-content[data-pending-actions]::after,
-.coder-menu-item-popout-item-content[data-pending-actions]::after {
-    content: attr(data-pending-actions);
-}
-
-.coder-menu-item-content::after,
-.coder-menu-item-popout-item-content::after{
     background: #d8552b;
     border-radius: 8px;
     box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, .4);
     color: #fff;
-    content: "99+";
+    font-family: Arial, sans-serif;
     font-size: 10px;
+    font-style: normal;
     font-weight: bold;
     height: 16px;
     line-height: 16px;
     min-width: 16px;
-    position: absolute;
-    top: -4px;
-    right: -8px;
     text-align: center;
     padding: 0 5px;
     z-index: 10;
+}
+
+/* main menu */
+.coder-menu-item-content {
+    position: relative;
+}
+
+.coder-menu-item-content[data-pending-actions]:not([data-pending-actions="0"])::after {
+    position: absolute;
+    top: 4px;
+    right: 2px;
+}
+
+/* pop out menu */
+.coder-menu-item-popout-item-content {
+    position: relative;
+}
+
+.coder-menu-item-popout-item-content[data-pending-actions]:not([data-pending-actions="0"])::after {
+    position: absolute;
+    top: 4px;
+    left: 20px;
 }
 
 .coder-menu-item > .coder-menu-item-popout {
