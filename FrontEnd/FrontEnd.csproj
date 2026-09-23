@@ -15,6 +15,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Update="web.config">
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
+  </PropertyGroup>
+
+  <ItemGroup>
     <Compile Remove="temp\**" />   
     <None Remove="temp\**" />
     <Content Remove="temp\**" />
