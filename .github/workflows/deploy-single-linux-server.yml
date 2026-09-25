@@ -180,7 +180,6 @@ jobs:
         env:
           PUBLISH_LOCATION_API_LINUX: ${{ secrets.PUBLISH_LOCATION_API_LINUX }}
           PUBLISH_LOCATION_FRONT_END_LINUX: ${{ secrets.PUBLISH_LOCATION_FRONT_END_LINUX }}
-          PARTNER_STYLES_LOCATION_LINUX: ${{ secrets.PARTNER_STYLES_LOCATION_LINUX }}
           CORE_LIBRARY_LOCATION: ${{ inputs.core_library_location }}
           BACKUP_LOCATION: ${{ inputs.backup_location }}
           LOG_LOCATION: ${{ inputs.log_location }}
@@ -237,13 +236,6 @@ jobs:
             fail "Backup location cannot be inside a publish location."
           fi
 
-          PARTNER_PATH="$(realpath -e -- "$PARTNER_STYLES_LOCATION_LINUX")"
-
-          if [ "$PARTNER_PATH" = "/" ]; then
-            fail "PARTNER_STYLES_LOCATION_LINUX cannot point to /."
-          fi
-
-
           if ! id "$SERVICE_USER" >/dev/null 2>&1; then
             fail "Service user does not exist: $SERVICE_USER"
           fi
@@ -259,7 +251,6 @@ jobs:
           echo "CORE_LIBRARY_LOCATION=$CORE_PATH" >> "$GITHUB_ENV"
           echo "BACKUP_LOCATION=$BACKUP_PATH" >> "$GITHUB_ENV"
           echo "LOG_LOCATION=$LOG_PATH" >> "$GITHUB_ENV"
-          echo "PARTNER_STYLES_LOCATION_LINUX=$PARTNER_PATH" >> "$GITHUB_ENV"
 
           echo "Configuration validation successful."
           echo "API destination:      $API_PATH"
@@ -315,33 +306,6 @@ jobs:
             --omit-dir-times \
           "$GITHUB_WORKSPACE/invista-core-library/" \
           "$CORE_LIBRARY_LOCATION/"
-
-      - name: (Coder) Copy partner styles
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          destination="$PUBLISH_LOCATION_FRONT_END_LINUX/Core/Css/partner"
-          destinationWorker="$GITHUB_WORKSPACE/coder/FrontEnd/Core/Css/partner"
-
-          mkdir -p "$destination"
-          mkdir -p "$destinationWorker"
-
-          rsync \
-            --archive \
-            --delete \
-            --no-owner \
-            --no-group \
-            "$PARTNER_STYLES_LOCATION_LINUX/" \
-            "$destination/"
-
-          rsync \
-            --archive \
-            --delete \
-            --no-owner \
-            --no-group \
-            "$PARTNER_STYLES_LOCATION_LINUX/" \
-            "$destinationWorker/"
 
       - name: (Coder) Fix Linux core-library project references
         shell: bash
