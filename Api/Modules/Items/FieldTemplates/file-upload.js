@@ -20,6 +20,9 @@ const options = $.extend({
             });
         }
     },
+    select: (e) => {
+        e.sender.wrapper.find(".k-file-error").closest(".k-file").remove();
+    },
 	remove: window.dynamicItems.fields.onFileDelete.bind(window.dynamicItems.fields),
     success: window.dynamicItems.fields.onUploaderSuccess.bind(window.dynamicItems.fields),
     error: window.dynamicItems.fields.onFileUploadError.bind(window.dynamicItems.fields)
