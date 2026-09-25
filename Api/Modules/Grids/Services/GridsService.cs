@@ -419,7 +419,7 @@ namespace Api.Modules.Grids.Services
                     
                     // Set the default sort clause.
                     string defaultOrder = null;
-                    if (options.Sort != null)
+                    if (options.Sort != null && options.Sort.Any())
                         defaultOrder = $"ORDER BY {string.Join(", ", options.Sort.Select(sort => $"`{sort.Field}` {sort.Dir}"))}";
 
                     selectQuery = selectQuery.Replace("'{itemId}'", "?itemId", StringComparison.OrdinalIgnoreCase);
