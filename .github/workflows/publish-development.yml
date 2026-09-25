@@ -1,11 +1,3 @@
-name: Publish development
-
-on:
-  push:
-    branches: 
-    - develop
-  workflow_dispatch:
-
 jobs:
   deploy-cluster1:
     if: false
