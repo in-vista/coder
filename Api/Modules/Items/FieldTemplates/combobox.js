@@ -1,6 +1,7 @@
 ﻿(() => {
 const container = $("#container_{propertyIdWithSuffix}");
 const field = $("#field_{propertyIdWithSuffix}");
+const item = field.closest('.item');
 const fieldOptions = {options};
 const itemId = '{itemIdEncrypted}';
 const entityType = '{entityType}' || null;
@@ -205,6 +206,18 @@ if (options.queryIdGetValue) {
         console.warn('Query get overrule value error', result);
     });
 }
+
+const regexFailedMessageElement = item.find('.regexFailedMessage');
+const inputField = $(field).parent().find('.k-input-inner');
+
+inputField.on('input', (event) => {
+    const regex = /{pattern}/;
+    const target = $(event.target);
+    const targetValue = target.val() ?? event.target.value;
+    const matchesRegex = regex.test(targetValue);
+    regexFailedMessageElement[!matchesRegex ? 'text' : 'html'](!matchesRegex ? options.regexFailedMessage ?? 'Ongeldige waarde.' : '&nbsp;');
+    regexFailedMessageElement.toggleClass("hidden", matchesRegex);
+});
 
 {customScript}
 })();
