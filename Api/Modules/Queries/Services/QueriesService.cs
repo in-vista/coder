@@ -64,17 +64,21 @@ namespace Api.Modules.Queries.Services
         /// <inheritdoc />
         public async Task<ServiceResult<List<QueryModel>>> GetForExportModuleAsync(ClaimsIdentity identity)
         {
-            var results = await GetQueriesForModuleAsync(identity, "show_in_export_module").ToListAsync();
+            List<QueryModel> list = [];
+            await foreach(QueryModel queryModelItem in GetQueriesForModuleAsync(identity, "show_in_export_module"))
+                list.Add(queryModelItem);
 
-            return new ServiceResult<List<QueryModel>>(results);
+            return new ServiceResult<List<QueryModel>>(list);
         }
 
         /// <inheritdoc />
         public async Task<ServiceResult<List<QueryModel>>> GetForCommunicationModuleAsync(ClaimsIdentity identity)
         {
-            var results = await GetQueriesForModuleAsync(identity, "show_in_communication_module").ToListAsync();
+            List<QueryModel> list = [];
+            await foreach(QueryModel queryModelItem in GetQueriesForModuleAsync(identity, "show_in_communication_module"))
+                list.Add(queryModelItem);
 
-            return new ServiceResult<List<QueryModel>>(results);
+            return new ServiceResult<List<QueryModel>>(list);
         }
 
         /// <inheritdoc />
@@ -138,7 +142,7 @@ WHERE query.id = ?id";
                 return new ServiceResult<QueryModel>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Coder query with ID '{id}' does not exist."
+                    Error = $"Coder query with ID '{id}' does not exist."
                 };
             }
 
@@ -165,7 +169,7 @@ WHERE query.id = ?id";
                 return new ServiceResult<QueryModel>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "'Description' must contain a value."
+                    Error = "'Description' must contain a value."
                 };
             }
 
@@ -187,8 +191,6 @@ WHERE query.id = ?id";
             var isOnBranch = !branchesService.IsMainBranch(tenant.ModelObject).ModelObject; 
             
             var mainTenant = await wiserTenantsService.GetSingleAsync(tenant.ModelObject.TenantId, true);
-            
-            var id = -1;
 
             if (isOnBranch)
             {
@@ -238,7 +240,7 @@ WHERE query.id = ?id";
                 await targetDatabase.ExecuteAsync(lockQuery);
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -252,7 +254,7 @@ WHERE query.id = ?id";
                 await targetDatabase.ExecuteAsync(unlockQuery);
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
@@ -327,7 +329,7 @@ WHERE query.id = ?id";
                 return new ServiceResult<bool>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Either 'Query' or 'Description' must contain a value."
+                    Error = "Either 'Query' or 'Description' must contain a value."
                 };
             }
 
@@ -337,7 +339,7 @@ WHERE query.id = ?id";
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = queryResult.ErrorMessage,
+                    Error = queryResult.Error,
                     StatusCode = queryResult.StatusCode
                 };
             }
@@ -391,7 +393,7 @@ VALUES(?roleId, ?id, 15)";
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = queryResult.ErrorMessage,
+                    Error = queryResult.Error,
                     StatusCode = queryResult.StatusCode
                 };
             }
@@ -422,7 +424,7 @@ DELETE FROM {WiserTableNames.WiserPermission} WHERE query_id = ?id AND query_id 
                 return new ServiceResult<JToken>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Coder query with ID '{id}' does not exist."
+                    Error = $"Coder query with ID '{id}' does not exist."
                 };
             }
             
@@ -435,7 +437,7 @@ DELETE FROM {WiserTableNames.WiserPermission} WHERE query_id = ?id AND query_id 
                 return new ServiceResult<JToken>
                 {
                     StatusCode = HttpStatusCode.Unauthorized,
-                    ErrorMessage = $"Coder user '{IdentityHelpers.GetUserName(identity)}' has no permission to execute this query."
+                    Error = $"Coder user '{IdentityHelpers.GetUserName(identity)}' has no permission to execute this query."
                 };
             }
 
@@ -465,7 +467,7 @@ DELETE FROM {WiserTableNames.WiserPermission} WHERE query_id = ?id AND query_id 
                 return new ServiceResult<JToken>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "The query result does not contain the expected columns 'key' and 'value'."
+                    Error = "The query result does not contain the expected columns 'key' and 'value'."
                 };
             }
 

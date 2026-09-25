@@ -21,7 +21,6 @@ using GeeksCoreLibrary.Core.Interfaces;
 using GeeksCoreLibrary.Core.Models;
 using GeeksCoreLibrary.Modules.Databases.Interfaces;
 using GeeksCoreLibrary.Modules.GclReplacements.Interfaces;
-using IdentityServer4.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -104,12 +103,12 @@ namespace Api.Modules.Queries.Services
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                logger.LogError($"Non-OK response in GetStyledOutputResultJsonAsync: {response.ErrorMessage}");
+                logger.LogError($"Non-OK response in GetStyledOutputResultJsonAsync: {response.Error?.Message}");
 
                 return new ServiceResult<JToken>
                 {
                     StatusCode = response.StatusCode,
-                    ErrorMessage = response.ErrorMessage
+                    Error = response.Error
                 };
             }
 
@@ -139,7 +138,7 @@ namespace Api.Modules.Queries.Services
                 return new ServiceResult<JToken>
                 {
                     StatusCode = HttpStatusCode.InternalServerError,
-                    ErrorMessage =  errorMsg
+                    Error =  errorMsg
                 };
             }
         }
@@ -170,7 +169,7 @@ namespace Api.Modules.Queries.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.LoopDetected,
-                    ErrorMessage = errorMsg
+                    Error = errorMsg
                 };
             }
 
@@ -189,7 +188,7 @@ namespace Api.Modules.Queries.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = e.Message
+                    Error = e.Message
                 };
             }
 
@@ -210,7 +209,7 @@ namespace Api.Modules.Queries.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = errorMsg
+                    Error = errorMsg
                 };
             }
 
@@ -223,7 +222,7 @@ namespace Api.Modules.Queries.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.NotImplemented,
-                    ErrorMessage = errorMsg
+                    Error = errorMsg
                 };
             }
 
@@ -238,7 +237,7 @@ namespace Api.Modules.Queries.Services
                     return new ServiceResult<string>
                     {
                         StatusCode = HttpStatusCode.Unauthorized,
-                        ErrorMessage = errorMsg
+                        Error = errorMsg
                     };
                 }
             }
@@ -249,7 +248,7 @@ namespace Api.Modules.Queries.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.Unauthorized,
-                    ErrorMessage = e.Message
+                    Error = e.Message
                 };
             }
 
@@ -314,7 +313,7 @@ namespace Api.Modules.Queries.Services
             {
                 var result = dataTable.ToJsonArray(skipNullValues: true);
 
-                if (!style.FormatBegin.IsNullOrEmpty())
+                if (!string.IsNullOrEmpty(style.FormatBegin))
                 {
                     combinedResult.Append(style.FormatBegin);
                 }
@@ -348,7 +347,7 @@ namespace Api.Modules.Queries.Services
                     }
                 }
 
-                if (!style.FormatEnd.IsNullOrEmpty())
+                if (!string.IsNullOrEmpty(style.FormatEnd))
                 {
                     combinedResult.Append(style.FormatEnd);
                 }

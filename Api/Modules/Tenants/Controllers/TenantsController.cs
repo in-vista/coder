@@ -39,6 +39,11 @@ namespace Api.Modules.Tenants.Controllers
             return (await wiserTenantsService.GetTitleAsync(subDomain)).GetHttpResponseMessage();
         }
         
+        /// <summary>
+        /// Fetches options specified for the tenant of the given subdomain.
+        /// </summary>
+        /// <param name="subDomain">The subdomain to retrieve the options for.</param>
+        /// <returns>A JSON object containing information of this tenant's options.</returns>
         [HttpGet]
         [Route("{subDomain}/options")]
         [ProducesResponseType(typeof(TenantOptions), StatusCodes.Status200OK)]

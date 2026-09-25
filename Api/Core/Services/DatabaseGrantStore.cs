@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using Api.Core.Interfaces;
 using Api.Core.Models;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
-using IdentityServer4.Models;
-using IdentityServer4.Stores;
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Stores;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 

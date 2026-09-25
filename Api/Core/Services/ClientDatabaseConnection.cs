@@ -615,8 +615,8 @@ namespace Api.Core.Services
         {
             logger.LogTrace($"Disposing instance of MySqlDatabaseConnection with ID '{instanceId}' on URL {HttpContextHelpers.GetOriginalRequestUri(httpContextAccessor.HttpContext)}");
             dataReader?.Dispose();
-            AddConnectionCloseLogAsync(false, true);
-            AddConnectionCloseLogAsync(true, true);
+            _ = AddConnectionCloseLogAsync(false, true);
+            _ = AddConnectionCloseLogAsync(true, true);
             WiserDatabaseConnection?.Dispose();
         }
 
@@ -644,6 +644,11 @@ namespace Api.Core.Services
                 if (String.IsNullOrWhiteSpace(subDomain))
                 {
                     subDomain = (string)httpContextAccessor.HttpContext.Items[HttpContextConstants.SubDomainKey];
+                }
+                
+                if (String.IsNullOrWhiteSpace(subDomain))
+                {
+                    subDomain = httpContextAccessor.HttpContext.Request.Query[HttpContextConstants.SubDomainKey].FirstOrDefault();
                 }
 
                 if (String.IsNullOrWhiteSpace(subDomain) && httpContextAccessor.HttpContext.Request.Path.StartsWithSegments("/health"))

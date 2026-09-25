@@ -23,7 +23,7 @@ public class ExternalCacheService : IExternalCacheService, IScopedService
             return new ServiceResult<bool>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                ErrorMessage = "No or invalid settings found."
+                Error = "No or invalid settings found."
             };
         }
 
@@ -39,7 +39,7 @@ public class ExternalCacheService : IExternalCacheService, IScopedService
             return new ServiceResult<bool>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                ErrorMessage = "Invalid URL given."
+                Error = "Invalid URL given."
             };
         }
 
@@ -109,7 +109,7 @@ public class ExternalCacheService : IExternalCacheService, IScopedService
             return new ServiceResult<bool>
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                ErrorMessage = $"De website gaf een HTTP {(int)response.StatusCode} fout. Heeft u de juiste URL ingevuld?"
+                Error = $"De website gaf een HTTP {(int)response.StatusCode} fout. Heeft u de juiste URL ingevuld?"
             };
         }
         

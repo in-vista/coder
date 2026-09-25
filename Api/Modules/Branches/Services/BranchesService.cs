@@ -70,7 +70,7 @@ namespace Api.Modules.Branches.Services
             {
                 return new ServiceResult<TenantModel>
                 {
-                    ErrorMessage = "Name is empty",
+                    Error = "Name is empty",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -119,7 +119,7 @@ namespace Api.Modules.Branches.Services
             {
                 return new ServiceResult<TenantModel>
                 {
-                    ErrorMessage = tenantExists.ErrorMessage,
+                    Error = tenantExists.Error,
                     StatusCode = tenantExists.StatusCode
                 };
             }
@@ -129,7 +129,7 @@ namespace Api.Modules.Branches.Services
                 return new ServiceResult<TenantModel>
                 {
                     StatusCode = HttpStatusCode.Conflict,
-                    ErrorMessage = $"Een branch met de naam '{settings.Name}' bestaat al."
+                    Error = $"Een branch met de naam '{settings.Name}' bestaat al."
                 };
             }
 
@@ -139,7 +139,7 @@ namespace Api.Modules.Branches.Services
                 return new ServiceResult<TenantModel>
                 {
                     StatusCode = HttpStatusCode.Conflict,
-                    ErrorMessage = $"We hebben geprobeerd een database aan te maken met de naam '{databaseName}', echter bestaat deze al. Kies a.u.b. een andere naam."
+                    Error = $"We hebben geprobeerd een database aan te maken met de naam '{databaseName}', echter bestaat deze al. Kies a.u.b. een andere naam."
                 };
             }
 
@@ -1178,7 +1178,7 @@ LIMIT 1";
                 return new ServiceResult<MergeBranchResultModel>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "U probeert wijzigingen van de hoofdbranch te synchroniseren, dat is niet mogelijk."
+                    Error = "U probeert wijzigingen van de hoofdbranch te synchroniseren, dat is niet mogelijk."
                 };
             }
 
@@ -1309,7 +1309,7 @@ VALUES (?branch_id, ?action, ?data, ?added_on, ?start_on, ?added_by, ?user_id)";
                 return new ServiceResult<bool>(false)
                 {
                     StatusCode = branchData.StatusCode,
-                    ErrorMessage = branchData.ErrorMessage
+                    Error = branchData.Error
                 };
             }
 
@@ -1319,7 +1319,7 @@ VALUES (?branch_id, ?action, ?data, ?added_on, ?start_on, ?added_by, ?user_id)";
                 return new ServiceResult<bool>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "U probeert de hoofdbranch te verwijderen, dat is niet mogelijk."
+                    Error = "U probeert de hoofdbranch te verwijderen, dat is niet mogelijk."
                 };
             }
 

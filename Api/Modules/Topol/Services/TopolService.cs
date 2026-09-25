@@ -19,16 +19,34 @@ using Newtonsoft.Json.Linq;
 
 namespace Api.Modules.Topol.Services;
 
+/// <summary>
+/// <inheritdoc cref="ITopolService"/>
+/// </summary>
 public class TopolService : ITopolService, IScopedService
 {
+	/// <summary>
+	/// <inheritdoc cref="IDatabaseConnection"/>
+	/// </summary>
     private readonly IDatabaseConnection databaseConnection;
-
+	
+	/// <summary>
+	/// <inheritdoc cref="IWiserTenantsService"/>
+	/// </summary>
     private readonly IWiserTenantsService wiserTenantsService;
-
+	
+	/// <summary>
+	/// <inheritdoc cref="IWiserItemsService"/>
+	/// </summary>
     private readonly IWiserItemsService wiserItemsService;
-
+	
+	/// <summary>
+	/// <inheritdoc cref="ICommunicationsService"/>
+	/// </summary>
     private readonly ICommunicationsService communicationsService;
-
+	
+	/// <summary>
+	/// The constructor for the TopolService class.
+	/// </summary>
     public TopolService(
 	    IDatabaseConnection databaseConnection,
 	    IWiserTenantsService wiserTenantsService,
@@ -41,7 +59,8 @@ public class TopolService : ITopolService, IScopedService
         this.wiserItemsService = wiserItemsService;
         this.communicationsService = communicationsService;
     }
-
+	
+	/// <inheritdoc/>
     public async Task<TopolTemplate> GetTemplate(string encryptedId, ClaimsIdentity identity)
     {
 	    ulong templateId = await wiserTenantsService.DecryptValue<ulong>(encryptedId, identity);
@@ -62,6 +81,7 @@ public class TopolService : ITopolService, IScopedService
 	    };
     }
     
+	/// <inheritdoc/>
     public async Task<Image[]> GetFolders(string path, string identifier, string baseUrl, string subDomain)
     {
 	    // If we are located at the root, check if a root folder already exists. If not, then create one.
@@ -183,7 +203,8 @@ WHERE
 
         return images.ToArray();
     }
-
+	
+	/// <inheritdoc/>
     public async Task<string[]> InsertFolder(string name, string path, string identifier)
     {
 	    string[] segmentedPath = path.Split("/", StringSplitOptions.RemoveEmptyEntries);
@@ -232,7 +253,8 @@ SET @directoryId = LAST_INSERT_ID();
 
 	    return new string[] { Path.Combine(relativePath, name) };
     }
-
+	
+	/// <inheritdoc/>
     public async Task<int> DeleteImagesOrFolders(ImageDeleteModel[] models, string identifier)
     {
 	    List<Task> deleteTasks = new List<Task>();
@@ -295,7 +317,8 @@ DROP TEMPORARY TABLE temp_ids;";
 	    
 	    return models.Length - failedDeletions;
     }
-
+	
+	/// <inheritdoc/>
     public async Task<string> UploadImage(IFormFile image, string path, string identifier)
     {
 	    string fileQuery = @"
@@ -353,7 +376,8 @@ SELECT item_id AS `item_id`, ordering AS `ordering` FROM wiser_itemfile WHERE id
 	    
 	    return $"/api/v3/items/{itemId}/files/file/{image.FileName}?ordering={ordering}";
     }
-
+	
+	/// <inheritdoc/>
     public async Task SendTestMail(string email, string html)
     {
 	    string subject = "Coder - Test mail";

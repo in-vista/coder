@@ -429,12 +429,6 @@ class Main {
                 
                 document.addEventListener("keydown", this.onAppKeyDown.bind(this));
                 window.addEventListener('message', this.handleKeydownFromIframe.bind(this));
-                
-                // Add an event for when the DOM is loaded.
-                document.addEventListener('DOMContentLoaded', async function() {
-                    // Load system styling.
-                    await Misc.injectSystemStyling();
-                });
             },
             computed: {
                 loginStatus() {
@@ -1932,6 +1926,9 @@ class Main {
 
         // Mount our app to the main HTML element.
         this.vueApp = this.vueApp.mount("#app");
+
+        // Load system styling.
+        Misc.injectSystemStyling(true);
     }
 }
 

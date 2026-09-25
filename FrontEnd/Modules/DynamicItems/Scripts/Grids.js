@@ -1,4 +1,4 @@
-﻿import {Wiser} from "../../Base/Scripts/Utils.js";
+﻿import {Utils, Wiser} from "../../Base/Scripts/Utils.js";
 import "../../Base/Scripts/Processing.js";
 
 require("@progress/kendo-ui/js/kendo.tooltip.js");
@@ -1456,7 +1456,7 @@ export class Grids {
                 ? `data-roles="${Misc.encodeHtml(rolesAttributeValue)}"`
                 : '';
 
-            const hideForRolesAttributeValue = customAction.roles?.join(',') ?? '';
+            const hideForRolesAttributeValue = customAction.hideForRoles?.join(',') ?? '';
             const hideForRolesAttribute = hideForRolesAttributeValue
                 ? `data-hide-for-roles="${Misc.encodeHtml(hideForRolesAttributeValue)}"`
                 : '';
@@ -1680,8 +1680,7 @@ export class Grids {
         this.base.windows.searchItemsWindow.maximize().open();
 
         // Pushes this window to the window history.
-        const searchItemsWindowId = this.base.windows.searchItemsWindow.element.attr('id');
-        this.base.windows.pushWindowToHistory(searchItemsWindowId);
+        this.base.windows.pushWindowToHistory(this.base.windows.searchItemsWindow);
         
         this.base.windows.searchItemsWindow.title(`${this.base.getEntityTypeFriendlyName(entityType)} zoeken en koppelen`);
         this.base.windows.initializeSearchItemsGrid(entityType, encryptedParentId, propertyId, gridOptions);
@@ -1735,7 +1734,7 @@ export class Grids {
             console.error(exception);
             let error = exception;
             if (exception.responseText) {
-                error = exception.responseText;
+                error = Utils.getErrorFromException(exception).message;
             } else if (exception.statusText) {
                 error = exception.statusText;
             }
@@ -1811,7 +1810,7 @@ export class Grids {
                                     } catch (exception) {
                                         console.error(exception);
 
-                                        let message = exception.responseText;
+                                        let message = Utils.getErrorFromException(exception).message;
                                         if(!message) {
                                             switch(exception.status) {
                                                 case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
@@ -1850,7 +1849,7 @@ export class Grids {
                     } catch (exception) {
                         console.error(exception);
 
-                        let message = exception.responseText;
+                        let message = Utils.getErrorFromException(exception).message;
                         if(!message) {
                             switch(exception.status) {
                                 case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
@@ -2235,18 +2234,18 @@ export class Grids {
             const userDataString = localStorage.getItem('userData');
             const userData = userDataString ? JSON.parse(userDataString) : [];
             // Retrieve the role from the user data.
-            const userRole = userData.role;
+            const userRoles = userData.roles;
 
             // Check whether the user's role is required by the action button.
             if(roles !== undefined) {
                 const rolesArray = roles.split(',');
-                shouldHide = !rolesArray.includes(userRole);
+                shouldHide = !rolesArray.some(role => userRoles.includes(role));
             }
             
             // Check whether one of the user's roles matches in the collection of roles to hide the button for.
-            if(hideForRoles !== undefined) {
+            if(hideForRoles !== undefined && !shouldHide) {
                 const hideForRolesArray = hideForRoles.split(',');
-                shouldHide = hideForRolesArray.includes(userRole);
+                shouldHide = hideForRolesArray.some(role => userRoles.includes(role));
             }
         }
 
