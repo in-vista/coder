@@ -289,7 +289,7 @@ export class Strings {
  * Wiser utils.
  */
 export class Wiser {
-    static async api(settings, signal = null) {
+    static async api(settings, signal = null, skipAuth = false) {
         // Find the Window that contains the main vue app of Wiser. We need this for saving the promise of refreshing the auth token.
         // We do this on that window, because some modules have multiple iframes that all do xhr calls, so we need to make sure they all wait for each other
         // and use the same refresh token.
@@ -316,14 +316,12 @@ export class Wiser {
         let user = JSON.parse(localStorage.getItem("userData"));
         let currentDate = new Date();
         currentDate.setSeconds(currentDate.getSeconds() - 5);
-        if (settings.url.indexOf("/connect/token") === -1 && (!accessTokenExpires || new Date(accessTokenExpires) <= currentDate)) {
+        if ((settings.url.indexOf("/connect/token") === -1 && (!accessTokenExpires || new Date(accessTokenExpires) <= currentDate)) && !skipAuth) {
             if (!user || !user.refresh_token) {
                 console.error("No refresh token found!");
 
                 // If we have no refresh token for some reason, logout the user.
-                if (wiserMainWindow && wiserMainWindow.main && wiserMainWindow.main.vueApp) {
-                    await wiserMainWindow.main.vueApp.logout();
-                }
+                await wiserMainWindow?.main?.vueApp?.logout?.();
 
                 return Promise.reject("No refresh token found!");
             }
@@ -376,7 +374,7 @@ export class Wiser {
         // It can happen that this still has an old token when someone is working in multiple browser tabs at the same time,
         // If the token gets refreshed in tab X, it will not update the ajax setup in tab Y, so we need to do that now.
         const currentAjaxSetup = $.ajaxSetup();
-        if (!currentAjaxSetup.headers || currentAjaxSetup.headers.Authorization !== `Bearer ${user.access_token}`) {
+        if (!skipAuth && (!currentAjaxSetup.headers || currentAjaxSetup.headers.Authorization !== `Bearer ${user.access_token}`)) {
             $.ajaxSetup({
                 headers: {"Authorization": `Bearer ${user.access_token}`}
             });
@@ -1837,19 +1835,17 @@ export class Misc {
     /**
      * Load CSS based on a plain system object string or query ID referencing a query that loads a CSS string.
      */
-    static async injectSystemStyling() {
-        // Retrieve and validate the existence of a user. If none exists, skip injecting the system styling.
-        const user = JSON.parse(localStorage.getItem("userData"));
-        if(!user)
-            return;
-        
+    static async injectSystemStyling(skipAuth) {
         try {
+            // Retrieve the subdomain.
+            const subdomain = window.main.appSettings.subDomain;
+            
             // Request the CSS styling string.
             const cssString = await Wiser.api({
-                url: `${window.main.appSettings.apiBase}api/v3/styling/system-styling`,
+                url: `${window.main.appSettings.apiBase}api/v3/styling/system-styling?subDomain=${encodeURIComponent(subdomain)}`,
                 dataType: 'json',
                 method: 'GET'
-            });
+            }, null, skipAuth);
 
             // Delete any previous system styling upon successfully retrieving it.
             this.removeSystemStyling();

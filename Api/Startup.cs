@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography;
 using Api.Core.Filters;
 using Api.Core.Interfaces;
 using Api.Core.Middlewares;
@@ -195,11 +194,13 @@ namespace Api
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
             // Configure OAuth2
-            var identityServerBuilder = services.AddIdentityServer(options =>
+            IIdentityServerBuilder identityServerBuilder = services.AddIdentityServer(options =>
                 {
                     options.Events.RaiseSuccessEvents = true;
                     options.Events.RaiseFailureEvents = true;
                     options.Events.RaiseErrorEvents = true;
+
+                    options.KeyManagement.Enabled = false;
                 })
                 .AddInMemoryIdentityResources(ConfigureIdentityServer.GetIdentityResources())
                 .AddInMemoryApiResources(ConfigureIdentityServer.GetApiResources(clientSecret))
@@ -218,44 +219,39 @@ namespace Api
 
                 return new HttpClient(clientHandler);
             });
-            
+
             if (webHostEnvironment.IsDevelopment())
             {
                 identityServerBuilder.AddDeveloperSigningCredential();
             }
             else
             {
-                // Create an X509Store for the Web Hosting store and see if the certificate is there.
-                var certificateName = Configuration.GetValue<string>("Api:SigningCredentialCertificate");
-                using var webHostingStore = new X509Store("WebHosting", StoreLocation.LocalMachine);
-                webHostingStore.Open(OpenFlags.ReadOnly);
-                var certificateCollection = webHostingStore.Certificates.Find(X509FindType.FindBySubjectDistinguishedName, certificateName, validOnly: false);
-                if (certificateCollection.Count == 0)
+                string signingKey = Configuration.GetValue<string>("Api:SigningKey");
+                if (string.IsNullOrWhiteSpace(signingKey))
+                    throw new Exception("Api:SigningKey is not configured.");
+
+                RSA rsa = RSA.Create();
+                rsa.ImportPkcs8PrivateKey(Convert.FromBase64String(signingKey), out _);
+                RsaSecurityKey securityKey = new(rsa)
                 {
-                    using var personalStore = new X509Store(StoreName.My, StoreLocation.LocalMachine);
-                    personalStore.Open(OpenFlags.ReadOnly);
-                    certificateCollection = personalStore.Certificates.Find(X509FindType.FindBySubjectDistinguishedName, certificateName, validOnly: false);
-
-                    if (certificateCollection.Count == 0)
-                    {
-                        throw new Exception($"Certificate with name \"{certificateName}\" not found in WebHosting or Personal store.");
-                    }
-                }
-
-                identityServerBuilder.AddSigningCredential(certificateCollection.First());
+                    KeyId = "CoderSigningKey"
+                };
+                identityServerBuilder.AddSigningCredential(securityKey, SecurityAlgorithms.RsaSha256);
             }
 
             services.AddAuthentication("Bearer")
-                .AddJwtBearer("Bearer",
-                    options =>
+                .AddJwtBearer("Bearer", options =>
+                {
+                    options.Authority = apiBaseUrl;
+
+                    options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        options.Authority = apiBaseUrl;
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateAudience = false,
-                            ClockSkew = webHostEnvironment.IsDevelopment() ? new TimeSpan(0, 0, 0, 5) : new TimeSpan(0, 0, 5, 0)
-                        };
-                    });
+                        ValidateAudience = false,
+                        ClockSkew = webHostEnvironment.IsDevelopment()
+                            ? new TimeSpan(0, 0, 0, 5)
+                            : new TimeSpan(0, 0, 5, 0)
+                    };
+                });
 
             services.AddAuthorization(options =>
             {

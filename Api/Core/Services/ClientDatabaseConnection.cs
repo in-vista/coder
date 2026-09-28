@@ -645,6 +645,11 @@ namespace Api.Core.Services
                 {
                     subDomain = (string)httpContextAccessor.HttpContext.Items[HttpContextConstants.SubDomainKey];
                 }
+                
+                if (String.IsNullOrWhiteSpace(subDomain))
+                {
+                    subDomain = httpContextAccessor.HttpContext.Request.Query[HttpContextConstants.SubDomainKey].FirstOrDefault();
+                }
 
                 if (String.IsNullOrWhiteSpace(subDomain) && httpContextAccessor.HttpContext.Request.Path.StartsWithSegments("/health"))
                 {

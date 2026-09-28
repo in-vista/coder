@@ -316,7 +316,7 @@ const loginModule = {
                 await this.dispatch(IMITATIONS_REQUEST);
 
                 // Load system styling.
-                await Misc.injectSystemStyling();
+                await Misc.injectSystemStyling(false);
             }
         },
 

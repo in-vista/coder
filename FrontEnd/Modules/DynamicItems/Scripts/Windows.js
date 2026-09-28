@@ -55,6 +55,13 @@ export class Windows {
         });
         
         this.windowHistory = [];
+        
+        // Register a global event to avoid default behavior on anchor elements with just a hash href-attribute.
+        document.addEventListener('click', (event) => {
+            const link = event.target.closest('a[href="#"]');
+            if (link)
+                event.preventDefault();
+        });
     }
 
     /**
@@ -63,8 +70,8 @@ export class Windows {
     initialize() {
         // Register an event that handles closing the currently opened window when navigating back in the browser.
         window.addEventListener('popstate', () => {
-            const window = this.windowHistory.pop();
-            window?.close();
+            const windowComponent = this.windowHistory.pop();
+            windowComponent?.close();
         });
         
         // Window for searching for items to link to another item.

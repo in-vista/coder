@@ -35,6 +35,7 @@ public class StylingController : ControllerBase
     /// <returns>A CSS string that reflects the styling of the current system.</returns>
     [HttpGet]
     [Route("system-styling")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetSystemStyling()

@@ -1083,7 +1083,7 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                                 
                                 break;
                             default:
-                                value = parameter.Value.ToString().ToMySqlSafeValue(false);
+                                value = parameter.Value.ToString();
                                 break;
                         }
                     }

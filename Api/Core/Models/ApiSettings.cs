@@ -66,9 +66,9 @@ namespace Api.Core.Models
         public string MainSubDomain { get; set; } = "main";
 
         /// <summary>
-        /// The fully qualified name of the certificate in the store of the server, of the certificate to use for IdentityServer4 (OAUTH2) authentication.
+        /// The RSA private key to use for IdentityServer4 (OAUTH2) authentication.
         /// </summary>
-        public string SigningCredentialCertificate { get; set; }
+        public string SigningKey { get; set; }
 
         /// <summary>
         /// Gets or sets whether the NPM package 'terser' should be used when minifying scripts saved in the templates module.

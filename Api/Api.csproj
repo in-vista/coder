@@ -24,6 +24,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Update="web.config">
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
+  </PropertyGroup>
+
+  <ItemGroup>
     <None Remove="Core\Queries\WiserInstallation\CreateTables.sql" />
     <None Remove="Core\Queries\WiserInstallation\CreateTablesConfigurator.sql" />
     <None Remove="Core\Queries\WiserInstallation\CreateTriggers.sql" />
