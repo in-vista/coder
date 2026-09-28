@@ -23,6 +23,11 @@ namespace Api.Modules.Tenants.Models
         /// Gets or sets the full name.
         /// </summary>
         public string Name { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the account name.
+        /// </summary>
+        public string AccountName { get; set; }
 
         /// <summary>
         ///  Gets or sets the encrypted tenant if for Wiser.

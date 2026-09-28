@@ -1346,6 +1346,7 @@ $mdi-sizes: (
     font-size: 1.02em;
 
     white-space: nowrap;
+    overflow-wrap: anywhere;
     
     &:after {
         content: '';
@@ -1357,6 +1358,18 @@ $mdi-sizes: (
         background-color: var(--coder-foreground-color);
         opacity: 0.1;
     }
+}
+
+.coder-account-name {
+    display: block;
+    max-width: 100%;
+    font-size: 11px;
+    font-weight: 400;
+    opacity: 0.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1;
 }
 
 .coder-menu-item-popout-items {

@@ -46,7 +46,14 @@
                         <i class="mdi mdi-size-2 mdi-account"></i>
                     </div>
                     <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event); closeAccountDropdown()">
-                        <p class="coder-menu-item-popout-title"><strong>Welkom</strong> <span class="coder-highlight">{{ user.name }}</span>.</p>
+                        <p class="coder-menu-item-popout-title">
+                            <strong>Welkom </strong>
+                            <span class="coder-highlight">{{ user.name }}</span>.
+
+                            <small v-if="user.accountName !== ''" class="coder-account-name" :title="user.accountName">
+                                {{ user.accountName }}
+                            </small>
+                        </p>
                         <div class="coder-menu-item-popout-items">
                             <div v-if="!!markerWidget" class="coder-menu-item-popout-item">
                                 <div @@click="openMarkerIoScreen" class="coder-menu-item-popout-item-content hover">
