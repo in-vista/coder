@@ -89,3 +89,6 @@ export const DO_TENANT_MIGRATIONS = "doTenantMigrations";
 // Module tab strip.
 export const UPDATE_TAB_STRIP_MODULES = "updateTabStripModules";
 export const UPDATE_TAB_STRIP_TITLE_ALIAS = "updateTabStripTitleAlias";
+
+// Module misc.
+export const SET_MODULES_LOADING = 'setModulesLoading';
