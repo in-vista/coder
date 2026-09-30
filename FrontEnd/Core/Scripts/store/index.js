@@ -512,6 +512,9 @@ const modulesModule = {
                 }
 
                 state.openedModules.push(activeModule);
+
+                // Manually increase the interactions to update the current interactions of the module.
+                module.moduleInteractions++;
             }
 
             // Set the newly opened module to active.
@@ -638,9 +641,6 @@ const modulesModule = {
             
             // Log module opened for currently logged-in user.
             try {
-                // Manually increase the interactions to update the current interactions of the module.
-                module.moduleInteractions++;
-                
                 // Invoke a log in the back end.
                 await main.modulesService.logModuleOpen(module.moduleId);
             } catch(exception) {
