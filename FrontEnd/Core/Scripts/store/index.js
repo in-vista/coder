@@ -638,6 +638,10 @@ const modulesModule = {
             
             // Log module opened for currently logged-in user.
             try {
+                // Manually increase the interactions to update the current interactions of the module.
+                module.moduleInteractions++;
+                
+                // Invoke a log in the back end.
                 await main.modulesService.logModuleOpen(module.moduleId);
             } catch(exception) {
                 console.error('Unable to log module opening action:', exception);
