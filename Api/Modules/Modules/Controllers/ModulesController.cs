@@ -192,5 +192,17 @@ namespace Api.Modules.Modules.Controllers
         {
             return (await modulesService.DeleteAsync((ClaimsIdentity)User.Identity, id)).GetHttpResponseMessage();
         }
+        
+        /// <summary>
+        /// Logs an action where the user opened the given module.
+        /// </summary>
+        /// <param name="id">The ID of the module that has been opened.</param>
+        [HttpPut]
+        [Route("{id:int}/log-open")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> LogOpenAsync(int id)
+        {
+            return (await modulesService.LogOpenAsync((ClaimsIdentity)User.Identity, id)).GetHttpResponseMessage();
+        }
     }
 }

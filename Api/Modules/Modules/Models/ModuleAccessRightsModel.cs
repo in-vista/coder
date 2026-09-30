@@ -111,5 +111,10 @@ namespace Api.Modules.Modules.Models
         /// Gets or sets the ordering priority of the module within the module group.
         /// </summary>
         public uint Ordering { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the amount of module interactions the user has had with this module.
+        /// </summary>
+        public int ModuleInteractions { get; set; }
     }
 }

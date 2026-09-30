@@ -633,8 +633,15 @@ const modulesModule = {
             }
         },
 
-        [OPEN_MODULE]({ commit }, module) {
+        async [OPEN_MODULE]({ commit }, module) {
             commit(OPEN_MODULE, module);
+            
+            // Log module opened for currently logged-in user.
+            try {
+                await main.modulesService.logModuleOpen(module.moduleId);
+            } catch(exception) {
+                console.error('Unable to log module opening action:', exception);
+            }
         },
 
         [CLOSE_MODULE]({ commit }, module) {

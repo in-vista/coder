@@ -98,5 +98,12 @@ namespace Api.Modules.Modules.Interfaces
         /// <param name="identity"></param>
         /// <returns></returns>
         public Task<ServiceResult<bool>> UpdateField(int id, int itemId, Dictionary<string, string> parameters, ClaimsIdentity identity);
+        
+        /// <summary>
+        /// Logs an action where the user opened the given module.
+        /// </summary>
+        /// <param name="identity">The identity of the authenticated user.</param>
+        /// <param name="id">The ID of the module that has been opened.</param>
+        public Task<ServiceResult<bool>> LogOpenAsync(ClaimsIdentity identity, int id);
     }
 }

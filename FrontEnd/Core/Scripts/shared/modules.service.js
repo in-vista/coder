@@ -85,4 +85,12 @@ export default class ModulesService extends BaseService {
             return [];
         }
     }
+
+    /**
+     * Logs an action where the user opened a given module.
+     * @param moduleId - The module ID the user opened.
+     */
+    async logModuleOpen(moduleId) {
+        const pendingActionsResult = await this.base.api.put(`/api/v3/modules/${encodeURIComponent(moduleId)}/log-open`);
+    }
 }
