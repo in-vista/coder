@@ -2248,6 +2248,26 @@ const moduleSettings = {
                         }
                     });
                 }
+
+                if (updateResult) {
+                    fieldsContainer.find("[data-input-type='secure-input'] input").each((index, element) => {
+                        const field = $(element);
+
+                        if (field.data("secureInputType") !== "password")
+                            return;
+
+                        const hasValue = field.hasClass("skip-when-saving") || !!field.val();
+
+                        field
+                            .val(hasValue ? "••••••••••••••••••••••••" : "")
+                            .attr("type", "password")
+                            .addClass("skip-when-saving");
+
+                        field.siblings("ins")
+                            .toggleClass("icon-eye-visible", true)
+                            .toggleClass("icon-eye-invisible", false);
+                    });
+                }
             }
 
             if (updateResult && showSuccessMessage) {
