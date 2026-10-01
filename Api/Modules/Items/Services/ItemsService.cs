@@ -1850,6 +1850,13 @@ DELETE FROM {linkTablePrefix}{WiserTableNames.WiserItemLink} AS link WHERE (link
                     }
                 }
 
+                if (fieldType.Equals("secure-input", StringComparison.OrdinalIgnoreCase) 
+                    && inputType.Equals("password", StringComparison.OrdinalIgnoreCase) 
+                    && (!string.IsNullOrWhiteSpace(longValue) || !string.IsNullOrEmpty(value)))
+                {
+                    defaultValue = "••••••••••••••••••••••••";
+                }
+                
                 // Encrypt certain values in options JSON.
                 jsonService.EncryptValuesInJson(optionsObject, encryptionKey);
                 options = optionsObject.ToString(Formatting.None);
