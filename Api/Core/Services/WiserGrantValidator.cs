@@ -159,6 +159,7 @@ namespace Api.Core.Services
             {
                 { "adminLogin", adminAccountId > 0 },
                 { "name", loginResult.ModelObject.Name },
+                { "accountName", loginResult.ModelObject.AccountName },
                 { "role", loginResult.ModelObject.Role },
                 { "roles", loginResult.ModelObject.Roles },
                 { "lastLoginIpAddress", loginResult.ModelObject.LastLoginIpAddress ?? "" },
