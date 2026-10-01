@@ -1,4 +1,6 @@
-﻿var path = require("path");
+﻿const path = require("path");
+
+const webpack = require("webpack");
 
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -53,7 +55,12 @@ module.exports = {
         new NodePolyfillPlugin(),
         // Add JSON manifest for loading files in .NET with a dynamic hash in the name, so that users don't need to clear their browser cache after every Wiser update.
         new WebpackManifestPlugin({}),
-        new HtmlWebpackPlugin()
+        new HtmlWebpackPlugin(),
+        new webpack.DefinePlugin({
+            __VUE_OPTIONS_API__: true,
+            __VUE_PROD_DEVTOOLS__: false,
+            __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false
+        })
     ],
     resolve: {
         alias: {
