@@ -94,6 +94,16 @@ body.gridViewMode:not(.iframe) #gridView {
     display: flex;
 }
 
+#gridView .k-grid-header-wrap > table,
+#gridView .k-grid-content table {
+    min-width: 100%;
+}
+
+#gridView .k-grid-header-wrap > table,
+#gridView .k-virtual-scrollable-wrap table {
+    min-width: 100%;
+}
+
 body.gridViewMode {
     overflow: hidden;
 }

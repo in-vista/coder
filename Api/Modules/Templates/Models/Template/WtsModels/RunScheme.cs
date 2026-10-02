@@ -193,12 +193,12 @@ namespace Api.Modules.Templates.Models.Template
             DependsOnValue = new [] {"Weekly"}
         )]
         public int? DayOfWeek { get; set; }
-
+        
+        /// <summary>
+        /// <inheritdoc cref="DayOfWeek"/>
+        /// </summary>
         [XmlIgnore]
-        public bool DayOfWeekSpecified
-        {
-            get { return DayOfWeek.HasValue; }
-        }
+        public bool DayOfWeekSpecified => DayOfWeek.HasValue;
 
         /// <summary>
         /// The day of the month on which the run scheme should run.
@@ -219,12 +219,12 @@ namespace Api.Modules.Templates.Models.Template
             DependsOnValue = new [] {"Monthly"}
         )]
         public int? DayOfMonth { get; set; }
-
+        
+        /// <summary>
+        /// <inheritdoc cref="DayOfMonth"/>
+        /// </summary>
         [XmlIgnore]
-        public bool DayOfMonthSpecified
-        {
-            get { return DayOfMonth.HasValue; }
-        }
+        public bool DayOfMonthSpecified => DayOfMonth.HasValue;
 
         /// <summary>
         /// Whether to run the run scheme on the weekend.
@@ -236,12 +236,12 @@ namespace Api.Modules.Templates.Models.Template
             KendoComponent = KendoComponents.CheckBox
         )]
         public bool? SkipWeekend { get; set; }
-
+        
+        /// <summary>
+        /// <inheritdoc cref="SkipWeekend"/>
+        /// </summary>
         [XmlIgnore]
-        public bool SkipWeekendSpecified
-        {
-            get { return SkipWeekend.HasValue; }
-        }
+        public bool SkipWeekendSpecified => SkipWeekend.HasValue;
 
         /// <summary>
         /// If the run scheme should be run immediately on start up of the wts.
@@ -253,12 +253,12 @@ namespace Api.Modules.Templates.Models.Template
             KendoComponent = KendoComponents.CheckBox
         )]
         public bool? RunImmediately { get; set; }
-
+        
+        /// <summary>
+        /// <inheritdoc cref="RunImmediately"/>
+        /// </summary>
         [XmlIgnore]
-        public bool RunImmediatelySpecified
-        {
-            get { return RunImmediately.HasValue; }
-        }
+        public bool RunImmediatelySpecified => RunImmediately.HasValue;
 
         /// <summary>
         /// The settings to be used for logging.

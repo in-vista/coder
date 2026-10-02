@@ -27,6 +27,8 @@ namespace Api.Modules.Templates.Interfaces.DataLayer
         /// Get the history of a template. This will retrieve all versions of the template which can be compared for changes.
         /// </summary>
         /// <param name="templateId">The id of the template which history should be retrieved.</param>
+        /// <param name="page">The page number to display.</param>
+        /// <param name="itemsPerPage">The amount of items to show on the page.</param>
         /// <returns>A list of <see cref="TemplateSettingsModel"/> forming the history of the template. The list is ordered by version number (DESC).</returns>
         Task<List<TemplateSettingsModel>> GetTemplateHistoryAsync(int templateId, int page, int itemsPerPage);
 

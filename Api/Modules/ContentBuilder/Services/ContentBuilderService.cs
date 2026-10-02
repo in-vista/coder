@@ -194,7 +194,7 @@ ORDER BY ordering ASC, parentOrdering ASC";
             {
                 return new ServiceResult<string>
                 {
-                    ErrorMessage = templatesResult.ErrorMessage,
+                    Error = templatesResult.Error,
                     StatusCode = templatesResult.StatusCode
                 };
             }
@@ -254,7 +254,7 @@ try {{
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "No item ID given"
+                    Error = "No item ID given"
                 };
             }
 

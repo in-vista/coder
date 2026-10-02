@@ -4,11 +4,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Modules.GeoLocation.Controllers;
 
+/// <summary>
+/// The API controller that handles incoming requests for geographical-related topics.
+/// </summary>
 [Route("api/v3/geolocation")]
 public class GeoLocationController : ControllerBase
 {
     private readonly IGeoLocationService geoLocationService;
     
+    /// <summary>
+    /// The constructor the the <see cref="GeoLocationController"/> class.
+    /// </summary>
     public GeoLocationController(IGeoLocationService geoLocationService)
     {
         this.geoLocationService = geoLocationService;

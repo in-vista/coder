@@ -16,6 +16,7 @@ using Api.Modules.Files.Interfaces;
 using Api.Modules.Files.Interfaces.Repository;
 using Api.Modules.Files.Models;
 using Api.Modules.Tenants.Interfaces;
+using FluentFTP;
 using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
 using GeeksCoreLibrary.Core.Enums;
 using GeeksCoreLibrary.Core.Extensions;
@@ -73,12 +74,12 @@ namespace Api.Modules.Files.Services
         {
             var userId = IdentityHelpers.GetWiserUserId(identity);
             await databaseConnection.EnsureOpenConnectionForReadingAsync();
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(parentId, EntityActions.Read, userId, entityType: Constants.FilesDirectoryEntityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(parentId, EntityActions.Read, userId, entityType: Constants.FilesDirectoryEntityType);
             if (!success)
             {
                 return new ServiceResult<List<FileTreeViewModel>>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -118,19 +119,19 @@ namespace Api.Modules.Files.Services
                 return new ServiceResult<List<FileModel>>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "No files found in the request"
+                    Error = "No files found in the request"
                 };
             }
 
             try
             {
                 await databaseConnection.EnsureOpenConnectionForReadingAsync();
-                var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
+                var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
                 if (!success)
                 {
                     return new ServiceResult<List<FileModel>>
                     {
-                        ErrorMessage = errorMessage,
+                        Error = error,
                         StatusCode = HttpStatusCode.Forbidden
                     };
                 }
@@ -201,7 +202,7 @@ namespace Api.Modules.Files.Services
                         return new ServiceResult<List<FileModel>>
                         {
                             StatusCode = fileResult.StatusCode,
-                            ErrorMessage = fileResult.ErrorMessage
+                            Error = fileResult.Error
                         };
                     }
 
@@ -213,7 +214,7 @@ namespace Api.Modules.Files.Services
                     return new ServiceResult<List<FileModel>>(result)
                     {
                         StatusCode = HttpStatusCode.OK,
-                        ErrorMessage = "Partial success: file uploaded but not all images tinified"
+                        Error = new InvistaError("File uploaded but not all images tinified", "Partial success")
                     };
                 }
 
@@ -226,7 +227,7 @@ namespace Api.Modules.Files.Services
                     return new ServiceResult<List<FileModel>>
                     {
                         StatusCode = HttpStatusCode.BadRequest,
-                        ErrorMessage = "File is to large for database."
+                        Error = new InvistaError("File is to large for database.", "Partial success")
                     };
                 }
 
@@ -284,16 +285,13 @@ namespace Api.Modules.Files.Services
                         }
                         else
                         {
-                            // Get the object used to communicate with the server.
-                            var fullFtpLocation = $"ftp://{ftp.Host}{ftpFileLocation}";
-                            var request = (FtpWebRequest)WebRequest.Create(fullFtpLocation);
-                            request.Method = WebRequestMethods.Ftp.UploadFile;
-                            request.Credentials = new NetworkCredential(ftp.Username, ftp.Password);
-                            // Copy the contents of the file to the request stream.
-                            request.ContentLength = fileBytes.Length;
-
-                            await using var requestStream = request.GetRequestStream();
-                            await requestStream.WriteAsync(fileBytes, 0, fileBytes.Length);
+                            AsyncFtpClient client = new(ftp.Host, ftp.Username, ftp.Password);
+                            await client.Connect();
+                            
+                            using MemoryStream ms = new(fileBytes);
+                            await client.UploadStream(ms, ftpFileLocation);
+                            
+                            await client.Disconnect();
                         }
 
                         succeededFtpUploads.Add(ftp);
@@ -309,7 +307,7 @@ namespace Api.Modules.Files.Services
                         return new ServiceResult<FileModel>
                         {
                             StatusCode = HttpStatusCode.InternalServerError,
-                            ErrorMessage = errorMessage
+                            Error = errorMessage
                         };
                     }
 
@@ -329,7 +327,7 @@ namespace Api.Modules.Files.Services
                     return new ServiceResult<FileModel>
                     {
                         StatusCode = HttpStatusCode.InternalServerError,
-                        ErrorMessage = errorMessage
+                        Error = errorMessage
                     };
                 }
             }
@@ -349,7 +347,7 @@ namespace Api.Modules.Files.Services
             {
                 return new ServiceResult<FileModel>
                 {
-                    ErrorMessage = $"Failed to upload file in main branch. Directory with ID {itemId} does not exist in main branch and can therefore not (safely) be mapped.",
+                    Error = $"Failed to upload file in main branch. Directory with ID {itemId} does not exist in main branch and can therefore not (safely) be mapped.",
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -562,7 +560,7 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
                 return new ServiceResult<(string ContentType, byte[] Data, string Url)>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = "File not found"
+                    Error = "File not found"
                 };
             }
 
@@ -581,7 +579,7 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
                 return new ServiceResult<(string ContentType, byte[] Data, string Url)>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = "File not found"
+                    Error = "File not found"
                 };
             }
 
@@ -606,21 +604,28 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
                 }
 
                 // Get the object used to communicate with the server.
-                var fullFtpLocation = $"ftp://{ftp.Host}{contentUrl}";
-                var request = (FtpWebRequest) WebRequest.Create(fullFtpLocation);
-                request.Method = WebRequestMethods.Ftp.DownloadFile;
-                request.Credentials = new NetworkCredential(ftp.Username, ftp.Password);
+                AsyncFtpClient client = new(ftp.Host, ftp.Username, ftp.Password);
+                await client.Connect();
 
-                using var response = await request.GetResponseAsync();
-                await using var responseStream = response.GetResponseStream();
-                if (responseStream == null)
+                try
                 {
-                    return new ServiceResult<(string ContentType, byte[] Data, string Url)>((ContentType: null, Data: null, Url: null));
-                }
+                    // Download file to memory stream.
+                    await using var memoryStream = new MemoryStream();
+                    bool success = await client.DownloadStream(memoryStream, contentUrl);
+                    
+                    // Check success status of download.
+                    if (!success)
+                        return new ServiceResult<(string ContentType, byte[] Data, string Url)>((ContentType: null, Data: null, Url: null));
 
-                await using var memoryStream = new MemoryStream();
-                await responseStream.CopyToAsync(memoryStream);
-                return new ServiceResult<(string ContentType, byte[] Data, string Url)>((ContentType: contentType, Data: memoryStream.ToArray(), Url: null));
+                    // Clean-up the stream.
+                    memoryStream.Position = 0;
+
+                    return new ServiceResult<(string ContentType, byte[] Data, string Url)>((ContentType: contentType, Data: memoryStream.ToArray(), Url: null));
+                }
+                finally
+                {
+                    await client.Disconnect();
+                }
             }
 
             // Set to use FTP settings, but no FTP settings found.
@@ -668,12 +673,12 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
                 : await wiserItemsService.GetTablePrefixForEntityAsync(entityType);
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
             if (!success)
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -737,11 +742,21 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
             else
             {
                 // Get the object used to communicate with the server.
-                var fullFtpLocation = $"ftp://{ftp.Host}{fileUrl}";
-                var request = (FtpWebRequest)WebRequest.Create(fullFtpLocation);
-                request.Method = WebRequestMethods.Ftp.DeleteFile;
-                request.Credentials = new NetworkCredential(ftp.Username, ftp.Password);
-                using var response = await request.GetResponseAsync();
+                AsyncFtpClient client = new(ftp.Host, ftp.Username, ftp.Password);
+                
+                // Connect to the FTP server asynchronously.
+                await client.Connect();
+                
+                try
+                {
+                    // Delete the file specified by fileUrl on the FTP server.
+                    await client.DeleteFile(fileUrl);
+                }
+                finally
+                {
+                    // Ensure the client disconnects after operation.
+                    await client.Disconnect();
+                }
             }
         }
 
@@ -773,12 +788,12 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
             await databaseConnection.EnsureOpenConnectionForReadingAsync();
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
             if (!success)
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -820,12 +835,12 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
             await databaseConnection.EnsureOpenConnectionForReadingAsync();
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
             if (!success)
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -867,12 +882,12 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
             await databaseConnection.EnsureOpenConnectionForReadingAsync();
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
             if (!success)
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -905,7 +920,7 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
                 return new ServiceResult<FileModel>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "No files found in the request"
+                    Error = "No files found in the request"
                 };
             }
 
@@ -916,12 +931,12 @@ SELECT {(fileId > 0 ? "?id" :  "LAST_INSERT_ID()")} AS newId;";
                 : await wiserItemsService.GetTablePrefixForEntityAsync(entityType);
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId, entityType: entityType);
             if (!success)
             {
                 return new ServiceResult<FileModel>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }
@@ -980,12 +995,12 @@ SELECT LAST_INSERT_ID() AS newId;";
             await databaseConnection.EnsureOpenConnectionForReadingAsync();
 
             var userId = IdentityHelpers.GetWiserUserId(identity);
-            var (success, errorMessage, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId);
+            var (success, error, _) = await wiserItemsService.CheckIfEntityActionIsPossibleAsync(itemId, EntityActions.Update, userId);
             if (!success)
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = errorMessage,
+                    Error = error,
                     StatusCode = HttpStatusCode.Forbidden
                 };
             }

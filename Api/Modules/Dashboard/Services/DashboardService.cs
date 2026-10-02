@@ -741,7 +741,7 @@ ORDER BY time_active DESC";
             return new ServiceResult<ServicePauseStates>()
             {
                 StatusCode = HttpStatusCode.NotFound,
-                ErrorMessage = $"There is no service with ID '{id}' and can therefore not be paused."
+                Error = $"There is no service with ID '{id}' and can therefore not be paused."
             };
         }
 
@@ -775,7 +775,7 @@ WHERE id = ?serviceId");
             return new ServiceResult<ServiceExtraRunStates>()
             {
                 StatusCode = HttpStatusCode.NotFound,
-                ErrorMessage = $"There is no service with ID '{id}' and can therefore not be marked for an extra run."
+                Error = $"There is no service with ID '{id}' and can therefore not be marked for an extra run."
             };
         }
 

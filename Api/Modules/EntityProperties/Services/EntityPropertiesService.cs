@@ -68,7 +68,7 @@ namespace Api.Modules.EntityProperties.Services
                 return new ServiceResult<EntityPropertyModel>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Entity property with ID '{id}' does not exist."
+                    Error = $"Entity property with ID '{id}' does not exist."
                 };
             }
 
@@ -120,7 +120,7 @@ namespace Api.Modules.EntityProperties.Services
                 return new ServiceResult<List<EntityPropertyTabModel>>
                 {
                     StatusCode = allProperties.StatusCode,
-                    ErrorMessage = allProperties.ErrorMessage
+                    Error = allProperties.Error
                 };
             }
 
@@ -142,7 +142,7 @@ namespace Api.Modules.EntityProperties.Services
                 return new ServiceResult<EntityPropertyModel>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Either 'EntityType' or 'LinkType' must contain a value."
+                    Error = "Either 'EntityType' or 'LinkType' must contain a value."
                 };
             }
 
@@ -151,7 +151,7 @@ namespace Api.Modules.EntityProperties.Services
                 return new ServiceResult<EntityPropertyModel>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "PropertyName is required."
+                    Error = "PropertyName is required."
                 };
             }
 
@@ -302,7 +302,7 @@ VALUES
                     return new ServiceResult<EntityPropertyModel>
                     {
                         StatusCode = HttpStatusCode.Conflict,
-                        ErrorMessage = $"An entry already exists with {nameof(entityProperty.EntityType)} = '{entityProperty.EntityType}', {nameof(entityProperty.LinkType)} = '{entityProperty.LinkType}', {nameof(entityProperty.DisplayName)} = '{entityProperty.DisplayName}', {nameof(entityProperty.PropertyName)} = '{entityProperty.PropertyName}' and {nameof(entityProperty.LanguageCode)} = '{entityProperty.LanguageCode}'"
+                        Error = $"An entry already exists with {nameof(entityProperty.EntityType)} = '{entityProperty.EntityType}', {nameof(entityProperty.LinkType)} = '{entityProperty.LinkType}', {nameof(entityProperty.DisplayName)} = '{entityProperty.DisplayName}', {nameof(entityProperty.PropertyName)} = '{entityProperty.PropertyName}' and {nameof(entityProperty.LanguageCode)} = '{entityProperty.LanguageCode}'"
                     };
                 }
 
@@ -320,7 +320,7 @@ VALUES
                 return new ServiceResult<bool>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Either 'EntityType' or 'LinkType' must contain a value."
+                    Error = "Either 'EntityType' or 'LinkType' must contain a value."
                 };
             }
 
@@ -329,7 +329,7 @@ VALUES
                 return new ServiceResult<bool>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "PropertyName is required."
+                    Error = "PropertyName is required."
                 };
             }
 
@@ -435,7 +435,7 @@ WHERE id = ?id";
                     return new ServiceResult<bool>
                     {
                         StatusCode = HttpStatusCode.Conflict,
-                        ErrorMessage = $"An entry already exists with {nameof(entityProperty.EntityType)} = '{entityProperty.EntityType}', {nameof(entityProperty.LinkType)} = '{entityProperty.LinkType}', {nameof(entityProperty.DisplayName)} = '{entityProperty.DisplayName}', {nameof(entityProperty.PropertyName)} = '{entityProperty.PropertyName}' and {nameof(entityProperty.LanguageCode)} = '{entityProperty.LanguageCode}'"
+                        Error = $"An entry already exists with {nameof(entityProperty.EntityType)} = '{entityProperty.EntityType}', {nameof(entityProperty.LinkType)} = '{entityProperty.LinkType}', {nameof(entityProperty.DisplayName)} = '{entityProperty.DisplayName}', {nameof(entityProperty.PropertyName)} = '{entityProperty.PropertyName}' and {nameof(entityProperty.LanguageCode)} = '{entityProperty.LanguageCode}'"
                     };
                 }
 
@@ -456,7 +456,7 @@ WHERE id = ?id";
                 return new ServiceResult<int>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Please enter a name"
+                    Error = "Please enter a name"
                 };
             }
 
@@ -753,7 +753,7 @@ LIMIT {maxResults}";
                 return new ServiceResult<bool>(false)
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = $"Either {nameof(data.EntityType)} or {nameof(data.LinkType)} must be provided."
+                    Error = $"Either {nameof(data.EntityType)} or {nameof(data.LinkType)} must be provided."
                 };
             }
 
@@ -799,7 +799,7 @@ AND id <> ?id;");
                 return new ServiceResult<bool>(false)
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = $"Either {nameof(data.EntityType)} or {nameof(data.LinkType)} must be provided."
+                    Error = $"Either {nameof(data.EntityType)} or {nameof(data.LinkType)} must be provided."
                 };
             }
 
@@ -808,7 +808,7 @@ AND id <> ?id;");
                 return new ServiceResult<bool>(false)
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = $"Both {nameof(data.CurrentTabName)} and {nameof(data.DestinationTabName)} must be provided."
+                    Error = $"Both {nameof(data.CurrentTabName)} and {nameof(data.DestinationTabName)} must be provided."
                 };
             }
 
@@ -840,7 +840,7 @@ AND id <> ?id;");
                 return new ServiceResult<bool>(false)
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Tab with name {data.DestinationTabName} not found."
+                    Error = $"Tab with name {data.DestinationTabName} not found."
                 };
             }
 
@@ -854,7 +854,7 @@ AND id <> ?id;");
                 return new ServiceResult<bool>(false)
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Tab with name {data.CurrentTabName} not found."
+                    Error = $"Tab with name {data.CurrentTabName} not found."
                 };
             }
 

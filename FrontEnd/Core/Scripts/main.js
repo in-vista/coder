@@ -429,12 +429,6 @@ class Main {
                 
                 document.addEventListener("keydown", this.onAppKeyDown.bind(this));
                 window.addEventListener('message', this.handleKeydownFromIframe.bind(this));
-                
-                // Add an event for when the DOM is loaded.
-                document.addEventListener('DOMContentLoaded', async function() {
-                    // Load system styling.
-                    await Misc.injectSystemStyling();
-                });
             },
             computed: {
                 loginStatus() {
@@ -755,9 +749,21 @@ class Main {
 
                     this.quickSearchResults = this.modules
                         .filter(moduleFilter)
-                        .sort(m => m.groupOptions?.ordering ?? Number.MAX_VALUE)
-                        .sort(m => m.ordering)
-                        .sort(m => m.name);
+                        .sort((a, b) => {
+                            if (newValue && a.moduleInteractions !== b.moduleInteractions)
+                                return (b.moduleInteractions ?? 0) - (a.moduleInteractions ?? 0);
+
+                            const groupOrderingA = a.groupOptions?.ordering ?? Number.MAX_VALUE;
+                            const groupOrderingB = b.groupOptions?.ordering ?? Number.MAX_VALUE;
+
+                            if (groupOrderingA !== groupOrderingB)
+                                return groupOrderingA - groupOrderingB;
+
+                            if (a.ordering !== b.ordering)
+                                return a.ordering - b.ordering;
+
+                            return a.name.localeCompare(b.name);
+                        });
                 },
                 quickSearchResults(newValue, oldValue) {
                     this.quickSearchDialogActiveIndex = 0;
@@ -1932,6 +1938,9 @@ class Main {
 
         // Mount our app to the main HTML element.
         this.vueApp = this.vueApp.mount("#app");
+
+        // Load system styling.
+        Misc.injectSystemStyling(true);
     }
 }
 

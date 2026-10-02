@@ -2495,7 +2495,7 @@ export class EntityTab {
             });
         } catch (exception) {
             console.error(exception);
-            kendo.alert(`Er is iets fout gegaan met het verplaatsen van dit veld. De fout was:<br>${exception.responseText || exception.statusText}`);
+            kendo.alert(`Er is iets fout gegaan met het verplaatsen van dit veld. De fout was:<br>${Utils.getErrorFromException(exception).message || exception.statusText}`);
             event.setValid(false);
         }
     }
@@ -2785,7 +2785,7 @@ export class EntityTab {
             }
         } catch (exception) {
             console.error(exception);
-            if (e.responseText.indexOf("Duplicate entry")) {
+            if (Utils.getErrorFromException(exception).message.indexOf("Duplicate entry")) {
                 this.base.showNotification("notification",
                     `Er bestaat al een entiteit met naam '${entity.name}' gekoppeld aan de module ${this.entityModule
                     .dataItem().moduleName}`,

@@ -14,7 +14,6 @@ require("@progress/kendo-ui/js/messages/kendo.messages.nl-NL.js");
  * Class for any and all functionality for windows (not dialogs).
  */
 export class Windows {
-
     /**
      * Initializes a new instance of the Windows class.
      * @param {DynamicItems} base An instance of the base class (DynamicItems).
@@ -54,14 +53,30 @@ export class Windows {
             files: "files",
             templates: "templates"
         });
+        
+        this.windowHistory = [];
+        
+        // Register a global event to avoid default behavior on anchor elements with just a hash href-attribute.
+        document.addEventListener('click', (event) => {
+            const link = event.target.closest('a[href="#"]');
+            if (link)
+                event.preventDefault();
+        });
     }
 
     /**
      * Do all initializations for the Windows class, such as adding bindings.
      */
     initialize() {
+        // Register an event that handles closing the currently opened window when navigating back in the browser.
+        window.addEventListener('popstate', () => {
+            const windowComponent = this.windowHistory.pop();
+            windowComponent?.close();
+        });
+        
         // Window for searching for items to link to another item.
-        this.historyGridWindow = $("#historyWindowGrid").kendoWindow({
+        const historyGridWindowId = 'historyWindowGrid';
+        this.historyGridWindow = $(`#${historyGridWindowId}`).kendoWindow({
             width: "90%",
             height: "90%",
             title: "History",
@@ -71,7 +86,8 @@ export class Windows {
         }).data("kendoWindow");
 
         // Window for searching for items to link to another item.
-        this.searchItemsWindow = $("#searchItemsWindow").kendoWindow({
+        const searchItemsWindowId = 'searchItemsWindow';
+        this.searchItemsWindow = $(`#${searchItemsWindowId}`).kendoWindow({
             width: "90%",
             height: "90%",
             title: "Item zoeken",
@@ -118,7 +134,7 @@ export class Windows {
         try {
             // Clone the window template and initialize a new window from that clone, then open it.
             const windowId = `existingItemWindow_${itemId || decodeURIComponent(encryptedItemId).replace(/-/g, "").replace(/\+/g, "").replace(/=/g, "").replace(/\//g, "")}`;
-
+            
             currentItemWindow = $(`#${windowId}`).data("kendoWindow");
 
             // If the window still exists, we just want to bring that window to the front, to prevent people from opening an item in multiple windows.
@@ -198,6 +214,9 @@ export class Windows {
                     }
                 })
                 .data("kendoWindow");
+
+            // Pushes this window to the window history.
+            this.pushWindowToHistory(currentItemWindow);
 
             const infoPanel = $("#infoPanel_template").clone(true).attr("id", `${windowId}_infoPanel`).insertAfter(currentItemWindow.element);
             const newMetaToggleElementId = `${windowId}_meta-toggle`;
@@ -296,15 +315,32 @@ export class Windows {
             currentItemWindow.wrapper.find(".btn-cancel").click((event) => {
                 currentItemWindow.close();
             });
-            
+
             setTimeout(() => {
-                const currentZIndex = currentItemWindow.wrapper.css('z-index');
-                const overlayElement = $('.k-overlay').filter(function() {
-                    return Number($(this).css('z-index')) === currentZIndex - 1;
-                });
-                
-                overlayElement.click(() => {
-                    currentItemWindow.close();
+                $('.k-overlay').off('click.itemWindow').on('click.itemWindow', function(event) {
+                    event.stopImmediatePropagation();
+
+                    let topWindow = null;
+                    let highestZIndex = -1;
+
+                    $('.k-window:visible').each(function() {
+                        const windowId = $(this).attr('aria-labelledby')?.replace('_wnd_title', '');
+                        const windowElement = windowId ? $(`#${windowId}`) : null;
+                        const window = windowElement?.data('kendoWindow');
+
+                        if (!window) {
+                            return;
+                        }
+
+                        const zIndex = Number($(this).css('z-index'));
+
+                        if (zIndex > highestZIndex) {
+                            highestZIndex = zIndex;
+                            topWindow = window;
+                        }
+                    });
+
+                    topWindow?.close();
                 });
             }, 400);
 
@@ -481,6 +517,10 @@ export class Windows {
                             genericTabHasFields = true;
                             const container = currentItemWindow.element.find(".right-pane-content-popup").html(tabData.htmlTemplate);
                             await this.base.loadKendoScripts(tabData.scriptTemplate);
+
+                            // Mark the tab to be loaded.
+                            container.closest('.k-tabstrip-content').data('loaded', true);
+                            
                             $.globalEval(tabData.scriptTemplate);
 
                             await Utils.sleep(150);
@@ -655,7 +695,7 @@ export class Windows {
             popupWindowContainer.find(".popup-loader").removeClass("loading");
             popupWindowContainer.data("saving", false);
             
-            let message = exception.responseText;
+            let message = Utils.getErrorFromException(exception).message;
             if(!message) {
                 switch(exception.status) {
                     case 409: message = "Het is niet meer mogelijk om dit item te verwijderen."; break;
@@ -723,6 +763,26 @@ export class Windows {
                 });
             }
 
+            if (window.LandingPageEditor !== undefined) {
+                const landingEditorContainers = popupWindowContainer.find('[data-topol-landing-editor="true"]');
+
+                for (const element of landingEditorContainers.toArray()) {
+                    const landingEditorContainer = $(element);
+                    const editorReady = landingEditorContainer.data("topolLandingEditorReady");
+
+                    if (editorReady) {
+                        await editorReady;
+                    }
+
+                    // This calls landingEditor.save() and waits for onSave to finish.
+                    const waitForLandingEditorSave = landingEditorContainer.data("topolLandingEditorSave");
+
+                    if (typeof waitForLandingEditorSave === "function") {
+                        await waitForLandingEditorSave();
+                    }
+                }
+            }
+
             const data = kendoWindow.element.data();
             const titleField = popupWindowContainer.find(".itemNameField");
             const newTitle = titleField.val();
@@ -730,11 +790,13 @@ export class Windows {
             const inputData = this.base.fields.getInputData(popupWindowContainer.find(".right-pane-content-popup, .dynamicTabContent"));
 
             let titleToSave = newTitle || data.title || null;
-           const promises = [this.base.updateItem(itemId, inputData, popupWindowContainer, isNewItemWindow, titleToSave, true, true, entityType.entityType || entityType.name)];
 
-            await Promise.all(promises);
+            const updateResult = await this.base.updateItem(itemId, inputData, popupWindowContainer, isNewItemWindow, titleToSave, true, true, entityType.entityType || entityType.name)
 
             popupWindowContainer.find(".popup-loader").removeClass("loading");
+            
+            if(!updateResult)
+                return false;
 
             if (alsoCloseWindow) {
                 kendoWindow.close();
@@ -767,15 +829,17 @@ export class Windows {
             console.error(exception);
             popupWindowContainer.find(".popup-loader").removeClass("loading");
             popupWindowContainer.data("saving", false);
+            
+            let message = Utils.getErrorFromException(exception).message;
 
             switch (exception.status) {
                 case 409: {
-                    const message = exception.responseText || "Het is niet meer mogelijk om aanpassingen te maken in dit item.";
+                    message ||= "Het is niet meer mogelijk om aanpassingen te maken in dit item.";
                     kendo.alert(message);
                     break;
                 }
                 case 403: {
-                    const message = exception.responseText || "U heeft niet de juiste rechten om dit item te wijzigen.";
+                    message ||= "U heeft niet de juiste rechten om dit item te wijzigen.";
                     kendo.alert(message);
                     break;
                 }
@@ -1149,5 +1213,19 @@ export class Windows {
             console.error(exception);
             kendo.alert("Er is iets fout gegaan met het initialiseren van het overzicht. Probeer het a.u.b. nogmaals.");
         }
+    }
+
+    /**
+     * Add the opening of this window to the history state to affect the back button's behavior.
+     * @param windowComponent - The instance of the window element.
+     */
+    pushWindowToHistory(windowComponent) {
+        this.windowHistory.push(windowComponent);
+
+        history.pushState(
+            {},
+            '',
+            location.href
+        );
     }
 }

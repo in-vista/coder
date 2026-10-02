@@ -79,7 +79,7 @@ namespace Api.Modules.VersionControl.Services
                 {
                     ModelObject = false,
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "The current branch is not the main branch. This functionality can only be used from the main branch." 
+                    Error = "The current branch is not the main branch. This functionality can only be used from the main branch." 
                 };
             }
             
@@ -91,7 +91,7 @@ namespace Api.Modules.VersionControl.Services
                 {
                     ModelObject = false,
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Branch with ID {branchId} does not exist" 
+                    Error = $"Branch with ID {branchId} does not exist" 
                 };
             }
 
@@ -102,7 +102,7 @@ namespace Api.Modules.VersionControl.Services
                 {
                     ModelObject = false,
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = $"You don't have permissions to access a branch with ID {branchId}" 
+                    Error = $"You don't have permissions to access a branch with ID {branchId}" 
                 };
             }
 
@@ -126,7 +126,7 @@ namespace Api.Modules.VersionControl.Services
                             return new ServiceResult<bool>
                             {
                                 ModelObject = false,
-                                ErrorMessage = templateResult.ErrorMessage,
+                                Error = templateResult.Error,
                                 StatusCode = templateResult.StatusCode
                             };
                         }
@@ -142,7 +142,7 @@ namespace Api.Modules.VersionControl.Services
                             return new ServiceResult<bool>
                             {
                                 ModelObject = false,
-                                ErrorMessage = dynamicContentResult.ErrorMessage,
+                                Error = dynamicContentResult.Error,
                                 StatusCode = dynamicContentResult.StatusCode
                             };
                         }

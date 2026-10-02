@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+using GeeksCoreLibrary.Core.Models;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Api.Core.Services
@@ -23,9 +25,9 @@ namespace Api.Core.Services
         public HttpStatusCode StatusCode { get; set; }
 
         /// <summary>
-        /// The detailed error message to be returned tot he client. Leave empty if there is no error.
+        /// The detailed error message to be returned to the client. Leave empty if there is no error.
         /// </summary>
-        public string ErrorMessage { get; set; }
+        public InvistaError Error { get; set; }
 
         /// <summary>
         /// Initialize a new instance of the <see cref="ServiceResult{T}">ServiceResult</see>.
@@ -53,11 +55,11 @@ namespace Api.Core.Services
         {
             ActionResult response;
             
-            if (!String.IsNullOrEmpty(ErrorMessage))
+            if (Error != null)
             {
                 response = new ContentResult
                 {
-                    Content = ErrorMessage,
+                    Content = JsonConvert.SerializeObject(Error),
                     StatusCode = (int)StatusCode,
                     ContentType = contentType ?? "application/json"
                 };

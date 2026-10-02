@@ -194,9 +194,9 @@
                             <dropdownlist id="available-branches-to-open" class="full-width" :data-items="branches" :text-field="'name'" :data-item-key="'id'" v-model="branchActionSettings.selectedBranch"></dropdownlist>
                         </div>
 
-                        <a href="#" class="btn btn-primary copy-branch-url" @@click="openOrCopyBranch($event, true)" v-if="branchActionSettings.selectedAction && branchActionSettings.selectedAction.id !== '' && branchActionSettings.selectedAction.id !== 'delete'">Branch URL kopiëren</a>
-                        <a href="#" class="btn btn-primary open-branch" @@click="openOrCopyBranch($event, false)" v-if="branchActionSettings.selectedAction && branchActionSettings.selectedAction.id !== '' && branchActionSettings.selectedAction.id !== 'delete'">Branch openen</a>
-                        <a href="#" class="btn btn-primary delete-branch" @@click="openDeleteBranchConfirmationPrompt($event)" v-if="branchActionSettings.selectedAction && branchActionSettings.selectedAction.id === 'delete'">Branch verwijderen</a>
+                        <a href="javascript:void(0)" class="btn btn-primary copy-branch-url" @@click="openOrCopyBranch($event, true)" v-if="branchActionSettings.selectedAction && branchActionSettings.selectedAction.id !== '' && branchActionSettings.selectedAction.id !== 'delete'">Branch URL kopiëren</a>
+                        <a href="javascript:void(0)" class="btn btn-primary open-branch" @@click="openOrCopyBranch($event, false)" v-if="branchActionSettings.selectedAction && branchActionSettings.selectedAction.id !== '' && branchActionSettings.selectedAction.id !== 'delete'">Branch openen</a>
+                        <a href="javascript:void(0)" class="btn btn-primary delete-branch" @@click="openDeleteBranchConfirmationPrompt($event)" v-if="branchActionSettings.selectedAction && branchActionSettings.selectedAction.id === 'delete'">Branch verwijderen</a>
                     </div>
                     <div :class="{ 'col': true, 'col-6': isMainBranch || branches.length > 0, 'col-9': !isMainBranch || !branches.length }">
                         <h2>Branch terugzetten (mergen)</h2>
@@ -999,10 +999,10 @@
                     <input type="text" name="totpPin" v-model="loginForm.totpPin" />
                 </div>
 
-                <a v-if="!totpQrImageUrl && !showTotpBackupCodeScreen && !user.adminLogin" href="#" @@click="toggleTotpBackupCodeScreen(true)" id="totpBackupCode">Inloggen via backup-code?</a>
+                <a v-if="!totpQrImageUrl && !showTotpBackupCodeScreen && !user.adminLogin" href="javascript:void(0)" @@click="toggleTotpBackupCodeScreen(true)" id="totpBackupCode">Inloggen via backup-code?</a>
 
                 <div class="btn-row">
-                    <a href="#" class="btn btn-secundary" @@click="logout()">Annuleren</a>
+                    <a href="javascript:void(0)" class="btn btn-secundary" @@click="logout()">Annuleren</a>
                     <button type="submit" :class="{ btn: true, 'btn-primary': true, loading: loginStatus === 'totp_loading' }">Verder</button>
                 </div>
             </div>
@@ -1014,7 +1014,7 @@
                 </div>
 
                 <div class="btn-row">
-                    <a href="#" class="btn btn-secundary" @@click="logout()">Annuleren</a>
+                    <a href="javascript:void(0)" class="btn btn-secundary" @@click="logout()">Annuleren</a>
                     <button type="submit" :class="{ btn: true, 'btn-primary': true, loading: loginStatus === 'list_loading' }">Verder</button>
                 </div>
             </div>
@@ -1076,7 +1076,7 @@
                 <strong>{{ user.name }}:</strong> {{ user.password }}
             </li>
         </ul>
-        <p class="success" v-if="currentStep === 'end'"><a href="#" class="btn btn-secundary" @@click="reset">Nog een klant aanmaken</a></p>
+        <p class="success" v-if="currentStep === 'end'"><a href="javascript:void(0)" class="btn btn-secundary" @@click="reset">Nog een klant aanmaken</a></p>
         <form method="post" v-if="currentStep !== 'end'">
             <section class="step" v-if="currentStep === 1">
                 <div class="form-row">
@@ -1227,7 +1227,7 @@
             </div>
 
             <div class="btn-row">
-                <a href="#" class="btn btn-secundary" v-if="currentStep > 1" @@click="previousStep">Terug</a>
+                <a href="javascript:void(0)" class="btn btn-secundary" v-if="currentStep > 1" @@click="previousStep">Terug</a>
                 <button type="submit" class="btn btn-primary" @@click="nextStep">{{ nextButtonText }}</button>
             </div>
         </form>

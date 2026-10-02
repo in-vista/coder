@@ -170,7 +170,7 @@ var data_basic = {
 			</div>
 			<div class="row">
 				<div class="column full">
-					<p class="font-semibold tracking-wider size-19"><a href="#" title="" class="no-underline">Let's Talk</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
+					<p class="font-semibold tracking-wider size-19"><a href="javascript:void(0)" title="" class="no-underline">Let's Talk</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
 				</div>
 			</div>
 			`	
@@ -2050,7 +2050,7 @@ var data_basic = {
 			</div>
 			<div class="row">
 				<div class="column full">
-					<div class="center"><a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mt-2 mb-1 py-2 size-17 text-black leading-12 rounded border-transparent hover:border-transparent font-normal tracking-wide px-2 mr-5 ml-0 underline" data-bg="">Get in Touch</a><a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide">View Destinations</a></div>
+					<div class="center"><a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mt-2 mb-1 py-2 size-17 text-black leading-12 rounded border-transparent hover:border-transparent font-normal tracking-wide px-2 mr-5 ml-0 underline" data-bg="">Get in Touch</a><a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide">View Destinations</a></div>
 				</div>
 			</div>
 			`	
@@ -2071,7 +2071,7 @@ var data_basic = {
 			</div>
 			<div class="row">
 				<div class="column full text-center">
-					<p class="font-semibold tracking-wider"><a href="#" title="" class="no-underline">Book a Call&nbsp;</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
+					<p class="font-semibold tracking-wider"><a href="javascript:void(0)" title="" class="no-underline">Book a Call&nbsp;</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
 				</div>
 			</div>
 			`	
@@ -2093,8 +2093,8 @@ var data_basic = {
 			<div class="row">
 				<div class="column full">
 					<div class="text-center">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal tracking-wide" style="background-color: rgb(240, 240, 240);">How We Work</a>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide">Get In Touch</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal tracking-wide" style="background-color: rgb(240, 240, 240);">How We Work</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide">Get In Touch</a>
 					</div>
 				</div>
 			</div>
@@ -2110,7 +2110,7 @@ var data_basic = {
 					<h1 class="font-normal leading-09 size-42">Great things don’t have to be complicated.</h1>
 					<p>Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
 					<div class="text-center">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="">Take a Tour</a><a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid border-transparent ml-1 mr-1 hover:border-transparent rounded size-16 py-1 px-5 font-normal tracking-wide text-gray-800 underline leading-relaxed" title="">Get In Touch</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="">Take a Tour</a><a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid border-transparent ml-1 mr-1 hover:border-transparent rounded size-16 py-1 px-5 font-normal tracking-wide text-gray-800 underline leading-relaxed" title="">Get In Touch</a>
 					</div>
 
 				</div>
@@ -2138,8 +2138,8 @@ var data_basic = {
 			<div class="row">
 				<div class="column full">
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal tracking-wide" title="" style="background-color: rgb(240, 240, 240);">Get Started</a>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide" title="">Explore&nbsp;<i class="icon ion-android-arrow-forward"></i></a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal tracking-wide" title="" style="background-color: rgb(240, 240, 240);">Get Started</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide" title="">Explore&nbsp;<i class="icon ion-android-arrow-forward"></i></a>
 					</div>
 				</div>
 			</div>
@@ -2212,8 +2212,8 @@ var data_basic = {
 			<div class="row">
 				<div class="column full">
 					<div class="text-center">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal tracking-wide" style="background-color: rgb(240, 240, 240);">Read More</a>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide">Get Started</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal tracking-wide" style="background-color: rgb(240, 240, 240);">Read More</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide">Get Started</a>
 					</div>
 				</div>
 			</div>
@@ -2281,7 +2281,7 @@ var data_basic = {
 			</div>
 			<div class="row">
 				<div class="column full text-center">
-					<p class="font-semibold tracking-wider"><a href="#" title="" class="no-underline">Start a Project&nbsp;</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
+					<p class="font-semibold tracking-wider"><a href="javascript:void(0)" title="" class="no-underline">Start a Project&nbsp;</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
 				</div>
 			</div>
 			`	
@@ -2314,8 +2314,8 @@ var data_basic = {
 			<div class="row">
 				<div class="column full">
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal size-14 uppercase tracking-125" title="" style="background-color: rgb(240, 240, 240);">Our Works</a>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full size-14 tracking-125 uppercase" title="">Get Started</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal size-14 uppercase tracking-125" title="" style="background-color: rgb(240, 240, 240);">Our Works</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full size-14 tracking-125 uppercase" title="">Get Started</a>
 					</div>
 				</div>
 			</div>
@@ -2338,12 +2338,12 @@ var data_basic = {
 			<div class="row">
 				<div class="column third flex flex-col justify-center items-start">
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="">Explore Menu</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="">Explore Menu</a>
 					</div>
 				</div>
 				<div class="text-left column two-third flex flex-col justify-center items-start">
 					<div class="text-left">
-						<a href="#" title="" class="flex items-center underline"><i class="icon ion-android-arrow-dropright-circle mr-3 size-48"></i> Show Reel</a>
+						<a href="javascript:void(0)" title="" class="flex items-center underline"><i class="icon ion-android-arrow-dropright-circle mr-3 size-48"></i> Show Reel</a>
 					</div>
 				</div>
 			</div>
@@ -2376,8 +2376,8 @@ var data_basic = {
 			<div class="row">
 				<div class="column full">
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 text-black leading-14 rounded-full border-transparent hover:border-transparent font-normal tracking-wide" title="" style="background-color: rgb(240, 240, 240);">Book a Call</a>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="">How We Work</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 text-black leading-14 rounded-full border-transparent hover:border-transparent font-normal tracking-wide" title="" style="background-color: rgb(240, 240, 240);">Book a Call</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="">How We Work</a>
 					</div>
 				</div>
 			</div>
@@ -2392,11 +2392,11 @@ var data_basic = {
 					<h1 class="normal-case font-light tracking-tight leading-none size-50"><span class="font-semibold size-50">We're [CompanyName].</span><br class="size-50">Mobile app development with a spark of creativity.</h1>
 					<div class="spacer height-40"></div>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title=""><i class="icon ion-android-arrow-dropright"></i>&nbsp; Our Showreel</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title=""><i class="icon ion-android-arrow-dropright"></i>&nbsp; Our Showreel</a>
 					</div>
 				</div>
 				<div class="column half flex flex-col justify-start items-end pt-3" style="width: 35.7593%;">
-					<p class="size-42 font-medium leading-none"><a href="#" title="" class="size-32">Let's Talk</a></p>
+					<p class="size-42 font-medium leading-none"><a href="javascript:void(0)" title="" class="size-32">Let's Talk</a></p>
 					<p class="text-right">You’ll be talking with our technology experts.</p>
 				</div>
 			</div>
@@ -2419,7 +2419,7 @@ var data_basic = {
 			</div>
 			<div class="row">
 				<div class="column full">
-					<p class="text-center"><a href="#" title="" class="no-underline font-semibold">Start a Project</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
+					<p class="text-center"><a href="javascript:void(0)" title="" class="no-underline font-semibold">Start a Project</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
 				</div>
 			</div>
 			`	
@@ -2441,7 +2441,7 @@ var data_basic = {
 			</div>
 			<div class="row">
 				<div class="column full">
-					<div class="center" style="margin: 15px 0"><a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-solid mt-2 mb-1 py-2 border-current hover:border-current font-normal leading-relaxed rounded size-14 uppercase tracking-125 border-0 underline px-2 mr-5 ml-0">Get in Touch</a><a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-8 border-current hover:border-current font-normal leading-relaxed rounded size-14 uppercase tracking-125">View Destinations</a></div>
+					<div class="center" style="margin: 15px 0"><a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-solid mt-2 mb-1 py-2 border-current hover:border-current font-normal leading-relaxed rounded size-14 uppercase tracking-125 border-0 underline px-2 mr-5 ml-0">Get in Touch</a><a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-8 border-current hover:border-current font-normal leading-relaxed rounded size-14 uppercase tracking-125">View Destinations</a></div>
 				</div>
 			</div>
 			`	
@@ -2476,7 +2476,7 @@ var data_basic = {
 			</div>
 			<div class="row">
 				<div class="column full">
-					<p><a href="#" title="" class="no-underline font-semibold">Start a Project</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
+					<p><a href="javascript:void(0)" title="" class="no-underline font-semibold">Start a Project</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
 				</div>
 			</div>
 			`	
@@ -2488,7 +2488,7 @@ var data_basic = {
 		    'category': '119',
 		    'html': `
 			<div class="text-center">
-				<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-8 border-current hover:border-current font-normal leading-relaxed rounded-none size-15 tracking-widest" title=""><i class="icon ion-android-arrow-dropright"></i>&nbsp; Take a Tour</a><a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid border-transparent ml-1 mr-1 hover:border-transparent rounded size-16 py-1 px-5 font-normal tracking-wide text-gray-800 underline leading-relaxed" title="">Get in Touch</a>
+				<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-8 border-current hover:border-current font-normal leading-relaxed rounded-none size-15 tracking-widest" title=""><i class="icon ion-android-arrow-dropright"></i>&nbsp; Take a Tour</a><a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid border-transparent ml-1 mr-1 hover:border-transparent rounded size-16 py-1 px-5 font-normal tracking-wide text-gray-800 underline leading-relaxed" title="">Get in Touch</a>
 			</div>
 			`	
 		},
@@ -2497,8 +2497,8 @@ var data_basic = {
 		    'category': '119',
 		    'html': `
 			<div class="text-center">
-				<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid border-transparent ml-1 mr-1 hover:border-transparent rounded size-16 py-1 px-5 font-normal tracking-wide text-gray-800 underline leading-relaxed" title="">Get Started</a>
-				<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-8 border-current hover:border-current font-normal leading-relaxed rounded-none size-15 tracking-widest" title="">View Demo</a>
+				<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid border-transparent ml-1 mr-1 hover:border-transparent rounded size-16 py-1 px-5 font-normal tracking-wide text-gray-800 underline leading-relaxed" title="">Get Started</a>
+				<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-8 border-current hover:border-current font-normal leading-relaxed rounded-none size-15 tracking-widest" title="">View Demo</a>
 			</div>
 			`	
 		},
@@ -2507,7 +2507,7 @@ var data_basic = {
 		    'category': '119',
 		    'html': `
 			<div class="text-center">
-				<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide" title=""><i class="icon ion-android-arrow-dropright"></i>&nbsp; Our Showreel</a><a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mt-2 mb-1 py-2 size-18 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 ml-3 mr-3 underline" title="" data-bg="">Get In Touch</a>
+				<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide" title=""><i class="icon ion-android-arrow-dropright"></i>&nbsp; Our Showreel</a><a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mt-2 mb-1 py-2 size-18 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 ml-3 mr-3 underline" title="" data-bg="">Get In Touch</a>
 			</div>
 			`	
 		},
@@ -2516,8 +2516,8 @@ var data_basic = {
 		    'category': '119',
 		    'html': `
 			<div class="text-center">
-				<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mt-2 mb-1 py-2 size-18 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal tracking-wide underline px-2 ml-3 mr-3" data-bg="">Read More</a>
-				<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide">Get Started</a>
+				<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mt-2 mb-1 py-2 size-18 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal tracking-wide underline px-2 ml-3 mr-3" data-bg="">Read More</a>
+				<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide">Get Started</a>
 			</div>
 			`	
 		},
@@ -2525,7 +2525,7 @@ var data_basic = {
 		    'thumbnail': 'preview/buttons-05.png',
 		    'category': '119',
 		    'html': `
-			<p class="font-semibold tracking-wider text-center"><a href="#" title="" class="no-underline">Start a Project&nbsp;</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
+			<p class="font-semibold tracking-wider text-center"><a href="javascript:void(0)" title="" class="no-underline">Start a Project&nbsp;</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
 			`	
 		},
 		{
@@ -2533,8 +2533,8 @@ var data_basic = {
 		    'category': '119',
 		    'html': `
 			<div class="text-center">
-				<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 font-normal leading-relaxed border-transparent rounded-full size-18 tracking-wide hover:border-transparent" style="color: rgb(255, 255, 255); background-color: rgb(0, 0, 0);" data-bg="rgb(0,0,0)">View Demo</a>
-				<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide">Buy Now</a>
+				<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 font-normal leading-relaxed border-transparent rounded-full size-18 tracking-wide hover:border-transparent" style="color: rgb(255, 255, 255); background-color: rgb(0, 0, 0);" data-bg="rgb(0,0,0)">View Demo</a>
+				<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide">Buy Now</a>
 			</div>
 			`	
 		},
@@ -2543,8 +2543,8 @@ var data_basic = {
 		    'category': '119',
 		    'html': `
 			<div class="text-center">
-				<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal size-14 uppercase tracking-125" title="" style="background-color: rgb(240, 240, 240);">Book a Call</a>
-				<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full size-14 uppercase tracking-125" title=""><i class="icon ion-android-arrow-dropright"></i>&nbsp; How We Work</a>
+				<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 text-black leading-relaxed rounded-full border-transparent hover:border-transparent font-normal size-14 uppercase tracking-125" title="" style="background-color: rgb(240, 240, 240);">Book a Call</a>
+				<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full size-14 uppercase tracking-125" title=""><i class="icon ion-android-arrow-dropright"></i>&nbsp; How We Work</a>
 			</div>
 			`	
 		},
@@ -2552,7 +2552,7 @@ var data_basic = {
 		    'thumbnail': 'preview/buttons-08.png',
 		    'category': '119',
 		    'html': `
-			<p class="size-42 font-medium leading-none text-center"><a href="#" title="" class="size-35">Let's Talk</a></p>
+			<p class="size-42 font-medium leading-none text-center"><a href="javascript:void(0)" title="" class="size-35">Let's Talk</a></p>
 			<p class="text-center">You’ll be talking with our technology experts.</p>
 			`	
 		},
@@ -2561,9 +2561,9 @@ var data_basic = {
 		    'category': '119',
 		    'html': `
 			<div class="text-center flex items-center justify-center">
-				<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide mr-5 mt-1" title="">Explore Menu</a>
+				<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide mr-5 mt-1" title="">Explore Menu</a>
 
-				<a href="#" title="" class="ml-5 flex items-center underline" style="
+				<a href="javascript:void(0)" title="" class="ml-5 flex items-center underline" style="
 display: inline-flex;
 "><i class="icon ion-android-arrow-dropright-circle mr-3 size-50"></i> Show Reel</a>
 			</div>
@@ -2574,7 +2574,7 @@ display: inline-flex;
 		    'category': '119',
 		    'html': `
 			<div>
-				<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mt-2 mb-1 py-2 px-8 text-black leading-relaxed border-transparent hover:border-transparent font-normal rounded-none size-14 uppercase tracking-125 mr-3" title="" style="background-color: rgb(240, 240, 240);">View Demo</a><a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-8 border-current hover:border-current font-normal leading-relaxed rounded-none size-14 uppercase tracking-125" title="">Buy Now</a>
+				<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mt-2 mb-1 py-2 px-8 text-black leading-relaxed border-transparent hover:border-transparent font-normal rounded-none size-14 uppercase tracking-125 mr-3" title="" style="background-color: rgb(240, 240, 240);">View Demo</a><a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-8 border-current hover:border-current font-normal leading-relaxed rounded-none size-14 uppercase tracking-125" title="">Buy Now</a>
 			</div>
 			`	
 		},
@@ -2970,7 +2970,7 @@ display: inline-flex;
 		    'html': `
 			<div class="row">
 				<div class="column full">
-					<h2 class="tracking-wide size-32 leading-12">Hello. I'm Emilie Petersen. A web designer with experience in studios and startups. <a href="#" title="">Drop me a line</a>.</h2>
+					<h2 class="tracking-wide size-32 leading-12">Hello. I'm Emilie Petersen. A web designer with experience in studios and startups. <a href="javascript:void(0)" title="">Drop me a line</a>.</h2>
 					<div class="spacer height-60"></div>
 					<div class="is-social edit size-18">
 						<a href="https://twitter.com/"><i class="bi bi-twitter-x" style="margin-right: 1em"></i></a>
@@ -3279,7 +3279,7 @@ display: inline-flex;
 					</ul>
 				
 					<div class="whitespace-nowrap">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="">Buy Now</a>
 					</div>
 				</div>
 				<div class="flex flex-col justify-center items-center column half" style="width: 59.4737%; flex: 0 0 auto;"><img src="/ContentBox/assets/minimalist-blocks/images/img-1350x1350.png" alt=""></div>
@@ -3301,7 +3301,7 @@ display: inline-flex;
 					<p class="font-medium size-32">$199</p>
 				
 					<div class="button-group">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-14 rounded tracking-wide" title="">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-14 rounded tracking-wide" title="">Buy Now</a>
 					</div>
 				</div>
 				<div class="column half" style="width: 60.5263%; flex: 0 0 auto;">
@@ -3334,8 +3334,8 @@ display: inline-flex;
 						when an unknown printer took a galley of type.</p>
 					<p class="font-normal leading-16 size-32">$129</p>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide">Buy Now</a>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid border-transparent ml-1 mr-1 hover:border-transparent rounded size-16 py-1 px-5 font-normal tracking-wide text-gray-800 underline leading-relaxed">View Details</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid border-transparent ml-1 mr-1 hover:border-transparent rounded size-16 py-1 px-5 font-normal tracking-wide text-gray-800 underline leading-relaxed">View Details</a>
 					</div>
 				</div>
 				<div class="py-4 column half"><img src="/ContentBox/assets/minimalist-blocks/images/img-1350x900.png" alt="">
@@ -3345,8 +3345,8 @@ display: inline-flex;
 						when an unknown printer took a galley of type.</p>
 					<p class="font-normal leading-16 size-32">$159</p>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide">Buy Now</a>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid border-transparent ml-1 mr-1 hover:border-transparent rounded size-16 py-1 px-5 font-normal tracking-wide text-gray-800 underline leading-relaxed">View Details</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid border-transparent ml-1 mr-1 hover:border-transparent rounded size-16 py-1 px-5 font-normal tracking-wide text-gray-800 underline leading-relaxed">View Details</a>
 					</div>
 				</div>
 			</div>
@@ -3377,8 +3377,8 @@ display: inline-flex;
 				<p class="leading-13">Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
 					when an unknown printer.</p>
 				<div>
-					<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
-					<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
+					<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
+					<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
 				</div>
 			</div>
 			<div class="column third py-4"><img src="/ContentBox/assets/minimalist-blocks/images/img-900x900.png" alt="">
@@ -3389,8 +3389,8 @@ display: inline-flex;
 				<p class="leading-13">Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
 					when an unknown printer.</p>
 				<div>
-					<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
-					<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
+					<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
+					<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
 				</div>
 			</div>
 			<div class="column third py-4"><img src="/ContentBox/assets/minimalist-blocks/images/img-900x900.png" alt="">
@@ -3401,8 +3401,8 @@ display: inline-flex;
 				<p class="leading-13">Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
 					when an unknown printer.</p>
 				<div>
-					<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
-					<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
+					<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
+					<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
 				</div>
 			</div>
 			</div>
@@ -3434,7 +3434,7 @@ display: inline-flex;
 					<p class="leading-none tracking-tight font-normal size-32">$189</p>
 					<div class="spacer height-20"></div>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 px-6 border-current hover:border-current font-normal leading-12 rounded-none pt-3 pb-3 size-15 tracking-wider" title="">Buy Product&nbsp;<i class="icon ion-android-arrow-forward"></i></a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 px-6 border-current hover:border-current font-normal leading-12 rounded-none pt-3 pb-3 size-15 tracking-wider" title="">Buy Product&nbsp;<i class="icon ion-android-arrow-forward"></i></a>
 					</div>
 				</div>
 			</div>
@@ -3458,7 +3458,7 @@ display: inline-flex;
 					<p class="font-light size-35">$149.00</p>
 				
 					<div class="whitespace-nowrap">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="">Buy Now</a>
 					</div>
 				</div>
 			</div>
@@ -3489,8 +3489,8 @@ display: inline-flex;
 					<p class="leading-13">Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
 						when an unknown printer.</p>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
 					</div>
 				</div>
 				<div class="column fourth py-4"><img src="/ContentBox/assets/minimalist-blocks/images/img-678x904.png" alt="">
@@ -3501,8 +3501,8 @@ display: inline-flex;
 					<p class="leading-13">Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
 						when an unknown printer.</p>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
 					</div>
 				</div>
 				<div class="column fourth py-4"><img src="/ContentBox/assets/minimalist-blocks/images/img-678x904.png" alt="">
@@ -3513,8 +3513,8 @@ display: inline-flex;
 					<p class="leading-13">Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
 						when an unknown printer.</p>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
 					</div>
 				</div>
 				<div class="column fourth py-4"><img src="/ContentBox/assets/minimalist-blocks/images/img-678x904.png" alt="">
@@ -3525,8 +3525,8 @@ display: inline-flex;
 					<p class="leading-13">Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
 						when an unknown printer.</p>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 text-black leading-12 rounded-full border-transparent hover:border-transparent font-normal tracking-wide px-2 underline" data-bg="">View Details</a>
 					</div>
 				</div>
 			</div>
@@ -3565,7 +3565,7 @@ display: inline-flex;
 						when an unknown printer took a galley of type.</p>
 					<div class="spacer height-20"></div>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid ml-1 mr-1 text-black font-normal border-current hover: hover:border-current tracking-wide leading-relaxed rounded-full pt-2 pb-2 px-8 size-14 mb-3" title="">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid ml-1 mr-1 text-black font-normal border-current hover: hover:border-current tracking-wide leading-relaxed rounded-full pt-2 pb-2 px-8 size-14 mb-3" title="">Buy Now</a>
 					</div>
 				</div>
 				<div class="column fourth pb-4" style="width: 27.4847%; flex: 0 0 auto;"><img src="/ContentBox/assets/minimalist-blocks/images/img-900x1350.png" alt=""></div>
@@ -3577,7 +3577,7 @@ display: inline-flex;
 						when an unknown printer took a galley of type.</p>
 					<div class="spacer height-20"></div>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid ml-1 mr-1 text-black font-normal border-current hover: hover:border-current tracking-wide leading-relaxed rounded-full pt-2 pb-2 px-8 size-14 mb-3" title="">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid ml-1 mr-1 text-black font-normal border-current hover: hover:border-current tracking-wide leading-relaxed rounded-full pt-2 pb-2 px-8 size-14 mb-3" title="">Buy Now</a>
 					</div>
 				</div>
 
@@ -3608,7 +3608,7 @@ display: inline-flex;
 					<p class="leading-13">Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
 						when an unknown printer.</p>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
 					</div>
 				</div>
 				<div class="column fourth flex flex-col justify-end py-4"><img src="/ContentBox/assets/minimalist-blocks/images/img-900x600.png" alt="">
@@ -3619,7 +3619,7 @@ display: inline-flex;
 					<p class="leading-13">Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
 						when an unknown printer.</p>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
 					</div>
 				</div>
 				<div class="column fourth flex flex-col justify-end py-4"><img src="/ContentBox/assets/minimalist-blocks/images/img-678x904.png" alt="">
@@ -3630,7 +3630,7 @@ display: inline-flex;
 					<p class="leading-13">Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
 						when an unknown printer.</p>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
 					</div>
 				</div>
 				<div class="column fourth flex flex-col justify-end py-4"><img src="/ContentBox/assets/minimalist-blocks/images/img-900x1350.png" alt="">
@@ -3641,7 +3641,7 @@ display: inline-flex;
 					<p class="leading-13">Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
 						when an unknown printer.</p>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide">Buy Now</a>
 					</div>
 				</div>
 			</div>
@@ -3668,7 +3668,7 @@ display: inline-flex;
 				<div class="column half" style="width: 43.0095%; flex: 0 0 auto;">
 					<p class="font-normal size-28">$189</p>
 					<div>
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 leading-relaxed rounded-full border-transparent hover:border-transparent font-normal uppercase tracking-125 size-14" title="" style="background-color: rgb(36, 36, 36); color: rgb(255, 255, 255);" data-bg="rgb(36,36,36)">Buy Now&nbsp;<i class="icon ion-android-arrow-forward"></i></a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 leading-relaxed rounded-full border-transparent hover:border-transparent font-normal uppercase tracking-125 size-14" title="" style="background-color: rgb(36, 36, 36); color: rgb(255, 255, 255);" data-bg="rgb(36,36,36)">Buy Now&nbsp;<i class="icon ion-android-arrow-forward"></i></a>
 					</div>
 				</div>
 				<div class="column half flex flex-col justify-center items-start" style="width: 100%;">
@@ -3704,7 +3704,7 @@ display: inline-flex;
 						</tbody>
 					</table>
 					<div class="spacer height-20"></div>
-					<div><a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 text-black leading-12 rounded border-transparent hover:border-transparent font-normal tracking-wide" title="" style="background-color: rgb(240, 240, 240);">Add to Cart</a> &nbsp; <a href="#" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="" role="button">Buy Now</a></div>
+					<div><a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 text-black leading-12 rounded border-transparent hover:border-transparent font-normal tracking-wide" title="" style="background-color: rgb(240, 240, 240);">Add to Cart</a> &nbsp; <a href="javascript:void(0)" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="" role="button">Buy Now</a></div>
 					<div class="spacer height-20"></div>
 					<p class="size-14 text-right" style="margin-bottom: 5px;">Share:</p>
 					<div class="is-social text-right">
@@ -3727,7 +3727,7 @@ display: inline-flex;
 					<div class="spacer height-20"></div>
 					<p class="text-justify leading-13">Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took.</p>
 					<p class="size-28 font-medium">$14</p>
-					<div><a href="#" title="" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-14 rounded tracking-wide" role="button">Place Order</a></div>
+					<div><a href="javascript:void(0)" title="" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-14 rounded tracking-wide" role="button">Place Order</a></div>
 				</div>
 				<div class="column half" style="width: 53.5526%; flex: 0 0 auto;"><img src="/ContentBox/assets/minimalist-blocks/images/img-1350x1350.png" alt=""></div>
 			</div>
@@ -4667,7 +4667,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-20"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide" title="">Buy Now</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide" title="">Buy Now</a>
 						</div>
 					</div>
 				</div>
@@ -4683,7 +4683,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-20"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide" title="">Buy Now</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide" title="">Buy Now</a>
 						</div>
 					</div>
 				</div>
@@ -4698,7 +4698,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-20"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide" title="">Buy Now</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide" title="">Buy Now</a>
 						</div>
 					</div>
 				</div>
@@ -4745,7 +4745,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-20"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide" title="">Buy Now</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide" title="">Buy Now</a>
 						</div>
 					</div>
 				</div>
@@ -4761,7 +4761,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-20"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide" title="">Buy Now</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-12 rounded-full tracking-wide" title="">Buy Now</a>
 						</div>
 					</div>
 				</div>
@@ -4803,7 +4803,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-40"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Buy Now</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Buy Now</a>
 						</div>
 					</div>
 				</div>
@@ -4821,7 +4821,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-40"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Buy Now</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Buy Now</a>
 						</div>
 					</div>
 				</div>
@@ -4839,7 +4839,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-40"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Buy Now</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Buy Now</a>
 						</div>
 					</div>
 				</div>
@@ -4880,7 +4880,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-40"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Buy Now</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Buy Now</a>
 						</div>
 					</div>
 				</div>
@@ -4898,7 +4898,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-40"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Buy Now</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Buy Now</a>
 						</div>
 					</div>
 				</div>
@@ -4934,7 +4934,7 @@ display: inline-flex;
 					</ul>
 					<div class="spacer height-40"></div>
 					<div>
-						<a href="#" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="" role="button">Get Started</a>
+						<a href="javascript:void(0)" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="" role="button">Get Started</a>
 					</div>
 				</div>
 				<div class="column third pr-9 py-5">
@@ -4948,7 +4948,7 @@ display: inline-flex;
 					</ul>
 					<div class="spacer height-40"></div>
 					<div>
-						<a href="#" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="" role="button">Get Started</a>
+						<a href="javascript:void(0)" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="" role="button">Get Started</a>
 					</div>
 				</div>
 				<div class="column third pr-9 py-5">
@@ -4961,7 +4961,7 @@ display: inline-flex;
 					</ul>
 					<div class="spacer height-40"></div>
 					<div>
-						<a href="#" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="" role="button">Get Started</a>
+						<a href="javascript:void(0)" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide" title="" role="button">Get Started</a>
 					</div>
 				</div>
 			</div>
@@ -4996,7 +4996,7 @@ display: inline-flex;
 					<div class="spacer height-20"></div>
 					<p>$<span class="size-48">59</span>/ month</p>
 					<div class="button-group">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-6 border-current hover:border-current font-normal rounded leading-relaxed size-14 uppercase tracking-widest" title="">Choose Plan</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-6 border-current hover:border-current font-normal rounded leading-relaxed size-14 uppercase tracking-widest" title="">Choose Plan</a>
 					</div>
 				</div>
 				<div class="py-5 column third xs-hidden md-hidden" style="width: 12.5704%; flex: 0 0 auto;">
@@ -5014,7 +5014,7 @@ display: inline-flex;
 					<div class="spacer height-20"></div>
 					<p>$<span class="size-48">99</span>/ month</p>
 					<div class="button-group">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-6 border-current hover:border-current font-normal rounded leading-relaxed size-14 uppercase tracking-widest" title="">Choose Plan</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-6 border-current hover:border-current font-normal rounded leading-relaxed size-14 uppercase tracking-widest" title="">Choose Plan</a>
 					</div>
 				</div>
 
@@ -5053,7 +5053,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-20"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Select Plan</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Select Plan</a>
 						</div>
 					</div>
 				</div>
@@ -5071,7 +5071,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-20"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Select Plan</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Select Plan</a>
 						</div>
 					</div>
 				</div>
@@ -5089,7 +5089,7 @@ display: inline-flex;
 						</ul>
 						<div class="spacer height-20"></div>
 						<div class="button-group">
-							<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Select Plan</a>
+							<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-12 rounded tracking-wide" title="">Select Plan</a>
 						</div>
 					</div>
 				</div>
@@ -5125,7 +5125,7 @@ display: inline-flex;
 					</ul>
 					<div class="spacer height-20"></div>
 					<div style="margin:1.5em 0">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-14 rounded tracking-wide">Get Started</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-14 rounded tracking-wide">Get Started</a>
 					</div>
 				</div>
 				<div class="column third">
@@ -5139,7 +5139,7 @@ display: inline-flex;
 					</ul>
 					<div class="spacer height-20"></div>
 					<div style="margin:1.5em 0">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-14 rounded tracking-wide">Get Started</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-14 rounded tracking-wide">Get Started</a>
 					</div>
 				</div>
 				<div class="column third">
@@ -5153,7 +5153,7 @@ display: inline-flex;
 					</ul>
 					<div class="spacer height-20"></div>
 					<div style="margin:1.5em 0">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-14 rounded tracking-wide">Get Started</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-6 border-current hover:border-current font-normal leading-14 rounded tracking-wide">Get Started</a>
 					</div>
 				</div>
 			</div>
@@ -5186,7 +5186,7 @@ display: inline-flex;
 						<li>Feature Two</li>
 					</ul>
 					<div style="margin:1.2em 0">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide">Select Plan</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide">Select Plan</a>
 					</div>
 				</div>
 				<div class="column third" style="width: 13.2474%; flex: 0 0 auto;">
@@ -5202,7 +5202,7 @@ display: inline-flex;
 						<li>Feature Two</li>
 					</ul>
 					<div style="margin:1.2em 0">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide">Select Plan</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-17 px-7 border-current hover:border-current font-normal leading-14 rounded-full tracking-wide">Select Plan</a>
 					</div>
 				</div>
 
@@ -6461,7 +6461,7 @@ display: inline-flex;
 			</div>
 			<div class="row">
 				<div class="column full">
-					<p class="text-right size-15"><a href="#" title="" class="no-underline font-normal">Read more stories&nbsp;</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
+					<p class="text-right size-15"><a href="javascript:void(0)" title="" class="no-underline font-normal">Read more stories&nbsp;</a>&nbsp;<i class="icon ion-android-arrow-forward"></i></p>
 				</div>
 
 			</div>
@@ -6521,7 +6521,7 @@ display: inline-flex;
 					<h2 class="size-42 font-semibold leading-11 tracking-wide">"All products are awesome with strong attention to details."</h2>
 					<p style="color: rgb(158, 158, 158); font-family: Georgia, serif; font-style: italic;">- Kyle Harrelson</p>
 					<div class="spacer height-20"></div>
-					<p>Lorem Ipsum has been the industry's standard dummy text ever since the 1500s. <a href="#" title="">Read the Success Story</a></p>
+					<p>Lorem Ipsum has been the industry's standard dummy text ever since the 1500s. <a href="javascript:void(0)" title="">Read the Success Story</a></p>
 				</div>
 				<div class="column half"><img src="/ContentBox/assets/minimalist-blocks/images/img-1500x2000.png" alt=""></div>
 
@@ -6891,7 +6891,7 @@ display: inline-flex;
 			<div class="row">
 				<div class="column full">
 					<div class="text-center button-group">
-						<a href="#" role="button" class="transition-all inline-block cursor-pointer no-underline border-2 border-solid mr-1 mt-2 mb-2 tracking-75 py-2 border-current text-black hover:border-current font-normal ml-1 leading-relaxed rounded-full px-11 size-13" onmouseover="if(this.getAttribute('data-hover-bg'))this.style.backgroundColor=this.getAttribute('data-hover-bg');" onmouseout="if(this.getAttribute('data-bg'))this.style.backgroundColor=this.getAttribute('data-bg');else this.style.backgroundColor=''">Back to Home</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block cursor-pointer no-underline border-2 border-solid mr-1 mt-2 mb-2 tracking-75 py-2 border-current text-black hover:border-current font-normal ml-1 leading-relaxed rounded-full px-11 size-13" onmouseover="if(this.getAttribute('data-hover-bg'))this.style.backgroundColor=this.getAttribute('data-hover-bg');" onmouseout="if(this.getAttribute('data-bg'))this.style.backgroundColor=this.getAttribute('data-bg');else this.style.backgroundColor=''">Back to Home</a>
 					</div>
 				</div>
 
@@ -6915,7 +6915,7 @@ display: inline-flex;
 			<div class="row">
 				<div class="column full">
 					<div class="text-center button-group">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full size-14 uppercase tracking-125">HomePage</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full size-14 uppercase tracking-125">HomePage</a>
 					</div>
 				</div>
 
@@ -6944,7 +6944,7 @@ display: inline-flex;
 			<div class="row">
 				<div class="column full">
 					<div class="text-center button-group">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 border-current hover:border-current font-normal leading-relaxed rounded size-14 uppercase pt-2 pb-2 px-8 tracking-75">Back to Home</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 border-current hover:border-current font-normal leading-relaxed rounded size-14 uppercase pt-2 pb-2 px-8 tracking-75">Back to Home</a>
 					</div>
 				</div>
 
@@ -6971,7 +6971,7 @@ display: inline-flex;
 			<div class="row">
 				<div class="column full">
 					<div style="white-space: nowrap;">
-						<a href="#" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide">Back to Home</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block whitespace-nowrap cursor-pointer no-underline border-2 border-solid mr-2 mt-2 mb-1 py-2 size-18 px-9 border-current hover:border-current font-normal leading-relaxed rounded-full tracking-wide">Back to Home</a>
 					</div>
 				</div>
 
@@ -7007,7 +7007,7 @@ display: inline-flex;
 			<div class="row">
 				<div class="column full">
 					<div class="button-group text-center">
-						<a href="#" role="button" class="transition-all inline-block cursor-pointer no-underline border-2 border-solid mr-1 mt-2 mb-2 tracking-75 uppercase py-2 border-current text-black hover:border-current font-normal ml-1 leading-relaxed rounded-full px-11 size-13" onmouseover="if(this.getAttribute('data-hover-bg'))this.style.backgroundColor=this.getAttribute('data-hover-bg');" onmouseout="if(this.getAttribute('data-bg'))this.style.backgroundColor=this.getAttribute('data-bg');else this.style.backgroundColor=''">Contact</a>
+						<a href="javascript:void(0)" role="button" class="transition-all inline-block cursor-pointer no-underline border-2 border-solid mr-1 mt-2 mb-2 tracking-75 uppercase py-2 border-current text-black hover:border-current font-normal ml-1 leading-relaxed rounded-full px-11 size-13" onmouseover="if(this.getAttribute('data-hover-bg'))this.style.backgroundColor=this.getAttribute('data-hover-bg');" onmouseout="if(this.getAttribute('data-bg'))this.style.backgroundColor=this.getAttribute('data-bg');else this.style.backgroundColor=''">Contact</a>
 					</div>
 				</div>
 
@@ -7643,8 +7643,8 @@ display: inline-flex;
 					<p style="border-bottom: 1px solid #333; width: 50px; display: inline-block; margin-top: 0"></p>
 					<p class="size-16">
 						Follow us on:<br>
-						Facebook: <a href="#">Company Name</a><br>
-						Twitter: <a href="#">@companyname</a>
+						Facebook: <a href="javascript:void(0)">Company Name</a><br>
+						Twitter: <a href="javascript:void(0)">@companyname</a>
 					</p>
 				</div>
 			</div>
@@ -7664,7 +7664,7 @@ display: inline-flex;
 						12345 Street Name, City.
 						State 12345<br>
 						P: (123) 456 7890 / 456 7891. <br>
-						Email:<br><a href="#" style="color: #333">companyname@example.com</a>
+						Email:<br><a href="javascript:void(0)" style="color: #333">companyname@example.com</a>
 					</p>
 				</div>
 			</div>
@@ -7690,7 +7690,7 @@ display: inline-flex;
 				</div>
 				<div class="column third">
 					<h3 class="size-18 is-title-lite font-normal tracking-75">STAY IN TOUCH</h3>
-					<p class="size-16">Instagram: <a href="#">@companyname<br>Twitter: </a><a href="#">@companyname</a></p>
+					<p class="size-16">Instagram: <a href="javascript:void(0)">@companyname<br>Twitter: </a><a href="javascript:void(0)">@companyname</a></p>
 				</div>
 			</div>
 			`	
@@ -7753,8 +7753,8 @@ display: inline-flex;
 					<p class="size-14" style="color: rgb(136, 136, 136);">STAY UPDATED</p>
 					<p>
 						Follow us on:<br>
-						Facebook: <a href="#" style="color: #333">Company Name</a><br>
-						Twitter: <a href="#" style="color: #333">@companyname</a>
+						Facebook: <a href="javascript:void(0)" style="color: #333">Company Name</a><br>
+						Twitter: <a href="javascript:void(0)" style="color: #333">@companyname</a>
 					</p>
 				</div>
 			</div>

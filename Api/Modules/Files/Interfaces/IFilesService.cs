@@ -56,7 +56,7 @@ namespace Api.Modules.Files.Interfaces
         /// <param name="entityType">Optional: When uploading a file for an item that has a dedicated table, enter the entity type name here so that we can see which table we need to add the file to.</param>
         /// <param name="linkType">Optional: When uploading a file for an item link that has a dedicated table, enter the link type here so that we can see which table we need to add the file to.</param>
         /// <param name="useAmazonS3">Optional: Whether to upload the file to Amazon S3.</param>
-        /// <param name="amazonS3BucketName">Optional: The Amazon S3 bucket name when Amazon S3 is used. Becomes required if <see cref="useAmazonS3"/> is set to <c>true</c>.</param>
+        /// <param name="amazonS3BucketName">Optional: The Amazon S3 bucket name when Amazon S3 is used. Becomes required if <c>useAmazonS3</c> is set to <c>true</c>.</param>
         /// <param name="awsSettings">Optional: The AWS credentials required to connect to Amazon S3.</param>
         /// <param name="cloudFlareUseVariant">Optional: When given this image variant is used for getting the content_url after the upload to CloudFlare. Variants can be defined in CloudFlare account.</param>
         /// <returns>A list of <see cref="FileModel"/> with file data.</returns>
@@ -71,6 +71,7 @@ namespace Api.Modules.Files.Interfaces
         /// <param name="itemLinkId">Optional: If the file should be added to a link between two items, instead of an item, enter the ID of that link here.</param>
         /// <param name="entityType">Optional: When uploading a file for an item that has a dedicated table, enter the entity type name here so that we can see which table we need to add the file to.</param>
         /// <param name="linkType">Optional: When uploading a file for an item link that has a dedicated table, enter the link type here so that we can see which table we need to add the file to.</param>
+        /// <param name="propertyName">Optional: The property name to retrieve the file for.</param>
         /// <param name="ordering">Optional: The index of the file when multiple files exist under the given property name. This value is based on the "ordering" column in the database.</param>
         /// <returns>The content type, contents and URL of the file.</returns>
         Task<ServiceResult<(string ContentType, byte[] Data, string Url)>> GetAsync(string itemId, int fileId, ClaimsIdentity identity, ulong itemLinkId, string entityType = null, int linkType = 0, string propertyName = null, int ordering = 1);

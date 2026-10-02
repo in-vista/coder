@@ -110,7 +110,7 @@ namespace Api.Modules.Tenants.Services
                 return new ServiceResult<TenantModel>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Tenant with sub domain '{subDomain}' not found."
+                    Error = $"Tenant with sub domain '{subDomain}' not found."
                 };
             }
 
@@ -142,7 +142,7 @@ namespace Api.Modules.Tenants.Services
                 return new ServiceResult<TenantModel>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Tenant with ID '{id}' not found."
+                    Error = $"Tenant with ID '{id}' not found."
                 };
             }
 
@@ -173,7 +173,7 @@ namespace Api.Modules.Tenants.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Tenant with sub domain '{subDomain}' not found."
+                    Error = $"Tenant with sub domain '{subDomain}' not found."
                 };
             }
 
@@ -191,7 +191,17 @@ namespace Api.Modules.Tenants.Services
         /// <inheritdoc />
         public T DecryptValue<T>(string encryptedValue, TenantModel tenant)
         {
-            return String.IsNullOrWhiteSpace(encryptedValue) ? default : (T)Convert.ChangeType(encryptedValue.Replace(" ", "+").DecryptWithAesWithSalt(tenant.EncryptionKey, true), typeof(T));
+            if (string.IsNullOrWhiteSpace(encryptedValue))
+                return default;
+
+            string decryptedValue = encryptedValue
+                .Replace(" ", "+")
+                .DecryptWithAesWithSalt(tenant.EncryptionKey, true);
+
+            if (string.IsNullOrWhiteSpace(decryptedValue))
+                return default;
+
+            return (T)Convert.ChangeType(decryptedValue, typeof(T));
         }
 
         /// <inheritdoc />
@@ -396,7 +406,7 @@ namespace Api.Modules.Tenants.Services
                 return new ServiceResult<string>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "No sub domain given"
+                    Error = "No sub domain given"
                 };
             }
 
@@ -418,7 +428,7 @@ namespace Api.Modules.Tenants.Services
                     return new ServiceResult<string>
                     {
                         StatusCode = HttpStatusCode.NotFound,
-                        ErrorMessage = "No tenant found with this sub domain"
+                        Error = "No tenant found with this sub domain"
                     };
                 }
 
@@ -449,7 +459,7 @@ namespace Api.Modules.Tenants.Services
                 return new ServiceResult<TenantOptions>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "No sub domain given"
+                    Error = "No sub domain given"
                 };
             
             try
@@ -469,7 +479,7 @@ namespace Api.Modules.Tenants.Services
                     return new ServiceResult<TenantOptions>
                     {
                         StatusCode = HttpStatusCode.NotFound,
-                        ErrorMessage = "No tenant found with this sub domain"
+                        Error = "No tenant found with this sub domain"
                     };
 
                 string optionsJsonString = dataTable.Rows[0].Field<string>("options");

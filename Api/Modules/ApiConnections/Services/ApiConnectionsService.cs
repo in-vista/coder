@@ -78,7 +78,7 @@ public class ApiConnectionsService : IApiConnectionsService, IScopedService
             return new ServiceResult<ApiConnectionModel>
             {
                 StatusCode = HttpStatusCode.NotFound,
-                ErrorMessage = $"API connection with id '{id}' does not exist"
+                Error = $"API connection with id '{id}' does not exist"
             };
         }
         

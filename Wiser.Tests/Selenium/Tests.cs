@@ -52,7 +52,7 @@ public class Tests
     /// </summary>
     /// <param name="by">The <see cref="By"/> selector to use to find the element.</param>
     /// <param name="element">Optional: An <see cref="IWebElement"/> to perform the selector on instead of the <see cref="driver"/>.</param>
-    private void WaitTillElementIsFound(By by, IWebElement? element = null)
+    private void WaitTillElementIsFound(By by, IWebElement element = null)
     {
         var timeoutCount = 0;
         
@@ -85,7 +85,7 @@ public class Tests
     /// </summary>
     /// <param name="by">The <see cref="By"/> selector to use to find the element.</param>
     /// <param name="element">Optional: An <see cref="IWebElement"/> to perform the selector on instead of the <see cref="driver"/>.</param>
-    private void WaitTillElementIsDisplayed(By by, IWebElement? element = null)
+    private void WaitTillElementIsDisplayed(By by, IWebElement element = null)
     {
         var timeoutCount = 0;
         

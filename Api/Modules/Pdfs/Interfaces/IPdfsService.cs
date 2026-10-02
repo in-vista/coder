@@ -30,6 +30,7 @@ namespace Api.Modules.Pdfs.Interfaces
         /// <summary>
         /// Download and merge all pdf files
         /// </summary>
+        /// <param name="identity">The HTTP identity of the current request.</param>
         /// <param name="encryptedItemIdsList">comma separted list of encrypted item-ids</param>
         /// <param name="propertyNames">the property name of te files that must be merged </param>
         /// <param name="entityType">the entitytype of the entity of the ID's</param>

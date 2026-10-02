@@ -1,4 +1,5 @@
 using System.Data;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Api.Core.Interfaces;
@@ -12,6 +13,7 @@ using GeeksCoreLibrary.Modules.Objects.Interfaces;
 
 namespace Api.Modules.Styling.Services;
 
+/// <inheritdoc cref="IStylingService"/>
 public class StylingService : IStylingService, IScopedService
 {
     private readonly IObjectsService objectsService;
@@ -21,7 +23,10 @@ public class StylingService : IStylingService, IScopedService
     private readonly IStringReplacementsService stringReplacementsService;
     
     private readonly IDatabaseConnection databaseConnection;
-
+    
+    /// <summary>
+    /// The constructor for the <see cref="StylingService"/> class.
+    /// </summary>
     public StylingService(
         IObjectsService objectsService,
         IApiReplacementsService apiReplacementsService,
@@ -76,6 +81,10 @@ public class StylingService : IStylingService, IScopedService
                     : null;
             }
         }
+        
+        // Return early with an empty result if both styling strings are empty.
+        if(new [] { systemStyling, systemStylingByQuery }.All(string.IsNullOrEmpty))
+            return new ServiceResult<string>(string.Empty);
         
         // Combine the system styling directly from the system objects and system styling by query into one string.
         string combinedStyling = string.Join("\n", systemStyling, systemStylingByQuery);

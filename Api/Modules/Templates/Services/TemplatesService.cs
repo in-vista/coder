@@ -1216,7 +1216,7 @@ LIMIT 1";
             {
                 return new ServiceResult<TemplateSettingsModel>
                 {
-                    ErrorMessage = templateEnvironmentsResult.ErrorMessage,
+                    Error = templateEnvironmentsResult.Error,
                     StatusCode = templateEnvironmentsResult.StatusCode
                 };
             }
@@ -1239,7 +1239,7 @@ LIMIT 1";
             {
                 return new ServiceResult<TemplateSettingsModel>
                 {
-                    ErrorMessage = templateEnvironmentsResult.ErrorMessage,
+                    Error = templateEnvironmentsResult.Error,
                     StatusCode = templateEnvironmentsResult.StatusCode
                 };
             }
@@ -1259,7 +1259,7 @@ LIMIT 1";
             {
                 return new ServiceResult<TemplateWtsConfigurationModel>
                 {
-                    ErrorMessage = templateSettings.ErrorMessage,
+                    Error = templateSettings.Error,
                     StatusCode = templateSettings.StatusCode
                 };
             }
@@ -1591,7 +1591,7 @@ LIMIT 1";
                 return new ServiceResult<TemplateHistoryOverviewModel>
                 {
                     StatusCode = dynamicContentOverview.StatusCode,
-                    ErrorMessage = dynamicContentOverview.ErrorMessage
+                    Error = dynamicContentOverview.Error
                 };
             }
 
@@ -1633,7 +1633,7 @@ LIMIT 1";
                 return new ServiceResult<bool>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Name cannot be empty."
+                    Error = "Name cannot be empty."
                 };
             }
 
@@ -1643,7 +1643,7 @@ LIMIT 1";
                 return new ServiceResult<bool>
                 {
                     StatusCode = templateDataResponse.StatusCode,
-                    ErrorMessage = templateDataResponse.ErrorMessage
+                    Error = templateDataResponse.Error
                 };
             }
 
@@ -1653,7 +1653,7 @@ LIMIT 1";
                 return new ServiceResult<bool>
                 {
                     StatusCode = linkedTemplatesResponse.StatusCode,
-                    ErrorMessage = linkedTemplatesResponse.ErrorMessage
+                    Error = linkedTemplatesResponse.Error
                 };
             }
 
@@ -1740,7 +1740,7 @@ LIMIT 1";
             catch (Exception exception)
             {
                 logger.LogError(exception, "An error occurred while trying to get the entire tree view structure.");
-                return new ServiceResult<List<TemplateTreeViewModel>> { ErrorMessage = exception.ToString(), StatusCode = HttpStatusCode.InternalServerError };
+                return new ServiceResult<List<TemplateTreeViewModel>> { Error = exception.ToString(), StatusCode = HttpStatusCode.InternalServerError };
             }
         }
 
@@ -1752,7 +1752,7 @@ LIMIT 1";
             {
                 ModelObject = result,
                 StatusCode = !result ? HttpStatusCode.NotFound : HttpStatusCode.OK,
-                ErrorMessage = !result ? $"Template with ID '{templateId}' not found." : null
+                Error = !result ? $"Template with ID '{templateId}' not found." : null
             };
         }
 
@@ -1889,7 +1889,7 @@ LIMIT 1";
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = $"The table {WiserTableNames.WiserTemplate} is not empty. It should be empty before attempting this, to prevent errors and duplicate templates.",
+                    Error = $"The table {WiserTableNames.WiserTemplate} is not empty. It should be empty before attempting this, to prevent errors and duplicate templates.",
                     StatusCode = HttpStatusCode.Conflict
                 };
             }
@@ -1899,7 +1899,7 @@ LIMIT 1";
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = $"The table {WiserTableNames.WiserDynamicContent} is not empty. It should be empty before attempting this, to prevent errors and duplicate templates.",
+                    Error = $"The table {WiserTableNames.WiserDynamicContent} is not empty. It should be empty before attempting this, to prevent errors and duplicate templates.",
                     StatusCode = HttpStatusCode.Conflict
                 };
             }
@@ -1909,7 +1909,7 @@ LIMIT 1";
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = "One or more of the tables 'easy_items', 'easy_templates' and 'easy_dynamiccontent' don't exist, so we have nothing to convert.",
+                    Error = "One or more of the tables 'easy_items', 'easy_templates' and 'easy_dynamiccontent' don't exist, so we have nothing to convert.",
                     StatusCode = HttpStatusCode.Conflict
                 };
             }
@@ -2217,7 +2217,7 @@ VALUES (?content_id, ?destination_template_id, ?added_on, ?added_by)");
                 {
                     ModelObject = false,
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "The current branch is not the main branch. This functionality can only be used from the main branch."
+                    Error = "The current branch is not the main branch. This functionality can only be used from the main branch."
                 };
             }
 
@@ -2229,7 +2229,7 @@ VALUES (?content_id, ?destination_template_id, ?added_on, ?added_by)");
                 {
                     ModelObject = false,
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Branch with ID {branchId} does not exist"
+                    Error = $"Branch with ID {branchId} does not exist"
                 };
             }
 
@@ -2240,7 +2240,7 @@ VALUES (?content_id, ?destination_template_id, ?added_on, ?added_by)");
                 {
                     ModelObject = false,
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = $"You don't have permissions to access a branch with ID {branchId}"
+                    Error = $"You don't have permissions to access a branch with ID {branchId}"
                 };
             }
 
@@ -2261,7 +2261,7 @@ VALUES (?content_id, ?destination_template_id, ?added_on, ?added_by)");
                         return new ServiceResult<bool>
                         {
                             StatusCode = HttpStatusCode.Conflict,
-                            ErrorMessage = "The tables for the template module are not up-to-date in the selected branch. Please open the template module in that branch once, so that the tables will be automatically updated."
+                            Error = "The tables for the template module are not up-to-date in the selected branch. Please open the template module in that branch once, so that the tables will be automatically updated."
                         };
                     default:
                         throw;
@@ -2374,7 +2374,7 @@ VALUES (?content_id, ?destination_template_id, ?added_on, ?added_by)");
                 return new ServiceResult<bool>
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessage = "Cannot change these settings, because they are enabled globally."
+                    Error = "Cannot change these settings, because they are enabled globally."
                 };
             }
 

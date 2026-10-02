@@ -12,10 +12,12 @@ using Newtonsoft.Json;
 
 namespace Api.Modules.GeoLocation.Services;
 
+/// <inheritdoc cref="IGeoLocationService"/>
 public class GeoLocationService : IGeoLocationService, IScopedService
 {
     private readonly IObjectsService objectsService;
-
+    
+    /// <inheritdoc cref="IGeoLocationService"/>
     public GeoLocationService(IObjectsService objectsService)
     {
         this.objectsService = objectsService;
@@ -32,7 +34,7 @@ public class GeoLocationService : IGeoLocationService, IScopedService
             return new ServiceResult<Pro6PPAddress>
             {
                 StatusCode = HttpStatusCode.Unauthorized,
-                ErrorMessage = "Unauthorized"
+                Error = "Unauthorized"
             };
         
         // Prepare an empty address response.
@@ -69,7 +71,7 @@ public class GeoLocationService : IGeoLocationService, IScopedService
                 return new ServiceResult<Pro6PPAddress>
                 {
                     StatusCode = addressResponse.StatusCode,
-                    ErrorMessage = await addressResponse.Content.ReadAsStringAsync()
+                    Error = await addressResponse.Content.ReadAsStringAsync()
                 };
             
             // Retrieve the content of the response and deserialize it into the address model.

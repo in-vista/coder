@@ -114,6 +114,7 @@ namespace Api.Modules.Files.Controllers
         /// <param name="itemLinkId">Optional: If the file should be added to a link between two items, instead of an item, enter the ID of that link here.</param>
         /// <param name="entityType">Optional: When uploading a file for an item that has a dedicated table, enter the entity type name here so that we can see which table we need to add the file to.</param>
         /// <param name="linkType">Optional: When uploading a file for an item link that has a dedicated table, enter the link type here so that we can see which table we need to add the file to.</param>
+        /// <param name="ordering">Optional: The position of the file as stored with conflicting property names.</param>
         /// <returns>The file contents.</returns>
         [HttpGet]
         [Route("~/api/v3/items/{itemId}/files/{fileId:int}/{filename}")]

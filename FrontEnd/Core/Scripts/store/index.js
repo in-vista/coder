@@ -66,7 +66,7 @@ import {
     MODULES_PENDING_ACTIONS_REQUEST,
     MODULES_PENDING_ACTIONS_LOADED,
     UPDATE_TAB_STRIP_MODULES,
-    UPDATE_TAB_STRIP_TITLE_ALIAS, IMITATIONS_REQUEST, IMITATIONS_LOADED, IMITATE_ACCOUNT
+    UPDATE_TAB_STRIP_TITLE_ALIAS, IMITATIONS_REQUEST, IMITATIONS_LOADED, IMITATE_ACCOUNT, SET_MODULES_LOADING
 } from "./mutation-types";
 
 const baseModule = {
@@ -227,7 +227,7 @@ const loginModule = {
                 // User is still logged in.
                 const user = JSON.parse(localStorage.getItem("userData"));
 
-                if (data.gotUnauthorized || !accessTokenExpires || new Date(accessTokenExpires) <= new Date() || user.requirePasswordChange) {
+                if (data.gotUnauthorized || !accessTokenExpires || new Date(accessTokenExpires) <= new Date() || user?.requirePasswordChange) {
                     if (!user || !user.refresh_token || user.requirePasswordChange) {
                         this.dispatch(AUTH_LOGOUT);
                         return;
@@ -316,7 +316,7 @@ const loginModule = {
                 await this.dispatch(IMITATIONS_REQUEST);
 
                 // Load system styling.
-                await Misc.injectSystemStyling();
+                await Misc.injectSystemStyling(false);
             }
         },
 
@@ -404,6 +404,7 @@ const loginModule = {
 const modulesModule = {
     state: () => ({
         allModules: [],
+        modulesLoading: false,
         openedModules: [],
         activeModule: 0,
         moduleGroups: []
@@ -511,6 +512,9 @@ const modulesModule = {
                 }
 
                 state.openedModules.push(activeModule);
+
+                // Manually increase the interactions to update the current interactions of the module.
+                module.moduleInteractions++;
             }
 
             // Set the newly opened module to active.
@@ -575,33 +579,52 @@ const modulesModule = {
         [UPDATE_TAB_STRIP_TITLE_ALIAS]: (state, data) => {
             const { module, value } = data;
             module.alias = value;
+        },
+        [SET_MODULES_LOADING](state, loading) {
+            state.modulesLoading = loading;
         }
     },
 
     actions: {
-        async [MODULES_REQUEST]({ commit, dispatch }) {
-            commit(START_REQUEST);
-            const moduleGroups = await main.modulesService.getModules();
-            commit(MODULES_LOADED, moduleGroups);
-            
-            // Get all pending actions and attach them to their respective module 
-            await dispatch(MODULES_PENDING_ACTIONS_REQUEST);
-            
-            // Automatically open pinned modules when the modules are first loaded.
-            for (let group in moduleGroups) {
-                if (!moduleGroups.hasOwnProperty(group)) {
-                    continue;
-                }
+        async [MODULES_REQUEST]({ commit, dispatch, state }) {
+            if (state.modulesLoading)
+                return;
 
-                for (let module of moduleGroups[group].modules) {
-                    if (!module.autoLoad) {
+            commit(SET_MODULES_LOADING, true);
+            
+            try {
+                commit(START_REQUEST);
+                const moduleGroups = await main.modulesService.getModules();
+                commit(MODULES_LOADED, moduleGroups);
+
+                // Get all pending actions and attach them to their respective module 
+                await dispatch(MODULES_PENDING_ACTIONS_REQUEST);
+                
+                // Keep track of de module IDs that are autoloaded to avoid duplicate autoloaded modules.
+                const loadedAutoLoadedModules = [];
+
+                // Automatically open pinned modules when the modules are first loaded.
+                for (let group in moduleGroups) {
+                    if (!moduleGroups.hasOwnProperty(group))
                         continue;
-                    }
 
-                    commit(OPEN_MODULE, module);
+                    for (let module of moduleGroups[group].modules) {
+                        if (!module.autoLoad)
+                            continue;
+                        
+                        // Check whether this module ID has already been loaded. If so, skip it to avoid opening duplicate modules.
+                        if(loadedAutoLoadedModules.includes(module.moduleId))
+                            continue;
+                        
+                        commit(OPEN_MODULE, module);
+                        loadedAutoLoadedModules.push(module.moduleId);
+                    }
                 }
+                
+                commit(END_REQUEST);
+            } finally {
+                commit(SET_MODULES_LOADING, false);
             }
-            commit(END_REQUEST);
         },
 
         async [MODULES_PENDING_ACTIONS_REQUEST]({ commit }) {
@@ -613,8 +636,16 @@ const modulesModule = {
             }
         },
 
-        [OPEN_MODULE]({ commit }, module) {
+        async [OPEN_MODULE]({ commit }, module) {
             commit(OPEN_MODULE, module);
+            
+            // Log module opened for currently logged-in user.
+            try {
+                // Invoke a log in the back end.
+                await main.modulesService.logModuleOpen(module.moduleId);
+            } catch(exception) {
+                console.error('Unable to log module opening action:', exception);
+            }
         },
 
         [CLOSE_MODULE]({ commit }, module) {

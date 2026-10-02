@@ -14,6 +14,8 @@
     const hideCheckboxColumn = !options.checkboxes || options.checkboxes === "false" || options.checkboxes <= 0;
     const usingDataSelector = !!options.dataSelectorId;
     options.usingDataSelector = usingDataSelector;
+
+    const checkboxQueryId = options.checkboxQueryId;
     
     let gridMode = 0;
     if (options.fieldGroupName) {
@@ -624,20 +626,28 @@
                 }
             },
             dataBound: async (event) => {
-                event.sender.tbody.find('tr.k-table-row').each(function (e) {
+                const grid = event.sender;
+
+                grid.tbody.find('tr.k-table-row').each(function (e) {
                     const row = $(this);
-                    const model = event.sender.dataItem(row);
+                    const model = grid.dataItem(row);
                     
-                    for(const column of event.sender.columns) {
+                    for(const column of grid.columns) {
                         const attributes = column.attributes;
-                        if(!attributes)
+                        if (!attributes)
                             continue;
-                        
-                        for(const [ attributeName, attributeValue ] of Object.entries(attributes)) {
+
+                        for (const [attributeName, attributeValue] of Object.entries(attributes)) {
                             const attributeTemplate = kendo.template(attributeValue);
                             const cell = row.find(`[${attributeName}="${attributeValue}"]`);
                             cell.attr(attributeName, attributeTemplate(model));
                         }
+                    }
+                    
+                    // Check the checkboxes in the row if this model is selected/checked.
+                    if(model.selected) {
+                        row.find('.k-select-checkbox').prop('checked', true);
+                        grid.select(row);
                     }
                 });
                 
@@ -840,6 +850,33 @@
         if (!options.disableOpeningOfItems) {
             field.on("dblclick", "tbody tr[data-uid] td", function (event) {
                 window.dynamicItems.grids.onShowDetailsClick(event, kendoComponent, options, false);
+            });
+        }
+        
+        // Attach listener to execute query after clicking a checkbox.
+        if(!hideCheckboxColumn) {
+            field.on('click', "tbody tr[data-uid] .k-select-checkbox", async function (event) {
+                const $checkbox = $(this);
+                const checked = $checkbox.is(':checked');
+                
+                const $row = $checkbox.closest('tr[data-uid]');
+                const dataItem = kendoComponent.dataItem($row);
+
+                const getEncryptedItemId = dataItem => dataItem ? (dataItem.encryptedId || dataItem.encrypted_id) : null;
+                const selectedItemEncryptedId = getEncryptedItemId(dataItem);
+                
+                if(checkboxQueryId) {
+                    await Wiser.api({
+                        method: "POST",
+                        contentType: "application/json",
+                        dataType: "json",
+                        url: `${dynamicItems.settings.wiserApiRoot}items/${encodeURIComponent("{itemIdEncrypted}")}/action-button/{propertyId}?queryId=${encodeURIComponent(checkboxQueryId)}&itemLinkId={itemLinkId}&userType=${encodeURIComponent(dynamicItems.settings.userType)}`,
+                        data: JSON.stringify({
+                            checkedItemId: selectedItemEncryptedId,
+                            checked: checked
+                        })
+                    });
+                }
             });
         }
     

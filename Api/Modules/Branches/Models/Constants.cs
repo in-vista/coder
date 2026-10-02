@@ -1,5 +1,8 @@
 ﻿namespace Api.Modules.Branches.Models;
 
+/// <summary>
+/// Constant class for hard-coded values.
+/// </summary>
 public class Constants
 {
     /// <summary>

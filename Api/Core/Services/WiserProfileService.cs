@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using IdentityServer4.Models;
-using IdentityServer4.Services;
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
 
 namespace Api.Core.Services
 {

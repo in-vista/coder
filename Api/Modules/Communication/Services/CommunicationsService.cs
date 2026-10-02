@@ -33,7 +33,7 @@ public class CommunicationsService : ICommunicationsService, IScopedService
             return new ServiceResult<CommunicationSettingsModel>
             {
                 StatusCode = HttpStatusCode.NotFound,
-                ErrorMessage = $"Communication with ID '{id}' does not exist"
+                Error = $"Communication with ID '{id}' does not exist"
             };
         }
 
@@ -55,7 +55,7 @@ public class CommunicationsService : ICommunicationsService, IScopedService
             return new ServiceResult<CommunicationSettingsModel>
             {
                 StatusCode = HttpStatusCode.NotFound,
-                ErrorMessage = $"Communication with ID '{settings.Id}' does not exist"
+                Error = $"Communication with ID '{settings.Id}' does not exist"
             };
         }
 
@@ -71,7 +71,7 @@ public class CommunicationsService : ICommunicationsService, IScopedService
             return new ServiceResult<bool>
             {
                 StatusCode = HttpStatusCode.NotFound,
-                ErrorMessage = $"Communication with ID '{id}' does not exist"
+                Error = $"Communication with ID '{id}' does not exist"
             };
         }
 

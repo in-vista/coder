@@ -54,7 +54,7 @@ namespace Api.Modules.EntityTypes.Services
             {
                 return new ServiceResult<List<EntityTypeModel>>
                 {
-                    ErrorMessage = databaseConnectionResult.ErrorMessage,
+                    Error = databaseConnectionResult.Error,
                     StatusCode = databaseConnectionResult.StatusCode
                 };
             }
@@ -166,7 +166,7 @@ ORDER BY CONCAT(IF(entity.friendly_name IS NULL OR entity.friendly_name = '', en
             {
                 return new ServiceResult<EntitySettingsModel>
                 {
-                    ErrorMessage = "Parameter 'id' should be greater than 0.",
+                    Error = "Parameter 'id' should be greater than 0.",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -177,7 +177,7 @@ ORDER BY CONCAT(IF(entity.friendly_name IS NULL OR entity.friendly_name = '', en
             {
                 return new ServiceResult<EntitySettingsModel>
                 {
-                    ErrorMessage = $"Entity with id '{id}' not found.",
+                    Error = $"Entity with id '{id}' not found.",
                     StatusCode = HttpStatusCode.NotFound
                 };
             }
@@ -309,7 +309,7 @@ ORDER BY CONCAT(IF(entity.friendly_name IS NULL OR entity.friendly_name = '', en
                     return new ServiceResult<long>
                     {
                         StatusCode = HttpStatusCode.Conflict,
-                        ErrorMessage = $"An entry already exists with {nameof(name)} = '{name}', {nameof(moduleId)} = '{moduleId}'"
+                        Error = $"An entry already exists with {nameof(name)} = '{name}', {nameof(moduleId)} = '{moduleId}'"
                     };
                 }
 
@@ -324,7 +324,7 @@ ORDER BY CONCAT(IF(entity.friendly_name IS NULL OR entity.friendly_name = '', en
             {
                 return new ServiceResult<bool>
                 {
-                    ErrorMessage = "Parameter 'id' should be greater than 0.",
+                    Error = "Parameter 'id' should be greater than 0.",
                     StatusCode = HttpStatusCode.BadRequest
                 };
             }
@@ -379,7 +379,7 @@ CREATE TABLE `{tablePrefix}{WiserTableNames.WiserItemFile}{WiserTableNames.Archi
                 return new ServiceResult<bool>
                 {
                     StatusCode = HttpStatusCode.NotFound,
-                    ErrorMessage = $"Entity with ID '{id}' does not exist"
+                    Error = $"Entity with ID '{id}' does not exist"
                 };
             }
 
