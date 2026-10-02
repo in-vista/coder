@@ -628,6 +628,12 @@
             dataBound: async (event) => {
                 const grid = event.sender;
 
+                if(options.collapseGroups) {
+                    event.sender.element.find(`.k-grouping-row`).each(function(groupEvent) {
+                        grid.collapseGroup(this);
+                    })
+                }
+
                 grid.tbody.find('tr.k-table-row').each(function (e) {
                     const row = $(this);
                     const model = grid.dataItem(row);
