@@ -4317,6 +4317,616 @@ export class Fields {
             contentType: "application/json"
         });
     }
+    
+    async onSpeechToTextClick(event, field = null) {
+        event.preventDefault();
+
+        const button = event.currentTarget;
+        const $button = $(button);
+        const $field = field
+            ? $(field)
+            : $button.closest(".item").find("input, textarea").first();
+
+        if (!$field.length || !$field[0].isConnected) {
+            console.error("Speech-to-text: input field not found.");
+            return;
+        }
+
+        // Store a separate recording session for each microphone button.
+        this._speechToTextSessions ??= new WeakMap();
+
+        const sessions = this._speechToTextSessions;
+        const existing = sessions.get(button);
+
+        // Clicking again stops the recording.
+        if (existing) {
+            if (existing.phase === "starting") {
+                existing.stopRequested = true;
+                return;
+            }
+
+            return existing.stop?.();
+        }
+
+        const shortUtteranceSilenceDuration = 2500;
+        const normalSilenceDuration = 1200;
+        const contextualSpeechDuration = 2500;
+        const preRollDuration = 400;
+        const minimumSpeechDuration = 250;
+        const maximumUtteranceDuration = 20000;
+        const minimumSpeechLevel = 0.010;
+        const noiseFloorMultiplier = 2.5;
+
+        const session = {
+            phase: "starting",
+            stopRequested: false,
+            chunks: [],
+            sampleCount: 0,
+            voicedSampleCount: 0,
+            silenceSampleCount: 0,
+            preRollChunks: [],
+            preRollSampleCount: 0,
+            noiseFloor: 0.004,
+            isSpeaking: false,
+            pendingRequests: 0,
+            pending: Promise.resolve(),
+            changed: false,
+            failed: false,
+            stopPromise: null,
+            flushResolve: null,
+            stream: null,
+            context: null,
+            source: null,
+            node: null,
+            domObserver: null
+        };
+
+        sessions.set(button, session);
+
+        const updateButtonState = () => {
+            $button.removeClass("starting listening recording speaking processing");
+
+            if (session.phase === "starting") {
+                $button
+                    .addClass("starting")
+                    .attr("aria-pressed", "true")
+                    .attr("title", "Starting microphone...");
+                return;
+            }
+
+            if (session.phase === "stopping") {
+                $button
+                    .addClass("processing")
+                    .attr("aria-pressed", "false")
+                    .attr("title", "Processing transcription...");
+                return;
+            }
+
+            if (session.isSpeaking) {
+                $button
+                    .addClass("recording speaking")
+                    .attr("aria-pressed", "true")
+                    .attr("title", "Speaking...");
+                return;
+            }
+
+            if (session.pendingRequests > 0) {
+                $button
+                    .addClass("processing")
+                    .attr("aria-pressed", "true")
+                    .attr("title", "Listening... Processing transcription...");
+                return;
+            }
+
+            $button
+                .addClass("listening")
+                .attr("aria-pressed", "true")
+                .attr("title", "Listening for speech...");
+        };
+
+        updateButtonState();
+
+        // Create a valid 16-bit PCM WAV file.
+        const createWav = (samples, sampleRate) => {
+            const buffer = new ArrayBuffer(44 + samples.length * 2);
+            const view = new DataView(buffer);
+
+            const writeString = (offset, text) => {
+                for (let i = 0; i < text.length; i++)
+                    view.setUint8(offset + i, text.charCodeAt(i));
+            };
+
+            writeString(0, "RIFF");
+            view.setUint32(4, buffer.byteLength - 8, true);
+            writeString(8, "WAVE");
+            writeString(12, "fmt ");
+
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+
+            writeString(36, "data");
+            view.setUint32(40, samples.length * 2, true);
+
+            samples.forEach((sample, index) => {
+                sample = Math.max(-1, Math.min(1, sample));
+
+                view.setInt16(
+                    44 + index * 2,
+                    sample < 0 ? sample * 32768 : sample * 32767,
+                    true
+                );
+            });
+
+            return new Blob([buffer], { type: "audio/wav" });
+        };
+
+        const getAudioLevel = samples => {
+            let sum = 0;
+
+            for (let i = 0; i < samples.length; i++)
+                sum += samples[i] * samples[i];
+
+            return Math.sqrt(sum / samples.length);
+        };
+
+        const resetUtterance = () => {
+            session.chunks = [];
+            session.sampleCount = 0;
+            session.voicedSampleCount = 0;
+            session.silenceSampleCount = 0;
+            session.isSpeaking = false;
+
+            updateButtonState();
+        };
+
+        const addPreRoll = samples => {
+            const maximumSamples = Math.max(
+                1,
+                Math.round(session.context.sampleRate * preRollDuration / 1000)
+            );
+
+            session.preRollChunks.push(samples);
+            session.preRollSampleCount += samples.length;
+
+            while (session.preRollSampleCount > maximumSamples &&
+            session.preRollChunks.length) {
+                const overflow = session.preRollSampleCount - maximumSamples;
+                const firstChunk = session.preRollChunks[0];
+
+                if (firstChunk.length <= overflow) {
+                    session.preRollChunks.shift();
+                    session.preRollSampleCount -= firstChunk.length;
+                    continue;
+                }
+
+                session.preRollChunks[0] = firstChunk.slice(overflow);
+                session.preRollSampleCount -= overflow;
+            }
+        };
+
+        // Convert a detected speech utterance into a WAV and queue the API request.
+        const sendUtterance = (chunks, sampleCount) => {
+            if (!sampleCount || !$field[0]?.isConnected)
+                return;
+
+            const samples = new Float32Array(sampleCount);
+            let offset = 0;
+
+            for (const chunk of chunks) {
+                samples.set(chunk, offset);
+                offset += chunk.length;
+            }
+
+            const wav = createWav(samples, session.context.sampleRate);
+
+            if (wav.size < 12000)
+                return;
+
+            session.pendingRequests++;
+            updateButtonState();
+
+            // Process requests sequentially to preserve transcription order.
+            session.pending = session.pending.then(async () => {
+                const response = await fetch(dynamicItems.settings.wiserApiRoot + "speech-to-text", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "audio/wav",
+                        "Accept": "application/json"
+                    },
+                    credentials: "same-origin",
+                    body: wav
+                });
+
+                const responseText = await response.text();
+
+                let result;
+
+                try {
+                    result = JSON.parse(responseText);
+                } catch (error) {
+                    console.error("Speech-to-text returned invalid JSON:", {
+                        status: response.status,
+                        statusText: response.statusText,
+                        url: response.url,
+                        contentType: response.headers.get("content-type"),
+                        response: responseText
+                    });
+
+                    throw new Error(
+                        `Speech-to-text returned an invalid response (HTTP ${response.status}).`
+                    );
+                }
+
+                if (!response.ok || result.success === false || result.Success === false) {
+                    throw new Error(
+                        result.failReason ??
+                        result.FailReason ??
+                        `Speech-to-text failed (${response.status}).`
+                    );
+                }
+
+                // Support the common response property names used by speech-to-text endpoints.
+                const text = result.text ??
+                    result.Text ??
+                    result.transcribedText ??
+                    result.TranscribedText;
+
+                if (typeof text !== "string")
+                    throw new Error("Speech-to-text response contains no text property.");
+
+                if (!text.trim() || !$field[0]?.isConnected)
+                    return;
+
+                const currentValue = $field.val() || "";
+                const separator = currentValue && !/\s$/.test(currentValue)
+                    ? " "
+                    : "";
+
+                $field.val(currentValue + separator + text.trim());
+
+                // Do not trigger field events while the microphone is active. Dynamic
+                // field handlers may rebuild the input and stop the recording session.
+                session.changed = true;
+
+            }).catch(error => {
+                session.failed = true;
+
+                console.error("Speech-to-text error:", error);
+
+                $button.attr("title", error.message);
+            }).finally(() => {
+                session.pendingRequests = Math.max(0, session.pendingRequests - 1);
+                updateButtonState();
+            });
+        };
+
+        const sendCurrentUtterance = () => {
+            const minimumSamples =
+                session.context.sampleRate * minimumSpeechDuration / 1000;
+
+            if (!session.sampleCount ||
+                session.voicedSampleCount < minimumSamples) {
+                resetUtterance();
+                return;
+            }
+
+            const chunks = session.chunks;
+            const sampleCount = session.sampleCount;
+
+            session.chunks = [];
+            session.sampleCount = 0;
+            session.voicedSampleCount = 0;
+            session.silenceSampleCount = 0;
+            session.isSpeaking = false;
+
+            sendUtterance(chunks, sampleCount);
+            updateButtonState();
+        };
+
+        const processSamples = samples => {
+            const level = getAudioLevel(samples);
+            const speechThreshold = Math.max(
+                minimumSpeechLevel,
+                session.noiseFloor * noiseFloorMultiplier
+            );
+
+            if (!session.isSpeaking) {
+                addPreRoll(samples);
+
+                if (level < speechThreshold) {
+                    session.noiseFloor =
+                        session.noiseFloor * 0.97 +
+                        level * 0.03;
+                    return;
+                }
+
+                session.isSpeaking = true;
+                session.chunks = session.preRollChunks;
+                session.sampleCount = session.preRollSampleCount;
+                session.voicedSampleCount = samples.length;
+                session.silenceSampleCount = 0;
+                session.preRollChunks = [];
+                session.preRollSampleCount = 0;
+
+                updateButtonState();
+                return;
+            }
+
+            session.chunks.push(samples);
+            session.sampleCount += samples.length;
+
+            if (level >= speechThreshold) {
+                session.voicedSampleCount += samples.length;
+                session.silenceSampleCount = 0;
+            } else {
+                session.silenceSampleCount += samples.length;
+            }
+
+            const voicedDuration =
+                session.voicedSampleCount / session.context.sampleRate * 1000;
+            const requiredSilenceDuration =
+                voicedDuration < contextualSpeechDuration
+                    ? shortUtteranceSilenceDuration
+                    : normalSilenceDuration;
+
+            const requiredSilenceSamples =
+                session.context.sampleRate * requiredSilenceDuration / 1000;
+            const maximumSamples =
+                session.context.sampleRate * maximumUtteranceDuration / 1000;
+
+            if (session.sampleCount >= maximumSamples ||
+                session.silenceSampleCount >= requiredSilenceSamples) {
+                sendCurrentUtterance();
+            }
+        };
+
+        try {
+            // Request microphone permission and enable the browser's microphone
+            // processing to reduce background noise reaching speech detection.
+            session.stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    channelCount: 1,
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
+            });
+
+            // Create the audio context.
+            session.context = new AudioContext({
+                latencyHint: "interactive"
+            });
+
+            // Define the AudioWorklet directly in this method.
+            const workletSource = `
+        class SpeechCaptureProcessor extends AudioWorkletProcessor {
+            constructor() {
+                super();
+
+                this.buffer = new Float32Array(2048);
+                this.position = 0;
+                this.active = true;
+
+                this.port.onmessage = (event) => {
+                    if (event.data === "flush") {
+                        this.active = false;
+
+                        if (this.position > 0)
+                            this.sendBuffer(this.position);
+
+                        this.port.postMessage({ type: "flushed" });
+                    }
+                };
+            }
+
+            sendBuffer(length) {
+                const samples = length === this.buffer.length
+                    ? this.buffer
+                    : this.buffer.slice(0, length);
+
+                this.port.postMessage(
+                    { type: "audio", samples },
+                    [samples.buffer]
+                );
+
+                this.buffer = new Float32Array(2048);
+                this.position = 0;
+            }
+
+            process(inputs) {
+                if (!this.active)
+                    return true;
+
+                const input = inputs[0]?.[0];
+
+                if (!input)
+                    return true;
+
+                let offset = 0;
+
+                while (offset < input.length) {
+                    const length = Math.min(
+                        input.length - offset,
+                        this.buffer.length - this.position
+                    );
+
+                    this.buffer.set(
+                        input.subarray(offset, offset + length),
+                        this.position
+                    );
+
+                    offset += length;
+                    this.position += length;
+
+                    if (this.position === this.buffer.length)
+                        this.sendBuffer(this.position);
+                }
+
+                return true;
+            }
+        }
+
+        registerProcessor("speech-capture", SpeechCaptureProcessor);
+    `;
+
+            // Load the inline worklet without creating another JavaScript file.
+            const workletBlob = new Blob(
+                [workletSource],
+                { type: "application/javascript" }
+            );
+
+            const workletUrl = URL.createObjectURL(workletBlob);
+
+            try {
+                await session.context.audioWorklet.addModule(workletUrl);
+            } finally {
+                URL.revokeObjectURL(workletUrl);
+            }
+
+            // Initialize the microphone audio graph.
+            session.source = session.context.createMediaStreamSource(
+                session.stream
+            );
+
+            session.node = new AudioWorkletNode(
+                session.context,
+                "speech-capture"
+            );
+
+            // Receive microphone samples and only create requests for detected speech.
+            session.node.port.onmessage = ({ data }) => {
+                if (data.type === "flushed") {
+                    session.flushResolve?.();
+                    return;
+                }
+
+                if (data.type !== "audio")
+                    return;
+
+                processSamples(data.samples);
+            };
+
+            // Stop listening and process any remaining detected speech.
+            session.stop = () => {
+                if (session.stopPromise)
+                    return session.stopPromise;
+
+                session.phase = "stopping";
+                updateButtonState();
+
+                session.stopPromise = (async () => {
+                    try {
+                        // Stop receiving microphone input.
+                        session.stream.getTracks().forEach(track => track.stop());
+                        session.source.disconnect();
+
+                        // Flush the final samples from the worklet.
+                        await new Promise(resolve => {
+                            session.flushResolve = resolve;
+                            session.node.port.postMessage("flush");
+                        });
+
+                        // Process the final utterance only when speech was detected.
+                        if (session.isSpeaking)
+                            sendCurrentUtterance();
+
+                        // Wait for all transcription requests.
+                        await session.pending;
+
+                        // Notify existing field handlers after recording has fully stopped.
+                        if (session.changed && $field[0]?.isConnected) {
+                            $field.trigger("input");
+                            $field.trigger("change");
+                        }
+
+                    } catch (error) {
+                        session.failed = true;
+                        console.error("Failed to stop speech-to-text:", error);
+
+                    } finally {
+                        // Release microphone and audio resources.
+                        session.domObserver?.disconnect();
+
+                        session.stream.getTracks().forEach(track => track.stop());
+
+                        session.source?.disconnect();
+                        session.node?.disconnect();
+                        session.node?.port.close();
+
+                        if (session.context?.state !== "closed")
+                            await session.context.close();
+
+                        sessions.delete(button);
+
+                        $button
+                            .removeClass("starting listening recording speaking processing")
+                            .attr("aria-pressed", "false")
+                            .attr(
+                                "title",
+                                session.failed
+                                    ? "Transcription failed. See console."
+                                    : "Start recording"
+                            );
+                    }
+                })();
+
+                return session.stopPromise;
+            };
+
+            // Connect the microphone to the worklet.
+            session.source.connect(session.node);
+
+            // The processor outputs silence, preventing microphone feedback.
+            session.node.connect(session.context.destination);
+
+            await session.context.resume();
+
+            session.phase = "recording";
+            updateButtonState();
+
+            // Automatically stop if the input or button is removed.
+            session.domObserver = new MutationObserver(() => {
+                if (!button.isConnected || !$field[0]?.isConnected)
+                    void session.stop();
+            });
+
+            session.domObserver.observe(document.documentElement, {
+                childList: true,
+                subtree: true
+            });
+
+            // Handle a stop click that occurred during initialization.
+            if (session.stopRequested)
+                await session.stop();
+
+        } catch (error) {
+            console.error("Speech-to-text initialization failed:", error);
+
+            session.domObserver?.disconnect();
+
+            session.stream?.getTracks().forEach(track => track.stop());
+
+            session.source?.disconnect();
+            session.node?.disconnect();
+            session.node?.port.close();
+
+            if (session.context && session.context.state !== "closed")
+                await session.context.close();
+
+            sessions.delete(button);
+
+            $button
+                .removeClass("starting listening recording speaking processing")
+                .attr("aria-pressed", "false")
+                .attr("title", error.message);
+        }
+    }
+
 
     /**
      * Initializes all bindings and functionality for Pro6PP-based fields. These will auto-complete address fields depending on the set-up of the fields.

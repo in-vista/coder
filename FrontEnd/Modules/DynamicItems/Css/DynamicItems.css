@@ -284,6 +284,132 @@ iframe.iframe:not(.hidden) + table.k-editor {
     overflow: auto;
 }
 
+.k-input {
+    position: relative;
+}
+
+.k-input input,
+.k-input textarea {
+    padding-right: 42px;
+}
+
+.k-input .icon-microphone {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    z-index: 10;
+    line-height: 1;
+    font-size: clamp(12px, 2.5vh, 28px);
+    transition:
+            opacity 0.2s ease,
+            transform 0.2s ease;
+}
+
+.k-input .icon-microphone:hover {
+    transform: translateY(-50%) scale(1.08);
+}
+
+.k-input .icon-microphone .recording-sphere {
+    display: none;
+}
+
+.k-input:has(~ ins.icon-microphone:not(.hidden)),
+ins.icon-microphone:not(.hidden) ~ .k-input {
+    width: 90%;
+}
+
+
+/* Microphone is being initialized */
+.k-input .icon-microphone.starting {
+    opacity: 0.55;
+    cursor: wait;
+    animation: microphoneThinking 1.2s infinite ease-in-out;
+}
+
+
+/* Microphone is active and waiting for speech */
+.k-input .icon-microphone.listening {
+    opacity: 0.75;
+}
+
+
+/* Actual speech is being detected */
+.k-input .icon-microphone.speaking .recording-sphere,
+.k-input .icon-microphone.recording .recording-sphere {
+    display: block;
+    position: absolute;
+    top: -3px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: red;
+    animation: recordingPulse 1.2s infinite ease-in-out;
+}
+
+
+/* Audio has been sent and transcription is being processed */
+.k-input .icon-microphone.processing {
+    cursor: wait;
+}
+
+.k-input .icon-microphone.processing::after {
+    position: absolute;
+    top: -4px;
+    right: -5px;
+    content: "";
+    width: 11px;
+    height: 11px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: microphoneProcessing 0.7s infinite linear;
+}
+
+
+@keyframes microphoneThinking {
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes microphoneProcessing {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes recordingPulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.6);
+    }
+
+    70% {
+        transform: scale(1.15);
+        opacity: 0.9;
+        box-shadow: 0 0 0 8px rgba(255, 0, 0, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+    }
+}
+
 body.iframe .editMenu {
     top: 0;
 }

@@ -12,7 +12,7 @@ namespace Api.Modules.SpeechToText.Controllers;
 /// <summary>
 /// Controller for converting uploaded speech audio to text.
 /// </summary>
-[Route("api/v3/whisper")]
+[Route("api/v3/speech-to-text")]
 [ApiController]
 public class SpeechToTextController : ControllerBase
 {
@@ -35,7 +35,7 @@ public class SpeechToTextController : ControllerBase
     /// </summary>
     /// <param name="cancellationToken">Token used to cancel speech processing when the request is aborted.</param>
     /// <returns>A result containing the recognized text or the reason transcription failed.</returns>
-    [HttpPost("speech-to-text")]
+    [HttpPost]
     [Consumes("audio/wav","audio/x-wav", "audio/wave", "audio/vnd.wave")]
     public async Task<IActionResult> GetTextFromSpeech(CancellationToken cancellationToken)
     {

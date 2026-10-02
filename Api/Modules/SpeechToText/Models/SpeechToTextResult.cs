@@ -5,9 +5,14 @@ namespace Api.Modules.SpeechToText.Models;
 public sealed class SpeechToTextResult
 {
     /// <summary>
-    /// Gets or sets the returned text from the speech.
+    /// Gets or sets the returned text from the speech after post-processing.
     /// </summary>
     public string Text { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Gets or sets the returned text from the speech.
+    /// </summary>
+    public string RawText { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the reason the request failed.
