@@ -1953,6 +1953,9 @@ export class Grids {
 
         // Clear filters.
         grid.dataSource._filter = undefined;
+
+        // Trigger the filter event so grids that persist filters also save the cleared state.
+        grid.trigger("filter", { filter: null, field: null });
         
         // Reload overview.
         grid.dataSource.read();
