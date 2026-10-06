@@ -191,7 +191,17 @@ namespace Api.Modules.Tenants.Services
         /// <inheritdoc />
         public T DecryptValue<T>(string encryptedValue, TenantModel tenant)
         {
-            return String.IsNullOrWhiteSpace(encryptedValue) ? default : (T)Convert.ChangeType(encryptedValue.Replace(" ", "+").DecryptWithAesWithSalt(tenant.EncryptionKey, true), typeof(T));
+            if (string.IsNullOrWhiteSpace(encryptedValue))
+                return default;
+
+            string decryptedValue = encryptedValue
+                .Replace(" ", "+")
+                .DecryptWithAesWithSalt(tenant.EncryptionKey, true);
+
+            if (string.IsNullOrWhiteSpace(decryptedValue))
+                return default;
+
+            return (T)Convert.ChangeType(decryptedValue, typeof(T));
         }
 
         /// <inheritdoc />

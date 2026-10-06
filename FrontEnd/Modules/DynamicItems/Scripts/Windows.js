@@ -315,15 +315,32 @@ export class Windows {
             currentItemWindow.wrapper.find(".btn-cancel").click((event) => {
                 currentItemWindow.close();
             });
-            
+
             setTimeout(() => {
-                const currentZIndex = currentItemWindow.wrapper.css('z-index');
-                const overlayElement = $('.k-overlay').filter(function() {
-                    return Number($(this).css('z-index')) === currentZIndex - 1;
-                });
-                
-                overlayElement.click(() => {
-                    currentItemWindow.close();
+                $('.k-overlay').off('click.itemWindow').on('click.itemWindow', function(event) {
+                    event.stopImmediatePropagation();
+
+                    let topWindow = null;
+                    let highestZIndex = -1;
+
+                    $('.k-window:visible').each(function() {
+                        const windowId = $(this).attr('aria-labelledby')?.replace('_wnd_title', '');
+                        const windowElement = windowId ? $(`#${windowId}`) : null;
+                        const window = windowElement?.data('kendoWindow');
+
+                        if (!window) {
+                            return;
+                        }
+
+                        const zIndex = Number($(this).css('z-index'));
+
+                        if (zIndex > highestZIndex) {
+                            highestZIndex = zIndex;
+                            topWindow = window;
+                        }
+                    });
+
+                    topWindow?.close();
                 });
             }, 400);
 

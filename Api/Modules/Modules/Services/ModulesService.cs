@@ -114,11 +114,14 @@ namespace Api.Modules.Modules.Services
         module.custom_query,        
         module.pending_actions_query,
         module.is_fullscreen,
-        module.ordering
+        module.ordering,
+        CAST(IFNULL(NULLIF(module_interactions.`value`, ''), 0) AS UNSIGNED) AS `module_interactions`
     FROM {WiserTableNames.WiserUserRoles} AS user_role
     JOIN {WiserTableNames.WiserRoles} AS role ON role.id = user_role.role_id
     JOIN {WiserTableNames.WiserPermission} AS permission ON permission.role_id = role.id AND permission.module_id > 0
     JOIN {WiserTableNames.WiserModule} AS module ON module.id = permission.module_id
+    LEFT JOIN {WiserTableNames.WiserItemDetail} AS module_interactions ON
+        module_interactions.item_id = ?userId AND module_interactions.groupname = 'module_interactions' AND module_interactions.`key` = module.id
     WHERE user_role.user_id = ?userId
     GROUP BY permission.module_id
     ORDER BY permission.module_id, permission.permissions
@@ -141,8 +144,11 @@ UNION
         module.custom_query,
         module.pending_actions_query,
         module.is_fullscreen,
-        module.ordering
+        module.ordering,
+        CAST(IFNULL(NULLIF(module_interactions.`value`, ''), 0) AS UNSIGNED) AS `module_interactions`
     FROM {WiserTableNames.WiserModule} AS module
+    LEFT JOIN {WiserTableNames.WiserItemDetail} AS module_interactions ON
+        module_interactions.item_id = ?userId AND module_interactions.groupname = 'module_interactions' AND module_interactions.`key` = module.id
     WHERE module.id IN ({String.Join(",", modulesForAdmins)})
 )";
             }
@@ -208,6 +214,9 @@ UNION
                 rightsModel.HasCustomQuery = hasCustomQuery;
                 rightsModel.IsFullscreen = dataRow["is_fullscreen"].ToString() == "1";
                 rightsModel.Ordering = uint.TryParse(dataRow["ordering"].ToString(), out uint ordering) ? ordering : 0;
+                rightsModel.ModuleInteractions = int.TryParse(dataRow["module_interactions"].ToString(), out int moduleInteractions)
+                    ? moduleInteractions
+                    : 0;
                 rightsModel.PendingActionCount = 0;
                 
                 string groupOptionsJson = dataRow.Field<string>("group_options");
@@ -915,6 +924,27 @@ WHERE id = ?id";
             await clientDatabaseConnection.ExecuteAsync(customQuery);
 
             // Return a response from the service.
+            return new ServiceResult<bool>(true);
+        }
+        
+        /// <inheritdoc/>
+        public async Task<ServiceResult<bool>> LogOpenAsync(ClaimsIdentity identity, int id)
+        {
+            await clientDatabaseConnection.EnsureOpenConnectionForWritingAsync();
+
+            ulong userId = IdentityHelpers.GetWiserUserId(identity);
+            
+            clientDatabaseConnection.ClearParameters();
+            clientDatabaseConnection.AddParameter("moduleId", id);
+            clientDatabaseConnection.AddParameter("userId", userId);
+
+            await clientDatabaseConnection.ExecuteAsync($"""
+                                                        INSERT INTO {WiserTableNames.WiserItemDetail} (item_id, groupname, `key`, `value`)
+                                                        VALUES (?userId, 'module_interactions', ?moduleId, 1)
+                                                        ON DUPLICATE KEY UPDATE
+                                                            `value` = VALUES(`value`) + 1;
+                                                        """);
+
             return new ServiceResult<bool>(true);
         }
     }

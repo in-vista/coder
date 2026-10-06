@@ -1767,8 +1767,10 @@ export class Fields {
                                         });
 
                                         if (queryResult.otherData.length > 0 && queryResult.otherData[0].value) {
-                                            const defaultValueFromQuery = queryResult.otherData[0].value
-                                                .replace(/\\/g, '');
+                                            let defaultValueFromQuery = queryResult.otherData[0].value;
+                                            if(typeof defaultValueFromQuery === 'string')
+                                                defaultValueFromQuery = defaultValueFromQuery.replace(/\\/g, '');
+                                            
                                             options.value = defaultValueFromQuery;
                                             options.defaultValue = defaultValueFromQuery;
                                         }
