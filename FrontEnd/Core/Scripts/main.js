@@ -419,7 +419,11 @@ class Main {
                     editingModuleTitleInput: undefined,
                     // Account selection.
                     accountDropdownVisible: false,
-                    accountDropdownCloseTimeout: null
+                    accountDropdownCloseTimeout: null,
+                    // Mobile.
+                    isMobile: false,
+                    mobileMediaQuery: null,
+                    mobileMenuOpen: false
                 };
             },
             async created() {
@@ -979,9 +983,10 @@ class Main {
                 },
 
                 async logout(event) {
-                    if (event) {
+                    if (event)
                         event.preventDefault();
-                    }
+                    
+                    this.mobileMenuOpen = false;
 
                     // Update the user's active time one last time.
                     await this.$store.dispatch(UPDATE_ACTIVE_TIME);
@@ -997,6 +1002,8 @@ class Main {
                 },
 
                 openModule(module) {
+                    this.mobileMenuOpen = false;
+                    
                     if(this.activePopout)
                         this.hidePopout(this.activePopout);
                     
@@ -1006,7 +1013,7 @@ class Main {
                     if (typeof (module.queryString) === "undefined") {
                         module.queryString = "";
                     }
-                    this.$store.dispatch(OPEN_MODULE, module);
+                    this.$store.dispatch(OPEN_MODULE, { module, isMobile: this.isMobile });
                     
                     if(module.isFullscreen) {
                         const headerElement = document.querySelector('header');
@@ -1899,6 +1906,18 @@ class Main {
 
                         this.accountDropdownVisible = false;
                     });
+                },
+
+                updateIsMobile(event) {
+                    this.isMobile = event.matches;
+                },
+
+                openMobileMenu() {
+                    this.mobileMenuOpen = true;
+                },
+
+                closeMobileMenu() {
+                    this.mobileMenuOpen = false;
                 }
             },
             mounted() {
@@ -1921,6 +1940,10 @@ class Main {
                     "reloadImitations",
                     this.reloadImitationsHandler
                 );
+
+                this.mobileMediaQuery = window.matchMedia('(max-width: 767px)');
+                this.isMobile = this.mobileMediaQuery.matches;
+                this.mobileMediaQuery.addEventListener('change', this.updateIsMobile);
             },
             beforeUnmount() {
                 this.stopPendingActionsRefreshTimer();
@@ -1930,6 +1953,8 @@ class Main {
                     "reloadImitations",
                     this.reloadImitationsHandler
                 );
+
+                this.mobileMediaQuery?.removeEventListener('change', this.updateIsMobile);
             }
         });
 

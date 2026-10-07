@@ -1191,6 +1191,7 @@ $mdi-sizes: (
     background-color: var(--coder-background-color);
 }
 
+/* Sidebar desktop */
 #coder-menu {
     min-width: 56px;
     max-width: fit-content;
@@ -1408,6 +1409,226 @@ $mdi-sizes: (
         }
     }
 }
+
+/* END Sidebar desktop */
+
+/* Sidebar mobile */
+#mobile-navigation {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    pointer-events: none;
+}
+
+#mobile-navigation-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    pointer-events: auto;
+}
+
+#mobile-navigation-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    width: 280px;
+    max-width: 80vw;
+
+    display: flex;
+    flex-direction: column;
+
+    background: var(--coder-primary-color);
+
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+
+    pointer-events: auto;
+    overflow: hidden;
+}
+
+#mobile-navigation-panel.mobile-navigation-panel-open {
+    transform: translateX(0);
+}
+
+#mobile-navigation-header {
+    height: 80px;
+    min-height: 80px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 18px;
+
+    background-color: color-mix(in srgb, var(--coder-primary-color) 90%, black);
+    color: var(--coder-foreground-color);
+}
+
+#mobile-navigation-logo {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+
+    margin-right: 18px;
+}
+
+#mobile-navigation-title {
+    flex: 1;
+
+    font-size: 20px;
+    font-weight: 600;
+}
+
+#mobile-navigation-close {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 0;
+    padding: 0;
+
+    background: transparent;
+    color: var(--coder-icon-color);
+
+    font-size: 26px;
+    cursor: pointer;
+}
+
+#mobile-navigation-items {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 8px 0;
+    
+    overflow-y: scroll;
+}
+
+#mobile-navigation-items::-webkit-scrollbar {
+    display: none;
+}
+
+.mobile-navigation-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mobile-navigation-item {
+    position: relative;
+
+    min-height: 56px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 24px;
+
+    color: var(--coder-icon-color);
+    cursor: pointer;
+
+    transition:
+            background-color 0.15s ease,
+            color 0.15s ease;
+}
+
+.mobile-navigation-text {
+    font-size: 15px;
+    text-align: center;
+}
+
+.mobile-navigation-item, .mobile-navigation-text {
+    color: var(--coder-icon-color);
+}
+
+.mobile-navigation-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.mobile-navigation-item-active {
+    background: rgba(255, 255, 255, 0.10);
+    color: color-mix(in srgb, var(--coder-primary-color) 90%, white);
+}
+
+.mobile-navigation-item-active::before {
+    content: '';
+
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+
+    width: 4px;
+
+    background-color: color-mix(in srgb, var(--coder-primary-color) 90%, white);
+}
+
+.mobile-navigation-item-icon {
+    width: fit-content;
+
+    margin-right: 16px;
+
+    font-size: 34px;
+    text-align: center;
+}
+
+.mobile-navigation-item-label {
+    font-size: 16px;
+    font-weight: 300;
+}
+
+.mobile-navigation-spacer {
+    flex: 1;
+    margin: 0 16px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.mobile-navigation-item > #accountDropdown > .account-item {
+    color: initial;
+}
+/* END Sidebar mobile */
+
+/* Mobile-specific Coder container */
+#coder-tab-strip.coder-tab-strip-mobile {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    
+    color: var(--coder-icon-color);
+    background-color: var(--coder-primary-color);
+}
+
+#mobile-menu-button {
+    border: 0;
+    border-radius: 8px;
+    
+    color: inherit;
+    background-color: transparent;
+    
+    justify-self: start;
+}
+
+#coder-tab-strip-module-header {
+    font-size: 17px;
+    font-weight: 400;
+    
+    text-align: center;
+    
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
+    overflow: hidden;
+}
+
+#coder-tab-strip.coder-tab-strip-mobile > #coder-tab-strip-actions {
+    justify-self: end;
+}
+
+/* END Mobile-specific Coder container */
 
 #accountButton {
     anchor-name: --account-button;

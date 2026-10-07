@@ -8,85 +8,175 @@
 </style>
 <div id="app" v-cloak>
     <div :class="{ 'loading': mainLoader }">
-        <div v-if="user.loggedIn && !requirePasswordChange" id="coder-menu">
-            <div id="logo-container">
-                <img v-if="tenantOptions" :src="tenantOptions.logo" alt="logo"/>
-            </div>
-            <div id="modules" class="coder-menu-group">
-                 <template v-for="moduleGroup in [ ...pinnedModuleGroups, ...moduleGroups ]" :key="moduleGroup.name">
-                    <div v-if="moduleGroup.modules.length" class="coder-menu-item">
-                        <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)" @@click="moduleGroup.modules.length === 1 && onOpenModuleClick($event, moduleGroup.modules[0])" :data-pending-actions="
-                                (moduleGroup.modules ?? []).reduce(
-                                    (totalPendingActions, module) => totalPendingActions + Number(module?.pendingActionCount ?? 0),
-                                    0
-                                )
-                            ">
-                            <i class="mdi mdi-size-2" :class="[ `mdi-${moduleGroup.icon ?? 'cog'}` ]"></i>
+        <template v-if="user.loggedIn && !requirePasswordChange">
+            <div v-if="!isMobile" id="coder-menu">
+                <div id="logo-container">
+                    <img v-if="tenantOptions" :src="tenantOptions.logo" alt="logo"/>
+                </div>
+                <div id="modules" class="coder-menu-group">
+                    <template v-for="moduleGroup in [ ...pinnedModuleGroups, ...moduleGroups ]" :key="moduleGroup.name">
+                        <div v-if="moduleGroup.modules.length" class="coder-menu-item">
+                            <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)" @@click="moduleGroup.modules.length === 1 && onOpenModuleClick($event, moduleGroup.modules[0])" :data-pending-actions="
+                                    (moduleGroup.modules ?? []).reduce(
+                                        (totalPendingActions, module) => totalPendingActions + Number(module?.pendingActionCount ?? 0),
+                                        0
+                                    )
+                                ">
+                                <i class="mdi mdi-size-2" :class="[ `mdi-${moduleGroup.icon ?? 'cog'}` ]"></i>
+                            </div>
+                            <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event)">
+                                <p v-if="moduleGroup.modules.length > 1" class="coder-menu-item-popout-title">{{ moduleGroup.name }}</p>
+                                <div class="coder-menu-item-popout-items">
+                                    <div v-for="module in moduleGroup.modules" :key="module.moduleId" class="coder-menu-item-popout-item" @@click="onOpenModuleClick($event, module)">
+                                        <div class="coder-menu-item-popout-item-content hover" :data-pending-actions="module.pendingActionCount ?? 0">
+                                            <i class="mdi mdi-size-2" :class="[ `mdi-${module.icon ?? 'cog'}` ]"></i>
+                                            <span>{{ module.name }}</span>
+                                        </div>
+                                        <div class="coder-menu-item-popout-item-pin icon-container hover">
+                                            <i class="mdi mdi-size-2" :class="[ `mdi-${module.pinned ? 'pin-off' : 'pin'}${!module.autoLoad ? '-outline' : ''}` ]" @@click.stop="onTogglePin($event, module.moduleId)"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event)">
-                            <p v-if="moduleGroup.modules.length > 1" class="coder-menu-item-popout-title">{{ moduleGroup.name }}</p>
+                    </template>
+                </div>
+                <div id="account-info" class="coder-menu-group">
+                    <div class="coder-menu-item">
+                        <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)">
+                            <i class="mdi mdi-size-2 mdi-account"></i>
+                        </div>
+                        <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event); closeAccountDropdown()">
+                            <p class="coder-menu-item-popout-title"><strong>Welkom</strong> <span class="coder-highlight">{{ user.name }}</span>.</p>
                             <div class="coder-menu-item-popout-items">
-                                <div v-for="module in moduleGroup.modules" :key="module.moduleId" class="coder-menu-item-popout-item" @@click="onOpenModuleClick($event, module)">
-                                    <div class="coder-menu-item-popout-item-content hover" :data-pending-actions="module.pendingActionCount ?? 0">
-                                        <i class="mdi mdi-size-2" :class="[ `mdi-${module.icon ?? 'cog'}` ]"></i>
-                                        <span>{{ module.name }}</span>
-                                    </div>
-                                    <div class="coder-menu-item-popout-item-pin icon-container hover">
-                                        <i class="mdi mdi-size-2" :class="[ `mdi-${module.pinned ? 'pin-off' : 'pin'}${!module.autoLoad ? '-outline' : ''}` ]" @@click.stop="onTogglePin($event, module.moduleId)"></i>
+                                <div v-if="!!markerWidget" class="coder-menu-item-popout-item">
+                                    <div @@click="openMarkerIoScreen" class="coder-menu-item-popout-item-content hover">
+                                        <i class="mdi mdi-size-2 mdi-bug"></i>
+                                        <span >Bug melden</span>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </div>
-            <div id="account-info" class="coder-menu-group">
-                <div class="coder-menu-item">
-                    <div class="coder-menu-item-content" @@mouseenter="showPopout($event)" @@mouseleave="scheduleHidePopout($event)">
-                        <i class="mdi mdi-size-2 mdi-account"></i>
-                    </div>
-                    <div class="coder-menu-item-popout" @@mouseenter="cancelHidePopout($event)" @@mouseleave="scheduleHidePopout($event); closeAccountDropdown()">
-                        <p class="coder-menu-item-popout-title"><strong>Welkom</strong> <span class="coder-highlight">{{ user.name }}</span>.</p>
-                        <div class="coder-menu-item-popout-items">
-                            <div v-if="!!markerWidget" class="coder-menu-item-popout-item">
-                                <div @@click="openMarkerIoScreen" class="coder-menu-item-popout-item-content hover">
-                                    <i class="mdi mdi-size-2 mdi-bug"></i>
-                                    <span >Bug melden</span>
-                                </div>
-                            </div>
-                            <div v-if="imitations?.length" class="coder-menu-item-popout-item">
-                                <div @@mouseenter.stop="openAccountDropdown" @@mouseleave.stop="scheduleCloseAccountDropdown" id="accountButton" class="coder-menu-item-popout-item-content hover">
-                                    <i class="mdi mdi-size-2 mdi-account-convert"></i>
-                                    <span>Account wisselen</span>
-                                </div>
-                                <div
-                                    v-show="accountDropdownVisible"
-                                    id="accountDropdown"
-                                    class="dropdown"
-                                    @@mouseenter="cancelCloseAccountDropdown" 
-                                    @@mouseleave="scheduleCloseAccountDropdown">
+                                <div v-if="imitations?.length" class="coder-menu-item-popout-item">
+                                    <div @@mouseenter.stop="openAccountDropdown" @@mouseleave.stop="scheduleCloseAccountDropdown" id="accountButton" class="coder-menu-item-popout-item-content hover">
+                                        <i class="mdi mdi-size-2 mdi-account-convert"></i>
+                                        <span>Account wisselen</span>
+                                    </div>
                                     <div
-                                        v-for="imitation in imitations"
-                                        class="account-item hover"
-                                        @@click="selectAccount(imitation.encrypted_id)">
-                                        {{ imitation.account_name }}{{ imitation.account_name ? ' - ' : '' }}{{ imitation.name }}
+                                        v-show="accountDropdownVisible"
+                                        id="accountDropdown"
+                                        class="dropdown"
+                                        @@mouseenter="cancelCloseAccountDropdown"
+                                        @@mouseleave="scheduleCloseAccountDropdown">
+                                        <div
+                                            v-for="imitation in imitations"
+                                            class="account-item hover"
+                                            @@click="selectAccount(imitation.encrypted_id)">
+                                            {{ imitation.account_name }}{{ imitation.account_name ? ' - ' : '' }}{{ imitation.name }}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="coder-menu-item-popout-item">
-                                <div @@click="logout" class="coder-menu-item-popout-item-content hover">
-                                    <i class="mdi mdi-size-2 mdi-logout"></i>
-                                    <span>Uitloggen</span>
+                                <div class="coder-menu-item-popout-item">
+                                    <div @@click="logout" class="coder-menu-item-popout-item-content hover">
+                                        <i class="mdi mdi-size-2 mdi-logout"></i>
+                                        <span>Uitloggen</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+            <!-- Mobile menu -->
+            <div v-else id="mobile-navigation">
+                <!-- Dark overlay -->
+                <div
+                    v-if="mobileMenuOpen"
+                    id="mobile-navigation-overlay"
+                    @@click="closeMobileMenu">
+                </div>
+                <!-- Menu panel -->
+                <aside
+                    id="mobile-navigation-panel"
+                    :class="{ 'mobile-navigation-panel-open': mobileMenuOpen }">
+                    <div id="mobile-navigation-header">
+                        <img
+                            v-if="tenantOptions"
+                            :src="tenantOptions.logo"
+                            alt="logo"
+                            id="mobile-navigation-logo"/>
+                        <span id="mobile-navigation-title"></span>
+                        <button
+                            id="mobile-navigation-close"
+                            type="button"
+                            @@click="closeMobileMenu">
+                            <i class="mdi mdi-close mdi-36px"></i>
+                        </button>
+                    </div>
+                    <nav id="mobile-navigation-items">
+                        <div
+                            v-for="moduleGroup in [...pinnedModuleGroups, ...moduleGroups]"
+                            :key="moduleGroup.name"
+                            class="mobile-navigation-group">
+                            <div
+                                v-for="module in moduleGroup.modules"
+                                :key="module.moduleId"
+                                class="mobile-navigation-item"
+                                :class="{ 'mobile-navigation-item-active': module.id === activeModule }"
+                                @@click="onOpenModuleClick($event, module)">
+                                <i
+                                    class="mdi mobile-navigation-item-icon"
+                                    :class="`mdi-${module.icon ?? moduleGroup.icon ?? 'cog'}`">
+                                </i>
+                                <span class="mobile-navigation-item-label">
+                                    {{ module.name }}</span>
+                            </div>
+                        </div>
+                        <!-- Account -->
+                        <div class="mobile-navigation-spacer"></div>
+                        <div v-if="!!markerWidget" class="mobile-navigation-item">
+                            <div @@click="openMarkerIoScreen">
+                                <i class="mdi mdi-bug"></i>
+                                <span >Bug melden</span>
+                            </div>
+                        </div>
+                        <div
+                            v-if="imitations?.length"
+                            class="mobile-navigation-item"
+                            @@mouseenter.stop="openAccountDropdown"
+                            @@mouseleave.stop="scheduleCloseAccountDropdown"
+                            id="accountButton">
+                            <i class="mdi mdi-account-convert mobile-navigation-item-icon"></i>
+                            <span>Account wisselen</span>
+                            <div
+                                v-show="accountDropdownVisible"
+                                id="accountDropdown"
+                                class="dropdown"
+                                @@mouseenter="cancelCloseAccountDropdown"
+                                @@mouseleave="scheduleCloseAccountDropdown">
+                                <div
+                                    v-for="imitation in imitations"
+                                    class="account-item"
+                                    @@click="selectAccount(imitation.encrypted_id)">
+                                    {{ imitation.account_name }}{{ imitation.account_name ? ' - ' : '' }}{{ imitation.name }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mobile-navigation-item" @@click="logout">
+                            <i class="mdi mdi-logout mobile-navigation-item-icon"></i>
+                            <span>Uitloggen</span>
+                        </div>
+                        <p class="mobile-navigation-text">Welkom <span class="coder-highlight">{{ user.name }}</span>.</p>
+                    </nav>
+                </aside>
+            </div>
+        </template>
         <div id="coder-container">
-            <div v-if="user.loggedIn && !requirePasswordChange" id="coder-tab-strip">
-                <div id="modules-strip">
+            <div
+                v-if="user.loggedIn && !requirePasswordChange"
+                id="coder-tab-strip"
+                :class="{
+                    'coder-tab-strip-mobile': isMobile
+                }">
+                <div v-if="!isMobile" id="modules-strip">
                     <div
                         v-for="(module, tabIndex) in openedModules"
                         :key="module.id"
@@ -118,6 +208,17 @@
                         </div>
                     </div>
                 </div>
+                <template v-if="isMobile">
+                    <button
+                        id="mobile-menu-button"
+                        type="button"
+                        @@click="openMobileMenu">
+                        <i class="mdi mdi-menu mdi-24px"></i>
+                    </button>
+                    <span id="coder-tab-strip-module-header">
+                        {{ openedModules[0]?.name }}
+                    </span>
+                </template>
                 <div id="coder-tab-strip-actions">
                     <div v-if="modules.find(m => m.moduleId === 709)" class="tab-strip-button" @@click="openModule(709)">
                         <ins class="mdi mdi-size-2 mdi-magnify"></ins>
@@ -905,7 +1006,7 @@
 
             <div class="error" v-if="deleteBranchError">{{ deleteBranchError }}</div>
         </wiser-dialog>
-        
+
         <transition name="invista-qs-dialog">
             <div v-if="quickSearchDialogVisible" id="invista-qs-container" @@keydown="handleQuickSearchDialogKeyDown">
                 <div id="invista-qs-dialog">

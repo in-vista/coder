@@ -485,7 +485,19 @@ const modulesModule = {
             }
         },
 
-        [OPEN_MODULE]: (state, module) => {
+        [OPEN_MODULE]: (state, { module, isMobile }) => {
+            // Close currently opened modules if the user is using mobile.
+            if (isMobile) {
+                const existingModule = state.openedModules.find(m => m.moduleId === module.moduleId);
+
+                if (existingModule) {
+                    state.activeModule = existingModule.id;
+                    return;
+                }
+
+                state.openedModules = [];
+            }
+            
             // Check if this module is already open, if the user is not allowed to have multiple instances of this module open at once.
             let activeModule = !module.onlyOneInstanceAllowed ? null : state.openedModules.filter(m => m.moduleId === module.moduleId)[0];
 
@@ -616,7 +628,7 @@ const modulesModule = {
                         if(loadedAutoLoadedModules.includes(module.moduleId))
                             continue;
                         
-                        commit(OPEN_MODULE, module);
+                        commit(OPEN_MODULE, { module, isMobile: main.vueApp.isMobile });
                         loadedAutoLoadedModules.push(module.moduleId);
                     }
                 }
@@ -636,8 +648,8 @@ const modulesModule = {
             }
         },
 
-        async [OPEN_MODULE]({ commit }, module) {
-            commit(OPEN_MODULE, module);
+        async [OPEN_MODULE]({ commit }, { module, isMobile }) {
+            commit(OPEN_MODULE, { module, isMobile });
             
             // Log module opened for currently logged-in user.
             try {
