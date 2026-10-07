@@ -630,9 +630,9 @@ export class Wiser {
         
         // Convert to a number if possible and if it does not start with leading zeros.
         // If there are leading zeros, we do not want to convert it, as it will remove characters, which in most cases is unwanted behaviour.
-        if(convertToNumberIfPossible && output.startsWith('0'))
+        if(convertToNumberIfPossible && !output.startsWith('0'))
             output = Strings.convertToNumberIfPossible(output);
-
+        
         return output;
     }
 
