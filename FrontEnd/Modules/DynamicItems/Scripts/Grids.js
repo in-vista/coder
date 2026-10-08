@@ -415,6 +415,32 @@ export class Grids {
                 
                 this.addCustomActionsToToolbar("#gridView", 0, 0, toolbar, filteredCustomActions, undefined);
             }
+            
+            // If configured, setup a toolbar text to show text based on query results.
+            const textQueryId = gridViewSettings.toolbar?.textQueryId;
+            const textContainerId = 'gridToolbarTextContainer';
+            if(textQueryId) {
+                toolbar.push({
+                    template: `<div id="${textContainerId}"></div>`
+                });
+            }
+            
+            // Local function that updates the toolbar text by requerying its value.
+            const updateToolbarText = async () => {
+                if(textQueryId) {
+                    const textQueryResults = await Wiser.api({
+                        method: "POST",
+                        url: `${this.base.settings.wiserApiRoot}items/${encodeURIComponent(this.base.settings.zeroEncrypted)}/action-button/0?queryId=${encodeURIComponent(textQueryId)}&itemLinkId=0`,
+                        data: JSON.stringify({
+                            moduleId: this.base.settings.moduleId
+                        }),
+                        contentType: "application/json"
+                    });
+
+                    const textResult = Object.values(textQueryResults.otherData?.[0])[0];
+                    $(`#${textContainerId}`).html(textResult);
+                }
+            }
 
             let totalResults = gridDataResult.totalResults;
 
@@ -514,7 +540,7 @@ export class Grids {
                     transport: {
                         read: async (transportOptions) => {
                             const process = `loadMainGrid_${Date.now()}`;
-
+                            
                             // Retrieve and store the state of which to show/hide hidden elements in the transport data.
                             if(toolbarSettings?.hideToggleHiddenItemsButton === false)
                                 transportOptions.data.showHiddenItems = this.mainGrid?.element.data('showHiddenItems') ?? false;
@@ -575,6 +601,9 @@ export class Grids {
                                 console.error(exception);
                                 transportOptions.error(exception);
                                 kendo.alert("Er is iets fout gegaan tijdens het laden van de data voor deze module. Sluit a.u.b. de module en probeer het nogmaals.");
+                            } finally {
+                                // Update the custom text in the toolbar if given.
+                                await updateToolbarText();
                             }
 
                             window.processing.removeProcess(process);
