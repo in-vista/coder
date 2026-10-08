@@ -1392,21 +1392,42 @@
                             // Toon deze hover
                             hover.style.display = "block";
     
+                            // Reset hover to its original horizontal position
+                            const originalLeft = parseFloat(reservationElement.style.left) + reservationElement.offsetWidth / 2;
+                            hover.style.left = `${originalLeft}px`;
+
                             const rect = hover.getBoundingClientRect();
                             const reservationRect = reservationElement.getBoundingClientRect();
                             const viewportHeight = window.innerHeight;
+                            const viewportWidth = window.innerWidth;
                             const margin = 8; // optionele marge
     
                             // Check beschikbare ruimte onder de reservering
+                            const spacing = 31;
                             const spaceBelow = viewportHeight - reservationRect.bottom - margin;
-    
-                            if (spaceBelow < rect.height) {
-                                // Niet genoeg ruimte onder, hover omhoog plaatsen
-                                hover.style.top = '-256px';
+                            const spaceAbove = reservationRect.top - margin;
+
+                            // Vertical positioning
+                            if (spaceBelow < rect.height + spacing && spaceAbove >= rect.height + spacing) {
+                                // Niet genoeg ruimte onder, hover boven reservering plaatsen
+                                hover.style.top = `${-rect.height - spacing}px`;
                             } else {
-                                // Genoeg ruimte onder, hover normaal onder reservering plaatsen
-                                hover.style.top = '35px';
+                                // Hover onder reservering plaatsen
+                                hover.style.top = `${reservationElement.offsetHeight + spacing}px`;
                             }
+
+                            // Horizontal positioning
+                            let offset = 0;
+
+                            if (rect.left < margin) {
+                                // Hover extends beyond left edge
+                                offset = margin - rect.left;
+                            } else if (rect.right > viewportWidth - margin) {
+                                // Hover extends beyond right edge
+                                offset = viewportWidth - margin - rect.right;
+                            }
+
+                            hover.style.left = `${originalLeft + offset}px`;
                         }
                     }, 200);
                 }
