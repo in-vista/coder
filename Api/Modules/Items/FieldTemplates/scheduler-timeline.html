@@ -391,20 +391,6 @@
     }
 
     @media (max-width: 1525px) {
-        .timeline-search {
-            right: 10px !important;
-            left: unset !important;
-            transform: none !important;
-        }
-
-        .search-container {
-            right: -1px !important;
-            left: unset !important;
-            transform: none !important;
-        }
-    }
-
-    @media (max-width: 1070px) {
         .date-selector {
             gap: 8px;
             flex-direction: column;
@@ -413,13 +399,6 @@
 
         .timeline-date-selector {
             flex-shrink: 0;
-        }
-
-        .timeline-search {
-            flex: 1;
-            margin-left: auto;
-            max-width: 300px;
-            position: relative !important;
         }
     }
 
@@ -446,6 +425,7 @@
     
     #timeline-view-btn, #list-view-btn, #map-view-btn {
         margin: 0;
+        margin-bottom: 6px;
     }
     
     #map-view {
@@ -581,32 +561,13 @@
             35px /* check-in and out */            
         }
     }
-
-    @media (max-width: 800px) {
-        .list-reservation {
-            grid-template-columns:
-            20px
-            2fr
-            40px
-            3fr
-            95px;
-        }
-        .table,
-        .arrangement-badge,
-        .notes,
-        .icon-btn,
-        .returning-star,
-        .warning-icon {
-            display: none;
-        }
-    }
     
     .timeline-search {
-        position: absolute;
-        display: flex;
+        position: relative;
+        display: inline-flex;
         align-items: center;
         gap: 6px;
-        right:3%;
+        float: right;
     }
     
     /* Zoekbalk kleiner op kleinere schermen
@@ -616,9 +577,9 @@
             right: 10%;
         }
     } */
-    
+  
     .timeline-search input {
-        padding: 4px 8px;
+        padding: 7px 10px;
     }
     .timeline-search button {
         margin: 0 10px;
@@ -630,14 +591,14 @@
     }
     .search-container {
         position: absolute;
-        top: 30px;
+        top: 35px;
         background-color: #FFFFFF;
         width: 740px;
         border-left: 1px solid #F0F0F0;
         border-right: 1px solid #F0F0F0;
         border-bottom: 1px solid #F0F0F0;
-        left: 50%;
         transform: translateX(-50%);
+        left: -23%;
     }
     .search-container .loader {
         padding: 5px;
@@ -680,6 +641,14 @@
     #list-view-table-group-filter {
         padding: 6px 8px;
         cursor: pointer;
+        appearance: none;
+        padding-right: 32px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 16px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
     }
     
     #timeline-search {
@@ -773,6 +742,305 @@
         color: rgba(0,0,0,0.55);
     }
 
+    @media (max-width: 767px) {
+        #timelineScheduler {
+            width: 100%;
+            height: calc(100dvh - 42px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .date-selector {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            padding: 12px;
+            flex-shrink: 0;
+        }
+
+        .timeline-date-selector {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        #timeline-view-btn,
+        #list-view-btn,
+        #map-view-btn,
+        #prev-day,
+        #next-day,
+        #refresh-button {
+            display: none !important;
+        }
+
+        #current-date {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            flex: 1 1 auto;
+            width: auto !important;
+            min-width: 0;
+            max-width: 100%;
+            height: 42px;
+            padding: 0 12px;
+            box-sizing: border-box;
+            white-space: nowrap;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #fff;
+            bottom: auto;
+            cursor: pointer;
+        }
+
+        #today-button {
+            display: inline-flex !important;
+            white-space: nowrap;
+            height: 40px;
+            width: 40px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #new-item-btn {
+            width: 100%;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .timeline-search {
+            position: relative !important;
+            inset: auto !important;
+            transform: none !important;
+            width: 100%;
+            max-width: none;
+            margin: 0;
+        }
+
+        #timeline-search {
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        .search-container {
+            position: absolute;
+            top: 100%;
+            left: 0 !important;
+            right: 0 !important;
+            transform: none !important;
+            width: 100% !important;
+            max-height: 55dvh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        #list-view-table-group-filter {
+            min-height: 40px;
+        }
+
+        .scheduler,
+        #map-view {
+            display: none !important;
+        }
+
+        #list-view {
+            display: block !important;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #f5f6f8;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .list-accordion {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            padding: 12px;
+            background: #e9edf2;
+            font-size: 13px;
+        }
+
+        .list-panel {
+            padding: 8px;
+        }
+
+        .list-reservation {
+            display: grid;
+            grid-template-columns: 12px minmax(0, 1fr) auto;
+            gap: 8px 10px;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 12px;
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            min-width: 0;
+        }
+
+        .list-reservation .status-dot {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .list-reservation .customer-name {
+            grid-column: 2;
+            grid-row: 1;
+            min-width: 0;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .list-reservation .persons {
+            grid-column: 3;
+            grid-row: 1;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .list-reservation .table {
+            display: block;
+            grid-column: 2 / 4;
+            grid-row: 2;
+            font-size: 12px;
+            color: #666;
+            overflow-wrap: anywhere;
+        }
+
+        .list-reservation .notes {
+            display: block;
+            grid-column: 2 / 4;
+            grid-row: 3;
+            font-size: 13px;
+            color: #666;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .list-reservation .status-badge {
+            grid-column: 2;
+            grid-row: 4;
+            justify-self: start;
+        }
+
+        .list-reservation .icon-btn {
+            display: inline-flex;
+            grid-column: 3;
+            grid-row: 4;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 5px;
+            min-width: 40px;
+            min-height: 40px;
+        }
+
+        .list-reservation > span:empty {
+            display: none;
+        }
+
+        .flatpickr-calendar.open {
+            position: fixed !important;
+            right: auto !important;
+            max-width: calc(100vw - 24px);
+            z-index: 10000 !important;
+        }
+
+        .flatpickr-calendar.open::before,
+        .flatpickr-calendar.open::after {
+            display: none;
+        }
+
+        .search-container {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0 !important;
+            right: 0 !important;
+            transform: none !important;
+            width: 100% !important;
+            max-width: 100%;
+            max-height: 60dvh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            z-index: 1000;
+        }
+
+        .search-item-today-item {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 6px 10px;
+            align-items: start;
+            padding: 12px;
+            margin: 0;
+            font-size: 14px;
+            font-weight: normal;
+            border-bottom: 1px solid #eee;
+            min-width: 0;
+        }
+
+        .search-item-today-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-item-column {
+            min-width: 0;
+            width: auto !important;
+            overflow-wrap: anywhere;
+        }
+
+        .search-item-column:nth-child(1) {
+            grid-column: 1;
+            grid-row: 2;
+            font-size: 12px;
+            color: #777;
+        }
+
+        .search-item-column:nth-child(2) {
+            grid-column: 2;
+            grid-row: 1;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .search-item-column:nth-child(3) {
+            grid-column: 1;
+            grid-row: 1;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        .search-item-column:nth-child(4) {
+            grid-column: 2;
+            grid-row: 2;
+            font-size: 12px;
+            text-align: right;
+        }
+
+        .search-item-column:nth-child(5) {
+            grid-column: 1 / -1;
+            grid-row: 3;
+            font-size: 12px;
+            color: #777;
+            overflow-wrap: anywhere;
+        }
+    }
+
     @keyframes slideIn {
         from { opacity: 0; transform: translateY(-8px) scale(.98); }
         to   { opacity: 1; transform: translateY(0) scale(1); }
@@ -801,19 +1069,18 @@
             <button id="today-button" class="date-control"><i class="mdi mdi-size-2 mdi-calendar-today"></i>Vandaag</button>
             <button id="refresh-button" class="date-control"><i class="mdi mdi-size-2 mdi-refresh"></i>Verversen</button>
             <button id="new-item-btn"><i class="mdi mdi-size-2 mdi-plus"></i>Nieuwe reservering aanmaken</button>
+            <div class="timeline-search date-control">
+                <input type="text" placeholder="Begin met typen om te zoeken..." id="timeline-search" />
+                <div class="search-container" style="display: none;">
+                    <div id="search-container">
+                        <!-- Hier komen de resultaten te staan -->
+                    </div>
+                </div>
+            </div>
         </div>
-        &nbsp;        
         <select id="list-view-table-group-filter" class="hidden">
             <option value="all">Alle Ruimtes</option>
         </select>
-        <div class="timeline-search date-control">            
-            <input type="text" placeholder="Begin met typen om te zoeken..." id="timeline-search" />            
-            <div class="search-container" style="display: none;">                
-                <div id="search-container">
-                    <!-- Hier komen de resultaten te staan -->                
-                </div>
-            </div>
-        </div> 
         <div id="search-item-template" style="display: none;">
             <div class="search-item-today-item {status}" data-reservation-id="{reservationId}" data-reservation-id-encrypted="{encryptedId}" data-date="{date}">
                 <div class="search-item-column" style="width:110px;">{dateformatted}</div>
