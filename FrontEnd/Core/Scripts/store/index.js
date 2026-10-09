@@ -100,6 +100,7 @@ const loginModule = {
         user: {
             name: "",
             role: "",
+            accountName: "",
             lastLoginIpAddress: "",
             lastLoginDate: null,
             loggedIn: false,

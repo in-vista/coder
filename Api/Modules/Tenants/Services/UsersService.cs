@@ -354,6 +354,7 @@ ORDER BY name ASC";
                             user.id, 
                             IFNULL(NULLIF(user.title, ''), username.value) AS name, 
                             username.`value` AS username, 
+                            account.title AS account_name, 
                             password.`value` AS password,
                             last_login_ip.value AS last_login_ip,
                             IF(last_login_date.value IS NULL, ?now, STR_TO_DATE(last_login_date.value, '%Y-%m-%d %H:%i:%s')) AS last_login_date,
@@ -367,6 +368,7 @@ ORDER BY name ASC";
                         FROM {WiserTableNames.WiserItem} user
                         JOIN {WiserTableNames.WiserItemDetail} username ON username.item_id = user.id AND username.`key` = '{UserUsernameKey}' AND username.value = ?username
                         JOIN {WiserTableNames.WiserItemDetail} password ON password.item_id = user.id AND password.`key` = '{UserPasswordKey}'
+                        LEFT JOIN {WiserTableNames.WiserItem} account ON account.id = user.parent_item_id
                         LEFT JOIN {WiserTableNames.WiserItemDetail} last_login_ip ON last_login_ip.item_id = user.id AND last_login_ip.`key` = '{UserLastLoginIpKey}'
                         LEFT JOIN {WiserTableNames.WiserItemDetail} last_login_date ON last_login_date.item_id = user.id AND last_login_date.`key` = '{UserLastLoginDateKey}'
                         LEFT JOIN {WiserTableNames.WiserItemDetail} require_password_change ON require_password_change.item_id = user.id AND require_password_change.`key` = '{UserRequirePasswordChangeKey}'
@@ -404,6 +406,7 @@ ORDER BY name ASC";
                     Username = dataRow.Field<string>("username"),
                     Password = dataRow.Field<string>("password"),
                     Name = dataRow.Field<string>("name"),
+                    AccountName = dataRow.Field<string>("account_name"),
                     LastLoginDate = dataRow.Field<DateTime?>("last_login_date"),
                     LastLoginIpAddress = dataRow.Field<string>("last_login_ip"),
                     RequirePasswordChange = requirePasswordChange > 0 && !validAdminAccount, // Only require to change the password if the actual user is logged in.
@@ -567,6 +570,7 @@ ORDER BY name ASC";
                             token.user_id,
 	                        IFNULL(NULLIF(user.title, ''), username.value) AS name, 
                             username.value AS username,
+                            account.title AS account_name,
                             last_login_ip.value AS last_login_ip,
                             IF(last_login_date.value IS NULL, ?now, STR_TO_DATE(last_login_date.value, '%Y-%m-%d %H:%i:%s')) AS last_login_date,
                             IFNULL(require_password_change.value, 0) AS require_password_change,
@@ -574,6 +578,7 @@ ORDER BY name ASC";
                         FROM {WiserTableNames.WiserUsersAuthenticationTokens} token
                         JOIN {WiserTableNames.WiserItem} user ON user.id = token.user_id
                         JOIN {WiserTableNames.WiserItemDetail} username ON username.item_id = user.id AND username.`key` = '{UserUsernameKey}'
+                        LEFT JOIN {WiserTableNames.WiserItem} account ON account.id = user.parent_item_id
                         LEFT JOIN {WiserTableNames.WiserItemDetail} last_login_ip ON last_login_ip.item_id = user.id AND last_login_ip.`key` = '{UserLastLoginIpKey}'
                         LEFT JOIN {WiserTableNames.WiserItemDetail} last_login_date ON last_login_date.item_id = user.id AND last_login_date.`key` = '{UserLastLoginDateKey}'
                         LEFT JOIN {WiserTableNames.WiserItemDetail} require_password_change ON require_password_change.item_id = user.id AND require_password_change.`key` = '{UserRequirePasswordChangeKey}'
@@ -605,6 +610,7 @@ ORDER BY name ASC";
                 Id = userId,
                 Username = dataRow.Field<string>("username"),
                 Name = dataRow.Field<string>("name"),
+                AccountName = dataRow.Field<string>("account_name"),
                 LastLoginDate = dataRow.Field<DateTime?>("last_login_date"),
                 LastLoginIpAddress = dataRow.Field<string>("last_login_ip"),
                 RequirePasswordChange = requirePasswordChange > 0 && String.IsNullOrWhiteSpace(encryptedAdminAccountId), // Only require to change the password if the actual user is logged in.
@@ -804,6 +810,7 @@ ORDER BY name ASC";
                             user.id, 
                             IFNULL(NULLIF(user.title, ''), username.value) AS name, 
                             username.`value` AS username, 
+                            account.title AS account_name, 
                             password.`value` AS password,
                             last_login_ip.value AS last_login_ip,
                             IF(last_login_date.value IS NULL, ?now, STR_TO_DATE(last_login_date.value, '%Y-%m-%d %H:%i:%s')) AS last_login_date,
@@ -816,6 +823,7 @@ ORDER BY name ASC";
                         FROM {WiserTableNames.WiserItem} user
                         JOIN {WiserTableNames.WiserItemDetail} username ON username.item_id = user.id
                         JOIN {WiserTableNames.WiserItemDetail} password ON password.item_id = user.id AND password.`key` = '{UserPasswordKey}'
+                        LEFT JOIN {WiserTableNames.WiserItem} account ON account.id = user.parent_item_id                        
                         LEFT JOIN {WiserTableNames.WiserItemDetail} last_login_ip ON last_login_ip.item_id = user.id AND last_login_ip.`key` = '{UserLastLoginIpKey}'
                         LEFT JOIN {WiserTableNames.WiserItemDetail} last_login_date ON last_login_date.item_id = user.id AND last_login_date.`key` = '{UserLastLoginDateKey}'
                         LEFT JOIN {WiserTableNames.WiserItemDetail} require_password_change ON require_password_change.item_id = user.id AND require_password_change.`key` = '{UserRequirePasswordChangeKey}'
@@ -853,6 +861,7 @@ ORDER BY name ASC";
                     Username = dataRow.Field<string>("username"),
                     Password = dataRow.Field<string>("password"),
                     Name = dataRow.Field<string>("name"),
+                    AccountName = dataRow.Field<string>("account_name"),
                     LastLoginDate = dataRow.Field<DateTime?>("last_login_date"),
                     LastLoginIpAddress = dataRow.Field<string>("last_login_ip"),
                     RequirePasswordChange = requirePasswordChange > 0,
