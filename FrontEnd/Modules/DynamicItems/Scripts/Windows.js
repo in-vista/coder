@@ -128,110 +128,184 @@ export class Windows {
      * @param {any} kendoComponent Optional: If this item is being created via a field with a kendo component (such as a grid or dropdown), add the instance of it here, so we can refresh the data source after.
      * @param {int} linkType Optional: If the item was opened via a specific link, enter the type number of that link here.
      * @param {function} callback Optional: a callback function called when the window is closed. The callback will have a parameter holding the item of this window. If the item was discarded or deleted, the item is given as 'null'.
+     * @param {object} sequence Optional: Defines the sequence in which multiple item windows can be opened by linking representing them in an array and passing a current index.
+     * @param {object} kendoWindow Optional: What Kendo window instance to load the content in. If none is given, a new window will be created.
      */
-    async loadItemInWindow(isNewItem, itemId, encryptedItemId, entityType, title, showTitleField, senderGrid, fieldOptions, linkId, windowTitle = null, kendoComponent = null, linkType = 0, callback = null) {
+    async loadItemInWindow(
+        isNewItem,
+        itemId,
+        encryptedItemId,
+        entityType,
+        title,
+        showTitleField,
+        senderGrid,
+        fieldOptions,
+        linkId,
+        windowTitle = null,
+        kendoComponent = null,
+        linkType = 0,
+        callback = null,
+        sequence = {},
+        kendoWindow = undefined) {
         let currentItemWindow;
         try {
-            // Clone the window template and initialize a new window from that clone, then open it.
+            currentItemWindow = kendoWindow;
+            
             const windowId = `existingItemWindow_${itemId || decodeURIComponent(encryptedItemId).replace(/-/g, "").replace(/\+/g, "").replace(/=/g, "").replace(/\//g, "")}`;
             
-            currentItemWindow = $(`#${windowId}`).data("kendoWindow");
+            if(currentItemWindow)
+                currentItemWindow.element.attr('id', windowId);
+            
+            if(!kendoWindow) {
+                // Clone the window template and initialize a new window from that clone, then open it.
+                currentItemWindow = $(`#${windowId}`).data("kendoWindow");
 
-            // If the window still exists, we just want to bring that window to the front, to prevent people from opening an item in multiple windows.
-            // This prevents confusion ("I thought I already closed this item before.") and also prevents problems with fields that would have duplicate IDs then.
-            if (currentItemWindow && currentItemWindow.element.data().entityType === entityType) {
-                currentItemWindow.maximize().center().open();
-                return;
-            }
+                // If the window still exists, we just want to bring that window to the front, to prevent people from opening an item in multiple windows.
+                // This prevents confusion ("I thought I already closed this item before.") and also prevents problems with fields that would have duplicate IDs then.
+                if (currentItemWindow && currentItemWindow.element.data().entityType === entityType) {
+                    currentItemWindow.maximize().center().open();
+                    return;
+                }
 
-            currentItemWindow = $("#itemWindow_template")
-                .clone(true)
-                .attr("id", windowId)
-                .attr('data-item-id', itemId)
-                .kendoWindow({
-                    width: "90%",
-                    height: "90%",
-                    visible: false,
-                    modal: true,
-                    actions: ["Verwijderen", "Terugzetten", "Verversen", "Vertalen", "Close"],
-                    close: (closeEvent) => {
-                        const closeFunction = () => {
-                            try {
-                                // If the current item is a new item and it's not being saved at the moment, then delete it because it was a temporary item.
-                                if (isNewItem && !currentItemWindow.element.data("saving")) {
-                                    let canDelete = true;
-                                    for (let gridElement of currentItemWindow.element.find(".grid")) {
-                                        const kendoGrid = $(gridElement).data("kendoGrid");
-                                        if (!kendoGrid) {
-                                            continue;
+                currentItemWindow = $("#itemWindow_template")
+                    .clone(true)
+                    .attr("id", windowId)
+                    .attr('data-item-id', itemId)
+                    .kendoWindow({
+                        width: "90%",
+                        height: "90%",
+                        visible: false,
+                        modal: true,
+                        actions: ["Verwijderen", "Terugzetten", "Verversen", "Vertalen", "Close"],
+                        close: (closeEvent) => {
+                            const closeFunction = () => {
+                                try {
+                                    // If the current item is a new item and it's not being saved at the moment, then delete it because it was a temporary item.
+                                    if (isNewItem && !currentItemWindow.element.data("saving")) {
+                                        let canDelete = true;
+                                        for (let gridElement of currentItemWindow.element.find(".grid")) {
+                                            const kendoGrid = $(gridElement).data("kendoGrid");
+                                            if (!kendoGrid) {
+                                                continue;
+                                            }
+
+                                            // Don't delete this item if someone added something in one of the grids on the item.
+                                            if (kendoGrid.dataSource.data().length > 0) {
+                                                canDelete = false;
+                                            }
                                         }
-    
-                                        // Don't delete this item if someone added something in one of the grids on the item.
-                                        if (kendoGrid.dataSource.data().length > 0) {
-                                            canDelete = false;
+
+                                        if (canDelete) {
+                                            const windowData = currentItemWindow.element;
+                                            const encryptedItemId = windowData.data('itemId');
+                                            const entityType = windowData.data('entityType');
+                                            const isNewItem = windowData.data('isNewItem');
+                                            this.base.deleteItem(encryptedItemId, entityType, isNewItem);
                                         }
                                     }
-    
-                                    if (canDelete) {
-                                        this.base.deleteItem(encryptedItemId, entityType, isNewItem);
-                                    }
+                                } catch (exception) {
+                                    console.error(exception);
+                                    kendo.alert("Er is iets fout gegaan met het verwijderen van het tijdelijk aangemaakt item.");
                                 }
-                            } catch (exception) {
-                                console.error(exception);
-                                kendo.alert("Er is iets fout gegaan met het verwijderen van het tijdelijk aangemaakt item.");
-                            }
-    
-                            // Delete all field initializers of the current window, so they don't stay in memory. We don't need them anymore once the window is closed.
-                            delete this.base.fields.fieldInitializers[windowId];
-    
-                            // Destroy the window.
-                            try {
-                                currentItemWindow.destroy();
-                            } catch (exception) {
-                                console.error(exception);
-                            }
-                            currentItemWindow.element.remove();
-                        };
 
-                        // Check if a search window is opened, if so close that one first before attempting to close the main window.
-                        const searchItemsWindow = document.getElementById("searchItemsWindow_wnd_title");
+                                // Delete all field initializers of the current window, so they don't stay in memory. We don't need them anymore once the window is closed.
+                                delete this.base.fields.fieldInitializers[windowId];
 
-                        if(searchItemsWindow.checkVisibility()){
-                            this.searchItemsWindow.close();
-                            closeEvent.preventDefault();
-                            return false;
+                                // Destroy the window.
+                                try {
+                                    currentItemWindow.destroy();
+                                } catch (exception) {
+                                    console.error(exception);
+                                }
+                                currentItemWindow.element.remove();
+                            };
+
+                            // Check if a search window is opened, if so close that one first before attempting to close the main window.
+                            const searchItemsWindow = document.getElementById("searchItemsWindow_wnd_title");
+
+                            if(searchItemsWindow.checkVisibility()){
+                                this.searchItemsWindow.close();
+                                closeEvent.preventDefault();
+                                return false;
+                            }
+
+                            if (!currentItemWindow.element.data("saving") && !$.isEmptyObject(this.base.fields.unsavedItemValues[windowId])) {
+                                Wiser.showConfirmDialog("Weet u zeker dat u wilt afsluiten zonder de wijzigingen op te slaan?","Weet je zeker dat je wilt afsluiten zonder op te slaan?","Nee, terug naar bewerken","Ja, afsluiten zonder opslaan").then(closeFunction.bind(this));
+                                closeEvent.preventDefault();
+                                return false;
+                            }
+
+                            closeFunction();
+
+                            callback?.(null);
                         }
-    
-                        if (!currentItemWindow.element.data("saving") && !$.isEmptyObject(this.base.fields.unsavedItemValues[windowId])) {
-                            Wiser.showConfirmDialog("Weet u zeker dat u wilt afsluiten zonder de wijzigingen op te slaan?","Weet je zeker dat je wilt afsluiten zonder op te slaan?","Nee, terug naar bewerken","Ja, afsluiten zonder opslaan").then(closeFunction.bind(this));
-                            closeEvent.preventDefault();
-                            return false;
-                        }
-    
-                        closeFunction();
+                    })
+                    .data("kendoWindow");
+
+                // Pushes this window to the window history.
+                this.pushWindowToHistory(currentItemWindow);
+
+                if(sequence) {
+                    const leftButton = $(`<button role="button" class="k-button k-button-md k-rounded-md k-button-flat k-button-flat-base k-icon-button item-window-sequence-button" type="button"><i class="mdi mdi-arrow-left-thin"></i></button>`);
+                    const rightButton = $(`<button role="button" class="k-button k-button-md k-rounded-md k-button-flat k-button-flat-base k-icon-button item-window-sequence-button" type="button"><i class="mdi mdi-arrow-right-thin"></i></button>`);
+
+                    const sequenceButtonsContainer = $(`<div class="item-window-sequence-buttons"></div>`);
+                    sequenceButtonsContainer.append(leftButton);
+                    sequenceButtonsContainer.append(rightButton);
+
+                    sequenceButtonsContainer.prependTo(currentItemWindow.element.closest('.k-window').find('.k-window-titlebar'));
+
+                    const openWindowAtIndex = async index => {
+                        if(index < 0 || index >= sequence.content.length)
+                            return;
                         
-                        callback?.(null);
+                        sequence.index = index;
+                        const targetItem = sequence.content[index];
+                        
+                        // Retrieve the title (and other details) if the title is not set for the target item.
+                        if(!title) {
+                            const itemDetails = (await this.base.getItemDetails(targetItem.encryptedId, targetItem.entityType));
+                            title = itemDetails.title;
+                        }
+
+                        await this.loadItemInWindow(
+                            false,
+                            targetItem.id,
+                            targetItem.encryptedId,
+                            targetItem.entityType,
+                            targetItem.title,
+                            showTitleField,
+                            senderGrid,
+                            fieldOptions,
+                            targetItem.linkId,
+                            null,
+                            kendoComponent,
+                            targetItem.linkType,
+                            callback,
+                            sequence,
+                            currentItemWindow
+                        );
                     }
-                })
-                .data("kendoWindow");
 
-            // Pushes this window to the window history.
-            this.pushWindowToHistory(currentItemWindow);
+                    leftButton.on('click', () => openWindowAtIndex(sequence.index - 1));
+                    rightButton.on('click', () => openWindowAtIndex(sequence.index + 1));
+                }
 
-            const infoPanel = $("#infoPanel_template").clone(true).attr("id", `${windowId}_infoPanel`).insertAfter(currentItemWindow.element);
-            const newMetaToggleElementId = `${windowId}_meta-toggle`;
-            currentItemWindow.element.find("#meta-toggle_template").attr("id", newMetaToggleElementId);
-            currentItemWindow.element.find("[for=meta-toggle_template]").attr("for", newMetaToggleElementId);
+                const infoPanel = $("#infoPanel_template").clone(true).attr("id", `${windowId}_infoPanel`).insertAfter(currentItemWindow.element);
+                const newMetaToggleElementId = `${windowId}_meta-toggle`;
+                currentItemWindow.element.find("#meta-toggle_template").attr("id", newMetaToggleElementId);
+                currentItemWindow.element.find("[for=meta-toggle_template]").attr("for", newMetaToggleElementId);
 
-            currentItemWindow.element.on("click", "h4.tooltip .info-link", this.base.fields.onTooltipClick.bind(this, infoPanel));
-            currentItemWindow.element.on("contextmenu", ".item > h4", this.base.fields.onFieldLabelContextMenu.bind(this));
+                currentItemWindow.element.on("click", "h4.tooltip .info-link", this.base.fields.onTooltipClick.bind(this, infoPanel));
+                currentItemWindow.element.on("contextmenu", ".item > h4", this.base.fields.onFieldLabelContextMenu.bind(this));
 
-            currentItemWindow.element.find("form.tabStripPopup").on("submit", (event) => {
-                event.preventDefault();
-                currentItemWindow.element.find(".saveAndCloseBottomPopup").trigger("click");
-            });
+                currentItemWindow.element.find("form.tabStripPopup").on("submit", (event) => {
+                    event.preventDefault();
+                    currentItemWindow.element.find(".saveAndCloseBottomPopup").trigger("click");
+                });
 
-            currentItemWindow.maximize().center();
+                currentItemWindow.maximize().center();
+            }
 
             // Initialize the tab strip on the new window.
             const currentItemTabStrip = currentItemWindow.element.find(".tabStripPopup").kendoTabStrip({

@@ -788,7 +788,18 @@ export class Grids {
                 //const eventType = this.informationBlockIframe ? 'click' : 'dblclick';
                 const eventType = this.base.settings.gridViewSettings.informationBlock ? 'click' : 'dblclick';
                 
-                this.mainGrid.element.on(eventType, "tbody tr[data-uid] td", (event) => { this.base.grids.onShowDetailsClick(event, this.mainGrid, { customQuery: true, usingDataSelector: usingDataSelector, fromMainGrid: true }); });
+                this.mainGrid.element.on(eventType, "tbody tr[data-uid] td", (event) => {
+                    this.base.grids.onShowDetailsClick(
+                        event,
+                        this.mainGrid,
+                        {
+                            ...finalGridViewSettings,
+                            customQuery: true,
+                            usingDataSelector: usingDataSelector,
+                            fromMainGrid: true
+                        }
+                    );
+                });
             }
             this.mainGrid.element.find(".k-i-refresh").parent().click(this.base.onMainRefreshButtonClick.bind(this.base));
             
@@ -1394,7 +1405,7 @@ export class Grids {
                 return $(target).text();
             }
         });
-
+        
         if (!options.disableOpeningOfItems) {
             element.on('dblclick', "tbody tr[data-uid] td", (event) => { this.onShowDetailsClick(event, kendoGrid, options); });
         }
@@ -1674,7 +1685,27 @@ export class Grids {
             });
         }
         else {
-            this.base.windows.loadItemInWindow(false, itemId, encryptedId, entityType, title, !options.hideTitleFieldInWindow, grid, options, linkId, null, null, linkType);
+            let sequence = null;
+            if(options.allowSequence) {
+                const gridRows = grid.items();
+                const gridData = gridRows.toArray().map(row => grid.dataItem(row));
+                const content = gridData.map(item => ({
+                    id: item.id || item.itemId || item.itemid || item.item_id,
+                    encryptedId: item.encryptedId || item.encrypted_id || item.encryptedid || item.idencrypted,
+                    entityType: item.entityType || item.entity_type,
+                    linkId: item.linkId || item.link_id || item.linkid,
+                    linkType: item.linkTypeNumber || item.link_type_number || item.linktypenumber || item.linkType || item.link_type || item.linktype
+                }));
+                
+                const sequenceIndex = content.findIndex(item => item.id === itemId);
+
+                sequence = {
+                    index: sequenceIndex,
+                    content: content
+                }
+            }
+            
+            this.base.windows.loadItemInWindow(false, itemId, encryptedId, entityType, title, !options.hideTitleFieldInWindow, grid, options, linkId, null, null, linkType, null, sequence);
         }
     }
 
