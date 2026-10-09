@@ -461,8 +461,8 @@ export class Grids {
                     }
                 },
                 messages: {
-                    isTrue: "<span>Ja</span>",
-                    isFalse: "<span>Nee</span>"
+                    isTrue: "Ja",
+                    isFalse: "Nee"
                 }
             };
             
@@ -764,8 +764,8 @@ export class Grids {
                     virtual: true
                 },
                 filterable: filterable,
-                filterMenuInit: this.onFilterMenuInit.bind(this),
-                filterMenuOpen: this.onFilterMenuOpen.bind(this),
+                columnMenuInit: this.onColumnMenuInit.bind(this),
+                columnMenuOpen: this.onColumnMenuOpen.bind(this),
                 allowCopy: true
             }, gridViewSettings);
 
@@ -1374,12 +1374,12 @@ export class Grids {
                     }
                 },
                 messages: {
-                    isTrue: "<span>Ja</span>",
-                    isFalse: "<span>Nee</span>"
+                    isTrue: "Ja",
+                    isFalse: "Nee"
                 }
             },
-            filterMenuInit: this.base.grids.onFilterMenuInit.bind(this),
-            filterMenuOpen: this.base.grids.onFilterMenuOpen.bind(this),
+            columnMenuInit: this.base.grids.onColumnMenuInit.bind(this),
+            columnMenuOpen: this.base.grids.onColumnMenuOpen.bind(this),
             dataBound: function(event) {
                 const grid = event.sender;
 
@@ -1961,11 +1961,11 @@ export class Grids {
     }
 
     /**
-     * This is for handling the event 'filterMenuInit' in a Kendo grid.
+     * This is for handling the event 'columnMenuInit' in a Kendo grid.
      * It will set the formatting of numeric fields and maybe other things in the future.
      * @param {any} event The kendo event.
      */
-    onFilterMenuInit(event) {
+    onColumnMenuInit(event) {
         // Set the format of numeric fields, otherwise numbers will be shown like '3.154.079,00' instead of '3154079'.
         event.container.find("[data-role='numerictextbox']").each((index, element) => {
             $(element).data("kendoNumericTextBox").setOptions({
@@ -1975,10 +1975,10 @@ export class Grids {
     }
 
     /**
-     * This is for handling the event 'filterMenuOpen' in a Kendo grid.
+     * This is for handling the event 'columnMenuOpen' in a Kendo grid.
      * @param {any} event The kendo event.
      */
-    onFilterMenuOpen(event) {
+    onColumnMenuOpen(event) {
         // Set the focus on the last textbox in the filter menu.
         event.container.find(".k-textbox:visible, .k-input:visible").last().focus();
     }

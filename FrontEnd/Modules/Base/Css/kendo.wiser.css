@@ -1473,7 +1473,7 @@ k-filter-menu .k-autocomplete,
 	min-height: 100%;
 }
 
-/* filtering */
+/* Filtering */
 .k-filter-menu-container {
 	padding: 10px 10px 0;
 	min-width: 260px;
@@ -1496,43 +1496,11 @@ k-filter-menu .k-autocomplete,
 .k-filter-menu .k-filter-help-text {
 	padding-bottom: 10px;
 }
-.k-filter-menu-container label {
-	cursor: pointer;
-	display: inline-block;
-	height: 20px;
-	line-height: 20px;
-}
-.k-filter-menu-container label > [type="radio"] {
-	display: none;
-}
-.k-filter-menu-container label > [type="radio"] + span {
-	display: inline-block;
-	padding: 0 24px;
-	position: relative;
-	height: 20px;
-	line-height: 22px;
-}
-.k-filter-menu-container label > [type="radio"] + span:before {
-	background-color: var(--white-color);
-	border: 1px solid #7f7f7f;
-	border-radius: 100%;
-	content: "";
-	height: 18px;
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 18px;
-}
-.k-filter-menu-container label > [type="radio"]:checked + span:after {
-	background-color: #00b0f0;
-	border-radius: 100%;
-	content: "";
-	height: 12px;
-	position: absolute;
-	left: 4px;
-	top: 4px;
-	width: 12px;
 
+.k-filter-menu-container > label {
+	display: flex;
+	gap: 10px;
+	align-items: center;
 }
 
 /* TREE & GRID COMBINED */

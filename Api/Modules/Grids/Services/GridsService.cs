@@ -2540,7 +2540,7 @@ namespace Api.Modules.Grids.Services
                     case TypeCode.UInt16:
                     case TypeCode.UInt32:
                     case TypeCode.UInt64:
-                        kendoColumnType = "number";
+                        kendoColumnType = dataColumn.ColumnName.EndsWith("_bool") ? "boolean" : "number";
                         break;
                     case TypeCode.DateTime:
                         kendoColumnType = "date";
@@ -2550,7 +2550,12 @@ namespace Api.Modules.Grids.Services
                         break;
                 }
 
-                var fieldName = dataColumn.ColumnName.ToLowerInvariant().Replace("_withdate", "").Replace("_encrypt", "").Replace("_hide", "").MakeJsonPropertyName();
+                var fieldName = dataColumn.ColumnName.ToLowerInvariant()
+                    .Replace("_withdate", string.Empty)
+                    .Replace("_encrypt", string.Empty)
+                    .Replace("_hide", string.Empty)
+                    .Replace("_bool", string.Empty)
+                    .MakeJsonPropertyName();
                 if (fieldName.Equals("fields", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
@@ -2565,7 +2570,7 @@ namespace Api.Modules.Grids.Services
                 bool isEditable = (triggerableFields?.Contains(dataColumn.ColumnName) ?? true) &&
                                   !dataColumn.ColumnName.Equals("id", StringComparison.OrdinalIgnoreCase);
                 
-                results.SchemaModel.Fields.Add(fieldName,
+                results.SchemaModel.Fields.TryAdd(fieldName,
                     new FieldModel
                     {
                         Editable = isEditable,

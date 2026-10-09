@@ -1664,8 +1664,8 @@ const moduleSettings = {
                             isFalse: "<span>Nee</span>"
                         }
                     },
-                    filterMenuInit: this.base.grids.onFilterMenuInit.bind(this),
-                    filterMenuOpen: this.base.grids.onFilterMenuOpen.bind(this),
+                    columnMenuInit: this.base.grids.onColumnMenuInit.bind(this),
+                    columnMenuOpen: this.base.grids.onColumnMenuOpen.bind(this),
                     dataBound: this.changeHistoryDataBound.bind(this)
                 }).data("kendoGrid");
             } catch (exception) {
@@ -1832,8 +1832,8 @@ const moduleSettings = {
                             isFalse: "<span>Nee</span>"
                         }
                     },
-                    filterMenuInit: this.base.grids.onFilterMenuInit.bind(this),
-                    filterMenuOpen: this.base.grids.onFilterMenuOpen.bind(this)
+                    columnMenuInit: this.base.grids.onColumnMenuInit.bind(this),
+                    columnMenuOpen: this.base.grids.onColumnMenuOpen.bind(this)
                 }).data("kendoGrid");
 
                 grid.thead.kendoTooltip({

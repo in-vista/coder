@@ -608,8 +608,8 @@
                     isFalse: "<span>Nee</span>"
                 }
             },
-            filterMenuInit: window.dynamicItems.grids.onFilterMenuInit,
-            filterMenuOpen: window.dynamicItems.grids.onFilterMenuOpen,
+            columnMenuInit: window.dynamicItems.grids.onColumnMenuInit,
+            columnMenuOpen: window.dynamicItems.grids.onColumnMenuOpen,
             columnHide: (event) => window.dynamicItems.grids.saveGridViewColumnsState("sub_entities_grid_columns_{propertyId}", event.sender),
             columnShow: (event) => window.dynamicItems.grids.saveGridViewColumnsState("sub_entities_grid_columns_{propertyId}", event.sender),
             excelExport: function (e) {

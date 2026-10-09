@@ -1249,8 +1249,8 @@ export class Windows {
                 },
                 dataBound: this.onSearchItemsGridDataBound.bind(this),
                 change: this.onSearchItemsGridChange.bind(this),
-                filterMenuInit: this.base.grids.onFilterMenuInit.bind(this),
-                filterMenuOpen: this.base.grids.onFilterMenuOpen.bind(this)
+                columnMenuInit: this.base.grids.onColumnMenuInit.bind(this),
+                columnMenuOpen: this.base.grids.onColumnMenuOpen.bind(this)
             }, gridOptions.searchGridSettings.gridViewSettings);
 
             await require("/kendo/messages/kendo.grid.nl-NL.js");
