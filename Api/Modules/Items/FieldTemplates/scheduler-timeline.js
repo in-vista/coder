@@ -53,21 +53,28 @@
             const currentDateSpan = document.getElementById("current-date");
     
             // Init Flatpickr op de span (inline, zonder input)
-            const fp = flatpickr(currentDateSpan, {
-                allowInput: true,
-                dateFormat: "dd-mm-YYYY",
-                locale: "nl", // Nederlands
-                clickOpens: false, // we openen handmatig
+            const fp = this.datePicker = flatpickr(currentDateSpan, {
+                allowInput: false,
+                dateFormat: "d-m-Y",
+                locale: "nl",
+                clickOpens: false,
+                disableMobile: true,
+                defaultDate: this.currentDate,
+                onReady: () => {
+                    currentDateSpan.textContent = this.formatDate(this.currentDate);
+                },
                 onChange: (selectedDates) => {
+                    if (!selectedDates.length) return;
+
                     this.currentDate = selectedDates[0];
                     this.updateDateDisplay();
                 }
             });
     
-            // Open Flatpickr bij click
+            // Toggle Flatpickr bij click
             currentDateSpan.addEventListener("click", () => {
                 fp.setDate(this.currentDate, false); // false = onChange niet triggeren                
-                fp.open();
+                fp.toggle();
             });
     
             document.getElementById("prev-day").addEventListener("click", () => {
@@ -122,6 +129,15 @@
                 timelineScheduler.createNewReservation(newReservation);
             });
     
+            const mobileQuery = window.matchMedia('(max-width: 767px)');
+
+            mobileQuery.addEventListener('change', () => {
+                this.applyResponsiveView();
+                
+                currentDateSpan.textContent = this.formatDate(this.currentDate);
+                this.renderReservations();
+            });
+
             currentDateSpan.innerText = this.formatDate(this.currentDate);
             this.createHeader();
             this.initHeaderDragScroll();
@@ -136,7 +152,8 @@
             await this.getTables();
             
             // Get and render reservations
-            this.getReservations(this.toDateString(this.currentDate))
+            this.applyResponsiveView();
+            this.getReservations(this.toDateString(this.currentDate));
             
             // Horizontal scroll bar position
             const scheduler = document.querySelector(".scheduler");
@@ -581,15 +598,16 @@
         }
     
         formatDate(date){
-            return date.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const mobile = window.matchMedia('(max-width: 767px)').matches;
+            return date.toLocaleDateString('nl-NL', { weekday: mobile ? 'short' : 'long', day: 'numeric', month: mobile ? 'short' : 'long', year: 'numeric' });
         }
 
         updateDateDisplay = async () => {
             const currentDateSpan = document.getElementById("current-date");
             currentDateSpan.innerText = this.formatDate(this.currentDate);
-    
+             this.datePicker?.setDate(this.currentDate, false);
+
             // Get reservations for new date from database
-            console.log('updateDateDisplay');
             await this.getReservations(this.toDateString(this.currentDate));
         }
     
@@ -856,7 +874,7 @@
                 el.style.display = "inline-block";
             });
             document.querySelectorAll(".timeline-search").forEach(el => {
-                el.style.display = "flex";
+                el.style.display = "inline-flex";
             });
         }
         
@@ -1875,6 +1893,34 @@
                     // optioneel leeg laten; mouseup op window handelt het al af
                 });
             });
+        }
+
+        isMobileView() {
+            return window.matchMedia('(max-width: 767px)').matches;
+        }
+
+        applyResponsiveView() {
+            const isMobileView = this.isMobileView();
+            document.getElementById("today-button").innerHTML = `<i class="mdi mdi-size-2 mdi-calendar-today"></i> ${isMobileView ? "" : "Vandaag"}`;
+            
+            // Not mobile view; above 768px
+            if (!isMobileView) {
+                document.getElementById("timeline-view-btn").classList.add("active");
+                document.getElementById("list-view-btn").classList.remove("active");
+
+                document.querySelector(".scheduler").classList.remove("hidden");
+                document.getElementById("list-view").classList.add("hidden");
+                document.getElementById("list-view-table-group-filter").classList.add("hidden");
+            } else{ // Mobile view; below 768px
+                document.getElementById("timeline-view-btn").classList.remove("active");
+                document.getElementById("map-view-btn").classList.remove("active");
+                document.getElementById("list-view-btn").classList.add("active");
+
+                document.querySelector(".scheduler").classList.add("hidden");
+                document.getElementById("map-view").classList.add("hidden");
+                document.getElementById("list-view").classList.remove("hidden");
+                document.getElementById("list-view-table-group-filter").classList.remove("hidden");
+            }
         }
     }
 
