@@ -29,5 +29,21 @@
         regexFailedMessageElement.toggleClass("hidden", matchesRegex);
     });
 
+    const speechToTextEnabled = options.speechToText === true ||
+        options.speechToText === "true";
+
+    const speechToTextElement = $("#speech-to-text_{propertyIdWithSuffix}");
+
+    speechToTextElement.toggleClass("hidden", !speechToTextEnabled);
+
+    speechToTextElement
+        .off("click.speechToText");
+
+    if (speechToTextEnabled) {
+        speechToTextElement.on("click.speechToText", async event => {
+            await window.dynamicItems.fields.onSpeechToTextClick(event, field);
+        });
+    }
+
     {customScript}
 })();

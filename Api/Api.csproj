@@ -203,6 +203,8 @@
     <PackageReference Include="LibSassHost.Native.win-x64" Version="1.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
     <PackageReference Include="NUglify" Version="1.21.17" />
+    <PackageReference Include="NAudio.Core" Version="2.2.1" />
+    <PackageReference Include="org.k2fsa.sherpa.onnx" Version="1.13.5" />
     <PackageReference Include="PDFsharp" Version="6.1.1" />
     <PackageReference Include="PusherServer" Version="5.0.0" />
     <PackageReference Include="QRCoder" Version="1.7.0" />
@@ -212,6 +214,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.8.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.8.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.8.0" />
+    <PackageReference Include="SymSpell" Version="6.7.3" />
     <PackageReference Include="System.Linq.Async" Version="7.0.0" />
     <PackageReference Include="Tinify" Version="1.6.0" />
   </ItemGroup>
