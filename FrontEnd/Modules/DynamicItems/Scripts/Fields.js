@@ -2764,13 +2764,96 @@ export class Fields {
 
                         // Calls an API.
                         case "apiCall": {
+                            /**
+                             * Retrieve a message from the API response using a property path, static text or Kendo template.
+                             * @param {any} response The API response.
+                             * @param {string} messageConfiguration The configured message or expression.
+                             * @returns {any} The resolved message.
+                             */
+                            const getResponseMessage = (response, messageConfiguration) => {
+                                if (!messageConfiguration) {
+                                    return undefined;
+                                }
+
+                                // Support Kendo Templates with JavaScript expressions and conditions.
+                                if (/#(?:=|:|\s*(?:if|else|for|var|let|const|switch|while|}))/i.test(messageConfiguration)) {
+                                    try {
+                                        return kendo.template(messageConfiguration)({ response: response });
+                                    } catch (exception) {
+                                        console.error("Er is iets fout gegaan bij het verwerken van de API response template.", exception);
+                                        return undefined;
+                                    }
+                                }
+
+                                // Return the complete response.
+                                if (messageConfiguration === "response") {
+                                    return response;
+                                }
+
+                                // Treat values without the "response." prefix as static messages.
+                                if (!messageConfiguration.startsWith("response.")) {
+                                    return messageConfiguration;
+                                }
+
+                                // Resolve the JSON property path.
+                                const path = messageConfiguration.substring(9).split(".");
+                                let value = response;
+
+                                for (const property of path) {
+                                    if (value === null || value === undefined || typeof value !== "object" || !Object.prototype.hasOwnProperty.call(value, property)) {
+                                        return undefined;
+                                    }
+
+                                    value = value[property];
+                                }
+
+                                return value;
+                            };
+
+                            const formatResponseValue = (value) => {
+                                if (value === undefined || value === null) {
+                                    return "";
+                                }
+
+                                return typeof value === "object" ? JSON.stringify(value) : String(value);
+                            };
+
                             try {
                                 // Retrieve the optional attribute whether this action has to be run iteratively.
                                 const isIterative = action.iterative ?? false;
                                 const hasItemsSelected = selectedItems && selectedItems.length > 0;
-                                
-                                // Prepare a results array for all executed API actions.
-                                let apiActionsResults = [];
+                                const successMessage = (action.successMessage || "").trim();
+
+                                // Process the results of a single API connection.
+                                const processApiResults = (apiResults) => {
+                                    if(!Array.isArray(apiResults)) {
+                                        throw new Error("De API heeft geen geldig resultaat teruggegeven.");
+                                    }
+
+                                    for(const apiResult of apiResults) {
+                                        const response = apiResult;
+                                        const isBooleanFailure = response === false || (typeof response === "string" && response.trim().toLowerCase() === "false");
+                                        const isObjectFailure = response !== null && typeof response === "object" && (response.success === false || response.result === false);
+
+                                        if (isBooleanFailure || isObjectFailure) {
+                                            const error = new Error("De API actie is niet succesvol uitgevoerd.");
+                                            error.responseJSON = response;
+                                            throw error;
+                                        }
+
+                                        let message = getResponseMessage(response, successMessage);
+
+                                        if ((message === undefined || message === null || message === "") && response && typeof response === "object") {
+                                            message = response.resultMessage;
+                                        }
+
+                                        message = formatResponseValue(message).trim();
+
+                                        if (message) {
+                                            resultMessages.push(kendo.htmlEncode(message));
+                                        }
+                                    }
+                                };
                                 
                                 if(isIterative && hasItemsSelected) {
                                     // Loop over all the selected items from the grid.
@@ -2801,28 +2884,52 @@ export class Fields {
                                         extraData = {...extraData, ...userParametersWithValues};
 
                                         // Make an API call for the currently selected item in the iteration.
-                                        apiActionsResults = await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, extraData);
+                                        const apiActionsResults = await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, extraData);
+                                        processApiResults(apiActionsResults);
                                     }
                                 } else {
                                     // Combine all values of the selected items.
-                                    if(hasItemsSelected)
+                                    if (hasItemsSelected)
                                         await combineValuesFromAllSelectedItemsAndAddToUserParameters();
 
                                     // Make an API call for all selected items.
-                                    apiActionsResults = await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, userParametersWithValues);
+                                    const apiActionsResults = await Wiser.doApiCall(this.base.settings, action.apiConnectionId, mainItemDetails, userParametersWithValues);
+                                    processApiResults(apiActionsResults);
                                 }
 
-                                // Push a result message to the accumulated result messages.
-                                for(const apiActionResults of apiActionsResults) {
-                                    if(apiActionResults.resultMessage)
-                                        resultMessages.push(apiActionResults.resultMessage);
-                                }
                             } catch (apiCallException) {
-                                if (typeof apiCallException === "string") {
-                                    kendo.alert(apiCallException);
-                                } else {
-                                    throw apiCallException;
+                                console.error(apiCallException);
+
+                                const errorMessage = (action.errorMessage || "").trim();
+                                let response = apiCallException?.responseJSON;
+
+                                if (response === undefined && apiCallException?.responseText) {
+                                    try {
+                                        response = JSON.parse(apiCallException.responseText);
+                                    } catch {
+                                        response = apiCallException.responseText;
+                                    }
                                 }
+
+                                response ??= apiCallException;
+
+                                // First try the configured error message.
+                                let error = getResponseMessage(response, errorMessage);
+
+                                // Fall back to common API error properties.
+                                if (error === undefined || error === null || error === "") {
+                                    error = response?.message || response?.error;
+                                }
+
+                                // Fall back to the raw response or exception message.
+                                if (error === undefined || error === null || error === "") {
+                                    error = apiCallException?.responseText || apiCallException?.message;
+                                }
+
+                                error = formatResponseValue(error).trim() || "Er is een onbekende fout opgetreden";
+
+                                kendo.alert(`Er is iets fout gegaan met het uitvoeren van deze actie.<br><br>${kendo.htmlEncode(error)}`);
+                                return false;
                             }
                             break;
                         }
