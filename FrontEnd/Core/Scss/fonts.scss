@@ -1,0 +1,48 @@
+// GOOGLE FONT
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;700&family=Roboto:wght@300;400;500;700;900&display=swap');
+
+// CODER FONT
+@font-face {
+    font-family: 'Coder';
+    src: url('../Fonts/coder.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+// VARIABLES
+@import 'variables';
+
+//// MIXINS 
+@import 'mixin/mixin';
+
+body {
+    font: 400 16px/30px $font-body;
+}
+
+h1 {
+    font: 700 32px/40px $font-body;
+}
+
+h2 {
+    font: 500 24px/32px $font-body;
+}
+
+h3 {
+    font: 500 18px/32px $font-body;
+}
+
+h4 {
+    font: 500 16px/28px $font-body;
+}
+
+strong {
+    font: 700 18px/22px $font-bold;
+}
+
+.title {
+    font: 700 18px/32px $font-bold;
+}
+
+.sub-title {
+    font: 500 18px/22px $font-medium;
+}

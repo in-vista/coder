@@ -1,0 +1,44 @@
+﻿namespace Api.Modules.Pusher.Models
+{
+    //TODO Verify comments
+    /// <summary>
+    /// A model for a Wiser pusher message request.
+    /// </summary>
+    public class PusherMessageRequestModel
+    {
+        /// <summary>
+        /// Gets or sets the channel to send the message on.
+        /// </summary>
+        public string Channel { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the event that Pusher will trigger.
+        /// </summary>
+        public string EventName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the event data of the message.
+        /// </summary>
+        public object EventData { get; set; }
+
+        /// <summary>
+        /// Gets or sets the cluster to send the message in.
+        /// </summary>
+        public string Cluster { get; set; }
+
+        /// <summary>
+        /// Gets or sets the collection of user IDs of the user(s) to send the message to.
+        /// </summary>
+        public string[] UserIds { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the whether an email has to be sent to the user.
+        /// </summary>
+        public bool SendEmail { get; set; }
+
+        /// <summary>
+        /// Whether the message is not meant for a specific user, but for all connected users.
+        /// </summary>
+        public bool IsGlobalMessage { get; set; }
+    }
+}

@@ -1,0 +1,41 @@
+﻿@model FrontEnd.Modules.Templates.Models.DynamicContentInformationViewModel
+
+<div class="tabstrip">
+    <ul>
+        @foreach (var tab in Model.Tabs)
+        {
+            <li class="@tab.Name-tab">@tab.PrettyName</li>
+        }
+        <li class="history-tab">History</li>
+    </ul>
+    @foreach (var tab in Model.Tabs)
+    {
+        <div>
+            <div class="formview full @tab.Name.ToString().ToLower()Container">
+                @foreach (var group in tab.Groups)
+                {
+                    <div class="item-group @group.Name-group">
+                        <h3>@group.PrettyName</h3>
+                        @foreach (var field in group.Fields)
+                        {
+                            // ReSharper disable once Mvc.PartialViewNotResolved
+                            <partial name="Partials/InputGenerator" model="field" />
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    <div>
+        <div class="formview full historyContainer">
+            <div class="row historyHeader">
+                <div class="col col-6">
+                    <h3>Oud</h3>
+                </div>
+                <div class="col col-6">
+                    <h3>Nieuw</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

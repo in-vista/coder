@@ -1,0 +1,63 @@
+﻿@model FrontEnd.Modules.Base.Models.BaseModuleViewModel
+@addTagHelper FrontEnd.Core.TagHelpers.WebpackScriptTagHelper, FrontEnd
+
+<!DOCTYPE html>
+<html>
+
+<head runat="server">
+    <title>Coder 3 - Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://unpkg.com/@@progress/kendo-theme-material@11.1.0/dist/material-main.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-font-icons@4.9.0/dist/index.css" />
+
+    <script>
+        window.wiserVersion = "@Model.WiserVersion?.ToString()";
+    </script>
+    <style>
+        #wiser {
+            display: none;
+        }
+    </style>
+</head>
+
+<body data-sub-domain="@Model.SubDomain"
+      data-wiser-api-root="@Model.ApiRoot"
+      data-is-test-environment="@Model.IsTestEnvironment"
+      data-wiser-api-authentication-url="@Model.ApiAuthenticationUrl"
+      data-api-client-id="@Model.Settings.ApiClientId"
+      data-api-client-secret="@Model.Settings.ApiClientSecret"
+      data-track-js-token="@Model.Settings.TrackJsToken">
+    <div id="wiser" class="searching">
+        <div class="pane-content">
+            <div class="search-container">
+                <select id="entityTypeComboBox"></select>
+                <select id="propertyComboBox"></select>
+                <select id="operatorComboBox"></select>
+                <div class="text-container">
+                    <input type="text" placeholder="Vul een zoekwaarde in (druk op enter om te zoeken)..." id="search-field" class="k-input" />
+                    <div class="icon-line-search"></div>
+                    <div class="loader-icon"><div></div><div></div><div></div><div></div></div>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="includingDeletedItems" name="includingDeletedItems" class="hidden" />
+                    <label for="includingDeletedItems"><span>Ook verwijderde items zoeken</span></label>
+                </div>
+            </div>
+            <div class="search-output">
+                <h3>Zoekresultaten: <span id="resultsCount">0</span> items</h3>
+
+                <div id="search-grid" class="grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dynamicItemWindow"></div>
+
+    <webpack-script file-name="runtime.js"></webpack-script>
+    <webpack-script file-name="vendors.js"></webpack-script>
+    <webpack-script file-name="Processing.js"></webpack-script>
+    <webpack-script file-name="kendo-ui.js"></webpack-script>
+    <webpack-script file-name="Search.js"></webpack-script>
+</body>
+</html>

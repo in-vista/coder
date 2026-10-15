@@ -1,0 +1,40 @@
+﻿@model FrontEnd.Modules.Base.Models.BaseModuleViewModel
+@addTagHelper FrontEnd.Core.TagHelpers.WebpackScriptTagHelper, FrontEnd
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <meta charset="utf-8" />
+    <title>Coder 3 - Task Alerts history</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://unpkg.com/@@progress/kendo-theme-material@11.1.0/dist/material-main.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-font-icons@4.9.0/dist/index.css" />
+
+    <script>
+        window.wiserVersion = "@Model.WiserVersion?.ToString()";
+    </script>
+</head>
+<body class="taskAlert"
+      data-module-id="708"
+      data-wiser-api-root="@Model.ApiRoot"
+      data-wiser-api-authentication-url="@Model.ApiAuthenticationUrl"
+      data-is-test-environment="@Model.IsTestEnvironment.ToString().ToLowerInvariant()"
+      data-api-client-id="@Model.Settings.ApiClientId"
+      data-api-client-secret="@Model.Settings.ApiClientSecret"
+      data-sub-domain="@Model.SubDomain"
+      data-track-js-token="@Model.Settings.TrackJsToken">
+
+    <div id="wiser">
+        <div class="gridview">
+            <div id="task-grid" class="grid"></div>
+        </div>
+    </div>
+
+    <webpack-script file-name="runtime.js"></webpack-script>
+    <webpack-script file-name="vendors.js"></webpack-script>
+    <webpack-script file-name="Processing.js"></webpack-script>
+    <webpack-script file-name="kendo-ui.js"></webpack-script>
+    <webpack-script file-name="TaskHistory.js"></webpack-script>
+</body>
+</html>

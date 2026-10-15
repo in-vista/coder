@@ -1,0 +1,29 @@
+name: Publish development
+
+on:
+  push:
+    branches: 
+    - develop
+  workflow_dispatch:
+
+jobs:
+  deploy-cluster1:
+    uses: ./.github/workflows/deploy-single-server.yml
+    secrets: inherit
+    with:
+      runner: cluster1_transip
+      environment: Development
+
+  deploy-cluster4:
+    uses: ./.github/workflows/deploy-single-server.yml
+    secrets: inherit
+    with:
+      runner: cluster4_transip
+      environment: Development
+
+  deploy-linux:
+    uses: ./.github/workflows/deploy-single-linux-server.yml
+    secrets: inherit
+    with:
+      runner: linux_transip
+      environment: Development

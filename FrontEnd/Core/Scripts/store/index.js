@@ -1,0 +1,1279 @@
+﻿import {createStore} from "vuex";
+import {
+    ACTIVATE_MODULE,
+    AUTH_ERROR,
+    AUTH_LIST,
+    AUTH_LOGOUT,
+    AUTH_REQUEST,
+    AUTH_SUCCESS,
+    AUTH_TOTP_PIN,
+    AUTH_TOTP_SETUP,
+    BRANCH_CHANGE_COMPLETED,
+    CHANGE_PASSWORD,
+    CHANGE_PASSWORD_ERROR,
+    CHANGE_PASSWORD_LOGIN,
+    CHANGE_PASSWORD_SUCCESS,
+    CLEAR_ACTIVE_TIMER_INTERVAL,
+    CLEAR_CACHE,
+    CLEAR_CACHE_ERROR,
+    CLEAR_CACHE_SUCCESS,
+    CLEAR_LOCAL_TOTP_BACKUP_CODES,
+    CLOSE_ALL_MODULES,
+    CLOSE_MODULE,
+    CLEAR_ALL_MODULES,
+    CREATE_BRANCH,
+    CREATE_BRANCH_ERROR,
+    CREATE_BRANCH_SUCCESS,
+    DELETE_BRANCH,
+    DELETE_BRANCH_ERROR,
+    DELETE_BRANCH_SUCCESS,
+    DO_TENANT_MIGRATIONS,
+    END_REQUEST,
+    FORGOT_PASSWORD,
+    GENERATE_TOTP_BACKUP_CODES,
+    GENERATE_TOTP_BACKUP_CODES_ERROR,
+    GENERATE_TOTP_BACKUP_CODES_SUCCESS,
+    GET_BRANCH_CHANGES,
+    GET_BRANCHES,
+    GET_DATA_SELECTORS_FOR_BRANCHES,
+    GET_ENTITIES_FOR_BRANCHES,
+    GET_LINK_TYPES,
+    GET_TENANT_TITLE,
+    GET_TENANT_OPTIONS,
+    HANDLE_CONFLICT,
+    HANDLE_MULTIPLE_CONFLICTS,
+    IS_MAIN_BRANCH,
+    LOAD_ENTITY_TYPES_OF_ITEM_ID,
+    MERGE_BRANCH,
+    MERGE_BRANCH_ERROR,
+    MERGE_BRANCH_SUCCESS,
+    MODULES_LOADED,
+    MODULES_REQUEST,
+    OPEN_MODULE,
+    RESET_BRANCH_CHANGES,
+    RESET_PASSWORD_ERROR,
+    RESET_PASSWORD_SUCCESS,
+    SET_ACTIVE_TIMER_INTERVAL,
+    START_REQUEST,
+    START_UPDATE_TIME_ACTIVE_TIMER,
+    STOP_UPDATE_TIME_ACTIVE_TIMER,
+    TOGGLE_PIN_MODULE,
+    UPDATE_ACTIVE_TIME,
+    USE_TOTP_BACKUP_CODE,
+    USE_TOTP_BACKUP_CODE_ERROR,
+    USER_BACKUP_CODES_GENERATED,
+    VALID_SUB_DOMAIN,
+    MODULES_PENDING_ACTIONS_REQUEST,
+    MODULES_PENDING_ACTIONS_LOADED,
+    UPDATE_TAB_STRIP_MODULES,
+    UPDATE_TAB_STRIP_TITLE_ALIAS, IMITATIONS_REQUEST, IMITATIONS_LOADED, IMITATE_ACCOUNT, SET_MODULES_LOADING
+} from "./mutation-types";
+
+const baseModule = {
+    state: () => ({
+        mainLoader: true,
+        requestCounter: 0
+    }),
+
+    mutations: {
+        [START_REQUEST]: (state) => {
+            state.requestCounter++;
+            state.mainLoader = true;
+        },
+        [END_REQUEST]: (state) => {
+            state.requestCounter--;
+            if (state.requestCounter <= 0) {
+                state.mainLoader = false;
+            }
+        }
+    },
+
+    actions: {},
+
+    getters: {}
+};
+
+const loginModule = {
+    state: () => ({
+        loginStatus: "",
+        loginMessage: "",
+        user: {
+            name: "",
+            role: "",
+            lastLoginIpAddress: "",
+            lastLoginDate: null,
+            loggedIn: false,
+            totpQrImageUrl: ""
+        },
+        listOfUsers: [],
+        resetPassword: false,
+        requirePasswordChange: false,
+        imitations: []
+    }),
+
+    mutations: {
+        [AUTH_REQUEST]: (state, user) => {
+            if (user && user.selectedUser) {
+                state.loginStatus = "list_loading";
+            }
+            else if (user && (user.totpPin || user.totpBackupCode)) {
+                state.loginStatus = "totp_loading";
+            }
+            else {
+                state.loginStatus = "loading";
+            }
+
+            state.loginMessage = "";
+            state.listOfUsers = [];
+        },
+        [AUTH_LIST]: (state, users) => {
+            state.loginStatus = "list";
+            state.loginMessage = !users || !users.length ? "Er zijn geen gebruikers gevonden bij deze klant. Waarschijnlijk is er iets niet goed ingesteld." : "";
+            state.listOfUsers = users;
+        },
+        [AUTH_SUCCESS]: (state, user) => {
+            state.loginStatus = "success";
+            state.user = user;
+            state.loginMessage = "";
+            state.listOfUsers = [];
+            state.requirePasswordChange = user.requirePasswordChange;
+        },
+        [AUTH_TOTP_SETUP]: (state, user) => {
+            state.loginStatus = "totp";
+            state.user = user;
+            state.loginMessage = "";
+            state.listOfUsers = [];
+            state.totpQrImageUrl = user.totpQrImageUrl;
+            state.requirePasswordChange = user.requirePasswordChange;
+        },
+        [AUTH_TOTP_PIN]: (state, user) => {
+            state.loginStatus = "totp";
+            state.user = user;
+            state.loginMessage = "";
+            state.listOfUsers = [];
+            state.totpQrImageUrl = "";
+            state.requirePasswordChange = user.requirePasswordChange;
+        },
+        [AUTH_ERROR]: (state, data) => {
+            state.loginStatus = data.isTotpError ? "totp_error" : "error";
+            state.loginMessage = data.message;
+            state.listOfUsers = [];
+            state.user = {
+                name: "",
+                role: "",
+                lastLoginIpAddress: "",
+                lastLoginDate: null,
+                loggedIn: false,
+                totpQrImageUrl: ""
+            };
+        },
+        [AUTH_LOGOUT]: (state) => {
+            state.loginStatus = "";
+            state.loginMessage = "";
+            state.listOfUsers = [];
+            state.user = {
+                name: "",
+                role: "",
+                lastLoginIpAddress: "",
+                lastLoginDate: null,
+                loggedIn: false,
+                totpQrImageUrl: ""
+            };
+            state.requirePasswordChange = false;
+            state.imitations = [];
+        },
+        [FORGOT_PASSWORD]: (state) => {
+            state.resetPassword = false;
+            state.loginMessage = "";
+        },
+        [RESET_PASSWORD_SUCCESS]: (state) => {
+            state.resetPassword = true;
+        },
+        [RESET_PASSWORD_ERROR]: (state) => {
+            state.loginMessage = "Er is iets mis gegaan. Probeer het later a.u.b. opnieuw.";
+        },
+        [CHANGE_PASSWORD_LOGIN]: (state) => {
+            state.loginMessage = "";
+        },
+        [CHANGE_PASSWORD_SUCCESS]: (state) => {
+            state.requirePasswordChange = false;
+        },
+        [CHANGE_PASSWORD_ERROR]: (state, message) => {
+            state.loginMessage = message;
+        },
+        [USE_TOTP_BACKUP_CODE]: (state) => {
+            state.loginMessage = "";
+        },
+        [USE_TOTP_BACKUP_CODE_ERROR]: (state, message) => {
+            state.loginMessage = message;
+        },
+        [USER_BACKUP_CODES_GENERATED]: (state) => {
+            state.user.totpFirstTime = false;
+        },
+        [IMITATIONS_LOADED](state, imitations) {
+            state.imitations = imitations;
+        },
+    },
+
+    actions: {
+        async [AUTH_REQUEST]({ commit, rootState }, data = {}) {
+            const user = data.user;
+            commit(AUTH_REQUEST, user);
+
+            // Check if we have user data in the local storage and if that data is still valid.
+            if (!user) {
+                const accessTokenExpires = localStorage.getItem("accessTokenExpiresOn");
+
+                // User is still logged in.
+                const user = JSON.parse(localStorage.getItem("userData"));
+
+                if (data.gotUnauthorized || !accessTokenExpires || new Date(accessTokenExpires) <= new Date() || user?.requirePasswordChange) {
+                    if (!user || !user.refresh_token || user.requirePasswordChange) {
+                        this.dispatch(AUTH_LOGOUT);
+                        return;
+                    }
+
+                    const loginResult = await main.usersService.refreshToken(user.refresh_token);
+                    if (!loginResult.success) {
+                        this.dispatch(AUTH_LOGOUT);
+                        return;
+                    }
+
+                    localStorage.setItem("accessToken", loginResult.data.access_token);
+                    localStorage.setItem("accessTokenExpiresOn", loginResult.data.expiresOn);
+                    localStorage.setItem("userData", JSON.stringify(Object.assign({}, user, loginResult.data)));
+                }
+
+                window.main.api.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("accessToken")}`;
+
+                user.loggedIn = true;
+
+                const extraUserData = await window.main.usersService.getLoggedInUserData();
+                if (extraUserData.success) {
+                    Object.assign(user, extraUserData.data);
+                }
+
+                commit(AUTH_SUCCESS, user);
+
+                if (!rootState.modules.allModules || !rootState.modules.allModules.length) {
+                    await this.dispatch(DO_TENANT_MIGRATIONS);
+                    await this.dispatch(MODULES_REQUEST);
+                    await this.dispatch(IMITATIONS_REQUEST);
+                }
+
+                // If a login log ID is also set in the user data, use it to start the "time active" timer.
+                if (!rootState.users.updateTimeActiveTimerWorking && user.hasOwnProperty("encryptedLoginLogId")) {
+                    await this.dispatch(START_UPDATE_TIME_ACTIVE_TIMER);
+                }
+            } else {
+                const loginResult = await main.usersService.loginUser(user.username, user.password, (user.selectedUser || {}).username, user.totpPin, user.totpBackupCode);
+                if (!loginResult.success) {
+                    commit(AUTH_ERROR, {
+                        message: loginResult.message,
+                        isTotpError: data.loginStatus === "totp"
+                    });
+                    return;
+                }
+
+                // If TOTP is enabled and not succeeded yet, show the 2FA step.
+                if (loginResult.data.totpEnabled && !loginResult.data.totpSuccess) {
+                    commit(loginResult.data.totpQrImageUrl ? AUTH_TOTP_SETUP : AUTH_TOTP_PIN, loginResult.data);
+                    return;
+                }
+
+                // If the user that is logging in is an admin account, show a list of users for the tenant.
+                if (loginResult.data.adminLogin && !loginResult.data.adminAccountId) {
+                    commit(AUTH_LIST, loginResult.data.usersList);
+                    return;
+                }
+
+                localStorage.setItem("accessToken", loginResult.data.access_token);
+                localStorage.setItem("accessTokenExpiresOn", loginResult.data.expiresOn);
+                localStorage.setItem("userData", JSON.stringify(loginResult.data));
+                window.main.api.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("accessToken")}`;
+
+                loginResult.data.loggedIn = true;
+
+                commit(AUTH_SUCCESS, loginResult.data);
+
+                const extraUserData = await window.main.usersService.getLoggedInUserData();
+                if (extraUserData.success) {
+                    Object.assign(loginResult.data, extraUserData.data);
+                }
+
+                commit(AUTH_SUCCESS, loginResult.data);
+
+                if (!rootState.modules.allModules || !rootState.modules.allModules.length)
+                    await this.dispatch(DO_TENANT_MIGRATIONS);
+
+                // If a login log ID is also set in the user data, use it to start the "time active" timer.
+                if (!rootState.users.updateTimeActiveTimerWorking && user.hasOwnProperty("encryptedLoginLogId")) {
+                    await this.dispatch(START_UPDATE_TIME_ACTIVE_TIMER);
+                }
+
+                // Reload the modules and imitations after a successful login.
+                await this.dispatch(MODULES_REQUEST);
+                await this.dispatch(IMITATIONS_REQUEST);
+
+                // Load system styling.
+                await Misc.injectSystemStyling(false);
+            }
+        },
+
+        [AUTH_LOGOUT]({ commit }) {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("accessTokenExpiresOn");
+            localStorage.removeItem("userData");
+            sessionStorage.removeItem("userSettings");
+            delete window.main.api.defaults.headers.common["Authorization"];
+            this.dispatch(STOP_UPDATE_TIME_ACTIVE_TIMER);
+
+            commit(AUTH_LOGOUT);
+        },
+
+        async [FORGOT_PASSWORD]({ commit }, data = {}) {
+            commit(FORGOT_PASSWORD);
+            const result = await main.usersService.forgotPassword(data.user.username, data.user.email);
+
+            if (result) {
+                commit(RESET_PASSWORD_SUCCESS);
+            } else {
+                commit(RESET_PASSWORD_ERROR);
+            }
+        },
+
+        async [CHANGE_PASSWORD_LOGIN]({ commit }, data = {}) {
+            commit(CHANGE_PASSWORD_LOGIN);
+
+            const result = await main.usersService.changePassword(data.user);
+
+            if (result.response) {
+                commit(CHANGE_PASSWORD_SUCCESS);
+            } else {
+                commit(CHANGE_PASSWORD_ERROR, result.error);
+            }
+        },
+
+        async [USE_TOTP_BACKUP_CODE]({ commit }, data = {}) {
+            commit(USE_TOTP_BACKUP_CODE);
+
+            const result = await main.usersService.useTotpBackupCode(data);
+
+            if (result.success) {
+                commit(CHANGE_PASSWORD_SUCCESS);
+            } else {
+                commit(CHANGE_PASSWORD_ERROR, result.message);
+            }
+        },
+
+        [USER_BACKUP_CODES_GENERATED]({ commit }) {
+            commit(USER_BACKUP_CODES_GENERATED);
+            const localUser = JSON.parse(localStorage.getItem("userData"));
+            if (!localUser) {
+                return;
+            }
+
+            localUser.totpFirstTime = false;
+            localStorage.setItem("userData", JSON.stringify(localUser));
+        },
+
+        async [IMITATIONS_REQUEST]({ commit, dispatch }) {
+            commit(START_REQUEST);
+
+            const imitations = await main.usersService.fetchImitations();
+            commit(IMITATIONS_LOADED, imitations.data);
+
+            commit(END_REQUEST);
+        },
+
+        async [IMITATE_ACCOUNT]({ commit, dispatch }, encryptedUserId) {
+            commit(START_REQUEST);
+            
+            await main.usersService.imitate(encryptedUserId);
+            
+            // TODO: Dispatch AUTH_REQUEST to avoid having to refresh all content of the page for a smoother experience.
+            window.location.reload();
+            
+            commit(END_REQUEST);
+        }
+    },
+
+    getters: {}
+};
+
+const modulesModule = {
+    state: () => ({
+        allModules: [],
+        modulesLoading: false,
+        openedModules: [],
+        activeModule: 0,
+        moduleGroups: []
+    }),
+
+    mutations: {
+        [MODULES_LOADED](state, modules) {
+            state.allModules = [];
+            state.moduleGroups = [];
+
+            if (!modules) {
+                return;
+            }
+
+            // Sort module groups.
+            const sortedGroupNames = Object.keys(modules).sort((a, b) => (modules[a].ordering ?? 0) - (modules[b].ordering ?? 0));
+
+            let hasAutoload = false;
+            for (let groupName of sortedGroupNames) {
+                if (!modules.hasOwnProperty(groupName)) {
+                    continue;
+                }
+
+                const moduleGroup = {
+                    ...modules[groupName],
+                    name: groupName
+                };
+                
+                state.moduleGroups.push(moduleGroup);
+
+                for (let module of moduleGroup.modules) {
+                    if (!module.name) {
+                        console.warn("Found module without name, so skipping it", module);
+                        continue;
+                    }
+
+                    state.allModules.push(module);
+
+                    if (module.autoLoad) {
+                        hasAutoload = true;
+                    }
+                }
+            }
+
+            if (!hasAutoload) {
+                if (document.body.classList.contains("on-canvas")) {
+                    document.body.classList.add("menu-active");
+                    document.body.classList.remove("on-canvas");
+                }
+            } else {
+                if (document.body.classList.contains("off-canvas")) {
+                    document.body.classList.remove("off-canvas");
+                    document.body.classList.add("on-canvas");
+                }
+            }
+        },
+
+        [MODULES_PENDING_ACTIONS_LOADED](state, pendingActionPairs) {
+            const pendingActionsByModuleId = (pendingActionPairs ?? []).reduce((result, item) => {
+                result[item.moduleId] = Number(item.pendingActionCount ?? 0);
+                return result;
+            }, {});
+
+            for (const moduleGroup of state.moduleGroups ?? []) {
+                for (const module of moduleGroup.modules ?? []) {
+                    module.pendingActionCount = pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0);
+                }
+            }
+
+            for (const pinnedModuleGroup of state.pinnedModuleGroups ?? []) {
+                for (const module of pinnedModuleGroup.modules ?? []) {
+                    module.pendingActionCount = pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0);
+                }
+            }
+
+            for (const module of state.allModules ?? []) {
+                module.pendingActionCount = pendingActionsByModuleId[module.moduleId] ?? Number(module.pendingActionCount ?? 0);
+            }
+        },
+
+        [OPEN_MODULE]: (state, module) => {
+            // Check if this module is already open, if the user is not allowed to have multiple instances of this module open at once.
+            let activeModule = !module.onlyOneInstanceAllowed ? null : state.openedModules.filter(m => m.moduleId === module.moduleId)[0];
+
+            // Add the module to the list if it isn't open yet, or if the user is allowed to have multiple instanced of the same module open at once.
+            if (!activeModule) {
+                activeModule = Object.assign({}, module);
+
+                if (module.onlyOneInstanceAllowed) {
+                    activeModule.id = activeModule.moduleId;
+                    activeModule.index = 0;
+                } else {
+                    // Set a unique ID and index, to that users can have this module open more than once.
+                    const allInstances = state.openedModules.filter(m => m.moduleId === module.moduleId);
+                    const newModuleIndex = Math.max(...allInstances.map(m => m.index || 0), 0) + 1;
+                    activeModule.id = `${activeModule.moduleId}_${newModuleIndex}`;
+                    activeModule.index = newModuleIndex;
+                }
+
+                // Add module name to query string.
+                if (!activeModule.queryString) {
+                    activeModule.queryString = `?moduleName=${encodeURIComponent(module.name)}`;
+                } else if(activeModule.queryString.indexOf("&moduleName=") === -1) {
+                    activeModule.queryString += `&moduleName=${encodeURIComponent(module.name)}`;
+                }
+
+                state.openedModules.push(activeModule);
+
+                // Manually increase the interactions to update the current interactions of the module.
+                module.moduleInteractions++;
+            }
+
+            // Set the newly opened module to active.
+            state.activeModule = activeModule.id;
+        },
+        [ACTIVATE_MODULE]: (state, moduleId) => {
+            // Set the newly opened module to active.
+            state.activeModule = moduleId;
+        },
+        [CLOSE_MODULE]: (state, module) => {
+            // Do some pre checks.
+            const moduleToClose = state.openedModules.filter(m => m.id === module.id)[0];
+            if (!moduleToClose) {
+                return;
+            }
+
+            const moduleIndex = state.openedModules.indexOf(moduleToClose);
+            if (moduleIndex === -1) {
+                return;
+            }
+
+            // If the module still exists, remove it from the array, which will automatically cause Vue to remove it from the HTML.
+            state.openedModules.splice(moduleIndex, 1);
+
+            // If the module that was closed was the active module, set the last opened module as active.
+            if (state.activeModule === moduleToClose.id) {
+                if (state.openedModules.length > 0) {
+                    state.activeModule = state.openedModules[state.openedModules.length - 1].id;
+                } else {
+                    state.activeModule = null;
+                }
+            }
+        },
+        [CLOSE_ALL_MODULES]: (state) => {
+            state.activeModule = null;
+            state.openedModules = [];
+        },
+        [CLEAR_ALL_MODULES]: (state) => {
+            state.allModules = [];
+            state.moduleGroups = [];
+        },
+        [TOGGLE_PIN_MODULE]: (state, moduleId) => {
+            const modules = state.allModules.filter(m => m.moduleId === moduleId);
+
+            for(const module of modules) {
+                // Toggle the pin status.
+                let pinnedChanged = true;
+                if (module.pinned && module.autoLoad) {
+                    module.pinned = false;
+                    module.autoLoad = false;
+                } else if (module.pinned && !module.autoLoad) {
+                    module.autoLoad = true;
+                    pinnedChanged = false;
+                } else {
+                    module.pinned = true;
+                }
+            }
+        },
+        [UPDATE_TAB_STRIP_MODULES]: (state, newTabs) => {
+            state.openedModules = newTabs;
+        },
+        [UPDATE_TAB_STRIP_TITLE_ALIAS]: (state, data) => {
+            const { module, value } = data;
+            module.alias = value;
+        },
+        [SET_MODULES_LOADING](state, loading) {
+            state.modulesLoading = loading;
+        }
+    },
+
+    actions: {
+        async [MODULES_REQUEST]({ commit, dispatch, state }) {
+            if (state.modulesLoading)
+                return;
+
+            commit(SET_MODULES_LOADING, true);
+            
+            try {
+                commit(START_REQUEST);
+                const moduleGroups = await main.modulesService.getModules();
+                commit(MODULES_LOADED, moduleGroups);
+
+                // Get all pending actions and attach them to their respective module 
+                await dispatch(MODULES_PENDING_ACTIONS_REQUEST);
+                
+                // Keep track of de module IDs that are autoloaded to avoid duplicate autoloaded modules.
+                const loadedAutoLoadedModules = [];
+
+                // Automatically open pinned modules when the modules are first loaded.
+                for (let group in moduleGroups) {
+                    if (!moduleGroups.hasOwnProperty(group))
+                        continue;
+
+                    for (let module of moduleGroups[group].modules) {
+                        if (!module.autoLoad)
+                            continue;
+                        
+                        // Check whether this module ID has already been loaded. If so, skip it to avoid opening duplicate modules.
+                        if(loadedAutoLoadedModules.includes(module.moduleId))
+                            continue;
+                        
+                        commit(OPEN_MODULE, module);
+                        loadedAutoLoadedModules.push(module.moduleId);
+                    }
+                }
+                
+                commit(END_REQUEST);
+            } finally {
+                commit(SET_MODULES_LOADING, false);
+            }
+        },
+
+        async [MODULES_PENDING_ACTIONS_REQUEST]({ commit }) {
+            try {
+                const pendingActionPairs = await main.modulesService.getModulePendingActions();
+                commit(MODULES_PENDING_ACTIONS_LOADED, pendingActionPairs);
+            } catch (error) {
+                console.error("Failed to refresh pending actions.", error);
+            }
+        },
+
+        async [OPEN_MODULE]({ commit }, module) {
+            commit(OPEN_MODULE, module);
+            
+            // Log module opened for currently logged-in user.
+            try {
+                // Invoke a log in the back end.
+                await main.modulesService.logModuleOpen(module.moduleId);
+            } catch(exception) {
+                console.error('Unable to log module opening action:', exception);
+            }
+        },
+
+        [CLOSE_MODULE]({ commit }, module) {
+            commit(CLOSE_MODULE, module);
+        },
+
+        [ACTIVATE_MODULE]({ commit }, moduleId) {
+            commit(ACTIVATE_MODULE, moduleId);
+        },
+
+        [CLOSE_ALL_MODULES]({ commit }) {
+            commit(CLOSE_ALL_MODULES);
+        },
+
+        [CLEAR_ALL_MODULES]({ commit }) {
+            commit(CLEAR_ALL_MODULES);
+        },
+
+        async [TOGGLE_PIN_MODULE]({ commit, state }, moduleId) {
+            commit(TOGGLE_PIN_MODULE, moduleId);
+            const pinnedModuleIds = state.allModules.filter(m => m.pinned).map(m => m.moduleId);
+            await main.usersService.savePinnedModules(pinnedModuleIds);
+
+            const autoLoadModuleIds = state.allModules.filter(m => m.autoLoad).map(m => m.moduleId);
+            await main.usersService.saveAutoLoadModules(autoLoadModuleIds);
+        },
+        
+        [UPDATE_TAB_STRIP_MODULES]({ commit, state }, newTabs) {
+            commit(UPDATE_TAB_STRIP_MODULES, newTabs);
+        },
+        
+        [UPDATE_TAB_STRIP_TITLE_ALIAS]({ commit, state }, data) {
+            commit(UPDATE_TAB_STRIP_TITLE_ALIAS, data);
+        }
+    },
+
+    getters: {}
+};
+
+const usersModule = {
+    state: () => ({
+        changePasswordError: null,
+        updateTimeActiveTimer: null,
+        updateTimeActiveTimerWorking: false,
+        totpBackupCodes: [],
+        generateTotpBackupCodesError: null
+    }),
+
+    mutations: {
+        [RESET_PASSWORD_SUCCESS]: (state) => {
+            state.changePasswordError = null;
+        },
+        [CHANGE_PASSWORD_ERROR]: (state, message) => {
+            state.changePasswordError = message;
+        },
+        [START_UPDATE_TIME_ACTIVE_TIMER]: (state) => {
+            state.updateTimeActiveTimerWorking = true;
+        },
+        [STOP_UPDATE_TIME_ACTIVE_TIMER]: (state) => {
+            state.updateTimeActiveTimerWorking = false;
+        },
+        [SET_ACTIVE_TIMER_INTERVAL]: (state, interval) => {
+            state.updateTimeActiveTimer = interval;
+        },
+        [CLEAR_ACTIVE_TIMER_INTERVAL]: (state) => {
+            if (state.updateTimeActiveTimer) {
+                clearInterval(state.updateTimeActiveTimer);
+            }
+            state.updateTimeActiveTimer = null;
+        },
+        [GENERATE_TOTP_BACKUP_CODES_SUCCESS]: (state, backupCodes) => {
+            state.totpBackupCodes = backupCodes || [];
+            state.generateTotpBackupCodesError = null;
+        },
+        [GENERATE_TOTP_BACKUP_CODES_ERROR]: (state, message) => {
+            state.generateTotpBackupCodesError = message;
+            state.totpBackupCodes = [];
+        },
+        [CLEAR_LOCAL_TOTP_BACKUP_CODES]: (state) => {
+            state.generateTotpBackupCodesError = null;
+            state.totpBackupCodes = [];
+        }
+    },
+
+    actions: {
+        async [CHANGE_PASSWORD]({ commit }, data = {}) {
+            commit(START_REQUEST);
+            const result = await main.usersService.changePassword(data);
+            commit(END_REQUEST);
+
+            if (result.response) {
+                commit(RESET_PASSWORD_SUCCESS);
+            } else {
+                commit(CHANGE_PASSWORD_ERROR, result.error);
+            }
+        },
+
+        async [START_UPDATE_TIME_ACTIVE_TIMER]({ commit }) {
+            commit(START_REQUEST);
+
+            // Clear old interval first.
+            commit(CLEAR_ACTIVE_TIMER_INTERVAL);
+
+            commit(START_UPDATE_TIME_ACTIVE_TIMER);
+            const interval = await main.usersService.startUpdateTimeActiveTimer();
+            commit(SET_ACTIVE_TIMER_INTERVAL, interval);
+
+            commit(END_REQUEST);
+        },
+
+        [STOP_UPDATE_TIME_ACTIVE_TIMER]({ commit }) {
+            commit(STOP_UPDATE_TIME_ACTIVE_TIMER);
+            commit(CLEAR_ACTIVE_TIMER_INTERVAL);
+        },
+
+        async [UPDATE_ACTIVE_TIME]({ commit }) {
+            commit(START_REQUEST);
+            const result = await main.usersService.updateActiveTime();
+            commit(END_REQUEST);
+        },
+
+        async [GENERATE_TOTP_BACKUP_CODES]({ commit }) {
+            commit(START_REQUEST);
+            const result = await main.usersService.generateTotpBackupCodes();
+            commit(END_REQUEST);
+
+            if (result.success) {
+                commit(GENERATE_TOTP_BACKUP_CODES_SUCCESS, result.data);
+            } else {
+                commit(GENERATE_TOTP_BACKUP_CODES_ERROR, result.message);
+            }
+        },
+
+        [CLEAR_LOCAL_TOTP_BACKUP_CODES]({ commit }) {
+            commit(CLEAR_LOCAL_TOTP_BACKUP_CODES);
+        }
+    },
+
+    getters: {}
+};
+
+const tenantsModule = {
+    state: () => ({
+        title: null,
+        validSubDomain: true,
+        createBranchError: null,
+        createBranchResult: null,
+        branches: []
+    }),
+
+    mutations: {
+        [GET_TENANT_TITLE](state, title) {
+            state.title = title;
+            if (!title) {
+                return;
+            }
+
+            document.title = `${title} - Coder 3.0`;
+        },
+
+        [GET_TENANT_OPTIONS](state, options) {
+            state.options = options;
+            
+            const documentStyle = document.documentElement.style;
+            documentStyle.setProperty('--coder-foreground-color', options.foreground_color);
+            documentStyle.setProperty('--coder-background-color', options.background_color);
+            documentStyle.setProperty('--coder-primary-color', options.primary_color);
+            documentStyle.setProperty('--coder-secondary-color', options.secondary_color);
+            documentStyle.setProperty('--coder-tertiary-color', options.tertiary_color);
+            documentStyle.setProperty('--coder-icon-color', options.icon_color);
+        },
+
+        [VALID_SUB_DOMAIN](state, valid) {
+            state.validSubDomain = valid;
+        }
+    },
+
+    actions: {
+        async [GET_TENANT_TITLE]({ commit }, subDomain) {
+            commit(START_REQUEST);
+            const titleResponse = await main.tenantsService.getTitle(subDomain);
+            commit(GET_TENANT_TITLE, titleResponse.data);
+            commit(VALID_SUB_DOMAIN, titleResponse.statusCode !== 404);
+            commit(END_REQUEST);
+        },
+        async [GET_TENANT_OPTIONS]({ commit }, subDomain) {
+            commit(START_REQUEST);
+            const optionsResponse = await main.tenantsService.getOptions(subDomain);
+            commit(GET_TENANT_OPTIONS, optionsResponse.data);
+            commit(VALID_SUB_DOMAIN, optionsResponse.statusCode !== 404);
+            commit(END_REQUEST);
+        }
+    },
+
+    getters: {}
+};
+
+const itemsModule = {
+    state: () => ({
+        listOfEntityTypes: []
+    }),
+
+    mutations: {
+        [LOAD_ENTITY_TYPES_OF_ITEM_ID](state, entityTypes) {
+            state.listOfEntityTypes = entityTypes || [];
+        }
+    },
+
+    actions: {
+        async [LOAD_ENTITY_TYPES_OF_ITEM_ID]({ commit }, itemId) {
+            commit(START_REQUEST);
+            const entityTypes = await main.itemsService.getEntityTypesFromId(itemId);
+            commit(LOAD_ENTITY_TYPES_OF_ITEM_ID, entityTypes);
+            commit(END_REQUEST);
+        }
+    },
+
+    getters: {}
+};
+
+const branchesModule = {
+    state: () => ({
+        branchChangeCompleted: false,
+        createBranchError: null,
+        createBranchResult: null,
+        branches: [],
+        entities: [],
+        linkTypes: [],
+        settings: [
+            { type: "apiConnection", displayName: "Verbindingen met API's" },
+            { type: "dataSelector", displayName: "Dataselectors" },
+            { type: "entity", displayName: "Entiteiten" },
+            { type: "entityProperty", displayName: "Velden van entiteiten" },
+            { type: "fieldTemplates", displayName: "Templates van velden" },
+            { type: "link", displayName: "Koppelingen" },
+            { type: "module", displayName: "Modules" },
+            { type: "permission", displayName: "Rechten" },
+            { type: "query", displayName: "Query's" },
+            { type: "role", displayName: "Rollen" },
+            { type: "userRole", displayName: "Koppelingen tussen gebruikers en rollen" },
+            { type: "styledOutput", displayName: "Styled output (Coder API query output configuraties)" },
+            { type: "easyObjects", displayName: "Objecten (easy_objects)" }
+        ],
+        isMainBranch: false,
+        branchChanges: {
+            entities: [],
+            linkTypes: [],
+            settings: []
+        },
+        branchChangesLoaded: false,
+        mergeBranchError: null,
+        mergeBranchResult: null,
+        deleteBranchResult: null,
+        deleteBranchError: null
+    }),
+
+    mutations: {
+        [BRANCH_CHANGE_COMPLETED](state, result) {
+            state.branchChangeCompleted = result;
+        },
+        
+        [CREATE_BRANCH_SUCCESS](state, result) {
+            state.createBranchResult = result;
+            state.createBranchError = null;
+        },
+
+        [CREATE_BRANCH_ERROR](state, error) {
+            state.createBranchResult = null;
+            state.createBranchError = error;
+        },
+
+        [GET_BRANCHES](state, branches) {
+            state.branches = branches;
+        },
+
+        [MERGE_BRANCH_SUCCESS](state, result) {
+            state.mergeBranchResult = result;
+            state.mergeBranchError = null;
+        },
+
+        [MERGE_BRANCH_ERROR](state, error) {
+            state.mergeBranchResult = null;
+            state.mergeBranchError = error;
+        },
+
+        [GET_ENTITIES_FOR_BRANCHES](state, entities) {
+            state.entities = entities;
+        },
+
+        [GET_LINK_TYPES](state, linkTypes) {
+            state.linkTypes = linkTypes;
+        },
+
+        [IS_MAIN_BRANCH](state, isMainBranch) {
+            state.isMainBranch = isMainBranch;
+        },
+
+        [GET_BRANCH_CHANGES](state, branchChanges) {
+            state.branchChanges = branchChanges;
+            state.branchChangesLoaded = true;
+        },
+
+        [RESET_BRANCH_CHANGES](state, branchChanges) {
+            state.branchChanges = {
+                entities: [],
+                settings: [],
+                linkTypes: [],
+            };
+            state.branchChangesLoaded = false;
+        },
+
+        [HANDLE_CONFLICT](state, { acceptChange, id }) {
+            if (!state.mergeBranchResult || !state.mergeBranchResult.conflicts || !state.mergeBranchResult.conflicts.length) {
+                console.warn("Tried to handle conflict, but there are no conflicts.");
+                return;
+            }
+
+            const conflict = state.mergeBranchResult.conflicts.find(c => c.id === id);
+            if (!conflict) {
+                console.warn("Tried to handle a conflict that doesn't exist.");
+                return;
+            }
+
+            conflict.acceptChange = acceptChange;
+        },
+
+        [HANDLE_MULTIPLE_CONFLICTS](state, { acceptChange, settings }) {
+            if (!settings || !settings.property || !settings.operator || !settings.start) {
+                return;
+            }
+
+            if (!state.mergeBranchResult || !state.mergeBranchResult.conflicts || !state.mergeBranchResult.conflicts.length) {
+                console.warn("Tried to handle conflicts, but there are no conflicts.");
+                return;
+            }
+
+            for (let conflict of state.mergeBranchResult.conflicts) {
+                let isDate = false;
+                let valueToCheck;
+                let startValue = settings.start;
+                let endValue = settings.end;
+
+                // Get the value of the property we want to check for the conflict to accept or deny.
+                switch (settings.property) {
+                    case "type":
+                        valueToCheck = conflict.typeDisplayName;
+                        break;
+                    case "field":
+                        valueToCheck = conflict.fieldDisplayName;
+                        break
+                    case "changeDateOriginal":
+                        isDate = true;
+                        valueToCheck = conflict.changeDateInMain;
+                        break;
+                    case "changeDateBranch":
+                        isDate = true;
+                        valueToCheck = conflict.changeDateInBranch;
+                        break;
+                    case "originalValue":
+                        valueToCheck = conflict.valueInMain;
+                        break;
+                    case "branchValue":
+                        valueToCheck = conflict.valueInBranch;
+                        break;
+                    default:
+                        console.warn(`${HANDLE_MULTIPLE_CONFLICTS} - Unsupported property '${settings.property}'`)
+                        continue;
+                }
+
+                if (!valueToCheck) {
+                    continue;
+                }
+
+                // Format dates so that they're all the same format.
+                if (isDate) {
+                    valueToCheck = new Date(valueToCheck);
+                    valueToCheck = new Date(valueToCheck.getFullYear(), valueToCheck.getMonth(), valueToCheck.getDate());
+
+                    startValue = new Date(startValue);
+                    startValue = new Date(startValue.getFullYear(), startValue.getMonth(), startValue.getDate());
+                    if (endValue) {
+                        endValue = new Date(endValue);
+                        endValue = new Date(endValue.getFullYear(), endValue.getMonth(), endValue.getDate());
+                    }
+                }
+
+                // Make sure string checks are case insensitive.
+                if (!isDate) {
+                    valueToCheck = valueToCheck.toLowerCase();
+                    startValue = startValue.toLowerCase();
+                }
+
+                let found = false;
+                switch (settings.operator) {
+                    case "contains":
+                        found = valueToCheck.indexOf(startValue) > -1;
+                        break;
+                    case "equals":
+                        if (isDate) {
+                            found = valueToCheck.getTime() === startValue.getTime();
+                        } else {
+                            found = valueToCheck.toString().toUpperCase() === startValue.toString().toUpperCase();
+                        }
+                        break;
+                    case "greaterThan":
+                        found = valueToCheck > startValue;
+                        break;
+                    case "lessThan":
+                        found = valueToCheck < startValue;
+                        break;
+                    case "between":
+                        found = valueToCheck >= startValue && valueToCheck <= endValue;
+                        break;
+                }
+
+                if (!found) {
+                    continue;
+                }
+
+                conflict.acceptChange = acceptChange;
+            }
+        },
+
+        [GET_DATA_SELECTORS_FOR_BRANCHES](state, dataSelectors) {
+            state.dataSelectors = dataSelectors;
+        },
+
+        [DELETE_BRANCH_SUCCESS](state, result) {
+            state.deleteBranchResult = result;
+            state.deleteBranchError = null;
+        },
+
+        [DELETE_BRANCH_ERROR](state, error) {
+            state.deleteBranchResult = null;
+            state.deleteBranchError = error;
+        }
+    },
+
+    actions: {
+        async [BRANCH_CHANGE_COMPLETED]({ commit }, result) {
+            commit(BRANCH_CHANGE_COMPLETED, result);
+        },
+        
+        async [CREATE_BRANCH]({ commit }, data) {
+            commit(START_REQUEST);
+            const result = await main.branchesService.create(data);
+
+            if (result.success) {
+                if (result.data) {
+                    commit(CREATE_BRANCH_SUCCESS, result.data);
+                } else {
+                    commit(CREATE_BRANCH_ERROR, result.message);
+                }
+            } else {
+                commit(CREATE_BRANCH_ERROR, result.message);
+            }
+            commit(END_REQUEST);
+        },
+
+        [CREATE_BRANCH_ERROR]({ commit }, error) {
+            commit(CREATE_BRANCH_ERROR, error);
+        },
+
+        async [GET_BRANCHES]({ commit }) {
+            commit(START_REQUEST);
+            const branchesResponse = await main.branchesService.get();
+            commit(GET_BRANCHES, branchesResponse.data);
+            commit(END_REQUEST);
+        },
+
+        async [MERGE_BRANCH]({ commit }, data) {
+            commit(START_REQUEST);
+            const result = await main.branchesService.merge(data);
+
+            if (result.success) {
+                if (result.data) {
+                    if (result.data.errors && result.data.errors.length > 0) {
+                        let errorMessage;
+                        if (result.data.successfulChanges) {
+                            errorMessage = `Een deel van het overzetten is goed gegaan en een deel is fout gegaan. Er zijn ${result.data.successfulChanges} wijzigingen succesvol overgezet en de volgende fouten zijn opgetreden: ${result.data.errors.join("<br>")}`;
+                        } else {
+                            errorMessage = `Het overzetten is mislulkt. De volgende fouten zijn opgetreden: ${result.data.errors.join("<br>")}`;
+                        }
+                        commit(MERGE_BRANCH_ERROR, errorMessage);
+                    } else {
+                        commit(MERGE_BRANCH_SUCCESS, result.data);
+                    }
+                } else {
+                    commit(MERGE_BRANCH_ERROR, result.message);
+                }
+            } else {
+                commit(MERGE_BRANCH_ERROR, result.message);
+            }
+            commit(END_REQUEST);
+        },
+
+        [MERGE_BRANCH_ERROR]({ commit }, error) {
+            commit(MERGE_BRANCH_ERROR, error);
+        },
+
+        async [GET_ENTITIES_FOR_BRANCHES]({ commit }, branchId) {
+            commit(START_REQUEST);
+            const entitiesResponse = await main.branchesService.getEntities(branchId);
+            commit(GET_ENTITIES_FOR_BRANCHES, entitiesResponse.data);
+            commit(END_REQUEST);
+        },
+
+        async [GET_LINK_TYPES]({ commit }, branchId) {
+            commit(START_REQUEST);
+            const entitiesResponse = await main.branchesService.getLinkTypes(branchId);
+            commit(GET_LINK_TYPES, entitiesResponse.data);
+            commit(END_REQUEST);
+        },
+
+        async [IS_MAIN_BRANCH]({ commit }) {
+            commit(START_REQUEST);
+            const entitiesResponse = await main.branchesService.isMainBranch();
+            commit(IS_MAIN_BRANCH, entitiesResponse.data);
+            commit(END_REQUEST);
+        },
+
+        async [GET_BRANCH_CHANGES]({ commit }, branchId) {
+            commit(START_REQUEST);
+            const changesResponse = await main.branchesService.getChanges(branchId);
+            commit(GET_BRANCH_CHANGES, changesResponse.data);
+            commit(MERGE_BRANCH_SUCCESS, null);
+            commit(END_REQUEST);
+        },
+
+        async [RESET_BRANCH_CHANGES]({ commit }) {
+            commit(RESET_BRANCH_CHANGES);
+        },
+
+        [HANDLE_CONFLICT]({ commit }, payload) {
+            commit(HANDLE_CONFLICT, payload);
+        },
+
+        [HANDLE_MULTIPLE_CONFLICTS]({ commit }, payload) {
+            commit(HANDLE_MULTIPLE_CONFLICTS, payload);
+        },
+
+        async [GET_DATA_SELECTORS_FOR_BRANCHES]({commit }) {
+            commit(START_REQUEST);
+            const dataSelectorsResponse = await main.branchesService.getDataSelectors();
+            commit(GET_DATA_SELECTORS_FOR_BRANCHES, dataSelectorsResponse.data);
+            commit(END_REQUEST);
+        },
+
+        async [DELETE_BRANCH]({ commit }, data) {
+            commit(START_REQUEST);
+            const result = await main.branchesService.delete(data);
+
+            if (result.success) {
+                if (result.data) {
+                    commit(DELETE_BRANCH_SUCCESS, result.data);
+                } else {
+                    commit(DELETE_BRANCH_ERROR, result.message);
+                }
+            } else {
+                commit(DELETE_BRANCH_ERROR, result.message);
+            }
+            commit(END_REQUEST);
+        }
+    },
+
+    getters: {}
+};
+
+const cacheModule = {
+    state: () => ({
+        clearCacheError: null
+    }),
+
+    mutations: {
+        [CLEAR_CACHE_SUCCESS]: (state) => {
+            state.clearCacheError = null;
+        },
+        [CLEAR_CACHE_ERROR]: (state, message) => {
+            state.clearCacheError = message;
+        }
+    },
+
+    actions: {
+        async [CLEAR_CACHE]({ commit }, data = {}) {
+            commit(START_REQUEST);
+            const result = await main.cacheService.clear(data);
+            commit(END_REQUEST);
+
+            if (result.success) {
+                commit(CLEAR_CACHE_SUCCESS);
+            } else {
+                commit(CLEAR_CACHE_ERROR, result.message);
+            }
+        },
+
+        [CLEAR_CACHE_ERROR]({ commit }, error) {
+            commit(CLEAR_CACHE_ERROR, error);
+        },
+    },
+
+    getters: {}
+};
+
+const databaseModule = {
+    actions: {
+        async [DO_TENANT_MIGRATIONS]({ commit }) {
+            commit(START_REQUEST);
+            await main.databasesService.doTenantMigrations();
+            commit(END_REQUEST);
+        }
+    }
+};
+
+export default createStore({
+    // Do not enable strict mode when deploying for production!
+    // Strict mode runs a synchronous deep watcher on the state tree for detecting inappropriate mutations, and it can be quite expensive when you make large amount of mutations to the state.
+    // Make sure to turn it off in production to avoid the performance cost.
+    strict: process.env.NODE_ENV === "development",
+
+    modules: {
+        base: baseModule,
+        login: loginModule,
+        modules: modulesModule,
+        tenants: tenantsModule,
+        users: usersModule,
+        items: itemsModule,
+        branches: branchesModule,
+        cache: cacheModule,
+        database: databaseModule
+    }
+});

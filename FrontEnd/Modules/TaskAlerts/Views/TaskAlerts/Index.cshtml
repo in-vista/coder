@@ -1,0 +1,128 @@
+﻿@using System.Globalization
+@model FrontEnd.Modules.Base.Models.BaseModuleViewModel
+@addTagHelper FrontEnd.Core.TagHelpers.WebpackScriptTagHelper, FrontEnd
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <meta charset="utf-8" />
+    <title>Coder 3 - Task Alerts</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://unpkg.com/@@progress/kendo-theme-material@11.1.0/dist/material-main.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@@progress/kendo-font-icons@4.9.0/dist/index.css" />
+
+    <script>
+        window.wiserVersion = "@Model.WiserVersion?.ToString()";
+    </script>
+</head>
+<body class="taskAlert"
+      data-module-id="708"
+      data-wiser-api-root="@Model.ApiRoot"
+      data-wiser-api-authentication-url="@Model.ApiAuthenticationUrl"
+      data-is-test-environment="@Model.IsTestEnvironment.ToString().ToLowerInvariant()"
+      data-api-client-id="@Model.Settings.ApiClientId"
+      data-api-client-secret="@Model.Settings.ApiClientSecret"
+      data-sub-domain="@Model.SubDomain"
+      data-track-js-token="@Model.Settings.TrackJsToken"
+      data-pusher-app-key="@Model.Settings.PusherAppKey">
+
+    <ul id="taskList">
+        <li id="taskHistory">
+            <a href="javascript:void(0)">Alle agenderingen</a>
+        </li>
+    </ul>
+
+    <div class="taskForm">
+        <div class="item">
+            <h4><label>Voeg een taak toe</label></h4>
+            <input id="taskDate" class="datepicker" value="@DateTime.Today.ToString("dd MMMM yyyy", new CultureInfo("nl-NL"))" />
+        </div>
+        <div class="item">
+            <h4><label>Gebruikers toevoegen</label></h4>
+            <select id="taskUsers" class="multi-select" multiple="multiple" data-placeholder="Kies gebruikers..." data-data-text-field="title" data-data-value-field="id" data-auto-bind="false"></select>
+        </div>
+        <div class="item">
+            <h4><label>Taakomschrijving</label></h4>
+            <textarea id="taskDescription" placeholder="Omschrijving van de taak..."></textarea>
+        </div>
+        <div class="item">
+            <h4><label style="display: block;">Verstuur e-mail naar gebruiker(s)</label></h4>
+            <input id="taskEmail" type="checkbox" class="checkbox" style="margin:5px;" />
+            <div class="form-hint"><span>Werkt alleen als het e-mailadres van de gebruiker bekend is.</span></div>
+        </div>
+        <div class="item">
+            <div class="actions btn2">
+                <button type="button" id="saveTask" class="module-button k-primary" data-icon="save">Opslaan</button>
+                <button type="button" id="cancelTask" class="module-button" data-icon="cancel">Annuleren</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="editTaskForm">
+        <div class="item">
+            <h4><label>Taak aanpassen</label></h4>
+            <input id="editTaskDate" class="datepicker" value="@DateTime.Today.ToString("dd MMMM yyyy", new CultureInfo("nl-NL"))" />
+        </div>
+        <div class="item">
+            <h4><label>Gebruiker</label></h4>
+            <select id="editTaskUser" class="drop-down-list" data-option-label="Kies gebruiker..." data-data-text-field="title" data-data-value-field="id" data-auto-bind="false"></select>
+        </div>
+        <div class="item">
+            <h4><label>Taakomschrijving</label></h4>
+            <textarea id="editTaskDescription" placeholder="Omschrijving van de taak..."></textarea>
+        </div>
+        <div class="item">
+            <h4><label>Status</label></h4>
+            <select id="editTaskStatus" class="drop-down-list" data-option-label="Kies een status..." data-data-text-field="name" data-data-value-field="id">
+                <option value="">Geen status</option>
+                <option value="in behandeling">In behandeling</option>
+                <option value="wacht op reactie">Wacht op reactie</option>
+                <option value="afgerond">Afgerond</option>
+            </select>
+        </div>
+        <div class="item">
+            <div class="actions btn2">
+                <button type="button" id="saveEditTask" class="module-button k-primary" data-icon="save">Opslaan</button>
+                <button type="button" id="cancelEditTask" class="module-button" data-icon="cancel">Annuleren</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button type="button" class="module-button k-primary k-button-round" id="addTask" data-icon="plus"></button>
+    </div>
+
+    <div id="mainLoader" class="fullscreen-loader loading">
+        <div class="loader-icon">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+
+    <script type="text/x-wiser-template" id="taskHtmlTemplate">
+        <li data-has-linked-item="{hasLinkedItem}">
+            <div class="taskListItemDetails">
+                <label>
+                    <input type="checkbox" class="noForm" value="{encryptedId}" />
+                    <ins class="icon-check"></ins>
+                </label>
+                <span>{content}</span>
+                <small>{agenderingDatePretty}</small>
+                <small>{status}</small>
+                <strong>{placedBy}</strong>
+            </div>
+            <a role="button" class="k-button k-button-icontext open-task" data-item-id="{linkedItemId}" data-module-id="{linkedItemModuleId}" data-entity-type="{linkedItemEntityType}" href="javascript:void(0)"><span class="k-font-icon k-i-hyperlink-open"></span></a>
+            <a role="button" class="k-button k-button-icontext edit-task" data-task-id="{encryptedId}" href="javascript:void(0)"><span class="k-font-icon k-i-edit"></span></a>
+        </li>
+    </script>
+
+    <webpack-script file-name="runtime.js"></webpack-script>
+    <webpack-script file-name="vendors.js"></webpack-script>
+    <webpack-script file-name="Processing.js"></webpack-script>
+    <webpack-script file-name="kendo-ui.js"></webpack-script>
+    <webpack-script file-name="TaskAlerts.js"></webpack-script>
+</body>
+</html>

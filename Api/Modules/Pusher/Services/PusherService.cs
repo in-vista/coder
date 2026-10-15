@@ -1,0 +1,166 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Api.Core.Models;
+using Api.Core.Services;
+using GeeksCoreLibrary.Modules.Communication.Interfaces;
+using Api.Modules.Pusher.Interfaces;
+using Api.Modules.Pusher.Models;
+using FluentFTP.Helpers;
+using GeeksCoreLibrary.Modules.Templates.Interfaces;
+using GeeksCoreLibrary.Core.DependencyInjection.Interfaces;
+using GeeksCoreLibrary.Core.Extensions;
+using GeeksCoreLibrary.Core.Interfaces;
+using GeeksCoreLibrary.Core.Models;
+using GeeksCoreLibrary.Modules.Communication.Models;
+using Microsoft.Extensions.Options;
+using PusherServer;
+
+namespace Api.Modules.Pusher.Services
+{
+    //TODO Verify comments
+    /// <summary>
+    /// Service for handling messages between users within Wiser.
+    /// </summary>
+    public class PusherService : IPusherService, IScopedService
+    {
+        private readonly ApiSettings apiSettings;
+        private readonly ITemplatesService templatesService;
+        private readonly ICommunicationsService communicationsService;
+        private readonly IWiserItemsService wiserItemsService;
+
+        /// <summary>
+        /// Creates a new instance of <see cref="PusherService"/>.
+        /// </summary>
+        /// <param name="apiSettings"></param>
+        /// <param name="templatesService"></param>
+        /// <param name="communicationsService"></param>
+        /// <param name="wiserItemsService"></param>
+        public PusherService(
+            IOptions<ApiSettings> apiSettings,
+            ITemplatesService templatesService,
+            ICommunicationsService communicationsService,
+            IWiserItemsService wiserItemsService)
+        {
+            this.apiSettings = apiSettings.Value;
+            this.templatesService = templatesService;
+            this.communicationsService = communicationsService;
+            this.wiserItemsService = wiserItemsService;
+        }
+
+        /// <inheritdoc />
+        public ServiceResult<string> GeneratePusherIdForUser(ulong userId, string subDomain)
+        {
+            if (userId == 0)
+            {
+                return new ServiceResult<string>
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Error = "UserId must be greater than 0"
+                };
+            }
+
+            var eventId = $"{subDomain}_{userId}";
+            var hash = eventId.ToSha512ForPasswords(Encoding.UTF8.GetBytes(apiSettings.PusherSalt));
+            return new ServiceResult<string>(hash);
+        }
+
+        /// <inheritdoc />
+        public async Task<ServiceResult<bool>> SendMessageToUserAsync(string subDomain, PusherMessageRequestModel data)
+        {
+            if (data == null || ((data.UserIds == null || data.UserIds.Length == 0) && !data.IsGlobalMessage))
+            {
+                return new ServiceResult<bool>(false)
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Error = "User ID(s) is/are not present or are invalid."
+                };
+            }
+
+            if (String.IsNullOrWhiteSpace(data.Channel))
+            {
+                data.Channel = "Wiser";
+            }
+
+            if (data.EventData == null)
+            {
+                data.EventData = new { message = "new" };
+            }
+            
+            if (String.IsNullOrWhiteSpace(data.Cluster))
+            {
+                data.Cluster = "eu";
+            }
+            
+            var options = new PusherOptions
+            {
+                Cluster = data.Cluster,
+                Encrypted = true
+            };
+            var pusher = new PusherServer.Pusher(apiSettings.PusherAppId, apiSettings.PusherAppKey, apiSettings.PusherAppSecret, options);
+            
+            if (data.UserIds != null)
+            {
+                foreach (string userIdRaw in data.UserIds)
+                {
+                    if(!ulong.TryParse(userIdRaw, out ulong userId))
+                        return new ServiceResult<bool>(false)
+                        {
+                            StatusCode = HttpStatusCode.BadRequest,
+                            Error = "Invalid user ID."
+                        };
+                    
+                    var pusherId = GeneratePusherIdForUser(userId, subDomain).ModelObject;
+                    
+                    // Global messages do not fire events for a specific user.
+                    var eventName = !String.IsNullOrWhiteSpace(data.EventName) ? data.EventName : data.IsGlobalMessage ? data.Channel : $"{data.Channel}_{pusherId}";
+                    
+                    var result = await pusher.TriggerAsync(data.Channel, eventName, data.EventData);
+                    
+                    var success = (int)result.StatusCode >= 200 && (int)result.StatusCode < 300;
+                    if (!success)
+                    {
+                        return new ServiceResult<bool>(false)
+                        {
+                            StatusCode = result.StatusCode,
+                            Error = result.Body
+                        };
+                    }
+                    
+                    // TODO: Make it so that it doesn't use skipPermissionsCheck
+                    WiserItemModel userDetails = await wiserItemsService.GetItemDetailsAsync(userId, skipPermissionsCheck: true);
+                    if (userDetails != null)
+                    {
+                        string emailAddress = userDetails.GetDetailValue("email_address");
+                    
+                        if (data.SendEmail && !string.IsNullOrWhiteSpace(emailAddress))
+                        {
+                            Dictionary<string, string> dataDictionary = new Dictionary<string, string>();
+                            
+                            try
+                            {
+                                dataDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(data.EventData.ToString());
+                            }
+                            catch (Exception)
+                            {
+                                // TODO: Proper error logging when the deserialization of the data failed.
+                            }
+
+                            KeyValuePair<string, string> kvp = dataDictionary.FirstOrDefault(); // What is 'kvp'?
+                            await communicationsService.SendEmailAsync(receiverName: userDetails.Title, receiver: emailAddress, subject: "Agendering vanuit Coder", body: kvp.Value);
+                        }
+                    }
+                }
+            }
+
+            return new ServiceResult<bool>(true)
+            {
+                StatusCode = HttpStatusCode.NoContent
+            };
+        }
+    }
+}
